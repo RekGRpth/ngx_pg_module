@@ -1,0 +1,16 @@
+ngx_addon_name=ngx_pg_module
+
+NGX_PG_SRCS="$ngx_addon_dir/ngx_pg_module.c"
+
+if test -n "$ngx_module_link"; then
+    ngx_module_libs="-lavcall"
+    ngx_module_name=$ngx_addon_name
+    ngx_module_srcs="$NGX_PG_SRCS"
+    ngx_module_type=HTTP
+
+    . auto/module
+else
+    CORE_LIBS="$CORE_LIBS -lavcall"
+    HTTP_MODULES="$HTTP_MODULES $ngx_addon_name"
+    NGX_ADDON_SRCS="$NGX_ADDON_SRCS $NGX_PG_SRCS"
+fi

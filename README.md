@@ -1,1 +1,1 @@
-# ngx_pq_module
+# ngx_pg_module
