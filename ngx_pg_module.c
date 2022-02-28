@@ -705,11 +705,11 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
 static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *uscf) {
     ngx_pg_srv_conf_t *pscf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
     if (((pscf && pscf->peer.init_upstream) ? pscf->peer.init_upstream : ngx_http_upstream_init_round_robin)(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "peer.init_upstream != NGX_OK"); return NGX_ERROR; }
-    if (pscf) pscf->peer.init = uscf->peer.init;
-    uscf->peer.init = ngx_pg_peer_init;
+//    if (pscf) pscf->peer.init = uscf->peer.init;
+//    uscf->peer.init = ngx_pg_peer_init;
 //    pscf->peer.init = uscf->peer.init;
 //    uscf->peer.init = ngx_pg_peer_init;
-    if (!pscf) return NGX_OK;
+//    if (!pscf) return NGX_OK;
 //#if (T_NGX_HTTP_DYNAMIC_RESOLVE)
 //    queue_init(&pscf->data.queue);
 //#endif
@@ -751,8 +751,8 @@ static char *ngx_pg_conn_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
     ngx_pg_srv_conf_t *pscf = conf;
     if (pscf->connect) return "duplicate";
     ngx_http_upstream_srv_conf_t *uscf = /*pscf->upstream =*/ ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
-//    pscf->peer.init = uscf->peer.init;
-//    uscf->peer.init = ngx_pg_peer_init;
+    pscf->peer.init = uscf->peer.init;
+    uscf->peer.init = ngx_pg_peer_init;
     pscf->peer.init_upstream = uscf->peer.init_upstream;
     uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
     if (!(pscf->connect = ngx_array_create(cf->pool, 2 * (cf->args->nelts - 1), sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
@@ -797,8 +797,8 @@ static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &u, 0))) return NGX_CONF_ERROR;
     if (cf->args->nelts == 2) return NGX_CONF_OK;
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
-    //pscf->peer.init_upstream = uscf->peer.init_upstream;
     uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
+    uscf->peer.init = ngx_pg_peer_init;
 //    if (plcf->connect) return "duplicate";
 //    if (!(plcf->connect = ngx_array_create(cf->pool, 2 * (cf->args->nelts - 1), sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
 //    return ngx_pg_connect(cf, cmd, plcf->connect);
