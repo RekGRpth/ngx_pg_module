@@ -73,11 +73,25 @@ static u_char *ngx_pg_log_error_handler(ngx_log_t *log, u_char *buf, size_t len)
 ngx_module_t ngx_pg_module;
 
 typedef struct {
+    ngx_str_t key;
+    ngx_str_t val;
+} ngx_pg_connect_t;
+
+typedef struct {
+    ngx_array_t *connect;
     ngx_flag_t read_request_body;
     ngx_http_complex_value_t cv;
 //    ngx_http_complex_value_t send_buf;
     ngx_http_upstream_conf_t upstream;
 } ngx_pg_loc_conf_t;
+
+typedef struct {
+    ngx_array_t *connect;
+} ngx_pg_srv_conf_t;
+
+/*typedef struct {
+    ngx_array_t connect;
+} ngx_pg_upstream_srv_conf_t;*/
 
 static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "%s", __func__);
@@ -268,10 +282,10 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)p));
             p += sizeof(uint32_t);
             switch (*p++) {
-                case 'E': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PQTRANS_INERROR"); break;
-                case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PQTRANS_IDLE"); return NGX_OK; break;
-                case 'T': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PQTRANS_INTRANS"); break;
-                default: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PQTRANS_UNKNOWN"); break;
+                case 'E': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INERROR"); break;
+                case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_IDLE"); return NGX_OK; break;
+                case 'T': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INTRANS"); break;
+                default: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_UNKNOWN"); break;
             }
         } break;
     }
@@ -327,7 +341,6 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         } break;
         case 'S': {
         } break;
-//        case CONNECTION_BAD: ngx_postgres_log_error(NGX_LOG_ERR, s->connection->log, 0, PQerrorMessageMy(s->conn), "PQstatus == CONNECTION_BAD"); return NGX_ERROR;
     }
 //    u->pipe->input_ctx = r;
 //    u->pipe->input_filter = ngx_pg_pipe_input_filter;
@@ -473,6 +486,12 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     return ngx_pg_connect(cf, cmd, plcf->connect);
 }*/
 
+static void *ngx_pg_create_srv_conf(ngx_conf_t *cf) {
+    ngx_pg_srv_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
+    if (!conf) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "!ngx_pcalloc"); return NULL; }
+    return conf;
+}
+
 static void *ngx_pg_create_loc_conf(ngx_conf_t *cf) {
     ngx_pg_loc_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
     if (!conf) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "!ngx_pcalloc"); return NULL; }
@@ -574,11 +593,44 @@ static ngx_http_module_t ngx_pg_ctx = {
     .postconfiguration = NULL,
     .create_main_conf = NULL,
     .init_main_conf = NULL,
-    .create_srv_conf = NULL,
+    .create_srv_conf = ngx_pg_create_srv_conf,
     .merge_srv_conf = NULL,
     .create_loc_conf = ngx_pg_create_loc_conf,
     .merge_loc_conf = ngx_pg_merge_loc_conf
 };
+
+static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_array_t *array) {
+//    if (ngx_array_init(array, cf->pool, 1, sizeof(ngx_pg_connect_t)) != NGX_OK) return "ngx_array_init != NGX_OK";
+    ngx_str_t *args = cf->args->elts;
+    ngx_pg_connect_t *connect;
+    for (ngx_uint_t i = 0; i < cf->args->nelts; i++) {
+        if (!(connect = ngx_array_push(array))) return "!ngx_array_push";
+        ngx_memzero(connect, sizeof(*connect));
+        connect->key = args[i];
+        connect->val = args[i];
+//        while (connect->key.len-- && connect->key.data[connect->key.len] != '=');
+    }
+    return NGX_CONF_OK;
+}
+
+static char *ngx_pg_conn_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_srv_conf_t *pscf = conf;
+    if (pscf->connect) return "duplicate";
+//    ngx_http_upstream_srv_conf_t *uscf = /*pscf->upstream =*/ ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
+//    pscf->peer.init = uscf->peer.init;
+//    uscf->peer.init = ngx_pg_peer_init;
+//    pscf->peer.init_upstream = uscf->peer.init_upstream;
+//    uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
+    if (!(pscf->connect = ngx_array_create(cf->pool, 2 * cf->args->nelts, sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
+    return ngx_pg_connect(cf, cmd, pscf->connect);
+}
+
+static char *ngx_pg_conn_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_loc_conf_t *plcf = conf;
+    if (plcf->connect) return "duplicate";
+    if (!(plcf->connect = ngx_array_create(cf->pool, 2 * cf->args->nelts, sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
+    return ngx_pg_connect(cf, cmd, plcf->connect);
+}
 
 static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
@@ -600,6 +652,18 @@ static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 }
 
 static ngx_command_t ngx_pg_commands[] = {
+  { .name = ngx_string("pg_conn"),
+    .type = NGX_HTTP_UPS_CONF|NGX_CONF_1MORE,
+    .set = ngx_pg_conn_ups_conf,
+    .conf = NGX_HTTP_SRV_CONF_OFFSET,
+    .offset = 0,
+    .post = NULL },
+  { .name = ngx_string("pg_conn"),
+    .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE,
+    .set = ngx_pg_conn_loc_conf,
+    .conf = NGX_HTTP_SRV_CONF_OFFSET,
+    .offset = 0,
+    .post = NULL },
   { .name = ngx_string("pg_pass"),
     .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1,
     .set = ngx_pg_pass_conf,
