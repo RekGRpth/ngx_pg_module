@@ -1,5 +1,44 @@
 #include <ngx_http.h>
 
+#define PG_DIAG_COLUMN_NAME 'c'
+#define PG_DIAG_CONSTRAINT_NAME 'n'
+#define PG_DIAG_CONTEXT 'W'
+#define PG_DIAG_DATATYPE_NAME 'd'
+#define PG_DIAG_INTERNAL_POSITION 'p'
+#define PG_DIAG_INTERNAL_QUERY 'q'
+#define PG_DIAG_MESSAGE_DETAIL 'D'
+#define PG_DIAG_MESSAGE_HINT 'H'
+#define PG_DIAG_MESSAGE_PRIMARY 'M'
+#define PG_DIAG_SCHEMA_NAME 's'
+#define PG_DIAG_SEVERITY_NONLOCALIZED 'V'
+#define PG_DIAG_SEVERITY 'S'
+#define PG_DIAG_SOURCE_FILE 'F'
+#define PG_DIAG_SOURCE_FUNCTION 'R'
+#define PG_DIAG_SOURCE_LINE 'L'
+#define PG_DIAG_SQLSTATE 'C'
+#define PG_DIAG_STATEMENT_POSITION 'P'
+#define PG_DIAG_TABLE_NAME 't'
+typedef struct {
+    const u_char *column_name;
+    const u_char *constraint_name;
+    const u_char *context;
+    const u_char *datatype_name;
+    const u_char *internal_position;
+    const u_char *internal_query;
+    const u_char *message_detail;
+    const u_char *message_hint;
+    const u_char *message_primary;
+    const u_char *schema_name;
+    const u_char *severity_nonlocalized;
+    const u_char *severity;
+    const u_char *source_file;
+    const u_char *source_function;
+    const u_char *source_line;
+    const u_char *sqlstate;
+    const u_char *statement_position;
+    const u_char *table_name;
+} ngx_pg_error_t;
+
 typedef struct {
     char *message;
     ngx_log_handler_pt handler;
@@ -113,45 +152,6 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     return NGX_OK;
 }
 
-#define PG_DIAG_COLUMN_NAME 'c'
-#define PG_DIAG_CONSTRAINT_NAME 'n'
-#define PG_DIAG_CONTEXT 'W'
-#define PG_DIAG_DATATYPE_NAME 'd'
-#define PG_DIAG_INTERNAL_POSITION 'p'
-#define PG_DIAG_INTERNAL_QUERY 'q'
-#define PG_DIAG_MESSAGE_DETAIL 'D'
-#define PG_DIAG_MESSAGE_HINT 'H'
-#define PG_DIAG_MESSAGE_PRIMARY 'M'
-#define PG_DIAG_SCHEMA_NAME 's'
-#define PG_DIAG_SEVERITY_NONLOCALIZED 'V'
-#define PG_DIAG_SEVERITY 'S'
-#define PG_DIAG_SOURCE_FILE 'F'
-#define PG_DIAG_SOURCE_FUNCTION 'R'
-#define PG_DIAG_SOURCE_LINE 'L'
-#define PG_DIAG_SQLSTATE 'C'
-#define PG_DIAG_STATEMENT_POSITION 'P'
-#define PG_DIAG_TABLE_NAME 't'
-typedef struct {
-    const u_char *column_name;
-    const u_char *constraint_name;
-    const u_char *context;
-    const u_char *datatype_name;
-    const u_char *internal_position;
-    const u_char *internal_query;
-    const u_char *message_detail;
-    const u_char *message_hint;
-    const u_char *message_primary;
-    const u_char *schema_name;
-    const u_char *severity_nonlocalized;
-    const u_char *severity;
-    const u_char *source_file;
-    const u_char *source_function;
-    const u_char *source_line;
-    const u_char *sqlstate;
-    const u_char *statement_position;
-    const u_char *table_name;
-} ngx_pg_error_t;
-
 static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
@@ -203,6 +203,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 }
                 while (*p++);
             }
+            ngx_pg_log_error(NGX_LOG_ERR, r->connection->log, 0, "msg", "fmt = %s", e.message_primary);
+            return NGX_ERROR;
         } break;
 //        case CONNECTION_BAD: ngx_postgres_log_error(NGX_LOG_ERR, s->connection->log, 0, PQerrorMessageMy(s->conn), "PQstatus == CONNECTION_BAD"); return NGX_ERROR;
     }
