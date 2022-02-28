@@ -691,6 +691,8 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
     if (d->upstream) {
         if ((d->upstream->peer.init ? d->upstream->peer.init : ngx_http_upstream_init_round_robin_peer)(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
         d->connect = d->upstream->connect;
+    } else {
+        if (ngx_http_upstream_init_round_robin_peer(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
     }
     if (!d->connect) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!connect"); return NGX_ERROR; }
     ngx_http_upstream_t *u = r->upstream;
@@ -717,6 +719,8 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
     if (pscf) {
         if ((pscf->peer.init_upstream ? pscf->peer.init_upstream : ngx_http_upstream_init_round_robin)(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "peer.init_upstream != NGX_OK"); return NGX_ERROR; }
         pscf->peer.init = uscf->peer.init;
+    } else {
+        if (ngx_http_upstream_init_round_robin(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "peer.init_upstream != NGX_OK"); return NGX_ERROR; }
     }
     uscf->peer.init = ngx_pg_peer_init;
     return NGX_OK;
