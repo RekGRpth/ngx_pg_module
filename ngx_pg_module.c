@@ -131,7 +131,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     b->last += sizeof(uint32_t);
     b->last = ngx_copy(b->last, "user", sizeof("user") - 1);
     *b->last++ = (u_char)0;
-    b->last = ngx_copy(b->last, "tsst", ngx_strlen("test"));
+    b->last = ngx_copy(b->last, "test", ngx_strlen("test"));
     *b->last++ = (u_char)0;
 //    b->last = ngx_copy(b->last, "database", sizeof("database") - 1);
 //    *b->last++ = (u_char)0;
@@ -211,6 +211,12 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             p += sizeof(uint32_t);
         } break;
         case 'S': { // Parameter Status
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)p));
+            p += sizeof(uint32_t);
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "key = %s", p);
+            while (*p++);
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "val = %s", p);
+            while (*p++);
         } break;
     }
     return NGX_OK;
