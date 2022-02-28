@@ -488,13 +488,13 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
 
 static void *ngx_pg_create_srv_conf(ngx_conf_t *cf) {
     ngx_pg_srv_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
-    if (!conf) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "!ngx_pcalloc"); return NULL; }
+    if (!conf) return NULL;
     return conf;
 }
 
 static void *ngx_pg_create_loc_conf(ngx_conf_t *cf) {
     ngx_pg_loc_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
-    if (!conf) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "!ngx_pcalloc"); return NULL; }
+    if (!conf) return NULL;
     conf->read_request_body = NGX_CONF_UNSET;
     conf->upstream.buffering = NGX_CONF_UNSET;
     conf->upstream.buffer_size = NGX_CONF_UNSET_SIZE;
@@ -601,14 +601,23 @@ static ngx_http_module_t ngx_pg_ctx = {
 
 static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_array_t *array) {
 //    if (ngx_array_init(array, cf->pool, 1, sizeof(ngx_pg_connect_t)) != NGX_OK) return "ngx_array_init != NGX_OK";
-    ngx_str_t *args = cf->args->elts;
     ngx_pg_connect_t *connect;
-    for (ngx_uint_t i = 0; i < cf->args->nelts; i++) {
+    ngx_str_t *args = cf->args->elts;
+//    u_char *eq;
+    for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
+//        ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "args[%i] = %V", i, &args[i]);
         if (!(connect = ngx_array_push(array))) return "!ngx_array_push";
         ngx_memzero(connect, sizeof(*connect));
         connect->key = args[i];
+//        if (!(eq = (u_char *)strtok((char *)connect->key.data, "="))) return "Parameters in form of key=val required!";
+//        connect->key.len = ngx_strlen();
+        while (connect->key.len-- > 0 && connect->key.data[connect->key.len] != '=');
+        if (!connect->key.len) return "!key";
+        if (connect->key.len >= args[i].len - 1) return "!val";
         connect->val = args[i];
-//        while (connect->key.len-- && connect->key.data[connect->key.len] != '=');
+        connect->val.data += connect->key.len + 1;
+        connect->val.len -= connect->key.len + 1;
+        ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "%V = %V", &connect->key, &connect->val);
     }
     return NGX_CONF_OK;
 }
@@ -621,14 +630,14 @@ static char *ngx_pg_conn_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
 //    uscf->peer.init = ngx_pg_peer_init;
 //    pscf->peer.init_upstream = uscf->peer.init_upstream;
 //    uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
-    if (!(pscf->connect = ngx_array_create(cf->pool, 2 * cf->args->nelts, sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
+    if (!(pscf->connect = ngx_array_create(cf->pool, 2 * (cf->args->nelts - 1), sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
     return ngx_pg_connect(cf, cmd, pscf->connect);
 }
 
 static char *ngx_pg_conn_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->connect) return "duplicate";
-    if (!(plcf->connect = ngx_array_create(cf->pool, 2 * cf->args->nelts, sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
+    if (!(plcf->connect = ngx_array_create(cf->pool, 2 * (cf->args->nelts - 1), sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
     return ngx_pg_connect(cf, cmd, plcf->connect);
 }
 
