@@ -617,7 +617,8 @@ static ngx_http_module_t ngx_pg_ctx = {
 static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%s", __func__);
     ngx_pg_data_t *d = data;
-    ngx_int_t rc = (d->peer.get ? d->peer.get : ngx_http_upstream_get_round_robin_peer)(pc, d->peer.data);
+//    ngx_int_t rc = (d->peer.get ? d->peer.get : ngx_http_upstream_get_round_robin_peer)(pc, d->peer.data);
+    ngx_int_t rc = d->peer.get(pc, d->peer.data);
     if (rc != NGX_OK) return rc;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "rc = %i", rc);
     ngx_http_request_t *r = d->request;
