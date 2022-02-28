@@ -799,8 +799,7 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
 static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *uscf) {
     ngx_pg_srv_conf_t *pscf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
     if (((pscf && pscf->peer.init_upstream) ? pscf->peer.init_upstream : ngx_http_upstream_init_round_robin)(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "peer.init_upstream != NGX_OK"); return NGX_ERROR; }
-    /*if (pscf) */
-    pscf->peer.init = uscf->peer.init;
+    if (pscf) pscf->peer.init = uscf->peer.init;
     uscf->peer.init = ngx_pg_peer_init;
 //    pscf->peer.init = uscf->peer.init;
 //    uscf->peer.init = ngx_pg_peer_init;
@@ -854,12 +853,12 @@ static char *ngx_pg_conn_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
     return ngx_pg_connect(cf, cmd, pscf->connect);
 }
 
-static char *ngx_pg_conn_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+/*static char *ngx_pg_conn_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->connect) return "duplicate";
     if (!(plcf->connect = ngx_array_create(cf->pool, 2 * (cf->args->nelts - 1), sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
     return ngx_pg_connect(cf, cmd, plcf->connect);
-}
+}*/
 
 static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
@@ -867,20 +866,36 @@ static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_http_core_loc_conf_t *clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
     clcf->handler = ngx_pg_handler;
     if (clcf->name.data[clcf->name.len - 1] == '/') clcf->auto_redirect = 1;
-    ngx_str_t *elts = cf->args->elts;
     ngx_url_t u = {0};
-    u.url = elts[1];
     u.no_resolve = 1;
-    if (ngx_http_script_variables_count(&u.url)) {
-        ngx_http_compile_complex_value_t ccv = {cf, &u.url, &plcf->cv, 0, 0, 0};
-        if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
-        return NGX_CONF_OK;
+    if (cf->args->nelts == 2) {
+        ngx_str_t *elts = cf->args->elts;
+        u.url = elts[1];
+        if (ngx_http_script_variables_count(&u.url)) {
+            ngx_http_compile_complex_value_t ccv = {cf, &u.url, &plcf->cv, 0, 0, 0};
+            if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+            return NGX_CONF_OK;
+        }
+    } else {
+//        ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
+        //pscf->peer.init_upstream = uscf->peer.init_upstream;
+//        uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
+        if (plcf->connect) return "duplicate";
+        if (!(plcf->connect = ngx_array_create(cf->pool, 2 * (cf->args->nelts - 1), sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
+        char *rv;
+        if ((rv = ngx_pg_connect(cf, cmd, plcf->connect)) != NGX_CONF_OK) return rv;
+        ngx_pg_connect_t *elts = plcf->connect->elts;
+        for (ngx_uint_t i = 0; i < plcf->connect->nelts; i++) if (elts[i].key.len == sizeof("host") - 1 && !ngx_strncasecmp(elts[i].key.data, "host", sizeof("host") - 1)) { u.url = elts[i].val; break; }
     }
+    if (!u.url.len) return "!url";
     if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &u, 0))) return NGX_CONF_ERROR;
-    if (!plcf->connect) return NGX_CONF_OK;
+    if (cf->args->nelts == 2) return NGX_CONF_OK;
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
     //pscf->peer.init_upstream = uscf->peer.init_upstream;
     uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
+//    if (plcf->connect) return "duplicate";
+//    if (!(plcf->connect = ngx_array_create(cf->pool, 2 * (cf->args->nelts - 1), sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
+//    return ngx_pg_connect(cf, cmd, plcf->connect);
     return NGX_CONF_OK;
 }
 
@@ -891,14 +906,14 @@ static ngx_command_t ngx_pg_commands[] = {
     .conf = NGX_HTTP_SRV_CONF_OFFSET,
     .offset = 0,
     .post = NULL },
-  { .name = ngx_string("pg_conn"),
+  /*{ .name = ngx_string("pg_conn"),
     .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE,
     .set = ngx_pg_conn_loc_conf,
     .conf = NGX_HTTP_SRV_CONF_OFFSET,
     .offset = 0,
-    .post = NULL },
+    .post = NULL },*/
   { .name = ngx_string("pg_pass"),
-    .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1,
+    .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE,
     .set = ngx_pg_pass_conf,
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
     .offset = 0,
