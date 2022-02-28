@@ -105,7 +105,46 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     ngx_buf_t *b;
     ngx_chain_t *cl;
     ngx_http_upstream_t *u = r->upstream;
-    uint32_t len = sizeof(uint32_t);
+    uint32_t len = 0;
+    static const struct {
+        ngx_str_t key;
+        ngx_str_t val;
+    } o[] = {
+        { ngx_string("database"), ngx_string("test") },
+        { ngx_string("user"), ngx_string("test") },
+        { ngx_null_string, ngx_null_string },
+    };
+    if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+    if (!(cl->buf = b = ngx_create_temp_buf(r->pool, len += sizeof(len)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_create_temp_buf"); return NGX_ERROR; }
+    if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+    if (!(cl->buf = b = ngx_create_temp_buf(r->pool, len += sizeof(uint32_t)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_create_temp_buf"); return NGX_ERROR; }
+    *(uint32_t *)b->last = htonl(0x00030000);
+    b->last += sizeof(uint32_t);
+    for (ngx_uint_t i = 0; o[i].key.len; i++) {
+        if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        if (!(cl->buf = b = ngx_create_temp_buf(r->pool, len += o[i].key.len + 1 + o[i].val.len + 1))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_create_temp_buf"); return NGX_ERROR; }
+        b->last = ngx_copy(b->last, o[i].key.data, o[i].key.len);
+        *b->last++ = (u_char)0;
+        b->last = ngx_copy(b->last, o[i].val.data, o[i].val.len);
+        *b->last++ = (u_char)0;
+    }
+    if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+    if (!(cl->buf = b = ngx_create_temp_buf(r->pool, len += sizeof(u_char)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_create_temp_buf"); return NGX_ERROR; }
+    *b->last++ = (u_char)0;
+    cl->next = NULL;
+    *(uint32_t *)u->request_bufs->buf->last = htonl(len);
+    u->request_bufs->buf->last += sizeof(len);
+    ngx_uint_t i = 0;
+    for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
+        ngx_buf_t *b = cl->buf;
+        for (u_char *p = b->start; p < b->last; p++) {
+            ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
+        }
+    }
+    return NGX_OK;
+
+
+    /*uint32_t len = sizeof(uint32_t);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", len);
     len += sizeof(uint32_t);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", len);
@@ -149,7 +188,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     u->request_bufs = cl;
     cl->next = NULL;
 //    u->request_sent = 1; // force to reinit_request
-    return NGX_OK;
+    return NGX_OK;*/
 }
 
 static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
