@@ -18,7 +18,7 @@
 #define PG_DIAG_SQLSTATE 'C'
 #define PG_DIAG_STATEMENT_POSITION 'P'
 #define PG_DIAG_TABLE_NAME 't'
-typedef struct {
+/*typedef struct {
     const u_char *column_name;
     const u_char *constraint_name;
     const u_char *context;
@@ -68,7 +68,7 @@ static u_char *ngx_pg_log_error_handler(ngx_log_t *log, u_char *buf, size_t len)
     len -= p - buf;
     buf = p;
     return buf;
-}
+}*/
 
 ngx_module_t ngx_pg_module;
 
@@ -170,38 +170,31 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         case 'E': { // Error Response
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)p));
             p += sizeof(uint32_t);
-            ngx_pg_error_t e = {0};
+//            ngx_pg_error_t e = {0};
             while (p < b->last) {
                 switch (*p++) {
-                    case PG_DIAG_COLUMN_NAME: e.column_name = p; break;
-                    case PG_DIAG_CONSTRAINT_NAME: e.constraint_name = p; break;
-                    case PG_DIAG_CONTEXT: e.context = p; break;
-                    case PG_DIAG_DATATYPE_NAME: e.datatype_name = p; break;
-                    case PG_DIAG_INTERNAL_POSITION: e.internal_position = p; break;
-                    case PG_DIAG_INTERNAL_QUERY: e.internal_query = p; break;
-                    case PG_DIAG_MESSAGE_DETAIL: e.message_detail = p; break;
-                    case PG_DIAG_MESSAGE_HINT: e.message_hint = p; break;
-                    case PG_DIAG_MESSAGE_PRIMARY: e.message_primary = p; break;
-                    case PG_DIAG_SCHEMA_NAME: e.schema_name = p; break;
-                    case PG_DIAG_SEVERITY_NONLOCALIZED: e.severity_nonlocalized = p; break;
-                    case PG_DIAG_SEVERITY: e.severity = p; break;
-                    case PG_DIAG_SOURCE_FILE: e.source_file = p; break;
-                    case PG_DIAG_SOURCE_FUNCTION: e.source_function = p; break;
-                    case PG_DIAG_SOURCE_LINE: e.source_line = p; break;
-                    case PG_DIAG_SQLSTATE: e.sqlstate = p; break;
-                    case PG_DIAG_STATEMENT_POSITION: e.statement_position = p; break;
-                    case PG_DIAG_TABLE_NAME: e.table_name = p; break;
-//                    case 'C': ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SQLSTATE = %s", p); break;
-//                    case 'F': ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SOURCE_FILE = %s", p); break;
-//                    case 'L': ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SOURCE_LINE = %s", p); break;
-//                    case 'M': ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_MESSAGE_PRIMARY = %s", p); break;
-//                    case 'R': ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SOURCE_FUNCTION = %s", p); break;
-//                    case 'S': ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SEVERITY = %s", p); break;
-//                    case 'V': ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SEVERITY_NONLOCALIZED = %s", p); break;
+                    case PG_DIAG_COLUMN_NAME:ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_COLUMN_NAME = %s", p); break;
+                    case PG_DIAG_CONSTRAINT_NAME: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_CONSTRAINT_NAME = %s", p); break;
+                    case PG_DIAG_CONTEXT: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_CONTEXT = %s", p); break;
+                    case PG_DIAG_DATATYPE_NAME: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_DATATYPE_NAME = %s", p); break;
+                    case PG_DIAG_INTERNAL_POSITION: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_INTERNAL_POSITION = %s", p); break;
+                    case PG_DIAG_INTERNAL_QUERY: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_INTERNAL_QUERY = %s", p); break;
+                    case PG_DIAG_MESSAGE_DETAIL: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_MESSAGE_DETAIL = %s", p); break;
+                    case PG_DIAG_MESSAGE_HINT: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_MESSAGE_HINT = %s", p); break;
+                    case PG_DIAG_MESSAGE_PRIMARY: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_MESSAGE_PRIMARY = %s", p); break;
+                    case PG_DIAG_SCHEMA_NAME: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SCHEMA_NAME = %s", p); break;
+                    case PG_DIAG_SEVERITY_NONLOCALIZED: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SEVERITY_NONLOCALIZED = %s", p); break;
+                    case PG_DIAG_SEVERITY: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SEVERITY = %s", p); break;
+                    case PG_DIAG_SOURCE_FILE: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SOURCE_FILE = %s", p); break;
+                    case PG_DIAG_SOURCE_FUNCTION: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SOURCE_FUNCTION = %s", p); break;
+                    case PG_DIAG_SOURCE_LINE: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SQLSTATE = %s", p); break;
+                    case PG_DIAG_SQLSTATE: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SQLSTATE = %s", p); break;
+                    case PG_DIAG_STATEMENT_POSITION: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_STATEMENT_POSITION = %s", p); break;
+                    case PG_DIAG_TABLE_NAME: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_TABLE_NAME = %s", p); break;
                 }
                 while (*p++);
             }
-            ngx_pg_log_error(NGX_LOG_ERR, r->connection->log, 0, "msg", "fmt = %s", e.message_primary);
+//            ngx_pg_log_error(NGX_LOG_ERR, r->connection->log, 0, "msg", "fmt = %s", e.message_primary);
             return NGX_ERROR;
         } break;
         case 'K': { // secret key data from the backend
