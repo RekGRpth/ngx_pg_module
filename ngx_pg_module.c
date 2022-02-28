@@ -617,7 +617,7 @@ static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_array_t *arr
         connect->val = args[i];
         connect->val.data += connect->key.len + 1;
         connect->val.len -= connect->key.len + 1;
-        ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "%V = %V", &connect->key, &connect->val);
+//        ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "%V = %V", &connect->key, &connect->val);
     }
     return NGX_CONF_OK;
 }
