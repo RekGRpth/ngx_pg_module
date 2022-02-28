@@ -157,7 +157,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_http_upstream_t *u = r->upstream;
     ngx_buf_t *b = &u->buffer;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", b->last - b->start);
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%*s", b->last - b->start, b->start);
+//    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%*s", b->last - b->start, b->start);
     u_char *p = b->start + 2 * sizeof(uint32_t) + 1;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%c", *p);
     u_char id = *p;
@@ -167,12 +167,12 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", len);
     p += sizeof(uint32_t);
 //    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%c", *p);
+    for (u_char *c = b->start; c < b->last; c++) {
+        ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%c", *c, *c);
+    }
     switch (id) {
         case 'E': {
             ngx_pg_error_t e = {0};
-            for (u_char *c = p; c < b->last; c++) {
-                ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%c", *c, *c);
-            }
             while (p < b->last) {
                 switch (*p++) {
                     case PG_DIAG_COLUMN_NAME: e.column_name = p; break;
@@ -205,6 +205,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             }
             ngx_pg_log_error(NGX_LOG_ERR, r->connection->log, 0, "msg", "fmt = %s", e.message_primary);
             return NGX_ERROR;
+        } break;
+        case 'S': {
         } break;
 //        case CONNECTION_BAD: ngx_postgres_log_error(NGX_LOG_ERR, s->connection->log, 0, PQerrorMessageMy(s->conn), "PQstatus == CONNECTION_BAD"); return NGX_ERROR;
     }
