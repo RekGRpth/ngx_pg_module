@@ -792,6 +792,7 @@ static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
         for (ngx_uint_t i = 0; i < plcf->connect->nelts; i++) if (elts[i].key.len == sizeof("host") - 1 && !ngx_strncasecmp(elts[i].key.data, "host", sizeof("host") - 1)) { u.url = elts[i].val; break; }
     }
     if (!u.url.len) return "!url";
+    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &u.url);
     if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &u, 0))) return NGX_CONF_ERROR;
     if (cf->args->nelts == 2) return NGX_CONF_OK;
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
