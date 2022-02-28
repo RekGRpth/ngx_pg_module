@@ -224,7 +224,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             p += sizeof(uint32_t);
             switch (*p++) {
                 case 'E': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PQTRANS_INERROR"); break;
-                case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PQTRANS_IDLE"); break;
+                case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PQTRANS_IDLE"); return NGX_AGAIN; break;
                 case 'T': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PQTRANS_INTRANS"); break;
                 default: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PQTRANS_UNKNOWN"); break;
             }
