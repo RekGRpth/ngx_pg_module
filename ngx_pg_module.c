@@ -705,8 +705,10 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
 static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *uscf) {
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%s", __func__);
     ngx_pg_srv_conf_t *pscf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
-    if (((pscf && pscf->peer.init_upstream) ? pscf->peer.init_upstream : ngx_http_upstream_init_round_robin)(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "peer.init_upstream != NGX_OK"); return NGX_ERROR; }
-    if (pscf) pscf->peer.init = uscf->peer.init;
+    if (pscf) {
+        if ((pscf->peer.init_upstream ? pscf->peer.init_upstream : ngx_http_upstream_init_round_robin)(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "peer.init_upstream != NGX_OK"); return NGX_ERROR; }
+        pscf->peer.init = uscf->peer.init;
+    }
     uscf->peer.init = ngx_pg_peer_init;
     return NGX_OK;
 }
