@@ -85,6 +85,8 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
 }
 
 static ngx_int_t ngx_pg_pipe_output_filter(void *data, ngx_chain_t *chain) {
+    ngx_http_request_t *r = data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     return NGX_OK;
 }
 
@@ -110,7 +112,11 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
         ngx_str_t key;
         ngx_str_t val;
     } o[] = {
+        { ngx_string("application_name"), ngx_string("nginx") },
         { ngx_string("database"), ngx_string("test") },
+//        { ngx_string("fallback_application_name"), ngx_string("nginx") },
+//        { ngx_string("host"), ngx_string("postgres") },
+//        { ngx_string("port"), ngx_string("5432") },
         { ngx_string("user"), ngx_string("test") },
         { ngx_null_string, ngx_null_string },
     };
@@ -269,6 +275,10 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             }
         } break;
     }
+//    u->pipe->input_ctx = r;
+//    u->pipe->input_filter = ngx_pg_pipe_input_filter;
+//    u->pipe->output_ctx = r;
+//    u->pipe->output_filter = ngx_pg_pipe_output_filter;
     return NGX_OK;
 /*//    uint32_t len = ntohl(*(uint32_t *)p);
 //    uint32_t len = *(uint32_t *)p;
@@ -361,7 +371,7 @@ static void ngx_pg_finalize_request(ngx_http_request_t *r, ngx_int_t rc) {
 static ngx_int_t ngx_pg_input_filter_init(void *data) {
     ngx_http_request_t *r = data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    ngx_http_upstream_t *u = r->upstream;
+/*    ngx_http_upstream_t *u = r->upstream;
     if (u->headers_in.status_n == NGX_HTTP_NO_CONTENT || u->headers_in.status_n == NGX_HTTP_NOT_MODIFIED) {
         u->pipe->length = 0;
         u->length = 0;
@@ -373,14 +383,14 @@ static ngx_int_t ngx_pg_input_filter_init(void *data) {
     } else {
         u->pipe->length = u->headers_in.content_length_n;
         u->length = u->headers_in.content_length_n;
-    }
+    }*/
     return NGX_OK;
 }
 
 static ngx_int_t ngx_pg_input_filter(void *data, ssize_t bytes) {
     ngx_http_request_t   *r = data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    ngx_http_upstream_t *u = r->upstream;
+/*    ngx_http_upstream_t *u = r->upstream;
     ngx_chain_t *cl, **ll;
     for (cl = u->out_bufs, ll = &u->out_bufs; cl; cl = cl->next) ll = &cl->next;
     if (!(cl = ngx_chain_get_free_buf(r->pool, &u->free_bufs))) return NGX_ERROR;
@@ -394,7 +404,7 @@ static ngx_int_t ngx_pg_input_filter(void *data, ssize_t bytes) {
     cl->buf->tag = u->output.tag;
     if (u->length == -1) return NGX_OK;
     u->length -= bytes;
-    if (!u->length) u->keepalive = !u->headers_in.connection_close;
+    if (!u->length) u->keepalive = !u->headers_in.connection_close;*/
     return NGX_OK;
 }
 
