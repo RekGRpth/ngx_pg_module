@@ -204,6 +204,14 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             ngx_pg_log_error(NGX_LOG_ERR, r->connection->log, 0, "msg", "fmt = %s", e.message_primary);
             return NGX_ERROR;
         } break;
+        case 'K': { // secret key data from the backend
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)p));
+            p += sizeof(uint32_t);
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "pid = %i", ntohl(*(uint32_t *)p));
+            p += sizeof(uint32_t);
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "key = %i", ntohl(*(uint32_t *)p));
+            p += sizeof(uint32_t);
+        } break;
         case 'R': { // Authentication
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)p));
             p += sizeof(uint32_t);
@@ -217,6 +225,16 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             while (*p++);
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "val = %s", p);
             while (*p++);
+        } break;
+        case 'Z': { // Ready For Query
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)p));
+            p += sizeof(uint32_t);
+            switch (*p++) {
+                case 'E': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PQTRANS_INERROR"); break;
+                case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PQTRANS_IDLE"); break;
+                case 'T': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PQTRANS_INTRANS"); break;
+                default: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PQTRANS_UNKNOWN"); break;
+            }
         } break;
     }
     return NGX_OK;
