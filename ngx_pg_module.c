@@ -386,10 +386,14 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
     d->connect = plcf->connect;
     d->conf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
     if (d->conf) {
-        if ((d->conf->peer.init ? d->conf->peer.init : ngx_http_upstream_init_round_robin_peer)(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
+        if (d->conf->peer.init) {
+            if (d->conf->peer.init(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
+        } else {
+            if (ngx_http_upstream_init_round_robin_peer(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_upstream_init_round_robin_peer != NGX_OK"); return NGX_ERROR; }
+        }
         d->connect = d->conf->connect;
     } else {
-        if (ngx_http_upstream_init_round_robin_peer(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
+        if (ngx_http_upstream_init_round_robin_peer(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_upstream_init_round_robin_peer != NGX_OK"); return NGX_ERROR; }
     }
     if (!d->connect) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!connect"); return NGX_ERROR; }
     ngx_http_upstream_t *u = r->upstream;
@@ -408,30 +412,17 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "srv_conf = %s", uscf->srv_conf ? "true" : "false");
     ngx_pg_srv_conf_t *pscf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
     if (pscf) {
-        if ((pscf->peer.init_upstream ? pscf->peer.init_upstream : ngx_http_upstream_init_round_robin)(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "peer.init_upstream != NGX_OK"); return NGX_ERROR; }
+        if (pscf->peer.init_upstream) {
+            if (pscf->peer.init_upstream(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "peer.init_upstream != NGX_OK"); return NGX_ERROR; }
+        } else {
+            if (ngx_http_upstream_init_round_robin(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "ngx_http_upstream_init_round_robin != NGX_OK"); return NGX_ERROR; }
+        }
         pscf->peer.init = uscf->peer.init;
     } else {
-        if (ngx_http_upstream_init_round_robin(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "peer.init_upstream != NGX_OK"); return NGX_ERROR; }
+        if (ngx_http_upstream_init_round_robin(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "ngx_http_upstream_init_round_robin != NGX_OK"); return NGX_ERROR; }
     }
     uscf->peer.init = ngx_pg_peer_init;
     return NGX_OK;
-}
-
-static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_array_t *array, ngx_http_upstream_server_t *us) {
-    ngx_pg_connect_t *connect;
-    ngx_str_t *args = cf->args->elts;
-    for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
-        if (!(connect = ngx_array_push(array))) return "!ngx_array_push";
-        ngx_memzero(connect, sizeof(*connect));
-        connect->key = args[i];
-        while (connect->key.len-- > 0 && connect->key.data[connect->key.len] != '=');
-        if (!connect->key.len) return "!key";
-        if (connect->key.len >= args[i].len - 1) return "!val";
-        connect->val = args[i];
-        connect->val.data += connect->key.len + 1;
-        connect->val.len -= connect->key.len + 1;
-    }
-    return NGX_CONF_OK;
 }
 
 static char *ngx_pg_parse_url(ngx_conf_t *cf, ngx_str_t *url, ngx_array_t *array) {
@@ -524,37 +515,84 @@ static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     return NGX_CONF_OK;
 }
 
-/*static char *ngx_postgres_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    ngx_http_upstream_srv_conf_t *husc = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
-    ngx_postgres_upstream_srv_conf_t *pusc = conf;
-    pusc->peer.init_upstream = husc->peer.init_upstream;
-    husc->peer.init_upstream = ngx_postgres_peer_init_upstream;
-    ngx_http_upstream_server_t *hus = ngx_array_push(husc->servers);
-    if (!hus) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "\"%V\" directive error: !ngx_array_push", &cmd->name); return NGX_CONF_ERROR; }
-    ngx_memzero(hus, sizeof(*hus));
-    if (!pusc->connect.nelts && ngx_array_init(&pusc->connect, cf->pool, 1, sizeof(ngx_postgres_connect_t)) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "ngx_array_init != NGX_OK"); return NGX_CONF_ERROR; }
-    ngx_postgres_connect_t *connect = ngx_array_push(&pusc->connect);
-    if (!connect) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "\"%V\" directive error: !ngx_array_push", &cmd->name); return NGX_CONF_ERROR; }
-    ngx_memzero(connect, sizeof(*connect));
-    hus->fail_timeout = 10;
-    hus->max_fails = 1;
-    hus->weight = 1;
-    return ngx_postgres_connect_conf(cf, cmd, connect, hus);
-}*/
 static char *ngx_pg_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_srv_conf_t *pscf = conf;
     if (pscf->connect) return "duplicate";
     ngx_http_upstream_srv_conf_t *uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
     pscf->peer.init_upstream = uscf->peer.init_upstream;
     uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
+    ngx_str_t *elts = cf->args->elts;
+    ngx_str_t url = elts[1];
+    char *rv;
+    if (!(pscf->connect = ngx_array_create(cf->pool, 1, sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
+    if ((rv = ngx_pg_parse_url(cf, &url, pscf->connect)) != NGX_CONF_OK) return rv;
+    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &url);
+    ngx_url_t u = {0};
+    u.default_port = 5432;
+    u.no_resolve = 1;
+    u.url = url;
+    if (ngx_parse_url(cf->pool, &u) != NGX_OK) return u.err ? u.err : "ngx_parse_url != NGX_OK";
     ngx_http_upstream_server_t *us;
     if (!(us = ngx_array_push(uscf->servers))) return "!ngx_array_push";
     ngx_memzero(us, sizeof(*us));
-    if (!(pscf->connect = ngx_array_create(cf->pool, 1, sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
+    us->addrs = u.addrs;
     us->fail_timeout = 10;
     us->max_fails = 1;
+    us->naddrs = u.naddrs;
+    us->name = u.url;
     us->weight = 1;
-    return ngx_pg_connect(cf, cmd, pscf->connect, us);
+    for (ngx_uint_t i = 2; i < cf->args->nelts; i++) {
+        if (elts[i].len > sizeof("weight=") - 1 && !ngx_strncmp(elts[i].data, (u_char *)"weight=", sizeof("weight=") - 1)) {
+            ngx_str_t str = {
+                .len = elts[i].len - (sizeof("weight=") - 1),
+                .data = &elts[i].data[sizeof("weight=") - 1],
+            };
+            ngx_int_t n = ngx_atoi(str.data, str.len);
+            if (n == NGX_ERROR) { ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "\"%V\" directive error: \"weight\" value \"%V\" must be number", &cmd->name, &str); return NGX_CONF_ERROR; }
+            if (n <= 0) { ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "\"%V\" directive error: \"weight\" value \"%V\" must be positive", &cmd->name, &str); return NGX_CONF_ERROR; }
+            us->weight = (ngx_uint_t)n;
+            continue;
+        }
+        if (elts[i].len > sizeof("max_conns=") - 1 && !ngx_strncmp(elts[i].data, (u_char *)"max_conns=", sizeof("max_conns=") - 1)) {
+            ngx_str_t str = {
+                .len = elts[i].len - (sizeof("max_conns=") - 1),
+                .data = &elts[i].data[sizeof("max_conns=") - 1],
+            };
+            ngx_int_t n = ngx_atoi(str.data, str.len);
+            if (n == NGX_ERROR) { ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "\"%V\" directive error: \"max_conns\" value \"%V\" must be number", &cmd->name, &str); return NGX_CONF_ERROR; }
+            us->max_conns = (ngx_uint_t)n;
+            continue;
+        }
+        if (elts[i].len > sizeof("max_fails=") - 1 && !ngx_strncmp(elts[i].data, (u_char *)"max_fails=", sizeof("max_fails=") - 1)) {
+            ngx_str_t str = {
+                .len = elts[i].len - (sizeof("max_fails=") - 1),
+                .data = &elts[i].data[sizeof("max_fails=") - 1],
+            };
+            ngx_int_t n = ngx_atoi(str.data, str.len);
+            if (n == NGX_ERROR) { ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "\"%V\" directive error: \"max_fails\" value \"%V\" must be number", &cmd->name, &str); return NGX_CONF_ERROR; }
+            us->max_fails = (ngx_uint_t)n;
+            continue;
+        }
+        if (elts[i].len > sizeof("fail_timeout=") - 1 && !ngx_strncmp(elts[i].data, (u_char *)"fail_timeout=", sizeof("fail_timeout=") - 1)) {
+            ngx_str_t str = {
+                .len = elts[i].len - (sizeof("fail_timeout=") - 1),
+                .data = &elts[i].data[sizeof("fail_timeout=") - 1],
+            };
+            ngx_int_t n = ngx_parse_time(&str, 1);
+            if (n == NGX_ERROR) { ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "\"%V\" directive error: \"fail_timeout\" value \"%V\" must be time", &cmd->name, &str); return NGX_CONF_ERROR; }
+            us->fail_timeout = (time_t)n;
+            continue;
+        }
+        if (elts[i].len == sizeof("backup") - 1 && !ngx_strncmp(elts[i].data, (u_char *)"backup", sizeof("backup") - 1)) {
+            us->backup = 1;
+            continue;
+        }
+        if (elts[i].len == sizeof("down") - 1 && !ngx_strncmp(elts[i].data, (u_char *)"down", sizeof("down") - 1)) {
+            us->down = 1;
+            continue;
+        }
+    }
+    return NGX_CONF_OK;
 }
 
 static ngx_command_t ngx_pg_commands[] = {
