@@ -825,31 +825,31 @@ static char *ngx_pg_parse_url(ngx_conf_t *cf, ngx_str_t *url, ngx_array_t *array
 //    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &url);
     if ((c = ngx_strlchr(url->data, url->data + url->len, '/'))) {
 //        ngx_log_error(NGX_LOG_ERR, cf->log, 0, "c = %s", c);
-        if (!(connect = ngx_array_push(array))) return "!ngx_array_push";
-        ngx_str_set(&connect->key, "host");
-        connect->val.len = c - url->data;
-        connect->val.data = url->data;
-        host = connect->val;
+//        if (!(connect = ngx_array_push(array))) return "!ngx_array_push";
+//        ngx_str_set(&connect->key, "host");
+        host.len = c - url->data;
+        host.data = url->data;
+//        host = connect->val;
         url->len -= c - url->data + 1;
         url->data += c - url->data + 1;
-        if ((c = ngx_strlchr(connect->val.data, connect->val.data + connect->val.len, ':'))) {
+//        if ((c = ngx_strlchr(connect->val.data, connect->val.data + connect->val.len, ':'))) {
 //            ngx_log_error(NGX_LOG_ERR, cf->log, 0, "c = %p", c);
 //            ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url->data = %p", url->data);
 //            ngx_log_error(NGX_LOG_ERR, cf->log, 0, "c = %s", c);
-            connect->val.len = c - connect->val.data;
-            if (!(connect = ngx_array_push(array))) return "!ngx_array_push";
-//            ngx_memzero(connect, sizeof(*connect));
-            ngx_str_set(&connect->key, "port");
 //            connect->val.len = c - connect->val.data;
-            connect->val.len = url->data - c - 2;
-            connect->val.data = c + 1;
-        }
+//            if (!(connect = ngx_array_push(array))) return "!ngx_array_push";
+//            ngx_memzero(connect, sizeof(*connect));
+//            ngx_str_set(&connect->key, "port");
+//            connect->val.len = c - connect->val.data;
+//            connect->val.len = url->data - c - 2;
+//            connect->val.data = c + 1;
+//        }
     }
 //    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &url);
     if ((c = ngx_strlchr(url->data, url->data + url->len, '?'))) {
 //        ngx_log_error(NGX_LOG_ERR, cf->log, 0, "c = %s", c);
         if (!(connect = ngx_array_push(array))) return "!ngx_array_push";
-        ngx_str_set(&connect->key, "dbname");
+        ngx_str_set(&connect->key, "database");
         connect->val.len = c - url->data;
         connect->val.data = url->data;
         url->len -= c - url->data + 1;
