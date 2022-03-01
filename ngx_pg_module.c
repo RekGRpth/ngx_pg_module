@@ -529,7 +529,6 @@ static char *ngx_pg_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) 
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &url);
     ngx_url_t u = {0};
     u.default_port = 5432;
-    u.no_resolve = 1;
     u.url = url;
     if (ngx_parse_url(cf->pool, &u) != NGX_OK) return u.err ? u.err : "ngx_parse_url != NGX_OK";
     ngx_http_upstream_server_t *us;
