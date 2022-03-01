@@ -434,39 +434,6 @@ static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_array_t *arr
     return NGX_CONF_OK;
 }
 
-/*static char *ngx_postgres_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    ngx_http_upstream_srv_conf_t *husc = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
-    ngx_postgres_upstream_srv_conf_t *pusc = conf;
-    pusc->peer.init_upstream = husc->peer.init_upstream;
-    husc->peer.init_upstream = ngx_postgres_peer_init_upstream;
-    ngx_http_upstream_server_t *hus = ngx_array_push(husc->servers);
-    if (!hus) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "\"%V\" directive error: !ngx_array_push", &cmd->name); return NGX_CONF_ERROR; }
-    ngx_memzero(hus, sizeof(*hus));
-    if (!pusc->connect.nelts && ngx_array_init(&pusc->connect, cf->pool, 1, sizeof(ngx_postgres_connect_t)) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "ngx_array_init != NGX_OK"); return NGX_CONF_ERROR; }
-    ngx_postgres_connect_t *connect = ngx_array_push(&pusc->connect);
-    if (!connect) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "\"%V\" directive error: !ngx_array_push", &cmd->name); return NGX_CONF_ERROR; }
-    ngx_memzero(connect, sizeof(*connect));
-    hus->fail_timeout = 10;
-    hus->max_fails = 1;
-    hus->weight = 1;
-    return ngx_postgres_connect_conf(cf, cmd, connect, hus);
-}*/
-static char *ngx_pg_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    ngx_pg_srv_conf_t *pscf = conf;
-    if (pscf->connect) return "duplicate";
-    ngx_http_upstream_srv_conf_t *uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
-    pscf->peer.init_upstream = uscf->peer.init_upstream;
-    uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
-    ngx_http_upstream_server_t *us;
-    if (!(us = ngx_array_push(uscf->servers))) return "!ngx_array_push";
-    ngx_memzero(us, sizeof(*us));
-    if (!(pscf->connect = ngx_array_create(cf->pool, 1, sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
-    us->fail_timeout = 10;
-    us->max_fails = 1;
-    us->weight = 1;
-    return ngx_pg_connect(cf, cmd, pscf->connect, us);
-}
-
 static char *ngx_pg_parse_url(ngx_conf_t *cf, ngx_str_t *url, ngx_array_t *array) {
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", url);
     ngx_str_t host = ngx_string("postgres");
@@ -555,6 +522,39 @@ static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
     uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
     return NGX_CONF_OK;
+}
+
+/*static char *ngx_postgres_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_http_upstream_srv_conf_t *husc = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
+    ngx_postgres_upstream_srv_conf_t *pusc = conf;
+    pusc->peer.init_upstream = husc->peer.init_upstream;
+    husc->peer.init_upstream = ngx_postgres_peer_init_upstream;
+    ngx_http_upstream_server_t *hus = ngx_array_push(husc->servers);
+    if (!hus) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "\"%V\" directive error: !ngx_array_push", &cmd->name); return NGX_CONF_ERROR; }
+    ngx_memzero(hus, sizeof(*hus));
+    if (!pusc->connect.nelts && ngx_array_init(&pusc->connect, cf->pool, 1, sizeof(ngx_postgres_connect_t)) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "ngx_array_init != NGX_OK"); return NGX_CONF_ERROR; }
+    ngx_postgres_connect_t *connect = ngx_array_push(&pusc->connect);
+    if (!connect) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "\"%V\" directive error: !ngx_array_push", &cmd->name); return NGX_CONF_ERROR; }
+    ngx_memzero(connect, sizeof(*connect));
+    hus->fail_timeout = 10;
+    hus->max_fails = 1;
+    hus->weight = 1;
+    return ngx_postgres_connect_conf(cf, cmd, connect, hus);
+}*/
+static char *ngx_pg_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_srv_conf_t *pscf = conf;
+    if (pscf->connect) return "duplicate";
+    ngx_http_upstream_srv_conf_t *uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
+    pscf->peer.init_upstream = uscf->peer.init_upstream;
+    uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
+    ngx_http_upstream_server_t *us;
+    if (!(us = ngx_array_push(uscf->servers))) return "!ngx_array_push";
+    ngx_memzero(us, sizeof(*us));
+    if (!(pscf->connect = ngx_array_create(cf->pool, 1, sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
+    us->fail_timeout = 10;
+    us->max_fails = 1;
+    us->weight = 1;
+    return ngx_pg_connect(cf, cmd, pscf->connect, us);
 }
 
 static ngx_command_t ngx_pg_commands[] = {
