@@ -605,33 +605,6 @@ static char *ngx_pg_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) 
     return NGX_CONF_OK;
 }
 
-/*static char *ngx_pg_upstream_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->upstream.upstream || plcf->cv.value.data) return "duplicate";
-    ngx_http_core_loc_conf_t *clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
-    clcf->handler = ngx_pg_handler;
-    if (clcf->name.data[clcf->name.len - 1] == '/') clcf->auto_redirect = 1;
-    ngx_str_t *elts = cf->args->elts;
-    ngx_str_t url = elts[1];
-    if (ngx_http_script_variables_count(&url)) {
-        ngx_http_compile_complex_value_t ccv = {cf, &url, &plcf->cv, 0, 0, 0};
-        if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
-        return NGX_CONF_OK;
-    }
-//    char *rv;
-//    if (!(plcf->connect = ngx_array_create(cf->pool, 1, sizeof(ngx_pg_connect_t)))) return "!ngx_array_create";
-//    if ((rv = ngx_pg_parse_url(cf, &url, plcf->connect)) != NGX_CONF_OK) return rv;
-    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &url);
-    ngx_url_t u = {0};
-    u.default_port = 5432;
-    u.no_resolve = 1;
-    u.url = url;
-    if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &u, 0))) return NGX_CONF_ERROR;
-//    ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
-//    uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
-    return NGX_CONF_OK;
-}*/
-
 static ngx_command_t ngx_pg_commands[] = {
   { .name = ngx_string("pg_connect_timeout"),
     .type = NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
