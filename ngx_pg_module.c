@@ -337,6 +337,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     b->last += sizeof(uint32_t);
     ngx_pg_connect_t *elts = d->connect->elts;
     for (ngx_uint_t i = 0; i < d->connect->nelts; i++) {
+        ngx_log_debug2(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%V = %V", &elts[i].key, &elts[i].val);
         if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         if (!(cl->buf = b = ngx_create_temp_buf(r->pool, len += elts[i].key.len + 1 + elts[i].val.len + 1))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_temp_buf"); return NGX_ERROR; }
         b->last = ngx_copy(b->last, elts[i].key.data, elts[i].key.len);
