@@ -87,6 +87,7 @@ typedef struct {
 
 typedef struct {
     ngx_array_t *connect;
+    ngx_log_t *log;
     struct {
         ngx_http_upstream_init_peer_pt init;
         ngx_http_upstream_init_pt init_upstream;
@@ -614,6 +615,11 @@ static ngx_http_module_t ngx_pg_ctx = {
     .merge_loc_conf = ngx_pg_merge_loc_conf
 };
 
+static char *ngx_pg_log_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_srv_conf_t *pscf = conf;
+    return ngx_log_set_log(cf, &pscf->log);
+}
+
 static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%s", __func__);
     ngx_pg_data_t *d = data;
@@ -810,6 +816,12 @@ static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 }
 
 static ngx_command_t ngx_pg_commands[] = {
+  { .name = ngx_string("pg_log"),
+    .type = NGX_HTTP_UPS_CONF|NGX_CONF_1MORE,
+    .set = ngx_pg_log_conf,
+    .conf = NGX_HTTP_SRV_CONF_OFFSET,
+    .offset = 0,
+    .post = NULL },
   { .name = ngx_string("pg_server"),
     .type = NGX_HTTP_UPS_CONF|NGX_CONF_1MORE,
     .set = ngx_pg_server_ups_conf,
