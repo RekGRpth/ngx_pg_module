@@ -816,15 +816,15 @@ static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 }
 
 static ngx_command_t ngx_pg_commands[] = {
+  { .name = ngx_string("pg_connect_timeout"),
+    .type = NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+    .set = ngx_conf_set_msec_slot,
+    .conf = NGX_HTTP_LOC_CONF_OFFSET,
+    .offset = offsetof(ngx_pg_loc_conf_t, upstream.connect_timeout),
+    .post = NULL },
   { .name = ngx_string("pg_log"),
     .type = NGX_HTTP_UPS_CONF|NGX_CONF_1MORE,
     .set = ngx_pg_log_conf,
-    .conf = NGX_HTTP_SRV_CONF_OFFSET,
-    .offset = 0,
-    .post = NULL },
-  { .name = ngx_string("pg_server"),
-    .type = NGX_HTTP_UPS_CONF|NGX_CONF_1MORE,
-    .set = ngx_pg_server_ups_conf,
     .conf = NGX_HTTP_SRV_CONF_OFFSET,
     .offset = 0,
     .post = NULL },
@@ -846,11 +846,11 @@ static ngx_command_t ngx_pg_commands[] = {
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
     .offset = offsetof(ngx_pg_loc_conf_t, read_request_body),
     .post = NULL },
-  { .name = ngx_string("pg_connect_timeout"),
-    .type = NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
-    .set = ngx_conf_set_msec_slot,
-    .conf = NGX_HTTP_LOC_CONF_OFFSET,
-    .offset = offsetof(ngx_pg_loc_conf_t, upstream.connect_timeout),
+  { .name = ngx_string("pg_server"),
+    .type = NGX_HTTP_UPS_CONF|NGX_CONF_1MORE,
+    .set = ngx_pg_server_ups_conf,
+    .conf = NGX_HTTP_SRV_CONF_OFFSET,
+    .offset = 0,
     .post = NULL },
     ngx_null_command
 };
