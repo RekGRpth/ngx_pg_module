@@ -756,7 +756,7 @@ static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_array_t *arr
     return NGX_CONF_OK;
 }
 
-static char *ngx_pg_server_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+static char *ngx_pg_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_srv_conf_t *pscf = conf;
     if (pscf->connect) return "duplicate";
     ngx_http_upstream_srv_conf_t *uscf = /*pscf->upstream =*/ ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
@@ -848,7 +848,7 @@ static ngx_command_t ngx_pg_commands[] = {
     .post = NULL },
   { .name = ngx_string("pg_server"),
     .type = NGX_HTTP_UPS_CONF|NGX_CONF_1MORE,
-    .set = ngx_pg_server_ups_conf,
+    .set = ngx_pg_server_conf,
     .conf = NGX_HTTP_SRV_CONF_OFFSET,
     .offset = 0,
     .post = NULL },
