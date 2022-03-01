@@ -95,7 +95,7 @@ typedef struct {
 
 typedef struct {
     ngx_array_t *connect;
-    ngx_pg_srv_conf_t *upstream;
+    ngx_pg_srv_conf_t *conf;
     ngx_http_request_t *request;
     struct {
         ngx_event_free_peer_pt free;
@@ -688,10 +688,10 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
 //    ngx_pg_srv_conf_t *pscf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     d->connect = plcf->connect;
-    d->upstream = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
-    if (d->upstream) {
-        if ((d->upstream->peer.init ? d->upstream->peer.init : ngx_http_upstream_init_round_robin_peer)(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
-        d->connect = d->upstream->connect;
+    d->conf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
+    if (d->conf) {
+        if ((d->conf->peer.init ? d->conf->peer.init : ngx_http_upstream_init_round_robin_peer)(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
+        d->connect = d->conf->connect;
     } else {
         if (ngx_http_upstream_init_round_robin_peer(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
     }
