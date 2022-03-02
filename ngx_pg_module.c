@@ -89,8 +89,8 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
 //    *b->last++ = (u_char)0;
 
     if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
-    if (!(cl->buf = b = ngx_create_temp_buf(r->pool, len += sizeof("SELECT 1/0") - 1 + sizeof(u_char)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_create_temp_buf"); return NGX_ERROR; }
-    b->last = ngx_copy(b->last, "SELECT 1/0", sizeof("SELECT 1/0") - 1);
+    if (!(cl->buf = b = ngx_create_temp_buf(r->pool, len += sizeof("SELECT 1") - 1 + sizeof(u_char)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_create_temp_buf"); return NGX_ERROR; }
+    b->last = ngx_copy(b->last, "SELECT 1", sizeof("SELECT 1") - 1);
     *b->last++ = (u_char)0;
 
 //    if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
@@ -215,6 +215,21 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             while (*b->pos++);
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "val = %s", b->pos);
             while (*b->pos++);
+        } break;
+        case 'T': { // Row Description
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
+            b->pos += sizeof(uint32_t);
+            uint16_t count = ntohs(*(uint16_t *)b->pos);
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "count = %i", count);
+            b->pos += sizeof(uint16_t);
+            for (uint16_t i = 0; i < count; i++) {
+                ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "name = %s", b->pos);
+                while (*b->pos++);
+            }
+//            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "key = %s", b->pos);
+//            while (*b->pos++);
+//            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "val = %s", b->pos);
+//            while (*b->pos++);
         } break;
         case 'Z': { // Ready For Query
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
