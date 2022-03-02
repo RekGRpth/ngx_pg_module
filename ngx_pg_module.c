@@ -49,8 +49,9 @@ typedef struct {
 
 typedef struct {
     ngx_array_t *connect;
-    ngx_pg_srv_conf_t *conf;
+    ngx_chain_t *request_bufs;
     ngx_http_request_t *request;
+    ngx_pg_srv_conf_t *conf;
     struct {
         ngx_event_free_peer_pt free;
         ngx_event_get_peer_pt get;
@@ -73,7 +74,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     ngx_buf_t *b;
-    ngx_chain_t *cl, *cl_len, *request_bufs = u->request_bufs;
+    ngx_chain_t *cl, *cl_len;
     uint32_t len = 0;
 
     if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
@@ -91,7 +92,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     *(uint32_t *)cl_len->buf->last = htonl(len);
     cl_len->buf->last += sizeof(len);
 
-    cl->next = request_bufs;
+    cl->next = NULL;
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
@@ -417,8 +418,9 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
     ngx_buf_t *b;
-    ngx_chain_t *cl, *cl_len, *request_bufs = u->request_bufs;
+    ngx_chain_t *cl, *cl_len;
     uint32_t len = 0;
+    d->request_bufs = u->request_bufs;
 
     if (!(cl = cl_len = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
     if (!(cl->buf = b = ngx_create_temp_buf(r->pool, len += sizeof(len)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_create_temp_buf"); return NGX_ERROR; }
@@ -446,7 +448,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     *(uint32_t *)cl_len->buf->last = htonl(len);
     cl_len->buf->last += sizeof(len);
 
-    cl->next = request_bufs;
+    cl->next = NULL;
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
@@ -473,7 +475,7 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
     ngx_buf_t *b;
-    ngx_chain_t *cl, *cl_len, *request_bufs = u->request_bufs;
+    ngx_chain_t *cl, *cl_len;
     uint32_t len = 0;
 
     if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_alloc_chain_link"); goto close; }
@@ -486,7 +488,7 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     *(uint32_t *)cl_len->buf->last = htonl(len);
     cl_len->buf->last += sizeof(len);
 
-    cl->next = request_bufs;
+    cl->next = NULL;
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
