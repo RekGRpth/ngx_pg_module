@@ -166,13 +166,15 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     }
     while (b->pos < b->last) switch (*b->pos++) {
-        case 'D': { // Data Row
+        case 'D': {
+            ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Data Row");
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
 //            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "method = %i", ntohl(*(uint32_t *)b->pos));
 //            b->pos += sizeof(uint32_t);
         } break;
-        case 'E': { // Error Response
+        case 'E': {
+            ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Error Response");
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
             while (b->pos < b->last) {
@@ -200,7 +202,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             }
             return NGX_ERROR;
         } break;
-        case 'K': { // secret key data from the backend
+        case 'K': {
+            ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "secret key data from the backend");
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "pid = %i", ntohl(*(uint32_t *)b->pos));
@@ -208,13 +211,15 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "key = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
         } break;
-        case 'R': { // Authentication
+        case 'R': {
+            ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Authentication");
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "method = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
         } break;
-        case 'S': { // Parameter Status
+        case 'S': {
+            ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Parameter Status");
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "key = %s", b->pos);
@@ -222,7 +227,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "val = %s", b->pos);
             while (*b->pos++);
         } break;
-        case 'T': { // Row Description
+        case 'T': {
+            ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Row Description");
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
             uint16_t nfields = ntohs(*(uint16_t *)b->pos);
@@ -244,12 +250,9 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "format = %i", ntohs(*(uint16_t *)b->pos));
                 b->pos += sizeof(uint16_t);
             }
-//            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "key = %s", b->pos);
-//            while (*b->pos++);
-//            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "val = %s", b->pos);
-//            while (*b->pos++);
         } break;
-        case 'Z': { // Ready For Query
+        case 'Z': {
+            ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Ready For Query");
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
             switch (*b->pos++) {
