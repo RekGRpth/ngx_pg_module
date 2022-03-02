@@ -241,18 +241,21 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 case 'E': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INERROR"); break;
                 case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_IDLE"); {
                     ngx_pg_data_t *d = u->peer.data;
-                    if (!d->request_bufs) return NGX_OK;
-                    u->request_bufs = d->request_bufs;
-                    d->request_bufs = NULL;
-                    ngx_int_t rc;
-                    if ((rc = ngx_output_chain(&u->output, u->request_bufs)) == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_output_chain == NGX_ERROR"); return NGX_ERROR; }
-                    return NGX_AGAIN;
+                    if (d->request_bufs) {
+                        u->request_bufs = d->request_bufs;
+                        d->request_bufs = NULL;
+                        ngx_int_t rc;
+                        if ((rc = ngx_output_chain(&u->output, u->request_bufs)) == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_output_chain == NGX_ERROR"); return NGX_ERROR; }
+                        return NGX_AGAIN;
+                    }
                 } break;
                 case 'T': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INTRANS"); break;
                 default: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_UNKNOWN"); break;
             }
         } break;
     }
+    ngx_str_set(&r->headers_out.content_type, "text/plain");
+    r->headers_out.content_type_len = r->headers_out.content_type.len;
     return NGX_OK;
 }
 
