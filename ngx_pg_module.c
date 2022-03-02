@@ -426,6 +426,21 @@ static ngx_int_t ngx_pg_input_filter(void *data, ssize_t bytes) {
     ngx_http_request_t *r = data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", bytes);
+    ngx_http_upstream_t *u = r->upstream;
+    ngx_chain_t *cl, **ll;
+    for (cl = u->out_bufs, ll = &u->out_bufs; cl; cl = cl->next) ll = &cl->next;
+    if (!(cl = ngx_chain_get_free_buf(r->pool, &u->free_bufs))) return NGX_ERROR;
+    *ll = cl;
+    cl->buf->flush = 1;
+    cl->buf->memory = 1;
+    ngx_buf_t *b = &u->buffer;
+    cl->buf->pos = b->last;
+    b->last += bytes;
+    cl->buf->last = b->last;
+    cl->buf->tag = u->output.tag;
+    if (u->length == -1) return NGX_OK;
+    u->length -= bytes;
+    if (!u->length) u->keepalive = !u->headers_in.connection_close;
     return NGX_OK;
 }
 
