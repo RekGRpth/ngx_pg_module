@@ -281,11 +281,11 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         ngx_free_chain(r->pool, ln);
     }
     u->request_bufs = NULL;
-    ngx_buf_t *b = &u->buffer;
+    ngx_buf_t *b = &u->buffer, *buf = NULL;
 //    u->headers_in.content_length_n = b->last - b->pos;
 //    u->state->status = u->headers_in.status_n = NGX_HTTP_OK;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", b->last - b->pos);
-    return NGX_OK;
+//    return NGX_OK;
     ngx_uint_t i = 0;
     for (u_char *p = b->pos; p < b->last; p++) {
         ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
@@ -391,6 +391,10 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "format = %i", ntohs(*(uint16_t *)b->pos));
                 b->pos += sizeof(uint16_t);
             }
+            if (!(buf = ngx_create_temp_buf(r->pool, sizeof("SELECT 1") - 1))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_create_temp_buf"); return NGX_ERROR; }
+            buf->last = ngx_copy(buf->last, "SELECT 1", sizeof("SELECT 1") - 1);
+            u->headers_in.content_length_n = buf->last - buf->pos;
+            u->state->status = u->headers_in.status_n = NGX_HTTP_OK;
         } break;
         case 'Z': {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Ready For Query");
@@ -415,6 +419,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     }
 //    ngx_str_set(&r->headers_out.content_type, "text/plain");
 //    r->headers_out.content_type_len = r->headers_out.content_type.len;
+    if (buf) u->buffer = *buf;
     return NGX_OK;
 }
 
