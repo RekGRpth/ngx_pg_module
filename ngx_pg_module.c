@@ -423,8 +423,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     }
     u->headers_in.content_length_n =last - pos;
     u->state->status = u->headers_in.status_n = NGX_HTTP_OK;
-    ngx_str_set(&r->headers_out.content_type, "text/plain");
-    r->headers_out.content_type_len = r->headers_out.content_type.len;
+//    ngx_str_set(&r->headers_out.content_type, "text/plain");
+//    r->headers_out.content_type_len = r->headers_out.content_type.len;
     u->buffer.pos = pos;
     u->buffer.last = last;
     return NGX_OK;
