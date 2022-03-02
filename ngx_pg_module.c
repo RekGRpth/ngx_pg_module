@@ -265,6 +265,7 @@ static ngx_int_t ngx_pg_input_filter_init(void *data) {
 static ngx_int_t ngx_pg_input_filter(void *data, ssize_t bytes) {
     ngx_http_request_t   *r = data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", bytes);
     return NGX_OK;
 }
 
