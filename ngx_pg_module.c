@@ -161,11 +161,15 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_http_upstream_t *u = r->upstream;
     ngx_buf_t *b = &u->buffer;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", b->last - b->start);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "start = %p", b->start);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "last = %p", b->last);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "pos = %p", b->pos);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "end = %p", b->end);
     ngx_uint_t i = 0;
-    for (u_char *p = b->start; p < b->last; p++) {
+    for (u_char *p = b->pos; p < b->last; p++) {
         ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     }
-    for (u_char *p = b->start; p < b->last; ) switch (*p++) {
+    for (u_char *p = b->pos; p < b->last; ) switch (*p++) {
         case 'E': { // Error Response
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)p));
             p += sizeof(uint32_t);
