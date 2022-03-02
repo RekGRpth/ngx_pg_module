@@ -106,6 +106,14 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
 static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
+    for (ngx_list_part_t *part = &u->headers_in.headers.part; part; part = part->next) {
+        ngx_table_elt_t *elts = part->elts;
+        for (ngx_uint_t i = 0; i < part->nelts; i++) {
+            if (!elts[i].key.len) continue;
+            if (!elts[i].value.len) continue;
+            ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "elts[%i] = %V:%V", i, &elts[i].key, &elts[i].value);
+        }
+    }
     for (ngx_chain_t *cl = u->request_bufs; cl; ) {
         ngx_chain_t *ln = cl;
         cl = cl->next;
