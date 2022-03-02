@@ -726,7 +726,7 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
 
 close:;
 //    ngx_pg_data_t *d = data;
-    if (pc->connection) { /*ngx_pg_close(d->save); */pc->connection = NULL; }
+//    if (pc->connection) { /*ngx_pg_close(d->save); */pc->connection = NULL; }
     d->peer.free(pc, d->peer.data, state);
 //    d->save = NULL;
 }
