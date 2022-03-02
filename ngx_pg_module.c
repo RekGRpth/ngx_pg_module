@@ -417,8 +417,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             }
         } break;
     }
-//    ngx_str_set(&r->headers_out.content_type, "text/plain");
-//    r->headers_out.content_type_len = r->headers_out.content_type.len;
+    ngx_str_set(&r->headers_out.content_type, "text/plain");
+    r->headers_out.content_type_len = r->headers_out.content_type.len;
     if (buf) u->buffer = *buf;
     return NGX_OK;
 }
