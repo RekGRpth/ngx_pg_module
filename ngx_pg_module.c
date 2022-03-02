@@ -227,7 +227,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             }
         } break;
     }
-    return NGX_OK;
+    return NGX_AGAIN;
 }
 
 static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
