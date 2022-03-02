@@ -278,6 +278,18 @@ static ngx_int_t ngx_pg_input_filter_init(void *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%O", u->headers_in.content_length_n);
+    if (u->headers_in.status_n == NGX_HTTP_NO_CONTENT || u->headers_in.status_n == NGX_HTTP_NOT_MODIFIED) {
+        u->pipe->length = 0;
+        u->length = 0;
+        u->keepalive = !u->headers_in.connection_close;
+    } else if (u->headers_in.content_length_n == 0) {
+        u->pipe->length = 0;
+        u->length = 0;
+        u->keepalive = !u->headers_in.connection_close;
+    } else {
+        u->pipe->length = u->headers_in.content_length_n;
+        u->length = u->headers_in.content_length_n;
+    }
     return NGX_OK;
 }
 
