@@ -100,6 +100,9 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
             ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
         }
     }
+
+    u->headers_in.content_length_n = 0;
+
     return NGX_OK;
 }
 
@@ -121,7 +124,9 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     }
     u->request_bufs = NULL;
     ngx_buf_t *b = &u->buffer;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", b->last - b->pos);
+    u->headers_in.content_length_n += b->last - b->pos;
+    u->state->status = u->headers_in.status_n = NGX_HTTP_OK;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", u->headers_in.content_length_n);
     ngx_uint_t i = 0;
     for (u_char *p = b->pos; p < b->last; p++) {
         ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
@@ -176,6 +181,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 }
                 while (*b->pos++);
             }
+            u->state->status = u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
             return NGX_ERROR;
         } break;
         case 'K': {
