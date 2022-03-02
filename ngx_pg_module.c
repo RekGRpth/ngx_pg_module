@@ -166,12 +166,27 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     }
     while (b->pos < b->last) switch (*b->pos++) {
+        case 'C': {
+            ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Command Complete");
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
+            b->pos += sizeof(uint32_t);
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "command = %s", b->pos);
+            while (*b->pos++);
+        } break;
         case 'D': {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Data Row");
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
-//            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "method = %i", ntohl(*(uint32_t *)b->pos));
-//            b->pos += sizeof(uint32_t);
+            uint16_t tupnfields = ntohs(*(uint16_t *)b->pos);
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "tupnfields = %i", tupnfields);
+            b->pos += sizeof(uint16_t);
+            for (uint16_t i = 0; i < tupnfields; i++) {
+                uint32_t len = ntohl(*(uint32_t *)b->pos);
+                ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", len);
+                b->pos += sizeof(uint32_t);
+                ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "val = %*s", len, b->pos);
+                b->pos += len;
+            }
         } break;
         case 'E': {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Error Response");
