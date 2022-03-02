@@ -59,7 +59,7 @@ typedef struct {
     } peer;
 } ngx_pg_data_t;
 
-static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
+/*static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "%s", __func__);
     ngx_uint_t i = 0;
     for (u_char *c = buf->pos; c < buf->last; c++) {
@@ -190,6 +190,36 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
         } break;
     }
     return NGX_OK;
+}*/
+
+static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "%s", __func__);
+    if (buf->pos == buf->last) return NGX_OK;
+    ngx_chain_t *cl;
+    if (!(cl = ngx_chain_get_free_buf(p->pool, &p->free))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
+    ngx_buf_t *b = cl->buf;
+    ngx_memcpy(b, buf, sizeof(*b));
+    b->shadow = buf;
+    b->tag = p->tag;
+    b->last_shadow = 1;
+    b->recycled = 1;
+    buf->shadow = b;
+    ngx_log_debug1(NGX_LOG_DEBUG_EVENT, p->log, 0, "input buf #%d", b->num);
+    if (p->in) *p->last_in = cl;
+    else p->in = cl;
+    p->last_in = &cl->next;
+    if (p->length == -1) return NGX_OK;
+    p->length -= b->last - b->pos;
+    if (!p->length) {
+        ngx_http_request_t *r = p->input_ctx;
+        p->upstream_done = 1;
+        r->upstream->keepalive = !r->upstream->headers_in.connection_close;
+    } else if (p->length < 0) {
+        ngx_http_request_t *r = p->input_ctx;
+        p->upstream_done = 1;
+        ngx_log_error(NGX_LOG_WARN, r->connection->log, 0, "upstream sent more data than specified in \"Content-Length\" header");
+    }
+    return NGX_OK;
 }
 
 static ngx_int_t ngx_pg_pipe_output_filter(void *data, ngx_chain_t *chain) {
@@ -229,7 +259,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
         }
     }
 
-    u->headers_in.content_length_n = 0;
+//    u->headers_in.content_length_n = 0;
 
     return NGX_OK;
 }
@@ -237,26 +267,26 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
 static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
-    for (ngx_list_part_t *part = &u->headers_in.headers.part; part; part = part->next) {
+    /*for (ngx_list_part_t *part = &u->headers_in.headers.part; part; part = part->next) {
         ngx_table_elt_t *elts = part->elts;
         for (ngx_uint_t i = 0; i < part->nelts; i++) {
             if (!elts[i].key.len) continue;
             if (!elts[i].value.len) continue;
             ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "elts[%i] = %V:%V", i, &elts[i].key, &elts[i].value);
         }
-    }
-    /*for (ngx_chain_t *cl = u->request_bufs; cl; ) {
+    }*/
+    for (ngx_chain_t *cl = u->request_bufs; cl; ) {
         ngx_chain_t *ln = cl;
         cl = cl->next;
         ngx_free_chain(r->pool, ln);
     }
-    u->request_bufs = NULL;*/
+    u->request_bufs = NULL;
     ngx_buf_t *b = &u->buffer;
-    u->headers_in.content_length_n += b->last - b->pos;
-    u->state->status = u->headers_in.status_n = NGX_HTTP_OK;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", u->headers_in.content_length_n);
+//    u->headers_in.content_length_n = b->last - b->pos;
+//    u->state->status = u->headers_in.status_n = NGX_HTTP_OK;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", b->last - b->pos);
     return NGX_OK;
-    /*ngx_uint_t i = 0;
+    ngx_uint_t i = 0;
     for (u_char *p = b->pos; p < b->last; p++) {
         ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     }
@@ -310,7 +340,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 }
                 while (*b->pos++);
             }
-            u->state->status = u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
+//            u->state->status = u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
             return NGX_ERROR;
         } break;
         case 'K': {
@@ -383,8 +413,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             }
         } break;
     }
-    ngx_str_set(&r->headers_out.content_type, "text/plain");
-    r->headers_out.content_type_len = r->headers_out.content_type.len;*/
+//    ngx_str_set(&r->headers_out.content_type, "text/plain");
+//    r->headers_out.content_type_len = r->headers_out.content_type.len;
     return NGX_OK;
 }
 
