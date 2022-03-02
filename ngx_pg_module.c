@@ -222,11 +222,11 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_pipe_output_filter(void *data, ngx_chain_t *chain) {
+/*static ngx_int_t ngx_pg_pipe_output_filter(void *data, ngx_chain_t *chain) {
     ngx_http_request_t *r = data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     return NGX_OK;
-}
+}*/
 
 static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
@@ -500,8 +500,8 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     if (!(u->pipe = ngx_pcalloc(r->pool, sizeof(*u->pipe)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_HTTP_INTERNAL_SERVER_ERROR; }
     u->pipe->input_ctx = r;
     u->pipe->input_filter = ngx_pg_pipe_input_filter;
-    u->pipe->output_ctx = r;
-    u->pipe->output_filter = ngx_pg_pipe_output_filter;
+//    u->pipe->output_ctx = r;
+//    u->pipe->output_filter = ngx_pg_pipe_output_filter;
     u->input_filter_init = ngx_pg_input_filter_init;
     u->input_filter = ngx_pg_input_filter;
     u->input_filter_ctx = r;
