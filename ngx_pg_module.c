@@ -166,6 +166,12 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     }
     while (b->pos < b->last) switch (*b->pos++) {
+        case 'D': { // Data Row
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
+            b->pos += sizeof(uint32_t);
+//            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "method = %i", ntohl(*(uint32_t *)b->pos));
+//            b->pos += sizeof(uint32_t);
+        } break;
         case 'E': { // Error Response
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
@@ -219,12 +225,24 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         case 'T': { // Row Description
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
-            uint16_t count = ntohs(*(uint16_t *)b->pos);
-            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "count = %i", count);
+            uint16_t nfields = ntohs(*(uint16_t *)b->pos);
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "nfields = %i", nfields);
             b->pos += sizeof(uint16_t);
-            for (uint16_t i = 0; i < count; i++) {
+            for (uint16_t i = 0; i < nfields; i++) {
                 ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "name = %s", b->pos);
                 while (*b->pos++);
+                ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "tableid = %i", ntohl(*(uint32_t *)b->pos));
+                b->pos += sizeof(uint32_t);
+                ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "columnid = %i", ntohs(*(uint16_t *)b->pos));
+                b->pos += sizeof(uint16_t);
+                ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "typid = %i", ntohl(*(uint32_t *)b->pos));
+                b->pos += sizeof(uint32_t);
+                ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "typlen = %i", ntohs(*(uint16_t *)b->pos));
+                b->pos += sizeof(uint16_t);
+                ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "atttypmod = %i", ntohl(*(uint32_t *)b->pos));
+                b->pos += sizeof(uint32_t);
+                ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "format = %i", ntohs(*(uint16_t *)b->pos));
+                b->pos += sizeof(uint16_t);
             }
 //            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "key = %s", b->pos);
 //            while (*b->pos++);
