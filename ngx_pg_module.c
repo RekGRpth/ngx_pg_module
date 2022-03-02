@@ -227,6 +227,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 case 'E': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INERROR"); break;
                 case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_IDLE"); {
                     ngx_pg_data_t *d = u->peer.data;
+                    if (!d->request_bufs) return NGX_OK;
                     u->request_bufs = d->request_bufs;
                     d->request_bufs = NULL;
                     ngx_int_t rc;
@@ -238,7 +239,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             }
         } break;
     }
-    return NGX_AGAIN;
+    return NGX_OK;
 }
 
 static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
