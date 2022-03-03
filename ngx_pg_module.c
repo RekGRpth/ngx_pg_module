@@ -109,7 +109,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
-        for (u_char *p = b->start; p < b->last; p++) {
+        for (u_char *p = b->pos; p < b->last; p++) {
             ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
         }
     }
@@ -471,7 +471,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
-        for (u_char *p = b->start; p < b->last; p++) {
+        b->pos = b->start;
+        for (u_char *p = b->pos; p < b->last; p++) {
             ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%i:%i:%c", i++, *p, *p);
         }
     }
@@ -511,7 +512,7 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
-        for (u_char *p = b->start; p < b->last; p++) {
+        for (u_char *p = b->pos; p < b->last; p++) {
             ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
         }
     }
@@ -677,7 +678,7 @@ static char *ngx_pg_parse_url(ngx_conf_t *cf, ngx_command_t *cmd, void *conf, ng
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = connect; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
-        for (u_char *p = b->start; p < b->last; p++) {
+        for (u_char *p = b->pos; p < b->last; p++) {
             ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
         }
     }
