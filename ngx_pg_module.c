@@ -47,7 +47,6 @@ typedef struct {
 typedef struct {
     ngx_chain_t *request_bufs;
     ngx_http_request_t *request;
-    ngx_pg_srv_conf_t *conf;
     struct {
         ngx_event_free_peer_pt free;
         ngx_event_get_peer_pt get;
@@ -475,8 +474,10 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
     d->request_bufs = u->request_bufs;
+    ngx_http_upstream_srv_conf_t *uscf = u->conf->upstream;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    u->request_bufs = d->conf ? d->conf->connect : plcf->connect;
+    ngx_pg_srv_conf_t *pscf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
+    u->request_bufs = pscf ? pscf->connect : plcf->connect;
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
@@ -539,10 +540,10 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "srv_conf = %s", uscf->srv_conf ? "true" : "false");
     ngx_pg_data_t *d = ngx_pcalloc(r->pool, sizeof(*d));
     if (!d) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
-    d->conf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
-    if (d->conf) {
-        if (d->conf->peer.init) {
-            if (d->conf->peer.init(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
+    ngx_pg_srv_conf_t *pscf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
+    if (pscf) {
+        if (pscf->peer.init) {
+            if (pscf->peer.init(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
         } else {
             if (ngx_http_upstream_init_round_robin_peer(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_upstream_init_round_robin_peer != NGX_OK"); return NGX_ERROR; }
         }
