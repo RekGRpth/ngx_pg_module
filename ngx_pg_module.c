@@ -700,7 +700,6 @@ static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     clcf->handler = ngx_pg_handler;
     if (clcf->name.data[clcf->name.len - 1] == '/') clcf->auto_redirect = 1;
     ngx_url_t u = {0};
-    u.no_resolve = 1;
     ngx_pg_type_t type = *(ngx_pg_type_t *)cmd->post;
     if (type == type_pass) {
         char *rv;
@@ -761,7 +760,6 @@ static char *ngx_pg_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) 
     pscf->peer.init_upstream = uscf->peer.init_upstream;
     uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
     ngx_url_t u = {0};
-    u.no_resolve = 1;
     ngx_http_upstream_server_t *us;
     if (!(us = ngx_array_push(uscf->servers))) return "!ngx_array_push";
     ngx_memzero(us, sizeof(*us));
