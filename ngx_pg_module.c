@@ -28,6 +28,7 @@ typedef enum {
 
 typedef struct {
     ngx_chain_t *connect;
+    ngx_chain_t *query;
     ngx_flag_t read_request_body;
     ngx_http_upstream_conf_t upstream;
 } ngx_pg_loc_conf_t;
@@ -346,12 +347,16 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
 static void *ngx_pg_create_main_conf(ngx_conf_t *cf) {
     ngx_pg_main_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
     if (!conf) return NULL;
+    return conf;
+}
 
+static char *ngx_pg_init_main_conf(ngx_conf_t *cf, void *conf) {
+    ngx_pg_main_conf_t *pmcf = conf;
     ngx_buf_t *b;
     ngx_chain_t *cl, *cl_len;
     uint32_t len = 0;
 
-    if (!(cl = conf->disconnect = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if (!(cl = pmcf->disconnect = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
     *b->last++ = (u_char)'X';
 
@@ -363,14 +368,14 @@ static void *ngx_pg_create_main_conf(ngx_conf_t *cf) {
 
     cl->next = NULL;
     ngx_uint_t i = 0;
-    for (ngx_chain_t *cl = conf->disconnect; cl; cl = cl->next) {
+    for (ngx_chain_t *cl = pmcf->disconnect; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
         for (u_char *p = b->pos; p < b->last; p++) {
             ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
         }
     }
 
-    return conf;
+    return NGX_CONF_OK;
 }
 
 static void *ngx_pg_create_srv_conf(ngx_conf_t *cf) {
@@ -478,7 +483,7 @@ static ngx_http_module_t ngx_pg_ctx = {
     .preconfiguration = NULL,
     .postconfiguration = NULL,
     .create_main_conf = ngx_pg_create_main_conf,
-    .init_main_conf = NULL,
+    .init_main_conf = ngx_pg_init_main_conf,
     .create_srv_conf = ngx_pg_create_srv_conf,
     .merge_srv_conf = NULL,
     .create_loc_conf = ngx_pg_create_loc_conf,
@@ -728,6 +733,35 @@ static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     return NGX_CONF_OK;
 }
 
+static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_loc_conf_t *plcf = conf;
+
+    ngx_buf_t *b;
+    ngx_chain_t *cl, *cl_len;
+    uint32_t len = 0;
+
+    if (!(cl = plcf->query = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
+    *b->last++ = (u_char)'X';
+
+    if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(len)))) return "!ngx_create_temp_buf";
+
+    *(uint32_t *)cl_len->buf->last = htonl(len);
+    cl_len->buf->last += sizeof(len);
+
+    cl->next = NULL;
+    ngx_uint_t i = 0;
+    for (ngx_chain_t *cl = plcf->query; cl; cl = cl->next) {
+        ngx_buf_t *b = cl->buf;
+        for (u_char *p = b->pos; p < b->last; p++) {
+            ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
+        }
+    }
+
+    return NGX_CONF_OK;
+}
+
 static char *ngx_pg_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_srv_conf_t *pscf = conf;
     if (pscf->connect) return "duplicate";
@@ -774,6 +808,12 @@ static ngx_command_t ngx_pg_commands[] = {
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
     .offset = 0,
     .post = &(ngx_pg_type_t){type_pass} },
+  { .name = ngx_string("pg_query"),
+    .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1,
+    .set = ngx_pg_query_conf,
+    .conf = NGX_HTTP_LOC_CONF_OFFSET,
+    .offset = 0,
+    .post = NULL },
   { .name = ngx_string("pg_read_request_body"),
     .type = NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG,
     .set = ngx_conf_set_flag_slot,
