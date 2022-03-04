@@ -33,6 +33,7 @@ typedef struct {
 } ngx_pg_loc_conf_t;
 
 typedef struct {
+    ngx_chain_t *disconnect;
 } ngx_pg_main_conf_t;
 
 typedef struct {
@@ -345,6 +346,30 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
 static void *ngx_pg_create_main_conf(ngx_conf_t *cf) {
     ngx_pg_main_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
     if (!conf) return NULL;
+
+    ngx_buf_t *b;
+    ngx_chain_t *cl, *cl_len;
+    uint32_t len = 0;
+
+    if (!(cl = conf->disconnect = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
+    *b->last++ = (u_char)'X';
+
+    if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(len)))) return "!ngx_create_temp_buf";
+
+    *(uint32_t *)cl_len->buf->last = htonl(len);
+    cl_len->buf->last += sizeof(len);
+
+    cl->next = NULL;
+    ngx_uint_t i = 0;
+    for (ngx_chain_t *cl = conf->disconnect; cl; cl = cl->next) {
+        ngx_buf_t *b = cl->buf;
+        for (u_char *p = b->pos; p < b->last; p++) {
+            ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
+        }
+    }
+
     return conf;
 }
 
