@@ -705,6 +705,10 @@ static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
         char *rv;
         if (!(plcf->connect = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
         if ((rv = ngx_pg_parse_url(cf, cmd, conf, &u, plcf->connect, NULL)) != NGX_CONF_OK) return rv;
+    } else {
+        ngx_str_t *elts = cf->args->elts;
+        u.no_resolve = 1;
+        u.url = elts[1];
     }
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &u.url);
     if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &u, 0))) return NGX_CONF_ERROR;
