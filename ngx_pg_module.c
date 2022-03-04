@@ -774,7 +774,6 @@ static char *ngx_pg_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) 
     if (!(pscf->connect = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if ((rv = ngx_pg_parse_url(cf, cmd, conf, &u, pscf->connect, us)) != NGX_CONF_OK) return rv;
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &u.url);
-//    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url.len = %i", u.url.len);
     if (ngx_parse_url(cf->pool, &u) != NGX_OK) return u.err ? u.err : "ngx_parse_url != NGX_OK";
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "u.naddrs = %i", u.naddrs);
     us->addrs = u.addrs;
