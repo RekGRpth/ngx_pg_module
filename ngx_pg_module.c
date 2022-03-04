@@ -89,29 +89,13 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
 static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
-    ngx_buf_t *b;
-    ngx_chain_t *cl, *cl_len;
-    uint32_t len = 0;
+    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
+    u->request_bufs = plcf->query;
 
-    if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
-    if (!(cl->buf = b = ngx_create_temp_buf(r->pool, sizeof(u_char)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_create_temp_buf"); return NGX_ERROR; }
-    *b->last++ = (u_char)'Q';
-
-    if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
-    if (!(cl->buf = b = ngx_create_temp_buf(r->pool, len += sizeof(len)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_create_temp_buf"); return NGX_ERROR; }
-
-    if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
-    if (!(cl->buf = b = ngx_create_temp_buf(r->pool, len += sizeof("SELECT now()") - 1 + sizeof(u_char)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_create_temp_buf"); return NGX_ERROR; }
-    b->last = ngx_copy(b->last, "SELECT now()", sizeof("SELECT now()") - 1);
-    *b->last++ = (u_char)0;
-
-    *(uint32_t *)cl_len->buf->last = htonl(len);
-    cl_len->buf->last += sizeof(len);
-
-    cl->next = NULL;
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
+        b->pos = b->start;
         for (u_char *p = b->pos; p < b->last; p++) {
             ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
         }
