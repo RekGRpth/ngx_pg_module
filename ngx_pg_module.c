@@ -530,6 +530,16 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     ngx_http_request_t *r = d->request;
     ngx_pg_main_conf_t *pmcf = ngx_http_get_module_main_conf(r, ngx_pg_module);
     ngx_http_upstream_t *u = r->upstream;
+
+    ngx_uint_t i = 0;
+    for (ngx_chain_t *cl = pmcf->disconnect; cl; cl = cl->next) {
+        ngx_buf_t *b = cl->buf;
+        b->pos = b->start;
+        for (u_char *p = b->pos; p < b->last; p++) {
+            ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%i:%i:%c", i++, *p, *p);
+        }
+    }
+
     if (ngx_output_chain(&u->output, pmcf->disconnect) == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_output_chain == NGX_ERROR"); goto close; }
 
 close:;
