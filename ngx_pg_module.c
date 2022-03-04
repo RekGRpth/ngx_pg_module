@@ -33,6 +33,9 @@ typedef struct {
 } ngx_pg_loc_conf_t;
 
 typedef struct {
+} ngx_pg_main_conf_t;
+
+typedef struct {
     ngx_chain_t *connect;
     ngx_log_t *log;
     struct {
@@ -341,6 +344,12 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     return NGX_DONE;
 }
 
+static void *ngx_pg_create_main_conf(ngx_conf_t *cf) {
+    ngx_pg_main_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
+    if (!conf) return NULL;
+    return conf;
+}
+
 static void *ngx_pg_create_srv_conf(ngx_conf_t *cf) {
     ngx_pg_srv_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
     if (!conf) return NULL;
@@ -445,7 +454,7 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
 static ngx_http_module_t ngx_pg_ctx = {
     .preconfiguration = NULL,
     .postconfiguration = NULL,
-    .create_main_conf = NULL,
+    .create_main_conf = ngx_pg_create_main_conf,
     .init_main_conf = NULL,
     .create_srv_conf = ngx_pg_create_srv_conf,
     .merge_srv_conf = NULL,
