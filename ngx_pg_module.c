@@ -485,14 +485,20 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%s", __func__);
     ngx_pg_data_t *d = data;
     ngx_int_t rc = d->peer.get(pc, d->peer.data);
-    if (rc != NGX_OK) return rc;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "rc = %i", rc);
+    if (rc != NGX_OK && rc != NGX_DONE) return rc;
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
-    ngx_http_upstream_srv_conf_t *uscf = u->conf->upstream;
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    ngx_pg_srv_conf_t *pscf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
-    u->request_bufs = pscf ? pscf->connect : plcf->connect;
+    if (rc == NGX_DONE) {
+        ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
+        u->request_bufs = ctx->query;
+        ctx->query = NULL;
+    } else {
+        ngx_http_upstream_srv_conf_t *uscf = u->conf->upstream;
+        ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
+        ngx_pg_srv_conf_t *pscf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
+        u->request_bufs = pscf ? pscf->connect : plcf->connect;
+    }
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
