@@ -47,7 +47,6 @@ typedef struct {
 } ngx_pg_srv_conf_t;
 
 typedef struct {
-    ngx_chain_t *request_bufs;
     ngx_http_request_t *request;
     struct {
         ngx_event_free_peer_pt free;
@@ -88,18 +87,6 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
 
 static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    ngx_http_upstream_t *u = r->upstream;
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    u->request_bufs = plcf->query;
-
-    ngx_uint_t i = 0;
-    for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
-        ngx_buf_t *b = cl->buf;
-        b->pos = b->start;
-        for (u_char *p = b->pos; p < b->last; p++) {
-            ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
-        }
-    }
     return NGX_OK;
 }
 
@@ -223,23 +210,19 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             switch (*u->buffer.pos++) {
                 case 'E': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INERROR"); break;
                 case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_IDLE"); {
-                    ngx_pg_data_t *d = u->peer.data;
-                    if (d->request_bufs) {
-                        u->request_bufs = d->request_bufs;
-                        d->request_bufs = NULL;
+                    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
 
-                        ngx_uint_t i = 0;
-                        for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
-                            ngx_buf_t *b = cl->buf;
-                            b->pos = b->start;
-                            for (u_char *p = b->pos; p < b->last; p++) {
-                                ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
-                            }
+                    ngx_uint_t i = 0;
+                    for (ngx_chain_t *cl = plcf->query; cl; cl = cl->next) {
+                        ngx_buf_t *b = cl->buf;
+                        b->pos = b->start;
+                        for (u_char *p = b->pos; p < b->last; p++) {
+                            ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
                         }
-
-                        if (ngx_output_chain(&u->output, u->request_bufs) == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_output_chain == NGX_ERROR"); return NGX_ERROR; }
-                        return NGX_AGAIN;
                     }
+
+                    if (ngx_output_chain(&u->output, plcf->query) == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_output_chain == NGX_ERROR"); return NGX_ERROR; }
+                    return NGX_AGAIN;
                 } break;
                 case 'T': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INTRANS"); break;
                 default: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_UNKNOWN"); break;
@@ -496,7 +479,6 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "rc = %i", rc);
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
-    d->request_bufs = u->request_bufs;
     ngx_http_upstream_srv_conf_t *uscf = u->conf->upstream;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     ngx_pg_srv_conf_t *pscf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
