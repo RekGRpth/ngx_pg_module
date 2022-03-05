@@ -39,10 +39,6 @@ typedef struct {
 } ngx_pg_loc_conf_t;
 
 typedef struct {
-    ngx_chain_t *disconnect;
-} ngx_pg_main_conf_t;
-
-typedef struct {
     ngx_chain_t *connect;
     ngx_log_t *log;
     struct {
@@ -133,21 +129,6 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     if (c->read->error) { ngx_log_error(NGX_LOG_WARN, pc->log, 0, "c->read->error"); return; }
     if (c->write->error) { ngx_log_error(NGX_LOG_WARN, pc->log, 0, "c->write->error"); return; }
     if (state & NGX_PEER_FAILED && !c->read->timedout && !c->write->timedout) { ngx_log_error(NGX_LOG_WARN, pc->log, 0, "state & NGX_PEER_FAILED = %s, c->read->timedout = %s, c->write->timedout = %s", state & NGX_PEER_FAILED ? "true" : "false", c->read->timedout ? "true" : "false", c->write->timedout ? "true" : "false"); return; }
-
-    ngx_http_request_t *r = d->request;
-    ngx_pg_main_conf_t *pmcf = ngx_http_get_module_main_conf(r, ngx_pg_module);
-    ngx_http_upstream_t *u = r->upstream;
-
-    ngx_uint_t i = 0;
-    for (ngx_chain_t *cl = pmcf->disconnect; cl; cl = cl->next) {
-        ngx_buf_t *b = cl->buf;
-        b->pos = b->start;
-        for (u_char *p = b->pos; p < b->last; p++) {
-            ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%i:%i:%c", i++, *p, *p);
-        }
-    }
-
-    if (ngx_output_chain(&u->output, pmcf->disconnect) == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_output_chain == NGX_ERROR"); return; }
 }
 
 static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_conf_t *uscf) {
@@ -184,10 +165,51 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     return NGX_OK;
 }
 
+static void ngx_pg_cln_handler(void *data) {
+    ngx_connection_t *c = data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
+
+    ngx_buf_t *b;
+    ngx_chain_t *cl, *cl_len, *out, *last;
+    uint32_t len = 0;
+
+    if (!(cl = out = ngx_alloc_chain_link(c->pool))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_alloc_chain_link"); return; }
+    if (!(cl->buf = b = ngx_create_temp_buf(c->pool, sizeof(u_char)))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_create_temp_buf"); return; }
+    *b->last++ = (u_char)'X';
+
+    if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(c->pool))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_alloc_chain_link"); return; }
+    if (!(cl->buf = b = ngx_create_temp_buf(c->pool, len += sizeof(len)))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_create_temp_buf"); return; }
+
+    *(uint32_t *)cl_len->buf->last = htonl(len);
+    cl_len->buf->last += sizeof(len);
+
+    cl->next = NULL;
+    ngx_uint_t i = 0;
+    for (ngx_chain_t *cl = out; cl; cl = cl->next) {
+        ngx_buf_t *b = cl->buf;
+        for (u_char *p = b->pos; p < b->last; p++) {
+            ngx_log_debug3(NGX_LOG_DEBUG_HTTP, c->log, 0, "%i:%i:%c", i++, *p, *p);
+        }
+    }
+
+    ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
+
+    ngx_chain_writer(&ctx, NULL);
+}
+
 static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", u->buffer.last - u->buffer.pos);
+    ngx_pg_data_t *d = u->peer.data;
+    if (d->rc == NGX_OK) {
+        ngx_connection_t *c = u->peer.connection;
+        if (!(c->pool = ngx_create_pool(128, c->log))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
+        ngx_pool_cleanup_t *cln = ngx_pool_cleanup_add(c->pool, 0);
+        if (!cln) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
+        cln->handler = ngx_pg_cln_handler;
+        cln->data = c;
+    }
     ngx_uint_t i = 0;
     for (u_char *p = u->buffer.pos; p < u->buffer.last; p++) {
         ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
@@ -312,7 +334,6 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             switch (*u->buffer.pos++) {
                 case 'E': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INERROR"); break;
                 case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_IDLE"); {
-                    ngx_pg_data_t *d = u->peer.data;
                     if (d->rc == NGX_OK) rc = NGX_AGAIN;
                     d->rc = NGX_DONE;
                 } break;
@@ -409,40 +430,6 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     if (!plcf->upstream.request_buffering && plcf->upstream.pass_request_body && !r->headers_in.chunked) r->request_body_no_buffering = 1;
     if ((rc = ngx_http_read_client_request_body(r, ngx_http_upstream_init)) >= NGX_HTTP_SPECIAL_RESPONSE) return rc;
     return NGX_DONE;
-}
-
-static void *ngx_pg_create_main_conf(ngx_conf_t *cf) {
-    ngx_pg_main_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
-    if (!conf) return NULL;
-    return conf;
-}
-
-static char *ngx_pg_init_main_conf(ngx_conf_t *cf, void *conf) {
-    ngx_pg_main_conf_t *pmcf = conf;
-    ngx_buf_t *b;
-    ngx_chain_t *cl, *cl_len;
-    uint32_t len = 0;
-
-    if (!(cl = pmcf->disconnect = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
-    *b->last++ = (u_char)'X';
-
-    if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(len)))) return "!ngx_create_temp_buf";
-
-    *(uint32_t *)cl_len->buf->last = htonl(len);
-    cl_len->buf->last += sizeof(len);
-
-    cl->next = NULL;
-    ngx_uint_t i = 0;
-    for (ngx_chain_t *cl = pmcf->disconnect; cl; cl = cl->next) {
-        ngx_buf_t *b = cl->buf;
-        for (u_char *p = b->pos; p < b->last; p++) {
-            ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
-        }
-    }
-
-    return NGX_CONF_OK;
 }
 
 static void *ngx_pg_create_srv_conf(ngx_conf_t *cf) {
@@ -549,8 +536,8 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
 static ngx_http_module_t ngx_pg_ctx = {
     .preconfiguration = NULL,
     .postconfiguration = NULL,
-    .create_main_conf = ngx_pg_create_main_conf,
-    .init_main_conf = ngx_pg_init_main_conf,
+    .create_main_conf = NULL,
+    .init_main_conf = NULL,
     .create_srv_conf = ngx_pg_create_srv_conf,
     .merge_srv_conf = NULL,
     .create_loc_conf = ngx_pg_create_loc_conf,
