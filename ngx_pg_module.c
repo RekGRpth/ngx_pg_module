@@ -50,7 +50,6 @@ typedef struct {
 typedef struct {
     ngx_chain_t *connect;
     ngx_http_request_t *request;
-    ngx_int_t rc;
     ngx_pg_query_t query;
     struct {
         ngx_event_free_peer_pt free;
@@ -92,12 +91,12 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
 static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%s", __func__);
     ngx_pg_data_t *d = data;
-    d->rc = d->peer.get(pc, d->peer.data);
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "rc = %i", d->rc);
-    if (d->rc != NGX_OK && d->rc != NGX_DONE) return d->rc;
+    ngx_int_t rc = d->peer.get(pc, d->peer.data);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "rc = %i", rc);
+    if (rc != NGX_OK && rc != NGX_DONE) return rc;
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
-    if (d->rc == NGX_DONE) u->request_bufs = d->query.query; else {
+    if (rc == NGX_DONE) u->request_bufs = d->query.query; else {
         ngx_chain_t *cl;
         if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         for (ngx_chain_t *connect = d->connect; connect; connect = connect->next) {
@@ -114,7 +113,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%i:%i:%c", i++, *p, *p);
         }
     }
-    return d->rc;
+    return rc;
 }
 
 static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t state) {
@@ -201,10 +200,9 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", u->buffer.last - u->buffer.pos);
-    ngx_pg_data_t *d = u->peer.data;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", d->rc);
-    if (d->rc == NGX_OK) {
-        ngx_connection_t *c = u->peer.connection;
+    ngx_connection_t *c = u->peer.connection;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", c->requests);
+    if (c->requests == 1) {
         if (!(c->pool = ngx_create_pool(128, c->log))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
         ngx_pool_cleanup_t *cln = ngx_pool_cleanup_add(c->pool, 0);
         if (!cln) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
@@ -334,10 +332,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             u->buffer.pos += sizeof(uint32_t);
             switch (*u->buffer.pos++) {
                 case 'E': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INERROR"); break;
-                case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_IDLE"); {
-                    if (d->rc == NGX_OK) rc = NGX_AGAIN;
-                    d->rc = NGX_DONE;
-                } break;
+                case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_IDLE");  if (c->requests == 1) { rc = NGX_AGAIN; c->requests++; } break;
                 case 'T': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INTRANS"); break;
                 default: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_UNKNOWN"); break;
             }
