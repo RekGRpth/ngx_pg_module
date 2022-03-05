@@ -58,6 +58,7 @@ typedef struct {
 typedef struct {
     ngx_chain_t *connect;
     ngx_http_request_t *request;
+    ngx_int_t rc;
     struct {
         ngx_event_free_peer_pt free;
         ngx_event_get_peer_pt get;
@@ -98,13 +99,13 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
 static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%s", __func__);
     ngx_pg_data_t *d = data;
-    ngx_int_t rc = d->peer.get(pc, d->peer.data);
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "rc = %i", rc);
-    if (rc != NGX_OK && rc != NGX_DONE) return rc;
+    d->rc = d->peer.get(pc, d->peer.data);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "rc = %i", d->rc);
+    if (d->rc != NGX_OK && d->rc != NGX_DONE) return d->rc;
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
     ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
-    if (rc == NGX_OK) {
+    if (d->rc == NGX_OK) {
         ngx_chain_t *cl;
         if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         for (ngx_chain_t *connect = d->connect; connect; connect = connect->next) {
@@ -124,7 +125,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%i:%i:%c", i++, *p, *p);
         }
     }
-    return rc;
+    return d->rc;
 }
 
 static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t state) {
@@ -197,8 +198,10 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     for (u_char *p = u->buffer.pos; p < u->buffer.last; p++) {
         ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     }
-    u_char *pos = u->buffer.pos;
+    ngx_int_t rc = NGX_OK;
     u_char *last = u->buffer.last;
+    u_char *pos = u->buffer.pos;
+    u->state->status = u->headers_in.status_n = NGX_HTTP_OK;
     while (u->buffer.pos < u->buffer.last) switch (*u->buffer.pos++) {
         case 'C': {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Command Complete");
@@ -238,7 +241,12 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                     case PG_DIAG_INTERNAL_QUERY: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_INTERNAL_QUERY = %s", u->buffer.pos); break;
                     case PG_DIAG_MESSAGE_DETAIL: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_MESSAGE_DETAIL = %s", u->buffer.pos); break;
                     case PG_DIAG_MESSAGE_HINT: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_MESSAGE_HINT = %s", u->buffer.pos); break;
-                    case PG_DIAG_MESSAGE_PRIMARY: ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "%s", u->buffer.pos); break;
+                    case PG_DIAG_MESSAGE_PRIMARY: {
+                        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "%s", u->buffer.pos);
+                        pos = u->buffer.pos;
+                        while (*u->buffer.pos++);
+                        last = u->buffer.pos;
+                    } break;
                     case PG_DIAG_SCHEMA_NAME: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SCHEMA_NAME = %s", u->buffer.pos); break;
                     case PG_DIAG_SEVERITY_NONLOCALIZED: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SEVERITY_NONLOCALIZED = %s", u->buffer.pos); break;
                     case PG_DIAG_SEVERITY: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SEVERITY = %s", u->buffer.pos); break;
@@ -251,7 +259,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 }
                 while (*u->buffer.pos++);
             }
-            return NGX_ERROR;
+            u->state->status = u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
+            rc = NGX_ERROR;
         } break;
         case 'K': {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "secret key data from the backend");
@@ -319,11 +328,10 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             }
         } break;
     }
-    u->headers_in.content_length_n =last - pos;
-    u->state->status = u->headers_in.status_n = NGX_HTTP_OK;
+    u->headers_in.content_length_n = last - pos;
     u->buffer.pos = pos;
     u->buffer.last = last;
-    return NGX_OK;
+    return rc;
 }
 
 static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
