@@ -202,6 +202,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_http_upstream_t *u = r->upstream;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", u->buffer.last - u->buffer.pos);
     ngx_pg_data_t *d = u->peer.data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", d->rc);
     if (d->rc == NGX_OK) {
         ngx_connection_t *c = u->peer.connection;
         if (!(c->pool = ngx_create_pool(128, c->log))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
@@ -345,6 +346,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     u->headers_in.content_length_n = last - pos;
     u->buffer.pos = pos;
     u->buffer.last = last;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", rc);
     return rc;
 }
 
