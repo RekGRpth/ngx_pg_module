@@ -21,11 +21,6 @@
 
 ngx_module_t ngx_pg_module;
 
-typedef enum {
-    type_pass,
-    type_upstream,
-} ngx_pg_type_t;
-
 typedef struct {
     ngx_chain_t *query;
 } ngx_pg_ctx_t;
@@ -711,23 +706,14 @@ static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     clcf->handler = ngx_pg_handler;
     if (clcf->name.data[clcf->name.len - 1] == '/') clcf->auto_redirect = 1;
     ngx_url_t u = {0};
-    ngx_pg_type_t type = *(ngx_pg_type_t *)cmd->post;
-    if (type == type_pass) {
-        char *rv;
-        if (!(plcf->connect = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-        if ((rv = ngx_pg_parse_url(cf, cmd, conf, &u, plcf->connect, NULL)) != NGX_CONF_OK) return rv;
-    } else {
-        ngx_str_t *elts = cf->args->elts;
-        u.no_resolve = 1;
-        u.url = elts[1];
-    }
+    char *rv;
+    if (!(plcf->connect = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if ((rv = ngx_pg_parse_url(cf, cmd, conf, &u, plcf->connect, NULL)) != NGX_CONF_OK) return rv;
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &u.url);
     if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &u, 0))) return NGX_CONF_ERROR;
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "u.naddrs = %i", u.naddrs);
-    if (type == type_pass) {
-        ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
-        uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
-    }
+    ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
+    uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
     return NGX_CONF_OK;
 }
 
@@ -793,6 +779,22 @@ static char *ngx_pg_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) 
     return NGX_CONF_OK;
 }
 
+static char *ngx_pg_upstream_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_loc_conf_t *plcf = conf;
+    if (plcf->upstream.upstream) return "duplicate";
+    ngx_http_core_loc_conf_t *clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
+    clcf->handler = ngx_pg_handler;
+    if (clcf->name.data[clcf->name.len - 1] == '/') clcf->auto_redirect = 1;
+    ngx_url_t u = {0};
+    ngx_str_t *elts = cf->args->elts;
+    u.no_resolve = 1;
+    u.url = elts[1];
+    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &u.url);
+    if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &u, 0))) return NGX_CONF_ERROR;
+    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "u.naddrs = %i", u.naddrs);
+    return NGX_CONF_OK;
+}
+
 static ngx_command_t ngx_pg_commands[] = {
   { .name = ngx_string("pg_connect_timeout"),
     .type = NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
@@ -811,7 +813,7 @@ static ngx_command_t ngx_pg_commands[] = {
     .set = ngx_pg_pass_conf,
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
     .offset = 0,
-    .post = &(ngx_pg_type_t){type_pass} },
+    .post = NULL },
   { .name = ngx_string("pg_query"),
     .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1,
     .set = ngx_pg_query_conf,
@@ -832,10 +834,10 @@ static ngx_command_t ngx_pg_commands[] = {
     .post = NULL },
   { .name = ngx_string("pg_upstream"),
     .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1,
-    .set = ngx_pg_pass_conf,
+    .set = ngx_pg_upstream_conf,
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
     .offset = 0,
-    .post = &(ngx_pg_type_t){type_upstream} },
+    .post = NULL },
     ngx_null_command
 };
 
