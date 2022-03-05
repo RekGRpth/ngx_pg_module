@@ -555,26 +555,26 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
     return NGX_OK;
 }
 
-static void ngx_pg_srv_conf_cln_handler(void *data) {
-    ngx_pg_srv_conf_t *pscf = data;
-    ngx_log_error(NGX_LOG_ERR, pscf->log, 0, "%s", __func__);
-}
+//static void ngx_pg_srv_conf_cln_handler(void *data) {
+//    ngx_pg_srv_conf_t *pscf = data;
+//    ngx_log_error(NGX_LOG_ERR, pscf->log, 0, "%s", __func__);
+//}
 
 static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *uscf) {
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "srv_conf = %s", uscf->srv_conf ? "true" : "false");
-    ngx_pg_srv_conf_t *pscf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
-    if (pscf) {
+    if (uscf->srv_conf) {
+        ngx_pg_srv_conf_t *pscf = ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module);
         if (pscf->peer.init_upstream(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "peer.init_upstream != NGX_OK"); return NGX_ERROR; }
         pscf->peer.init = uscf->peer.init ? uscf->peer.init : ngx_http_upstream_init_round_robin_peer;
     } else {
         if (ngx_http_upstream_init_round_robin(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "ngx_http_upstream_init_round_robin != NGX_OK"); return NGX_ERROR; }
     }
     uscf->peer.init = ngx_pg_peer_init;
-    if (!pscf) return NGX_OK;
-    ngx_pool_cleanup_t *cln = ngx_pool_cleanup_add(cf->pool, 0);
-    if (!cln) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
-    cln->handler = ngx_pg_srv_conf_cln_handler;
-    cln->data = pscf;
+//    if (!pscf) return NGX_OK;
+//    ngx_pool_cleanup_t *cln = ngx_pool_cleanup_add(cf->pool, 0);
+//    if (!cln) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
+//    cln->handler = ngx_pg_srv_conf_cln_handler;
+//    cln->data = pscf;
     return NGX_OK;
 }
 
