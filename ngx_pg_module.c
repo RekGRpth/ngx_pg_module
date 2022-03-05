@@ -214,8 +214,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     }
     ngx_int_t rc = NGX_OK;
-    u_char *last = u->buffer.last;
-    u_char *pos = u->buffer.pos;
+    u_char *last = NULL;
+    u_char *pos = NULL;
     u->state->status = u->headers_in.status_n = NGX_HTTP_OK;
     while (u->buffer.pos < u->buffer.last) switch (*u->buffer.pos++) {
         case 'C': {
@@ -339,8 +339,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         } break;
     }
     u->headers_in.content_length_n = last - pos;
-    u->buffer.pos = pos;
-    u->buffer.last = last;
+    if (last) u->buffer.last = last;
+    if (pos) u->buffer.pos = pos;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", rc);
     return rc;
 }
