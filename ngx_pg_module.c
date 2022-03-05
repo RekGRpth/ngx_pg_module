@@ -261,7 +261,7 @@ static ngx_int_t ngx_pg_input_filter_init(void *data) {
         u->pipe->length = 0;
         u->length = 0;
         u->keepalive = !u->headers_in.connection_close;
-    } else if (u->headers_in.content_length_n == 0) {
+    } else if (!u->headers_in.content_length_n) {
         u->pipe->length = 0;
         u->length = 0;
         u->keepalive = !u->headers_in.connection_close;
