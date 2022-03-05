@@ -555,6 +555,7 @@ static char *ngx_pg_parse_url(ngx_conf_t *cf, ngx_command_t *cmd, void *conf, ng
     ngx_chain_t *cl = connect;
     uint32_t len = 0;
 
+    ngx_str_t application_name = ngx_string("nginx");
     ngx_str_set(&u->url, "unix:///run/postgresql");
     u->default_port = 5432;
 
@@ -618,6 +619,14 @@ static char *ngx_pg_parse_url(ngx_conf_t *cf, ngx_command_t *cmd, void *conf, ng
                 continue;
             }
         }
+        if (elts[i].len > sizeof("application_name=") - 1 && !ngx_strncmp(elts[i].data, (u_char *)"application_name=", sizeof("application_name=") - 1)) {
+            ngx_str_t str = {
+                .len = elts[i].len - (sizeof("application_name=") - 1),
+                .data = &elts[i].data[sizeof("application_name=") - 1],
+            };
+            application_name = str;
+            continue;
+        }
         if (elts[i].len > sizeof("host=") - 1 && !ngx_strncmp(elts[i].data, (u_char *)"host=", sizeof("host=") - 1)) {
             ngx_str_t str = {
                 .len = elts[i].len - (sizeof("host=") - 1),
@@ -638,10 +647,17 @@ static char *ngx_pg_parse_url(ngx_conf_t *cf, ngx_command_t *cmd, void *conf, ng
             continue;
         }
         if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-        if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += elts[i].len + 1))) return "!ngx_create_temp_buf";
+        if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += elts[i].len + sizeof(u_char)))) return "!ngx_create_temp_buf";
         for (ngx_uint_t j = 0; j < elts[i].len; j++) *b->last++ = elts[i].data[j] == '=' ? (u_char)0 : elts[i].data[j];
         *b->last++ = (u_char)0;
     }
+
+    if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof("application_name") - 1 + sizeof(u_char) + application_name.len + sizeof(u_char)))) return "!ngx_create_temp_buf";
+    b->last = ngx_copy(b->last, "application_name", sizeof("application_name") - 1);
+    *b->last++ = (u_char)0;
+    b->last = ngx_copy(b->last, application_name.data, application_name.len);
+    *b->last++ = (u_char)0;
 
     if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(u_char)))) return "!ngx_create_temp_buf";
