@@ -23,13 +23,17 @@ ngx_module_t ngx_pg_module;
 
 typedef struct {
     ngx_chain_t *query;
+} ngx_pg_query_t;
+
+typedef struct {
+    ngx_pg_query_t query;
 } ngx_pg_ctx_t;
 
 typedef struct {
     ngx_chain_t *connect;
-    ngx_chain_t *query;
     ngx_flag_t read_request_body;
     ngx_http_upstream_conf_t upstream;
+    ngx_pg_query_t query;
 } ngx_pg_loc_conf_t;
 
 typedef struct {
@@ -95,8 +99,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_http_upstream_t *u = r->upstream;
     if (rc == NGX_OK) u->request_bufs = d->connect; else {
         ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
-        u->request_bufs = ctx->query;
-        ctx->query = NULL;
+        u->request_bufs = ctx->query.query;
+        ctx->query.query = NULL;
     }
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
@@ -292,10 +296,10 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 case 'E': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INERROR"); break;
                 case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_IDLE"); {
                     ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
-                    if (!ctx->query) break;
+                    if (!ctx->query.query) break;
 
                     ngx_uint_t i = 0;
-                    for (ngx_chain_t *cl = ctx->query; cl; cl = cl->next) {
+                    for (ngx_chain_t *cl = ctx->query.query; cl; cl = cl->next) {
                         ngx_buf_t *b = cl->buf;
                         b->pos = b->start;
                         for (u_char *p = b->pos; p < b->last; p++) {
@@ -303,8 +307,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                         }
                     }
 
-                    if (ngx_output_chain(&u->output, ctx->query) == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_output_chain == NGX_ERROR"); return NGX_ERROR; }
-                    ctx->query = NULL;
+                    if (ngx_output_chain(&u->output, ctx->query.query) == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_output_chain == NGX_ERROR"); return NGX_ERROR; }
+                    ctx->query.query = NULL;
                     return NGX_AGAIN;
                 } break;
                 case 'T': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INTRANS"); break;
@@ -718,15 +722,15 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_chain_t *cl, *cl_len;
     uint32_t len = 0;
 
-    if (!(cl = plcf->query = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    ngx_str_t *elts = cf->args->elts;
+    ngx_str_t query = elts[1];
+
+    if (!(cl = plcf->query.query = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
     *b->last++ = (u_char)'Q';
 
     if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(len)))) return "!ngx_create_temp_buf";
-
-    ngx_str_t *elts = cf->args->elts;
-    ngx_str_t query = elts[1];
 
     if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += query.len + sizeof(u_char)))) return "!ngx_create_temp_buf";
@@ -738,7 +742,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 
     cl->next = NULL;
     ngx_uint_t i = 0;
-    for (ngx_chain_t *cl = plcf->query; cl; cl = cl->next) {
+    for (ngx_chain_t *cl = plcf->query.query; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
         for (u_char *p = b->pos; p < b->last; p++) {
             ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
@@ -809,7 +813,7 @@ static ngx_command_t ngx_pg_commands[] = {
     .offset = 0,
     .post = NULL },
   { .name = ngx_string("pg_query"),
-    .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1,
+    .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE,
     .set = ngx_pg_query_conf,
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
     .offset = 0,
