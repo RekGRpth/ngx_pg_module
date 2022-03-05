@@ -191,7 +191,6 @@ static void ngx_pg_cln_handler(void *data) {
 static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
-    u->keepalive = !u->headers_in.connection_close;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", u->buffer.last - u->buffer.pos);
     ngx_connection_t *c = u->peer.connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", c->requests);
@@ -209,7 +208,6 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_int_t rc = NGX_OK;
     u_char *last = NULL;
     u_char *pos = NULL;
-    u->state->status = u->headers_in.status_n = NGX_HTTP_OK;
     while (u->buffer.pos < u->buffer.last) switch (*u->buffer.pos++) {
         case 'C': {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Command Complete");
@@ -262,6 +260,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 }
                 while (*u->buffer.pos++);
             }
+            if (c->requests > 1) u->keepalive = !u->headers_in.connection_close;
             rc = NGX_ERROR;
         } break;
         case 'K': {
@@ -319,7 +318,12 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             u->buffer.pos += sizeof(uint32_t);
             switch (*u->buffer.pos++) {
                 case 'E': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INERROR"); break;
-                case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_IDLE");  if (c->requests == 1) { rc = NGX_AGAIN; c->requests++; } break;
+                case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_IDLE");
+                    if (c->requests > 1) u->keepalive = !u->headers_in.connection_close; else {
+                        c->requests++;
+                        rc = NGX_AGAIN;
+                    }
+                    break;
                 case 'T': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INTRANS"); break;
                 default: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_UNKNOWN"); break;
             }
