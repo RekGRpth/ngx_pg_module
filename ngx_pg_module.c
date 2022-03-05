@@ -103,8 +103,16 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     if (rc != NGX_OK && rc != NGX_DONE) return rc;
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
-    if (rc == NGX_OK) u->request_bufs = d->connect; else {
-        ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
+    ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
+    if (rc == NGX_OK) {
+        ngx_chain_t *cl;
+        if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        for (ngx_chain_t *connect = d->connect; connect; connect = connect->next) {
+            if (connect != d->connect && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+            cl->buf = connect->buf;
+        }
+        cl->next = ctx->query.query;
+    } else {
         u->request_bufs = ctx->query.query;
         ctx->query.query = NULL;
     }
@@ -303,17 +311,6 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_IDLE"); {
                     ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
                     if (!ctx->query.query) break;
-
-                    ngx_uint_t i = 0;
-                    for (ngx_chain_t *cl = ctx->query.query; cl; cl = cl->next) {
-                        ngx_buf_t *b = cl->buf;
-                        b->pos = b->start;
-                        for (u_char *p = b->pos; p < b->last; p++) {
-                            ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
-                        }
-                    }
-
-                    if (ngx_output_chain(&u->output, ctx->query.query) == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_output_chain == NGX_ERROR"); return NGX_ERROR; }
                     ctx->query.query = NULL;
                     return NGX_AGAIN;
                 } break;
