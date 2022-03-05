@@ -32,10 +32,6 @@ typedef struct {
 } ngx_pg_query_t;
 
 typedef struct {
-    ngx_pg_query_t query;
-} ngx_pg_ctx_t;
-
-typedef struct {
     ngx_chain_t *connect;
     ngx_flag_t read_request_body;
     ngx_http_upstream_conf_t upstream;
@@ -59,6 +55,7 @@ typedef struct {
     ngx_chain_t *connect;
     ngx_http_request_t *request;
     ngx_int_t rc;
+    ngx_pg_query_t query;
     struct {
         ngx_event_free_peer_pt free;
         ngx_event_get_peer_pt get;
@@ -104,18 +101,14 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     if (d->rc != NGX_OK && d->rc != NGX_DONE) return d->rc;
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
-    ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
-    if (d->rc == NGX_OK) {
+    if (d->rc == NGX_DONE) u->request_bufs = d->query.query; else {
         ngx_chain_t *cl;
         if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         for (ngx_chain_t *connect = d->connect; connect; connect = connect->next) {
             if (connect != d->connect && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
             cl->buf = connect->buf;
         }
-        cl->next = ctx->query.query;
-    } else {
-        u->request_bufs = ctx->query.query;
-        ctx->query.query = NULL;
+        cl->next = d->query.query;
     }
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
@@ -161,13 +154,14 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "srv_conf = %s", uscf->srv_conf ? "true" : "false");
     ngx_pg_data_t *d = ngx_pcalloc(r->pool, sizeof(*d));
     if (!d) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
+    d->query = plcf->query;
     if (uscf->srv_conf) {
         ngx_pg_srv_conf_t *pscf = ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module);
         if (pscf->peer.init(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
         d->connect = pscf->connect;
     } else {
         if (ngx_http_upstream_init_round_robin_peer(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_upstream_init_round_robin_peer != NGX_OK"); return NGX_ERROR; }
-        ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
         d->connect = plcf->connect;
     }
     ngx_http_upstream_t *u = r->upstream;
@@ -392,10 +386,6 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_int_t rc;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    ngx_pg_ctx_t *ctx;
-    if (!(ctx = ngx_pcalloc(r->pool, sizeof(*ctx)))) return NGX_HTTP_INTERNAL_SERVER_ERROR;
-    ngx_http_set_ctx(r, ctx, ngx_pg_module);
-    ctx->query = plcf->query;
     if (!plcf->read_request_body && (rc = ngx_http_discard_request_body(r)) != NGX_OK) return rc;
     if (ngx_http_set_content_type(r) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_set_content_type != NGX_OK"); return NGX_HTTP_INTERNAL_SERVER_ERROR; }
     if (ngx_http_upstream_create(r) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_upstream_create != NGX_OK"); return NGX_HTTP_INTERNAL_SERVER_ERROR; }
