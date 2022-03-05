@@ -318,10 +318,9 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             switch (*u->buffer.pos++) {
                 case 'E': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INERROR"); break;
                 case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_IDLE"); {
-                    ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
-                    if (!ctx->query.query) break;
-                    ctx->query.query = NULL;
-                    return NGX_AGAIN;
+                    ngx_pg_data_t *d = u->peer.data;
+                    if (d->rc == NGX_OK) rc = NGX_AGAIN;
+                    d->rc = NGX_DONE;
                 } break;
                 case 'T': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_INTRANS"); break;
                 default: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_UNKNOWN"); break;
