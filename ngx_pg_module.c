@@ -485,15 +485,10 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     if (rc != NGX_OK && rc != NGX_DONE) return rc;
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
-    if (rc == NGX_DONE) {
+    if (rc == NGX_OK) u->request_bufs = d->connect; else {
         ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
         u->request_bufs = ctx->query;
         ctx->query = NULL;
-    } else {
-        ngx_http_upstream_srv_conf_t *uscf = u->conf->upstream;
-        ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-        ngx_pg_srv_conf_t *pscf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
-        u->request_bufs = pscf ? pscf->connect : plcf->connect;
     }
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
@@ -542,8 +537,11 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
     ngx_pg_srv_conf_t *pscf = uscf->srv_conf ? ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module) : NULL;
     if (pscf) {
         if (pscf->peer.init(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
+        d->connect = pscf->connect;
     } else {
         if (ngx_http_upstream_init_round_robin_peer(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_upstream_init_round_robin_peer != NGX_OK"); return NGX_ERROR; }
+        ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
+        d->connect = plcf->connect;
     }
     ngx_http_upstream_t *u = r->upstream;
     u->conf->upstream = uscf;
