@@ -45,8 +45,8 @@ typedef struct {
 } ngx_pg_loc_conf_t;
 
 typedef struct {
+    ngx_array_t connect;
     ngx_log_t *log;
-    ngx_pg_connect_t connect;
     struct {
         ngx_http_upstream_init_peer_pt init;
         ngx_http_upstream_init_pt init_upstream;
@@ -108,7 +108,14 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         ngx_chain_t *cl;
         ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
         ngx_pg_srv_conf_t *pscf = d->conf;
-        ngx_pg_connect_t *connect_ = pscf ? &pscf->connect : &plcf->connect;
+        ngx_pg_connect_t *connect_;
+        if (!pscf) connect_ = &plcf->connect; else {
+            connect_ = pscf->connect.elts;
+            ngx_uint_t i;
+            for (i = 0; i < pscf->connect.nelts; i++) for (ngx_uint_t j = 0; j < connect_[i].url.naddrs; j++) if (!ngx_memn2cmp((u_char *)pc->sockaddr, (u_char *)connect_[i].url.addrs[j].sockaddr, pc->socklen, connect_[i].url.addrs[j].socklen)) { connect_ = &connect_[i]; goto found; }
+found:
+            if (i == pscf->connect.nelts) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "connect not found"); return NGX_BUSY; }
+        }
         if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         for (ngx_chain_t *connect = connect_->cl; connect; connect = connect->next) {
             if (connect != connect_->cl && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
@@ -871,24 +878,27 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 
 static char *ngx_pg_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_srv_conf_t *pscf = conf;
-    if (pscf->connect.cl) return "duplicate";
     ngx_http_upstream_srv_conf_t *uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
     pscf->peer.init_upstream = uscf->peer.init_upstream ? uscf->peer.init_upstream : ngx_http_upstream_init_round_robin;
     uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
-    if (!(pscf->connect.us = ngx_array_push(uscf->servers))) return "!ngx_array_push";
-    ngx_memzero(pscf->connect.us, sizeof(*pscf->connect.us));
-    pscf->connect.us->fail_timeout = 10;
-    pscf->connect.us->max_fails = 1;
-    pscf->connect.us->weight = 1;
+    ngx_pg_connect_t *connect;
+    if (!pscf->connect.nelts && ngx_array_init(&pscf->connect, cf->pool, 1, sizeof(*connect)) != NGX_OK) return "ngx_array_init != NGX_OK";    ;
+    if (!(connect = ngx_array_push(&pscf->connect))) return "!ngx_array_push";
+    ngx_memzero(connect, sizeof(*connect));
+    if (!(connect->us = ngx_array_push(uscf->servers))) return "!ngx_array_push";
+    ngx_memzero(connect->us, sizeof(*connect->us));
+    connect->us->fail_timeout = 10;
+    connect->us->max_fails = 1;
+    connect->us->weight = 1;
     char *rv;
-    if (!(pscf->connect.cl = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if ((rv = ngx_pg_parse_url(cf, cmd, &pscf->connect)) != NGX_CONF_OK) return rv;
-    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &pscf->connect.url.url);
-    if (ngx_parse_url(cf->pool, &pscf->connect.url) != NGX_OK) return pscf->connect.url.err ? pscf->connect.url.err : "ngx_parse_url != NGX_OK";
-    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "naddrs = %i", pscf->connect.url.naddrs);
-    pscf->connect.us->addrs = pscf->connect.url.addrs;
-    pscf->connect.us->naddrs = pscf->connect.url.naddrs;
-    pscf->connect.us->name = pscf->connect.url.url;
+    if (!(connect->cl = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if ((rv = ngx_pg_parse_url(cf, cmd, connect)) != NGX_CONF_OK) return rv;
+    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &connect->url.url);
+    if (ngx_parse_url(cf->pool, &connect->url) != NGX_OK) return connect->url.err ? connect->url.err : "ngx_parse_url != NGX_OK";
+    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "naddrs = %i", connect->url.naddrs);
+    connect->us->addrs = connect->url.addrs;
+    connect->us->naddrs = connect->url.naddrs;
+    connect->us->name = connect->url.url;
     return NGX_CONF_OK;
 }
 
