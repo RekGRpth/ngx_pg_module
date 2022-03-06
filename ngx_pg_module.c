@@ -105,12 +105,13 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
     if (c) u->request_bufs = d->query.query; else {
+        ngx_chain_t *cl;
         ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
         ngx_pg_srv_conf_t *pscf = d->conf;
-        ngx_chain_t *cl;
+        ngx_pg_connect_t *connect_ = pscf ? &pscf->connect : &plcf->connect;
         if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
-        for (ngx_chain_t *connect = pscf ? pscf->connect.cl : plcf->connect.cl; connect; connect = connect->next) {
-            if (connect != (pscf ? pscf->connect.cl : plcf->connect.cl) && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        for (ngx_chain_t *connect = connect_->cl; connect; connect = connect->next) {
+            if (connect != connect_->cl && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
             cl->buf = connect->buf;
         }
         cl->next = d->query.query;
