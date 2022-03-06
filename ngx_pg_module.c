@@ -48,7 +48,6 @@ typedef struct {
 } ngx_pg_srv_conf_t;
 
 typedef struct {
-    ngx_chain_t *connect;
     ngx_http_request_t *request;
     ngx_pg_query_t query;
     ngx_pg_srv_conf_t *conf;
@@ -100,10 +99,12 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
     if (c) u->request_bufs = d->query.query; else {
+        ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
+        ngx_pg_srv_conf_t *pscf = d->conf;
         ngx_chain_t *cl;
         if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
-        for (ngx_chain_t *connect = d->connect; connect; connect = connect->next) {
-            if (connect != d->connect && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        for (ngx_chain_t *connect = pscf ? pscf->connect : plcf->connect; connect; connect = connect->next) {
+            if (connect != (pscf ? pscf->connect : plcf->connect) && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
             cl->buf = connect->buf;
         }
         cl->next = d->query.query;
@@ -144,10 +145,8 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
         ngx_pg_srv_conf_t *pscf = ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module);
         if (pscf->peer.init(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
         d->conf = pscf;
-        d->connect = pscf->connect;
     } else {
         if (ngx_http_upstream_init_round_robin_peer(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_upstream_init_round_robin_peer != NGX_OK"); return NGX_ERROR; }
-        d->connect = plcf->connect;
     }
     ngx_http_upstream_t *u = r->upstream;
     u->conf->upstream = uscf;
