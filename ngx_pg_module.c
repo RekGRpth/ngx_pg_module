@@ -22,6 +22,11 @@
 ngx_module_t ngx_pg_module;
 
 typedef struct {
+    ngx_chain_t *cl;
+    ngx_url_t url;
+} ngx_pg_connect_t;
+
+typedef struct {
     ngx_chain_t *query;
     ngx_chain_t *parse;
     ngx_chain_t *bind;
@@ -32,15 +37,15 @@ typedef struct {
 } ngx_pg_query_t;
 
 typedef struct {
-    ngx_chain_t *connect;
     ngx_flag_t read_request_body;
     ngx_http_upstream_conf_t upstream;
+    ngx_pg_connect_t connect;
     ngx_pg_query_t query;
 } ngx_pg_loc_conf_t;
 
 typedef struct {
-    ngx_chain_t *connect;
     ngx_log_t *log;
+    ngx_pg_connect_t connect;
     struct {
         ngx_http_upstream_init_peer_pt init;
         ngx_http_upstream_init_pt init_upstream;
@@ -103,8 +108,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         ngx_pg_srv_conf_t *pscf = d->conf;
         ngx_chain_t *cl;
         if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
-        for (ngx_chain_t *connect = pscf ? pscf->connect : plcf->connect; connect; connect = connect->next) {
-            if (connect != (pscf ? pscf->connect : plcf->connect) && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        for (ngx_chain_t *connect = pscf ? pscf->connect.cl : plcf->connect.cl; connect; connect = connect->next) {
+            if (connect != (pscf ? pscf->connect.cl : plcf->connect.cl) && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
             cl->buf = connect->buf;
         }
         cl->next = d->query.query;
@@ -692,14 +697,14 @@ static char *ngx_pg_parse_url(ngx_conf_t *cf, ngx_command_t *cmd, void *conf, ng
 
 static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->connect || plcf->upstream.upstream) return "duplicate";
+    if (plcf->connect.cl || plcf->upstream.upstream) return "duplicate";
     ngx_http_core_loc_conf_t *clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
     clcf->handler = ngx_pg_handler;
     if (clcf->name.data[clcf->name.len - 1] == '/') clcf->auto_redirect = 1;
     ngx_url_t u = {0};
     char *rv;
-    if (!(plcf->connect = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if ((rv = ngx_pg_parse_url(cf, cmd, conf, &u, plcf->connect, NULL)) != NGX_CONF_OK) return rv;
+    if (!(plcf->connect.cl = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if ((rv = ngx_pg_parse_url(cf, cmd, conf, &u, plcf->connect.cl, NULL)) != NGX_CONF_OK) return rv;
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &u.url);
     if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &u, 0))) return NGX_CONF_ERROR;
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "u.naddrs = %i", u.naddrs);
@@ -864,7 +869,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 
 static char *ngx_pg_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_srv_conf_t *pscf = conf;
-    if (pscf->connect) return "duplicate";
+    if (pscf->connect.cl) return "duplicate";
     ngx_http_upstream_srv_conf_t *uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
     pscf->peer.init_upstream = uscf->peer.init_upstream ? uscf->peer.init_upstream : ngx_http_upstream_init_round_robin;
     uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
@@ -876,8 +881,8 @@ static char *ngx_pg_server_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) 
     us->max_fails = 1;
     us->weight = 1;
     char *rv;
-    if (!(pscf->connect = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if ((rv = ngx_pg_parse_url(cf, cmd, conf, &u, pscf->connect, us)) != NGX_CONF_OK) return rv;
+    if (!(pscf->connect.cl = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if ((rv = ngx_pg_parse_url(cf, cmd, conf, &u, pscf->connect.cl, us)) != NGX_CONF_OK) return rv;
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &u.url);
     if (ngx_parse_url(cf->pool, &u) != NGX_OK) return u.err ? u.err : "ngx_parse_url != NGX_OK";
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "u.naddrs = %i", u.naddrs);
