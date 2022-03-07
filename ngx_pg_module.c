@@ -71,36 +71,6 @@ typedef struct {
     } query;
 } ngx_pg_data_t;
 
-static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "%s", __func__);
-    if (buf->pos == buf->last) return NGX_OK;
-    ngx_chain_t *cl;
-    if (!(cl = ngx_chain_get_free_buf(p->pool, &p->free))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
-    ngx_buf_t *b = cl->buf;
-    ngx_memcpy(b, buf, sizeof(*b));
-    b->shadow = buf;
-    b->tag = p->tag;
-    b->last_shadow = 1;
-    b->recycled = 1;
-    buf->shadow = b;
-    ngx_log_debug1(NGX_LOG_DEBUG_EVENT, p->log, 0, "input buf #%d", b->num);
-    if (p->in) *p->last_in = cl;
-    else p->in = cl;
-    p->last_in = &cl->next;
-    if (p->length == -1) return NGX_OK;
-    p->length -= b->last - b->pos;
-    if (!p->length) {
-        ngx_http_request_t *r = p->input_ctx;
-        p->upstream_done = 1;
-        r->upstream->keepalive = !r->upstream->headers_in.connection_close;
-    } else if (p->length < 0) {
-        ngx_http_request_t *r = p->input_ctx;
-        p->upstream_done = 1;
-        ngx_log_error(NGX_LOG_WARN, r->connection->log, 0, "upstream sent more data than specified in \"Content-Length\" header");
-    }
-    return NGX_OK;
-}
-
 static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%s", __func__);
     ngx_pg_data_t *d = data;
@@ -400,6 +370,36 @@ static void ngx_pg_abort_request(ngx_http_request_t *r) {
 static void ngx_pg_finalize_request(ngx_http_request_t *r, ngx_int_t rc) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", rc);
+}
+
+static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "%s", __func__);
+    if (buf->pos == buf->last) return NGX_OK;
+    ngx_chain_t *cl;
+    if (!(cl = ngx_chain_get_free_buf(p->pool, &p->free))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
+    ngx_buf_t *b = cl->buf;
+    ngx_memcpy(b, buf, sizeof(*b));
+    b->shadow = buf;
+    b->tag = p->tag;
+    b->last_shadow = 1;
+    b->recycled = 1;
+    buf->shadow = b;
+    ngx_log_debug1(NGX_LOG_DEBUG_EVENT, p->log, 0, "input buf #%d", b->num);
+    if (p->in) *p->last_in = cl;
+    else p->in = cl;
+    p->last_in = &cl->next;
+    if (p->length == -1) return NGX_OK;
+    p->length -= b->last - b->pos;
+    if (!p->length) {
+        ngx_http_request_t *r = p->input_ctx;
+        p->upstream_done = 1;
+        r->upstream->keepalive = !r->upstream->headers_in.connection_close;
+    } else if (p->length < 0) {
+        ngx_http_request_t *r = p->input_ctx;
+        p->upstream_done = 1;
+        ngx_log_error(NGX_LOG_WARN, r->connection->log, 0, "upstream sent more data than specified in \"Content-Length\" header");
+    }
+    return NGX_OK;
 }
 
 static ngx_int_t ngx_pg_input_filter_init(void *data) {
