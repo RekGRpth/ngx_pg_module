@@ -174,6 +174,8 @@ static void ngx_pg_abort_request(ngx_http_request_t *r) {
 
 static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    ngx_http_upstream_t *u = r->upstream;
+    u->keepalive = 1;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
     uscf->peer.init = ngx_pg_peer_init;
@@ -374,31 +376,10 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
 
 static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "%s", __func__);
-    if (buf->pos == buf->last) return NGX_OK;
     ngx_chain_t *cl;
-    if (!(cl = ngx_chain_get_free_buf(p->pool, &p->free))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
+    if (!(cl = p->in = ngx_chain_get_free_buf(p->pool, &p->free))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
     ngx_buf_t *b = cl->buf;
     ngx_memcpy(b, buf, sizeof(*b));
-    b->shadow = buf;
-    b->tag = p->tag;
-    b->last_shadow = 1;
-    b->recycled = 1;
-    buf->shadow = b;
-    ngx_log_debug1(NGX_LOG_DEBUG_EVENT, p->log, 0, "input buf #%d", b->num);
-    if (p->in) *p->last_in = cl;
-    else p->in = cl;
-    p->last_in = &cl->next;
-    if (p->length == -1) return NGX_OK;
-    p->length -= b->last - b->pos;
-    if (!p->length) {
-        ngx_http_request_t *r = p->input_ctx;
-        p->upstream_done = 1;
-        r->upstream->keepalive = !r->upstream->headers_in.connection_close;
-    } else if (p->length < 0) {
-        ngx_http_request_t *r = p->input_ctx;
-        p->upstream_done = 1;
-        ngx_log_error(NGX_LOG_WARN, r->connection->log, 0, "upstream sent more data than specified in \"Content-Length\" header");
-    }
     return NGX_OK;
 }
 
@@ -406,7 +387,6 @@ static ngx_int_t ngx_pg_input_filter_init(void *data) {
     ngx_http_request_t *r = data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
-    u->keepalive = !u->headers_in.connection_close;
     u->pipe->length = u->buffer.last - u->buffer.pos;
     return NGX_OK;
 }
