@@ -406,9 +406,7 @@ static ngx_int_t ngx_pg_input_filter_init(void *data) {
     ngx_http_request_t *r = data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
-    u->headers_in.content_length_n = u->buffer.last - u->buffer.pos;
     u->keepalive = !u->headers_in.connection_close;
-    u->length = u->buffer.last - u->buffer.pos;
     u->pipe->length = u->buffer.last - u->buffer.pos;
     return NGX_OK;
 }
