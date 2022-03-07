@@ -28,14 +28,18 @@ typedef struct {
 } ngx_pg_connect_t;
 
 typedef struct {
-    ngx_chain_t *query;
-    ngx_chain_t *parse;
     ngx_chain_t *bind;
+    ngx_chain_t *close;
     ngx_chain_t *describe;
     ngx_chain_t *execute;
-    ngx_chain_t *close;
+    ngx_chain_t *parse;
     ngx_chain_t *sync;
 } ngx_pg_query_t;
+
+typedef struct {
+    ngx_chain_t *query;
+    ngx_queue_t queue;
+} ngx_pg_query_queue_t;
 
 typedef struct {
     ngx_flag_t read_request_body;
@@ -55,13 +59,15 @@ typedef struct {
 
 typedef struct {
     ngx_http_request_t *request;
-    ngx_pg_query_t query;
     ngx_pg_srv_conf_t *conf;
     struct {
         ngx_event_free_peer_pt free;
         ngx_event_get_peer_pt get;
         void *data;
     } peer;
+    struct {
+        ngx_queue_t queue;
+    } query;
 } ngx_pg_data_t;
 
 static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
@@ -104,24 +110,29 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     if (rc != NGX_OK && rc != NGX_DONE) return rc;
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
-    if (c) u->request_bufs = d->query.query; else {
-        ngx_chain_t *cl;
+    if (!c) {
+        ngx_pg_query_queue_t *qq;
+        if (!(qq = ngx_pcalloc(r->pool, sizeof(*qq)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+        ngx_queue_insert_head(&d->query.queue, &qq->queue);
         ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
         ngx_pg_srv_conf_t *pscf = d->conf;
-        ngx_pg_connect_t *connect_;
-        if (!pscf) connect_ = &plcf->connect; else {
-            connect_ = pscf->connect.elts;
+        if (!pscf) qq->query = plcf->connect.cl; else {
+            ngx_pg_connect_t *connect = pscf->connect.elts;
             ngx_uint_t i;
-            for (i = 0; i < pscf->connect.nelts; i++) for (ngx_uint_t j = 0; j < connect_[i].url.naddrs; j++) if (!ngx_memn2cmp((u_char *)pc->sockaddr, (u_char *)connect_[i].url.addrs[j].sockaddr, pc->socklen, connect_[i].url.addrs[j].socklen)) { connect_ = &connect_[i]; goto found; }
+            for (i = 0; i < pscf->connect.nelts; i++) for (ngx_uint_t j = 0; j < connect[i].url.naddrs; j++) if (!ngx_memn2cmp((u_char *)pc->sockaddr, (u_char *)connect[i].url.addrs[j].sockaddr, pc->socklen, connect[i].url.addrs[j].socklen)) { qq->query = connect[i].cl; goto found; }
 found:
             if (i == pscf->connect.nelts) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "connect not found"); return NGX_BUSY; }
         }
-        if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
-        for (ngx_chain_t *connect = connect_->cl; connect; connect = connect->next) {
-            if (connect != connect_->cl && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
-            cl->buf = connect->buf;
+    }
+    ngx_chain_t *cl;
+    if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+    ngx_uint_t j = 0;
+    for (ngx_queue_t *q = ngx_queue_head(&d->query.queue), *_; q != ngx_queue_sentinel(&d->query.queue) && (_ = ngx_queue_next(q)); q = _) {
+        ngx_pg_query_queue_t *qq = ngx_queue_data(q, ngx_pg_query_queue_t, queue);
+        for (ngx_chain_t *query = qq->query; query; query = query->next) {
+            if (j++ && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+            cl->buf = query->buf;
         }
-        cl->next = d->query.query;
     }
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
@@ -151,10 +162,14 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
 
 static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_conf_t *uscf) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "srv_conf = %s", uscf->srv_conf ? "true" : "false");
-    ngx_pg_data_t *d = ngx_pcalloc(r->pool, sizeof(*d));
-    if (!d) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+    ngx_pg_data_t *d;
+    if (!(d = ngx_pcalloc(r->pool, sizeof(*d)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+    ngx_queue_init(&d->query.queue);
+    ngx_pg_query_queue_t *qq;
+    if (!(qq = ngx_pcalloc(r->pool, sizeof(*qq)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    d->query = plcf->query;
+    qq->query = plcf->query.parse;
+    ngx_queue_insert_tail(&d->query.queue, &qq->queue);
     if (uscf->srv_conf) {
         ngx_pg_srv_conf_t *pscf = ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module);
         if (pscf->peer.init(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
@@ -732,7 +747,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_str_t *elts = cf->args->elts;
     ngx_str_t query = elts[1];
 
-    if (!(cl = plcf->query.query = plcf->query.parse = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if (!(cl = plcf->query.parse = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
     *b->last++ = (u_char)'P';
 
@@ -866,7 +881,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 
     cl->next = NULL;
     ngx_uint_t i = 0;
-    for (ngx_chain_t *cl = plcf->query.query; cl; cl = cl->next) {
+    for (ngx_chain_t *cl = plcf->query.parse; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
         for (u_char *p = b->pos; p < b->last; p++) {
             ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
