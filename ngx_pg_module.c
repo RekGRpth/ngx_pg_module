@@ -382,9 +382,9 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             }
         } break;
     }
-    u->headers_in.content_length_n = last - pos;
     if (last) u->buffer.last = last;
     if (pos) u->buffer.pos = pos;
+    u->headers_in.content_length_n = u->buffer.last - u->buffer.pos;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", rc);
     return rc;
 }
