@@ -134,6 +134,7 @@ found:
             cl->buf = query->buf;
         }
     }
+    cl->next = NULL;
     ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
