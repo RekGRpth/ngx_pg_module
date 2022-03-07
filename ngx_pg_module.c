@@ -384,7 +384,6 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     }
     if (last) u->buffer.last = last;
     if (pos) u->buffer.pos = pos;
-    u->headers_in.content_length_n = u->buffer.last - u->buffer.pos;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i", rc);
     return rc;
 }
@@ -407,8 +406,10 @@ static ngx_int_t ngx_pg_input_filter_init(void *data) {
     ngx_http_request_t *r = data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
+    u->headers_in.content_length_n = u->buffer.last - u->buffer.pos;
     u->keepalive = !u->headers_in.connection_close;
-    u->pipe->length = u->length = u->headers_in.status_n == NGX_HTTP_NO_CONTENT || u->headers_in.status_n == NGX_HTTP_NOT_MODIFIED ? 0 : u->headers_in.content_length_n;
+    u->length = u->buffer.last - u->buffer.pos;
+    u->pipe->length = u->buffer.last - u->buffer.pos;
     return NGX_OK;
 }
 
