@@ -370,7 +370,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 case 'I': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "TRANS_IDLE"); {
                     ngx_pg_data_t *d = u->peer.data;
                     if (!ngx_queue_empty(&d->query.queue)) {
-                        c->requests++;
+                        if (c->requests == 1) c->requests++;
                         ngx_queue_t *q = ngx_queue_head(&d->query.queue);
                         ngx_queue_remove(q);
                         ngx_pg_query_queue_t *qq = ngx_queue_data(q, ngx_pg_query_queue_t, queue);
