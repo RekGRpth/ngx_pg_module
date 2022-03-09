@@ -371,7 +371,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             ngx_pg_data_t *d = u->peer.data;
             if (!ngx_queue_empty(&d->query.queue)) {
 //                if (c->requests == 1) 
-                c->requests++;
+//                c->requests++;
                 ngx_queue_t *q = ngx_queue_head(&d->query.queue);
                 ngx_queue_remove(q);
                 ngx_pg_query_queue_t *qq = ngx_queue_data(q, ngx_pg_query_queue_t, queue);
@@ -402,9 +402,9 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
     if (!(cl = p->in = ngx_chain_get_free_buf(p->pool, &p->free))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
     ngx_buf_t *b = cl->buf;
     ngx_memcpy(b, buf, sizeof(*b));
-    ngx_uint_t i = 0;
+//    ngx_uint_t i = 0;
     for (u_char *c = b->pos; c < b->last; c++) {
-        ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%i:%i:%c", i++, *c, *c);
+//        ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%i:%i:%c", i++, *c, *c);
     }
     return NGX_OK;
 }
