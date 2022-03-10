@@ -257,6 +257,7 @@ static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_c
                 for (cl = u->out_bufs, ll = &u->out_bufs; cl; cl = cl->next) ll = &cl->next;
                 if (!(cl = ngx_chain_get_free_buf(r->pool, &u->free_bufs))) { ngx_log_error(NGX_LOG_ERR, log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
                 *ll = cl;
+//                ll = &cl->next;
                 ngx_buf_t *b = cl->buf;
                 b->flush = 1;
                 b->last = pos;
@@ -430,8 +431,8 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
 static ngx_int_t ngx_pg_input_filter_init(void *data) {
     ngx_http_request_t *r = data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    ngx_http_upstream_t *u = r->upstream;
-    u->length = /*u->pipe->length = */u->headers_in.content_length_n;
+//    ngx_http_upstream_t *u = r->upstream;
+//    u->length = /*u->pipe->length = */u->headers_in.content_length_n;
     return NGX_OK;
 }
 
@@ -447,10 +448,12 @@ static ngx_int_t ngx_pg_input_filter(void *data, ssize_t bytes) {
 //        case NGX_OK: u->headers_in.status_n = NGX_HTTP_OK; break;
     }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "u->length = %i", u->length);
+//    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "u->length = %i", u->length);
     b->last += bytes;
-    if (u->length == -1) return rc;
-    u->length -= bytes;
+//    ngx_http_run_posted_requests(r->connection);
+    u->length = 0;
+//    if (u->length == -1) return rc;
+//    u->length -= bytes;
     return rc;
 //    ngx_uint_t i = 0;
 //    for (u_char *p = b->last; p < b->last + bytes; p++) {
