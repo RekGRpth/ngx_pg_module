@@ -190,7 +190,7 @@ static void ngx_pg_finalize_request(ngx_http_request_t *r, ngx_int_t rc) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
 }
 
-/*static void ngx_pg_cln_handler(void *data) {
+static void ngx_pg_cln_handler(void *data) {
     ngx_connection_t *c = data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
 
@@ -209,18 +209,18 @@ static void ngx_pg_finalize_request(ngx_http_request_t *r, ngx_int_t rc) {
     cl_len->buf->last += sizeof(len);
 
     cl->next = NULL;
-    ngx_uint_t i = 0;
+//    ngx_uint_t i = 0;
     for (ngx_chain_t *cl = out; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
         for (u_char *p = b->pos; p < b->last; p++) {
-            ngx_log_debug3(NGX_LOG_DEBUG_HTTP, c->log, 0, "%i:%i:%c", i++, *p, *p);
+//            ngx_log_debug3(NGX_LOG_DEBUG_HTTP, c->log, 0, "%i:%i:%c", i++, *p, *p);
         }
     }
 
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
 
     ngx_chain_writer(&ctx, NULL);
-}*/
+}
 
 static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_char *last) {
     ngx_log_t *log = r->connection->log;
@@ -362,6 +362,15 @@ static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_c
 static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
+    ngx_connection_t *c = u->peer.connection;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "requests = %i", c->requests);
+    if (c->requests == 1) {
+        ngx_pool_cleanup_t *cln = ngx_pool_cleanup_add(c->pool, 0);
+        if (!cln) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
+        cln->handler = ngx_pg_cln_handler;
+        cln->data = c;
+        c->requests++;
+    }
     ngx_buf_t *b = &u->buffer;
     ngx_int_t rc;
     switch ((rc = ngx_pg_process_response(r, b->pos, b->last))) {
@@ -371,42 +380,6 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
     b->pos = b->last;
     return rc;
-    /*ngx_http_upstream_t *u = r->upstream;
-    ngx_buf_t *b = &u->buffer;
-    ngx_connection_t *c = u->peer.connection;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "requests = %i", c->requests);
-//    if (c->requests == 1) {
-//        ngx_pool_cleanup_t *cln = ngx_pool_cleanup_add(c->pool, 0);
-//        if (!cln) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
-//        cln->handler = ngx_pg_cln_handler;
-//        cln->data = c;
-//    }
-    ngx_buf_t buf = {0};
-    ngx_int_t rc;
-    do switch ((rc = ngx_pg_process_response(r, &buf))) {
-        case NGX_DONE: {
-//            ngx_http_upstream_t *u = r->upstream;
-            ngx_pg_data_t *d = u->peer.data;
-            if (!ngx_queue_empty(&d->query.queue)) {
-//                if (c->requests == 1) 
-//                c->requests++;
-                ngx_queue_t *q = ngx_queue_head(&d->query.queue);
-                ngx_queue_remove(q);
-                ngx_pg_query_queue_t *qq = ngx_queue_data(q, ngx_pg_query_queue_t, queue);
-//                ngx_buf_t *b = &u->buffer;
-                rc = b->pos < b->last ? NGX_BUSY : qq->rc;
-            }
-        } break;
-        case NGX_ERROR: return NGX_ERROR; break;
-    } while (rc == NGX_BUSY);
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
-    if (buf.pos && buf.last) {
-        b->pos = buf.pos;
-        b->last = buf.last;
-        u->state->status = u->headers_in.status_n = NGX_HTTP_OK;
-        u->state->response_length = u->headers_in.content_length_n = b->last - b->pos;
-    }
-    return rc;*/
 }
 
 static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
@@ -414,25 +387,9 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
     return NGX_OK;
 }
 
-/*static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "%s", __func__);
-    if (buf->pos == buf->last) return NGX_OK;
-    ngx_chain_t *cl;
-    if (!(cl = ngx_chain_get_free_buf(p->pool, &p->free))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
-    ngx_buf_t *b = cl->buf;
-    ngx_memcpy(b, buf, sizeof(*b));
-    if (p->in) *p->last_in = cl; else p->in = cl;
-    p->last_in = &cl->next;
-    if (p->length == -1) return NGX_OK;
-    if (!(p->length -= b->last - b->pos)) p->upstream_done = 1; else if (p->length < 0) { p->upstream_done = 1; ngx_log_error(NGX_LOG_WARN, p->log, 0, "upstream sent more data than specified in \"Content-Length\" header"); }
-    return NGX_OK;
-}*/
-
 static ngx_int_t ngx_pg_input_filter_init(void *data) {
     ngx_http_request_t *r = data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-//    ngx_http_upstream_t *u = r->upstream;
-//    u->length = /*u->pipe->length = */u->headers_in.content_length_n;
     return NGX_OK;
 }
 
@@ -445,33 +402,11 @@ static ngx_int_t ngx_pg_input_filter(void *data, ssize_t bytes) {
     ngx_int_t rc;
     switch ((rc = ngx_pg_process_response(r, b->last, b->last + bytes))) {
         case NGX_ERROR: return NGX_ERROR; break;
-//        case NGX_OK: u->headers_in.status_n = NGX_HTTP_OK; break;
     }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
-//    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "u->length = %i", u->length);
     b->last += bytes;
-//    ngx_http_run_posted_requests(r->connection);
     u->length = 0;
-//    if (u->length == -1) return rc;
-//    u->length -= bytes;
     return rc;
-//    ngx_uint_t i = 0;
-//    for (u_char *p = b->last; p < b->last + bytes; p++) {
-//        ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
-//    }
-    /*ngx_http_upstream_t *u = r->upstream;
-    ngx_chain_t *cl, **ll;
-    for (cl = u->out_bufs, ll = &u->out_bufs; cl; cl = cl->next) ll = &cl->next;
-    if (!(cl = ngx_chain_get_free_buf(r->pool, &u->free_bufs))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
-    *ll = cl;
-    cl->buf->memory = 1;
-    ngx_buf_t *b = &u->buffer;
-    cl->buf->pos = b->last;
-    b->last += bytes;
-    cl->buf->last = b->last;
-    if (u->length == -1) return NGX_OK;
-    u->length -= bytes;
-    return NGX_OK;*/
 }
 
 static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
@@ -492,9 +427,6 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     u->reinit_request = ngx_pg_reinit_request;
     r->state = 0;
     u->buffering = plcf->upstream.buffering;
-//    if (!(u->pipe = ngx_pcalloc(r->pool, sizeof(*u->pipe)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_HTTP_INTERNAL_SERVER_ERROR; }
-//    u->pipe->input_ctx = r;
-//    u->pipe->input_filter = ngx_pg_pipe_input_filter;
     u->input_filter_init = ngx_pg_input_filter_init;
     u->input_filter = ngx_pg_input_filter;
     u->input_filter_ctx = r;
@@ -579,10 +511,10 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     ngx_conf_merge_size_value(conf->upstream.temp_file_write_size_conf, prev->upstream.temp_file_write_size_conf, NGX_CONF_UNSET_SIZE);
     ngx_conf_merge_uint_value(conf->upstream.next_upstream_tries, prev->upstream.next_upstream_tries, 0);
     ngx_conf_merge_uint_value(conf->upstream.store_access, prev->upstream.store_access, 0600);
-    ngx_conf_merge_value(conf->upstream.buffering, prev->upstream.buffering, 0); // 1
+    ngx_conf_merge_value(conf->upstream.buffering, prev->upstream.buffering, 0);
     ngx_conf_merge_value(conf->upstream.ignore_client_abort, prev->upstream.ignore_client_abort, 0);
     ngx_conf_merge_value(conf->upstream.intercept_errors, prev->upstream.intercept_errors, 0);
-    ngx_conf_merge_value(conf->upstream.request_buffering, prev->upstream.request_buffering, 0); // 1
+    ngx_conf_merge_value(conf->upstream.request_buffering, prev->upstream.request_buffering, 0);
     ngx_conf_merge_value(conf->upstream.socket_keepalive, prev->upstream.socket_keepalive, 0);
     if (conf->upstream.bufs.num < 2) return "there must be at least 2 \"pg_buffers\"";
     size_t size = conf->upstream.buffer_size;
