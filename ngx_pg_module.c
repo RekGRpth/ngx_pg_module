@@ -542,10 +542,10 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     ngx_conf_merge_size_value(conf->upstream.temp_file_write_size_conf, prev->upstream.temp_file_write_size_conf, NGX_CONF_UNSET_SIZE);
     ngx_conf_merge_uint_value(conf->upstream.next_upstream_tries, prev->upstream.next_upstream_tries, 0);
     ngx_conf_merge_uint_value(conf->upstream.store_access, prev->upstream.store_access, 0600);
-    ngx_conf_merge_value(conf->upstream.buffering, prev->upstream.buffering, 1); // 1
+    ngx_conf_merge_value(conf->upstream.buffering, prev->upstream.buffering, 0); // 1
     ngx_conf_merge_value(conf->upstream.ignore_client_abort, prev->upstream.ignore_client_abort, 0);
     ngx_conf_merge_value(conf->upstream.intercept_errors, prev->upstream.intercept_errors, 0);
-    ngx_conf_merge_value(conf->upstream.request_buffering, prev->upstream.request_buffering, 1); // 1
+    ngx_conf_merge_value(conf->upstream.request_buffering, prev->upstream.request_buffering, 0); // 1
     ngx_conf_merge_value(conf->upstream.socket_keepalive, prev->upstream.socket_keepalive, 0);
     if (conf->upstream.bufs.num < 2) return "there must be at least 2 \"pg_buffers\"";
     size_t size = conf->upstream.buffer_size;
