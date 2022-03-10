@@ -462,7 +462,7 @@ static ngx_int_t ngx_pg_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
     if (u->peer.get != ngx_pg_peer_get) return ngx_http_next_body_filter(r, in);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_pg_data_t *d = u->peer.data;
-    if (!ngx_queue_empty(&d->query.queue)) return NGX_AGAIN;
+    if (!ngx_queue_empty(&d->query.queue)) return NGX_OK;
     ngx_int_t rc = ngx_http_next_header_filter(r);
     if (rc == NGX_ERROR || rc > NGX_OK || r->header_only) return rc;
     return ngx_http_next_body_filter(r, in);
