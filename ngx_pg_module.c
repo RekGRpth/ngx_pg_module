@@ -22,6 +22,10 @@
 ngx_module_t ngx_pg_module;
 
 typedef struct {
+    ngx_flag_t done;
+} ngx_pg_ctx_t;
+
+typedef struct {
     ngx_chain_t *cl;
     ngx_http_upstream_server_t *us;
     ngx_url_t url;
@@ -367,6 +371,11 @@ static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_c
                 ngx_queue_t *q = ngx_queue_head(&d->query.queue);
                 ngx_queue_remove(q);
             }
+            if (ngx_queue_empty(&d->query.queue)) {
+                ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
+                if (!ctx) rc = NGX_ERROR;
+                else ctx->done = 1;
+            }
         } break;
     }
     return rc;
@@ -445,24 +454,24 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     u->input_filter_ctx = r;
     if (!plcf->upstream.request_buffering && plcf->upstream.pass_request_body && !r->headers_in.chunked) r->request_body_no_buffering = 1;
     if ((rc = ngx_http_read_client_request_body(r, ngx_http_upstream_init)) >= NGX_HTTP_SPECIAL_RESPONSE) return rc;
+    ngx_pg_ctx_t *ctx;
+    if (!(ctx = ngx_pcalloc(r->pool, sizeof(*ctx)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+    ngx_http_set_ctx(r, ctx, ngx_pg_module);
     return NGX_DONE;
 }
 
 static ngx_int_t ngx_pg_header_filter(ngx_http_request_t *r) {
-    ngx_http_upstream_t *u = r->upstream;
-    if (!u) return ngx_http_next_header_filter(r);
-    if (u->peer.get != ngx_pg_peer_get) return ngx_http_next_header_filter(r);
+    ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
+    if (!ctx) return ngx_http_next_header_filter(r);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     return NGX_OK;
 }
 
 static ngx_int_t ngx_pg_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
-    ngx_http_upstream_t *u = r->upstream;
-    if (!u) return ngx_http_next_body_filter(r, in);
-    if (u->peer.get != ngx_pg_peer_get) return ngx_http_next_body_filter(r, in);
+    ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
+    if (!ctx) return ngx_http_next_body_filter(r, in);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    ngx_pg_data_t *d = u->peer.data;
-    if (!ngx_queue_empty(&d->query.queue)) return NGX_OK;
+    if (!ctx->done) return NGX_OK;
     ngx_int_t rc = ngx_http_next_header_filter(r);
     if (rc == NGX_ERROR || rc > NGX_OK || r->header_only) return rc;
     return ngx_http_next_body_filter(r, in);
