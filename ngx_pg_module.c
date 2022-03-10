@@ -180,6 +180,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     u->keepalive = 1;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
+    if (uscf->peer.init != ngx_pg_peer_init) ngx_log_error(NGX_LOG_WARN, r->connection->log, 0, "uscf->peer.init != ngx_pg_peer_init");
     uscf->peer.init = ngx_pg_peer_init;
     return NGX_OK;
 }
