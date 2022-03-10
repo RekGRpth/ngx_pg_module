@@ -21,10 +21,10 @@
 
 ngx_module_t ngx_pg_module;
 
-typedef struct {
+/*typedef struct {
     ngx_chain_t *cl;
     ngx_flag_t done;
-} ngx_pg_ctx_t;
+} ngx_pg_ctx_t;*/
 
 typedef struct {
     ngx_chain_t *cl;
@@ -47,9 +47,9 @@ typedef struct {
     ngx_queue_t queue;
 } ngx_pg_query_queue_t;
 
-typedef struct {
+/*typedef struct {
     ngx_flag_t enable;
-} ngx_pg_main_conf_t;
+} ngx_pg_main_conf_t;*/
 
 typedef struct {
     ngx_array_t query;
@@ -80,8 +80,8 @@ typedef struct {
     } query;
 } ngx_pg_data_t;
 
-static ngx_http_output_header_filter_pt ngx_http_next_header_filter;
-static ngx_http_output_body_filter_pt ngx_http_next_body_filter;
+/*static ngx_http_output_header_filter_pt ngx_http_next_header_filter;
+static ngx_http_output_body_filter_pt ngx_http_next_body_filter;*/
 
 static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%s", __func__);
@@ -372,11 +372,11 @@ static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_c
                 ngx_queue_t *q = ngx_queue_head(&d->query.queue);
                 ngx_queue_remove(q);
             }
-            if (ngx_queue_empty(&d->query.queue)) {
+            /*if (ngx_queue_empty(&d->query.queue)) {
                 ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
                 if (!ctx) rc = NGX_ERROR;
                 else ctx->done = 1;
-            }
+            }*/
         } break;
     }
     return rc;
@@ -413,6 +413,9 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
 static ngx_int_t ngx_pg_input_filter_init(void *data) {
     ngx_http_request_t *r = data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    ngx_http_upstream_t *u = r->upstream;
+    ngx_pg_data_t *d = u->peer.data;
+    if (ngx_queue_empty(&d->query.queue)) u->length = 0;
     return NGX_OK;
 }
 
@@ -428,7 +431,8 @@ static ngx_int_t ngx_pg_input_filter(void *data, ssize_t bytes) {
     }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
     b->last += bytes;
-    u->length = 0;
+    ngx_pg_data_t *d = u->peer.data;
+    if (ngx_queue_empty(&d->query.queue)) u->length = 0;
     return rc;
 }
 
@@ -455,20 +459,20 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     u->input_filter_ctx = r;
     if (!plcf->upstream.request_buffering && plcf->upstream.pass_request_body && !r->headers_in.chunked) r->request_body_no_buffering = 1;
     if ((rc = ngx_http_read_client_request_body(r, ngx_http_upstream_init)) >= NGX_HTTP_SPECIAL_RESPONSE) return rc;
-    ngx_pg_ctx_t *ctx;
+    /*ngx_pg_ctx_t *ctx;
     if (!(ctx = ngx_pcalloc(r->pool, sizeof(*ctx)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
-    ngx_http_set_ctx(r, ctx, ngx_pg_module);
+    ngx_http_set_ctx(r, ctx, ngx_pg_module);*/
     return NGX_DONE;
 }
 
-static ngx_int_t ngx_pg_header_filter(ngx_http_request_t *r) {
+/*static ngx_int_t ngx_pg_header_filter(ngx_http_request_t *r) {
     ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
     if (!ctx) return ngx_http_next_header_filter(r);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     return NGX_OK;
-}
+}*/
 
-static ngx_int_t ngx_pg_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
+/*static ngx_int_t ngx_pg_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
     ngx_pg_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_pg_module);
     if (!ctx) return ngx_http_next_body_filter(r, in);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
@@ -479,9 +483,9 @@ static ngx_int_t ngx_pg_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
             ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
         }
     }
-    /*if (in) {
+    if (in) {
         if (ctx->cl) ctx->cl->next = in; else ctx->cl = in;
-    }*/
+    }
     if (in) {
         ngx_chain_t *cl = ctx->cl;
         if (cl) {
@@ -490,6 +494,7 @@ static ngx_int_t ngx_pg_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
             if (!(cl = ctx->cl = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
         cl->buf = in->buf;
+        cl->next = NULL;
     }
     if (!ctx->done) return NGX_OK;
     ngx_int_t rc = ngx_http_next_header_filter(r);
@@ -502,9 +507,9 @@ static ngx_int_t ngx_pg_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
         }
     }
     return ngx_http_next_body_filter(r, ctx->cl);
-}
+}*/
 
-static ngx_int_t ngx_pg_postconfiguration(ngx_conf_t *cf) {
+/*static ngx_int_t ngx_pg_postconfiguration(ngx_conf_t *cf) {
     ngx_pg_main_conf_t *pmcf = ngx_http_conf_get_module_main_conf(cf, ngx_pg_module);
     if (!pmcf->enable) return NGX_OK;
     ngx_http_next_header_filter = ngx_http_top_header_filter;
@@ -512,13 +517,13 @@ static ngx_int_t ngx_pg_postconfiguration(ngx_conf_t *cf) {
     ngx_http_next_body_filter = ngx_http_top_body_filter;
     ngx_http_top_body_filter = ngx_pg_body_filter;
     return NGX_OK;
-}
+}*/
 
-static void *ngx_pg_create_main_conf(ngx_conf_t *cf) {
+/*static void *ngx_pg_create_main_conf(ngx_conf_t *cf) {
     ngx_pg_main_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
     if (!conf) return NULL;
     return conf;
-}
+}*/
 
 static void *ngx_pg_create_srv_conf(ngx_conf_t *cf) {
     ngx_pg_srv_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
@@ -623,8 +628,8 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
 
 static ngx_http_module_t ngx_pg_ctx = {
     .preconfiguration = NULL,
-    .postconfiguration = ngx_pg_postconfiguration,
-    .create_main_conf = ngx_pg_create_main_conf,
+    .postconfiguration = NULL/*ngx_pg_postconfiguration*/,
+    .create_main_conf = NULL/*ngx_pg_create_main_conf*/,
     .init_main_conf = NULL,
     .create_srv_conf = ngx_pg_create_srv_conf,
     .merge_srv_conf = NULL,
