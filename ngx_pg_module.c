@@ -43,6 +43,10 @@ typedef struct {
 } ngx_pg_query_queue_t;
 
 typedef struct {
+    ngx_flag_t enable;
+} ngx_pg_main_conf_t;
+
+typedef struct {
     ngx_array_t query;
     ngx_flag_t read_request_body;
     ngx_http_upstream_conf_t upstream;
@@ -70,6 +74,9 @@ typedef struct {
         ngx_queue_t queue;
     } query;
 } ngx_pg_data_t;
+
+static ngx_http_output_header_filter_pt ngx_http_next_header_filter;
+static ngx_http_output_body_filter_pt ngx_http_next_body_filter;
 
 static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%s", __func__);
@@ -354,6 +361,12 @@ static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_c
                 case 'T': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, log, 0, "TRANS_INTRANS"); break;
                 default: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, log, 0, "TRANS_UNKNOWN"); break;
             }
+            ngx_http_upstream_t *u = r->upstream;
+            ngx_pg_data_t *d = u->peer.data;
+            if (!ngx_queue_empty(&d->query.queue)) {
+                ngx_queue_t *q = ngx_queue_head(&d->query.queue);
+                ngx_queue_remove(q);
+            }
         } break;
     }
     return rc;
@@ -433,6 +446,42 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     if (!plcf->upstream.request_buffering && plcf->upstream.pass_request_body && !r->headers_in.chunked) r->request_body_no_buffering = 1;
     if ((rc = ngx_http_read_client_request_body(r, ngx_http_upstream_init)) >= NGX_HTTP_SPECIAL_RESPONSE) return rc;
     return NGX_DONE;
+}
+
+static ngx_int_t ngx_pg_header_filter(ngx_http_request_t *r) {
+    ngx_http_upstream_t *u = r->upstream;
+    if (!u) return ngx_http_next_header_filter(r);
+    if (u->peer.get != ngx_pg_peer_get) return ngx_http_next_header_filter(r);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    return NGX_OK;
+}
+
+static ngx_int_t ngx_pg_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
+    ngx_http_upstream_t *u = r->upstream;
+    if (!u) return ngx_http_next_body_filter(r, in);
+    if (u->peer.get != ngx_pg_peer_get) return ngx_http_next_body_filter(r, in);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    ngx_pg_data_t *d = u->peer.data;
+    if (!ngx_queue_empty(&d->query.queue)) return NGX_AGAIN;
+    ngx_int_t rc = ngx_http_next_header_filter(r);
+    if (rc == NGX_ERROR || rc > NGX_OK || r->header_only) return rc;
+    return ngx_http_next_body_filter(r, in);
+}
+
+static ngx_int_t ngx_pg_postconfiguration(ngx_conf_t *cf) {
+    ngx_pg_main_conf_t *pmcf = ngx_http_conf_get_module_main_conf(cf, ngx_pg_module);
+    if (!pmcf->enable) return NGX_OK;
+    ngx_http_next_header_filter = ngx_http_top_header_filter;
+    ngx_http_top_header_filter = ngx_pg_header_filter;
+    ngx_http_next_body_filter = ngx_http_top_body_filter;
+    ngx_http_top_body_filter = ngx_pg_body_filter;
+    return NGX_OK;
+}
+
+static void *ngx_pg_create_main_conf(ngx_conf_t *cf) {
+    ngx_pg_main_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
+    if (!conf) return NULL;
+    return conf;
 }
 
 static void *ngx_pg_create_srv_conf(ngx_conf_t *cf) {
@@ -538,8 +587,8 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
 
 static ngx_http_module_t ngx_pg_ctx = {
     .preconfiguration = NULL,
-    .postconfiguration = NULL,
-    .create_main_conf = NULL,
+    .postconfiguration = ngx_pg_postconfiguration,
+    .create_main_conf = ngx_pg_create_main_conf,
     .init_main_conf = NULL,
     .create_srv_conf = ngx_pg_create_srv_conf,
     .merge_srv_conf = NULL,
@@ -708,6 +757,8 @@ static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "naddrs = %i", plcf->connect.url.naddrs);
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
     uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
+    ngx_pg_main_conf_t *pmcf = ngx_http_conf_get_module_main_conf(cf, ngx_pg_module);
+    pmcf->enable = 1;
     return NGX_CONF_OK;
 }
 
@@ -907,6 +958,8 @@ static char *ngx_pg_upstream_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &plcf->connect.url.url);
     if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &plcf->connect.url, 0))) return NGX_CONF_ERROR;
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "naddrs = %i", plcf->connect.url.naddrs);
+    ngx_pg_main_conf_t *pmcf = ngx_http_conf_get_module_main_conf(cf, ngx_pg_module);
+    pmcf->enable = 1;
     return NGX_CONF_OK;
 }
 
