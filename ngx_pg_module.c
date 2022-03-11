@@ -38,6 +38,7 @@ typedef struct {
 } ngx_pg_srv_conf_t;
 
 typedef struct {
+    ngx_connection_t *connection;
     struct {
         ngx_event_handler_pt read_handler;
         ngx_event_handler_pt write_handler;
@@ -352,7 +353,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
 }
 
 static void ngx_pg_cln_handler(void *data) {
-    ngx_connection_t *c = data;
+    ngx_pg_save_t *s = data;
+    ngx_connection_t *c = s->connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
 
     ngx_buf_t *b;
@@ -382,10 +384,15 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
     ngx_http_upstream_t *u = r->upstream;
     ngx_connection_t *c = u->peer.connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "c = %p", c);
-    ngx_pool_cleanup_t *cln = ngx_pool_cleanup_add(c->pool, 0);
-    if (!cln) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
+    if (c->data) return NGX_OK;
+    ngx_pg_save_t *s;
+    if (!(s = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+    s->connection = c;
+    ngx_pool_cleanup_t *cln;
+    if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
     cln->handler = ngx_pg_cln_handler;
-    cln->data = c;
+    ngx_pg_data_t *d = u->peer.data;
+    cln->data = d->save = c->data = s;
     return NGX_OK;
 }
 
