@@ -42,7 +42,7 @@ typedef struct {
 
 typedef struct {
     ngx_connection_t *connection;
-    ngx_pg_srv_conf_t *conf;
+//    ngx_pg_srv_conf_t *conf;
     ngx_queue_t queue;
     struct {
         ngx_event_handler_pt read_handler;
@@ -132,15 +132,18 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     ngx_pg_data_t *d = data;
     d->peer.free(pc, d->peer.data, state);
     if (pc->connection) return;
+    ngx_pg_srv_conf_t *pscf = d->conf;
+    if (!pscf) return;
     ngx_pg_save_t *s = d->save;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "s = %p", s);
     ngx_connection_t *c = s->connection;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "c = %p", c);
     s->keep.data = c->data;
     s->keep.read_handler = c->read->handler;
     s->keep.write_handler = c->write->handler;
     c->data = s;
     c->read->handler = ngx_pg_read_handler;
     c->write->handler = ngx_pg_write_handler;
-    ngx_pg_srv_conf_t *pscf = s->conf;
     if (!pscf->log) return;
     c->log = pscf->log;
     c->pool->log = pscf->log;
@@ -417,17 +420,19 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
     cln->data = c;
     cln->handler = ngx_pg_cln_handler;
     ngx_pg_data_t *d = u->peer.data;
-    if (!d->conf) return NGX_OK;
     ngx_pg_srv_conf_t *pscf = d->conf;
+    if (!pscf) return NGX_OK;
     for (ngx_queue_t *q = ngx_queue_head(&pscf->save.queue), *_; q != ngx_queue_sentinel(&pscf->save.queue) && (_ = ngx_queue_next(q)); q = _) {
         ngx_pg_save_t *s = d->save = ngx_queue_data(q, ngx_pg_save_t, queue);
         if (s->connection == c) return NGX_OK;
     }
     ngx_pg_save_t *s;
     if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s = %p", s);
     ngx_queue_insert_tail(&pscf->save.queue, &s->queue);
-    s->conf = d->conf;
+//    s->conf = d->conf;
     s->connection = c;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "c = %p", c);
     return NGX_OK;
 }
 
