@@ -188,8 +188,8 @@ static void ngx_pg_abort_request(ngx_http_request_t *r) {
 
 static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    ngx_http_upstream_t *u = r->upstream;
-    u->keepalive = 1;
+//    ngx_http_upstream_t *u = r->upstream;
+//    u->keepalive = 1;
 //    u->headers_in.content_length_n = 0;
 //    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
 //    ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
@@ -390,7 +390,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     }
     if (ngx_queue_empty(&d->query.queue)) {
         u->headers_in.status_n = NGX_HTTP_OK;
-//        u->length = 0;
+//        u->length = -1;
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "u->length = %i", u->length);
         return NGX_OK;
     }
     return NGX_AGAIN;
@@ -428,6 +429,9 @@ static ngx_int_t ngx_pg_input_filter_init(void *data) {
     ngx_http_request_t *r = data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "u->length = %i", u->length);
+    u->keepalive = !u->headers_in.connection_close;
+//    u->length = u->headers_in.content_length_n;
 //    ngx_pg_data_t *d = u->peer.data;
 //    if (ngx_queue_empty(&d->query.queue)) 
     u->length = 0;
@@ -449,6 +453,7 @@ static ngx_int_t ngx_pg_input_filter(void *data, ssize_t bytes) {
     b->last += bytes;
 //    ngx_pg_data_t *d = u->peer.data;
 //    if (ngx_queue_empty(&d->query.queue)) u->length = 0;
+    if (!(u->length -= bytes)) u->keepalive = !u->headers_in.connection_close;
     return NGX_OK;
 }
 
