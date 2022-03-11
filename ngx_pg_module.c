@@ -385,7 +385,9 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
 }
 
 static void ngx_pg_cln_handler(void *data) {
-    ngx_connection_t *c = data;
+    ngx_pg_save_t *s = data;
+    ngx_queue_remove(&s->queue);
+    ngx_connection_t *c = s->connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
 
     ngx_buf_t *b;
@@ -424,10 +426,6 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
         if (s->connection == c) return NGX_OK;
     }
     if (c->requests > 1) return NGX_OK;
-    ngx_pool_cleanup_t *cln;
-    if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
-    cln->data = c;
-    cln->handler = ngx_pg_cln_handler;
     ngx_pg_save_t *s;
     if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s = %p", s);
@@ -435,6 +433,10 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
 //    s->conf = d->conf;
     s->connection = c;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "c = %p", c);
+    ngx_pool_cleanup_t *cln;
+    if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
+    cln->data = s;
+    cln->handler = ngx_pg_cln_handler;
     return NGX_OK;
 }
 
