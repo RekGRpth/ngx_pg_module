@@ -150,6 +150,8 @@ static void ngx_pg_abort_request(ngx_http_request_t *r) {
 
 static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    ngx_http_upstream_t *u = r->upstream;
+    u->headers_in.status_n = NGX_HTTP_OK;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
     if (uscf->peer.init != ngx_pg_peer_init) ngx_log_error(NGX_LOG_WARN, r->connection->log, 0, "uscf->peer.init != ngx_pg_peer_init");
@@ -191,7 +193,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     ngx_buf_t *b = &u->buffer;
-    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
+//    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", b->last - b->pos);
     ngx_connection_t *c = u->peer.connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "requests = %i", c->requests);
@@ -258,7 +260,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
             while (b->pos < b->last) switch (*b->pos++) {
-                case 0: return NGX_ERROR; break;
+                case 0: u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR; break;
                 case 'c': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "column_name = %s", b->pos); while (*b->pos++); break;
                 case 'C': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "sqlstate = %s", b->pos); while (*b->pos++); break;
                 case 'd': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "datatype_name = %s", b->pos); while (*b->pos++); break;
@@ -351,8 +353,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             return NGX_ERROR;
         } break;
     }
-    if (ngx_queue_empty(&d->query.queue)) { u->headers_in.status_n = NGX_HTTP_OK; return NGX_OK; }
-    return NGX_AGAIN;
+    return ngx_queue_empty(&d->query.queue) ? NGX_OK : NGX_AGAIN;
 }
 
 static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
