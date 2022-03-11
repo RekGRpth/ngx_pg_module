@@ -109,101 +109,6 @@ found:
     return rc;
 }
 
-static void ngx_pg_read_handler(ngx_event_t *ev) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
-    ngx_connection_t *c = ev->data;
-    ngx_pg_save_t *s = c->data;
-    c->data = s->keep.data;
-    s->keep.read_handler(ev);
-    c->data = s;
-}
-
-static void ngx_pg_write_handler(ngx_event_t *ev) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
-    ngx_connection_t *c = ev->data;
-    ngx_pg_save_t *s = c->data;
-    c->data = s->keep.data;
-    s->keep.write_handler(ev);
-    c->data = s;
-}
-
-static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t state) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "state = %i", state);
-    ngx_pg_data_t *d = data;
-    d->peer.free(pc, d->peer.data, state);
-    if (pc->connection) return;
-    ngx_pg_srv_conf_t *pscf = d->conf;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "pscf = %p", pscf);
-    if (!pscf) return;
-    ngx_pg_save_t *s = d->save;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "s = %p", s);
-    ngx_connection_t *c = s->connection;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "c = %p", c);
-    s->keep.data = c->data;
-    s->keep.read_handler = c->read->handler;
-    s->keep.write_handler = c->write->handler;
-    c->data = s;
-    c->read->handler = ngx_pg_read_handler;
-    c->write->handler = ngx_pg_write_handler;
-    if (!pscf->log) return;
-    c->log = pscf->log;
-    c->pool->log = pscf->log;
-    c->read->log = pscf->log;
-    c->write->log = pscf->log;
-}
-
-static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_conf_t *uscf) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "srv_conf = %s", uscf->srv_conf ? "true" : "false");
-    ngx_pg_data_t *d;
-    if (!(d = ngx_pcalloc(r->pool, sizeof(*d)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
-    ngx_queue_init(&d->query.queue);
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    ngx_pg_query_t *elts = plcf->query.elts;
-    ngx_pg_query_queue_t *qq = NULL;
-    for (ngx_uint_t i = 0; i < plcf->query.nelts; i++) {
-        if (!(qq = ngx_pcalloc(r->pool, sizeof(*qq)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
-        qq->query = elts[i].parse;
-        ngx_queue_insert_tail(&d->query.queue, &qq->queue);
-    }
-    if (!qq) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!qq"); return NGX_ERROR; }
-    if (uscf->srv_conf) {
-        ngx_pg_srv_conf_t *pscf = ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module);
-        if (pscf->peer.init(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
-        d->conf = pscf;
-    } else {
-        if (ngx_http_upstream_init_round_robin_peer(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_upstream_init_round_robin_peer != NGX_OK"); return NGX_ERROR; }
-    }
-    ngx_http_upstream_t *u = r->upstream;
-    u->conf->upstream = uscf;
-    d->request = r;
-    d->peer.data = u->peer.data;
-    u->peer.data = d;
-    d->peer.get = u->peer.get;
-    u->peer.get = ngx_pg_peer_get;
-    d->peer.free = u->peer.free;
-    u->peer.free = ngx_pg_peer_free;
-    return NGX_OK;
-}
-
-static void ngx_pg_abort_request(ngx_http_request_t *r) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-}
-
-static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    ngx_http_upstream_t *u = r->upstream;
-    u->headers_in.status_n = NGX_HTTP_OK;
-    u->request_sent = 1; // force to reinit_request
-    ngx_http_upstream_srv_conf_t *uscf = u->conf->upstream;
-    if (uscf->peer.init != ngx_pg_peer_init) ngx_log_error(NGX_LOG_WARN, r->connection->log, 0, "uscf->peer.init != ngx_pg_peer_init");
-    uscf->peer.init = ngx_pg_peer_init;
-    return NGX_OK;
-}
-
-static void ngx_pg_finalize_request(ngx_http_request_t *r, ngx_int_t rc) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
-}
-
 static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_char *last) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
@@ -402,6 +307,101 @@ static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_http_upstream_t *u, ngx
     }*/
 //    return ngx_queue_empty(&d->query.queue) ? NGX_OK : NGX_AGAIN;
     return NGX_OK;
+}
+
+static void ngx_pg_read_handler(ngx_event_t *ev) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
+    ngx_connection_t *c = ev->data;
+    ngx_pg_save_t *s = c->data;
+    c->data = s->keep.data;
+    s->keep.read_handler(ev);
+    c->data = s;
+}
+
+static void ngx_pg_write_handler(ngx_event_t *ev) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
+    ngx_connection_t *c = ev->data;
+    ngx_pg_save_t *s = c->data;
+    c->data = s->keep.data;
+    s->keep.write_handler(ev);
+    c->data = s;
+}
+
+static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t state) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "state = %i", state);
+    ngx_pg_data_t *d = data;
+    d->peer.free(pc, d->peer.data, state);
+    if (pc->connection) return;
+    ngx_pg_srv_conf_t *pscf = d->conf;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "pscf = %p", pscf);
+    if (!pscf) return;
+    ngx_pg_save_t *s = d->save;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "s = %p", s);
+    ngx_connection_t *c = s->connection;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "c = %p", c);
+    s->keep.data = c->data;
+    s->keep.read_handler = c->read->handler;
+    s->keep.write_handler = c->write->handler;
+    c->data = s;
+    c->read->handler = ngx_pg_read_handler;
+    c->write->handler = ngx_pg_write_handler;
+    if (!pscf->log) return;
+    c->log = pscf->log;
+    c->pool->log = pscf->log;
+    c->read->log = pscf->log;
+    c->write->log = pscf->log;
+}
+
+static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_conf_t *uscf) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "srv_conf = %s", uscf->srv_conf ? "true" : "false");
+    ngx_pg_data_t *d;
+    if (!(d = ngx_pcalloc(r->pool, sizeof(*d)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+    ngx_queue_init(&d->query.queue);
+    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
+    ngx_pg_query_t *elts = plcf->query.elts;
+    ngx_pg_query_queue_t *qq = NULL;
+    for (ngx_uint_t i = 0; i < plcf->query.nelts; i++) {
+        if (!(qq = ngx_pcalloc(r->pool, sizeof(*qq)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+        qq->query = elts[i].parse;
+        ngx_queue_insert_tail(&d->query.queue, &qq->queue);
+    }
+    if (!qq) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!qq"); return NGX_ERROR; }
+    if (uscf->srv_conf) {
+        ngx_pg_srv_conf_t *pscf = ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module);
+        if (pscf->peer.init(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
+        d->conf = pscf;
+    } else {
+        if (ngx_http_upstream_init_round_robin_peer(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_upstream_init_round_robin_peer != NGX_OK"); return NGX_ERROR; }
+    }
+    ngx_http_upstream_t *u = r->upstream;
+    u->conf->upstream = uscf;
+    d->request = r;
+    d->peer.data = u->peer.data;
+    u->peer.data = d;
+    d->peer.get = u->peer.get;
+    u->peer.get = ngx_pg_peer_get;
+    d->peer.free = u->peer.free;
+    u->peer.free = ngx_pg_peer_free;
+    return NGX_OK;
+}
+
+static void ngx_pg_abort_request(ngx_http_request_t *r) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+}
+
+static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    ngx_http_upstream_t *u = r->upstream;
+    u->headers_in.status_n = NGX_HTTP_OK;
+    u->request_sent = 1; // force to reinit_request
+    ngx_http_upstream_srv_conf_t *uscf = u->conf->upstream;
+    if (uscf->peer.init != ngx_pg_peer_init) ngx_log_error(NGX_LOG_WARN, r->connection->log, 0, "uscf->peer.init != ngx_pg_peer_init");
+    uscf->peer.init = ngx_pg_peer_init;
+    return NGX_OK;
+}
+
+static void ngx_pg_finalize_request(ngx_http_request_t *r, ngx_int_t rc) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
 }
 
 static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
