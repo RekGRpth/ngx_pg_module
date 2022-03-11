@@ -203,6 +203,7 @@ static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_c
     b->memory = 1;
     b->pos = pos;
     b->tag = u->output.tag;
+    for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%c", *p, *p);
     return NGX_OK;
 }
 
