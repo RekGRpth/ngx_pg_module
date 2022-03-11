@@ -131,6 +131,8 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     if (pc->connection) return;
     ngx_pg_save_t *s = d->save;
     ngx_connection_t *c = s->connection;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "c = %p", c);
+    if (!c) return;
     s->keep.data = c->data;
     s->keep.read_handler = c->read->handler;
     s->keep.write_handler = c->write->handler;
