@@ -39,6 +39,7 @@ typedef struct {
 
 typedef struct {
     ngx_connection_t *connection;
+    ngx_pg_srv_conf_t *conf;
     struct {
         ngx_event_handler_pt read_handler;
         ngx_event_handler_pt write_handler;
@@ -388,11 +389,12 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
     if ((d->save = c->data)) return NGX_OK;
     ngx_pg_save_t *s;
     if (!(s = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+    s->conf = d->conf;
     s->connection = c;
     ngx_pool_cleanup_t *cln;
     if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
+    cln->data = c->data = d->save = s;
     cln->handler = ngx_pg_cln_handler;
-    cln->data = d->save = c->data = s;
     return NGX_OK;
 }
 
