@@ -336,9 +336,20 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "key = %s", b->pos);
+            ngx_str_t key;
+            key.data = b->pos;
             while (*b->pos++);
-            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "val = %s", b->pos);
+            key.len = b->pos - key.data - 1;
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "value = %s", b->pos);
+            ngx_str_t value;
+            value.data = b->pos;
             while (*b->pos++);
+            value.len = b->pos - value.data - 1;
+            ngx_table_elt_t *h;
+            if (!(h = ngx_list_push(&r->headers_out.headers))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_list_push"); return NGX_ERROR; }
+            h->hash = 1;
+            h->key = key;
+            h->value = value;
         } break;
         case 'T': {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Row Description");
