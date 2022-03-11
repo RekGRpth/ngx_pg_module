@@ -189,6 +189,23 @@ static void ngx_pg_cln_handler(void *data) {
     ngx_chain_writer(&ctx, NULL);
 }
 
+static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_char *last) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    ngx_http_upstream_t *u = r->upstream;
+    ngx_chain_t *cl, **ll;
+    for (cl = u->out_bufs, ll = &u->out_bufs; cl; cl = cl->next) ll = &cl->next;
+    if (!(cl = ngx_chain_get_free_buf(r->pool, &u->free_bufs))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
+    *ll = cl;
+//    ll = &cl->next;
+    ngx_buf_t *b = cl->buf;
+    b->flush = 1;
+    b->last = last;
+    b->memory = 1;
+    b->pos = pos;
+    b->tag = u->output.tag;
+    return NGX_OK;
+}
+
 static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
@@ -240,19 +257,10 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", len);
                 b->pos += sizeof(uint32_t);
                 ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "val = %*s", len, b->pos);
+                u_char *pos = b->pos;
                 b->pos += len;
-                ngx_http_upstream_t *u = r->upstream;
-                ngx_chain_t *cl, **ll;
-                for (cl = u->out_bufs, ll = &u->out_bufs; cl; cl = cl->next) ll = &cl->next;
-                if (!(cl = ngx_chain_get_free_buf(r->pool, &u->free_bufs))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
-                *ll = cl;
-//                ll = &cl->next;
-                ngx_buf_t *buf = cl->buf;
-                buf->flush = 1;
-                buf->last = b->pos;
-                buf->memory = 1;
-                buf->pos = b->pos - len;
-                buf->tag = u->output.tag;
+                u_char *last = b->pos;
+                if (ngx_pg_process_response(r, pos, last) == NGX_ERROR) return NGX_ERROR;
             }
         } break;
         case 'E': {
@@ -268,7 +276,13 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 case 'F': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "source_file = %s", b->pos); while (*b->pos++); break;
                 case 'H': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "message_hint = %s", b->pos); while (*b->pos++); break;
                 case 'L': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "source_line = %s", b->pos); while (*b->pos++); break;
-                case 'M': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "message_primary = %s", b->pos); while (*b->pos++); break;
+                case 'M': {
+                    ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "message_primary = %s", b->pos);
+                    u_char *pos = b->pos;
+                    while (*b->pos++);
+                    u_char *last = b->pos;
+                    if (ngx_pg_process_response(r, pos, last) == NGX_ERROR) return NGX_ERROR;
+                } break;
                 case 'n': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "constraint_name = %s", b->pos); while (*b->pos++); break;
                 case 'p': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "internal_position = %s", b->pos); while (*b->pos++); break;
                 case 'P': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "statement_position = %s", b->pos); while (*b->pos++); break;
