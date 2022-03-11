@@ -223,7 +223,7 @@ static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_c
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_parse(ngx_pg_data_t *d, ngx_log_t *l, ngx_buf_t *b) {
+static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_log_t *l, ngx_buf_t *b) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, l, 0, "%s", __func__);
 //    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, l, 0, "%i:%i:%c", i++, *p, *p);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, l, 0, "len = %i", b->last - b->pos);
@@ -265,7 +265,6 @@ static ngx_int_t ngx_pg_parse(ngx_pg_data_t *d, ngx_log_t *l, ngx_buf_t *b) {
                 u_char *pos = b->pos;
                 b->pos += len;
                 u_char *last = b->pos;
-                ngx_http_request_t *r = d->request;
                 if (ngx_pg_process_response(r, pos, last) == NGX_ERROR) return NGX_ERROR;
             }
         } break;
@@ -273,13 +272,13 @@ static ngx_int_t ngx_pg_parse(ngx_pg_data_t *d, ngx_log_t *l, ngx_buf_t *b) {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, l, 0, "Error Response");
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, l, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
-            ngx_http_request_t *r = d->request;
             ngx_http_upstream_t *u = r->upstream;
             u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
             ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
             while (b->pos < b->last) switch (*b->pos++) {
                 case 0: {
                     if (plcf->upstream.intercept_errors) goto cont;
+                    ngx_pg_data_t *d = u->peer.data;
                     if (d->conf) u->keepalive = 1;
                     return NGX_ERROR;
                 } break;
@@ -346,7 +345,6 @@ static ngx_int_t ngx_pg_parse(ngx_pg_data_t *d, ngx_log_t *l, ngx_buf_t *b) {
             while (*b->pos++);
             value.len = b->pos - value.data - 1;
             ngx_table_elt_t *h;
-            ngx_http_request_t *r = d->request;
             if (!(h = ngx_list_push(&r->headers_out.headers))) { ngx_log_error(NGX_LOG_ERR, l, 0, "!ngx_list_push"); return NGX_ERROR; }
             h->hash = 1;
             h->key = key;
@@ -386,6 +384,8 @@ static ngx_int_t ngx_pg_parse(ngx_pg_data_t *d, ngx_log_t *l, ngx_buf_t *b) {
                 case 'T': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, l, 0, "TRANS_INTRANS"); break;
                 default: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, l, 0, "TRANS_UNKNOWN"); break;
             }
+            ngx_http_upstream_t *u = r->upstream;
+            ngx_pg_data_t *d = u->peer.data;
             if (!ngx_queue_empty(&d->query.queue)) { ngx_queue_t *q = ngx_queue_head(&d->query.queue); ngx_queue_remove(q); }
         } break;
         default: {
@@ -394,6 +394,8 @@ static ngx_int_t ngx_pg_parse(ngx_pg_data_t *d, ngx_log_t *l, ngx_buf_t *b) {
             return NGX_ERROR;
         } break;
     }
+    ngx_http_upstream_t *u = r->upstream;
+    ngx_pg_data_t *d = u->peer.data;
     return ngx_queue_empty(&d->query.queue) ? NGX_OK : NGX_AGAIN;
 }
 
@@ -402,8 +404,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_http_upstream_t *u = r->upstream;
     ngx_buf_t *b = &u->buffer;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", b->last - b->pos);
-    ngx_pg_data_t *d = u->peer.data;
-    return ngx_pg_parse(d, r->connection->log, b);
+    return ngx_pg_parse(r, r->connection->log, b);
 }
 
 static void ngx_pg_save_cln_handler(void *data) {
