@@ -41,8 +41,8 @@ typedef struct {
 } ngx_pg_srv_conf_t;
 
 typedef struct {
+    ngx_buf_t buffer;
     ngx_connection_t *connection;
-//    ngx_pg_srv_conf_t *conf;
     ngx_queue_t queue;
     struct {
         ngx_event_handler_pt read_handler;
@@ -297,15 +297,6 @@ static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_http_upstream_t *u, ngx
             return NGX_ERROR;
         } break;
     }
-//    ngx_pg_data_t *d = u->peer.data;
-//    int n;
-    /*char buf[1];
-    switch (recv(c->fd, buf, 1, MSG_PEEK)) {
-        case -1: if (ngx_socket_errno == NGX_EAGAIN) return NGX_OK; ngx_log_error(NGX_LOG_ERR, l, 0, "recv == -1"); return NGX_ERROR; break;
-        case 0: return NGX_OK; break;
-        default: return NGX_AGAIN; break;
-    }*/
-//    return ngx_queue_empty(&d->query.queue) ? NGX_OK : NGX_AGAIN;
     return NGX_OK;
 }
 
@@ -313,6 +304,8 @@ static void ngx_pg_read_handler(ngx_event_t *ev) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
     ngx_connection_t *c = ev->data;
     ngx_pg_save_t *s = c->data;
+    ngx_buf_t *b = &s->buffer;
+    if (ngx_pg_parse(NULL, NULL, NULL, c->log, b) == NGX_OK) return;
     c->data = s->keep.data;
     s->keep.read_handler(ev);
     c->data = s;
@@ -460,7 +453,6 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
     if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s = %p", s);
     ngx_queue_insert_tail(&pscf->save.queue, &s->queue);
-//    s->conf = d->conf;
     s->connection = c;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "c = %p", c);
     ngx_pool_cleanup_t *cln;
