@@ -413,14 +413,16 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
     ngx_connection_t *c = u->peer.connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "c = %p", c);
     ngx_pg_data_t *d = u->peer.data;
-    if ((d->save = c->data)) return NGX_OK;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "d->save = %p", d->save);
+    if (d->save) return NGX_OK;
+//    if (!(d->save = c->data)) return NGX_OK;
     ngx_pg_save_t *s;
     if (!(s = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
     s->conf = d->conf;
     s->connection = c;
     ngx_pool_cleanup_t *cln;
     if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
-    cln->data = c->data = d->save = s;
+    cln->data = /*c->data = */d->save = s;
     cln->handler = ngx_pg_cln_handler;
     return NGX_OK;
 }
