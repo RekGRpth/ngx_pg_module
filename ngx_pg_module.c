@@ -252,6 +252,21 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     }
     ngx_pg_data_t *d = u->peer.data;
     while (b->pos < b->last) switch (*b->pos++) {
+        case '1': {
+            ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Parse Complete");
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
+            b->pos += sizeof(uint32_t);
+        } break;
+        case '2': {
+            ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Bind Complete");
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
+            b->pos += sizeof(uint32_t);
+        } break;
+        case '3': {
+            ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Close Complete");
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
+            b->pos += sizeof(uint32_t);
+        } break;
         case 'C': {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Command Complete");
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
@@ -311,7 +326,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                     case PG_DIAG_SQLSTATE: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SQLSTATE = %s", b->pos); break;
                     case PG_DIAG_STATEMENT_POSITION: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_STATEMENT_POSITION = %s", b->pos); break;
                     case PG_DIAG_TABLE_NAME: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_TABLE_NAME = %s", b->pos); break;
-//                    default: ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "unknown error type %c", *(b->pos - 1)); return NGX_ERROR; break;
+                    default: ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "unknown error %c", *(b->pos - 1)); return NGX_ERROR; break;
                 }
                 while (*b->pos++);
             }
@@ -386,7 +401,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 else ctx->done = 1;
             }*/
         } break;
-//        default: ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "unknown command %c", *(b->pos - 1)); return NGX_ERROR; break;
+        default: ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "unknown command %c", *(b->pos - 1)); return NGX_ERROR; break;
     }
     if (ngx_queue_empty(&d->query.queue)) {
         u->headers_in.status_n = NGX_HTTP_OK;
