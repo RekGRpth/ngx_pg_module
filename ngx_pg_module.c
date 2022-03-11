@@ -257,36 +257,32 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Error Response");
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
-            while (b->pos < b->last) {
-                switch (*b->pos++) {
-                    case 0: return NGX_ERROR; break;
-                    case 'c': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "column_name = %s", b->pos); break;
-                    case 'C': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "sqlstate = %s", b->pos); break;
-                    case 'd': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "datatype_name = %s", b->pos); break;
-                    case 'D': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "message_detail = %s", b->pos); break;
-                    case 'F': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "source_file = %s", b->pos); break;
-                    case 'H': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "message_hint = %s", b->pos); break;
-                    case 'L': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "source_line = %s", b->pos); break;
-                    case 'M': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "message_primary = %s", b->pos); break;
-                    case 'n': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "constraint_name = %s", b->pos); break;
-                    case 'p': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "internal_position = %s", b->pos); break;
-                    case 'P': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "statement_position = %s", b->pos); break;
-                    case 'q': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "internal_query = %s", b->pos); break;
-                    case 'R': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "source_function = %s", b->pos); break;
-                    case 's': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "schema_name = %s", b->pos); break;
-                    case 'S': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "severity = %s", b->pos); break;
-                    case 't': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "table_name = %s", b->pos); break;
-                    case 'V': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "severity_nonlocalized = %s", b->pos); break;
-                    case 'W': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "context = %s", b->pos); break;
-                    default: {
-                        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "unknown error %i:%c", *(b->pos - 1), *(b->pos - 1));
-                        ngx_uint_t i = 0; for (u_char *p = b->pos - 1; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
-                        return NGX_ERROR;
-                    } break;
-                }
-                while (*b->pos++);
+            while (b->pos < b->last) switch (*b->pos++) {
+                case 0: return NGX_ERROR; break;
+                case 'c': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "column_name = %s", b->pos); while (*b->pos++); break;
+                case 'C': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "sqlstate = %s", b->pos); while (*b->pos++); break;
+                case 'd': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "datatype_name = %s", b->pos); while (*b->pos++); break;
+                case 'D': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "message_detail = %s", b->pos); while (*b->pos++); break;
+                case 'F': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "source_file = %s", b->pos); while (*b->pos++); break;
+                case 'H': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "message_hint = %s", b->pos); while (*b->pos++); break;
+                case 'L': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "source_line = %s", b->pos); while (*b->pos++); break;
+                case 'M': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "message_primary = %s", b->pos); while (*b->pos++); break;
+                case 'n': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "constraint_name = %s", b->pos); while (*b->pos++); break;
+                case 'p': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "internal_position = %s", b->pos); while (*b->pos++); break;
+                case 'P': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "statement_position = %s", b->pos); while (*b->pos++); break;
+                case 'q': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "internal_query = %s", b->pos); while (*b->pos++); break;
+                case 'R': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "source_function = %s", b->pos); while (*b->pos++); break;
+                case 's': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "schema_name = %s", b->pos); while (*b->pos++); break;
+                case 'S': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "severity = %s", b->pos); while (*b->pos++); break;
+                case 't': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "table_name = %s", b->pos); while (*b->pos++); break;
+                case 'V': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "severity_nonlocalized = %s", b->pos); while (*b->pos++); break;
+                case 'W': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "context = %s", b->pos); while (*b->pos++); break;
+                default: {
+                    ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "unknown error %i:%c", *(b->pos - 1), *(b->pos - 1));
+                    ngx_uint_t i = 0; for (u_char *p = b->pos - 1; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
+                    return NGX_ERROR;
+                } break;
             }
-//            return NGX_ERROR;
         } break;
         case 'K': {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "secret key data from the backend");
