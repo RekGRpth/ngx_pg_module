@@ -38,7 +38,16 @@ typedef struct {
 } ngx_pg_srv_conf_t;
 
 typedef struct {
+    struct {
+        ngx_event_handler_pt read_handler;
+        ngx_event_handler_pt write_handler;
+        void *data;
+    } keep;
+} ngx_pg_save_t;
+
+typedef struct {
     ngx_http_request_t *request;
+    ngx_pg_save_t *save;
     ngx_pg_srv_conf_t *conf;
     struct {
         ngx_event_free_peer_pt free;
@@ -104,6 +113,7 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     ngx_pg_srv_conf_t *pscf = d->conf;
     if (!c) return;
     if (!pscf) return;
+    
     if (!pscf->log) return;
     c->log = pscf->log;
     c->pool->log = pscf->log;
@@ -152,6 +162,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     u->headers_in.status_n = NGX_HTTP_OK;
+    u->request_sent = 1; // force to reinit_request
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
     if (uscf->peer.init != ngx_pg_peer_init) ngx_log_error(NGX_LOG_WARN, r->connection->log, 0, "uscf->peer.init != ngx_pg_peer_init");
@@ -379,6 +390,9 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
 
 static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    ngx_http_upstream_t *u = r->upstream;
+    ngx_connection_t *c = u->peer.connection;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "c = %p", c);
     return NGX_OK;
 }
 
