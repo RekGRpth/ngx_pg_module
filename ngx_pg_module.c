@@ -35,11 +35,15 @@ typedef struct {
         ngx_http_upstream_init_peer_pt init;
         ngx_http_upstream_init_pt init_upstream;
     } peer;
+    struct {
+        ngx_queue_t queue;
+    } save;
 } ngx_pg_srv_conf_t;
 
 typedef struct {
     ngx_connection_t *connection;
     ngx_pg_srv_conf_t *conf;
+    ngx_queue_t queue;
     struct {
         ngx_event_handler_pt read_handler;
         ngx_event_handler_pt write_handler;
@@ -414,8 +418,14 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
     cln->handler = ngx_pg_cln_handler;
     ngx_pg_data_t *d = u->peer.data;
     if (!d->conf) return NGX_OK;
+    ngx_pg_srv_conf_t *pscf = d->conf;
+    for (ngx_queue_t *q = ngx_queue_head(&pscf->save.queue), *_; q != ngx_queue_sentinel(&pscf->save.queue) && (_ = ngx_queue_next(q)); q = _) {
+        ngx_pg_save_t *s = d->save = ngx_queue_data(q, ngx_pg_save_t, queue);
+        if (s->connection == c) return NGX_OK;
+    }
     ngx_pg_save_t *s;
     if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+    ngx_queue_insert_tail(&pscf->save.queue, &s->queue);
     s->conf = d->conf;
     s->connection = c;
     return NGX_OK;
@@ -591,6 +601,7 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
         ngx_pg_srv_conf_t *pscf = ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module);
         if (pscf->peer.init_upstream(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "peer.init_upstream != NGX_OK"); return NGX_ERROR; }
         pscf->peer.init = uscf->peer.init ? uscf->peer.init : ngx_http_upstream_init_round_robin_peer;
+        ngx_queue_init(&pscf->save.queue);
     } else {
         if (ngx_http_upstream_init_round_robin(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "ngx_http_upstream_init_round_robin != NGX_OK"); return NGX_ERROR; }
     }
