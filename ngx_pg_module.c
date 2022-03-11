@@ -280,6 +280,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             while (b->pos < b->last) switch (*b->pos++) {
                 case 0: {
                     if (plcf->upstream.intercept_errors) goto cont;
+                    if (d->conf) u->keepalive = 1;
                     return NGX_ERROR;
                 } break;
                 case 'c': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "column_name = %s", b->pos); while (*b->pos++); break;
