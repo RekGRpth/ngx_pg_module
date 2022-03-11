@@ -105,6 +105,24 @@ found:
     return rc;
 }
 
+static void ngx_pg_read_handler(ngx_event_t *ev) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
+    ngx_connection_t *c = ev->data;
+    ngx_pg_save_t *s = c->data;
+    c->data = s->keep.data;
+    s->keep.read_handler(ev);
+    c->data = s;
+}
+
+static void ngx_pg_write_handler(ngx_event_t *ev) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
+    ngx_connection_t *c = ev->data;
+    ngx_pg_save_t *s = c->data;
+    c->data = s->keep.data;
+    s->keep.write_handler(ev);
+    c->data = s;
+}
+
 static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t state) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "state = %i", state);
     ngx_pg_data_t *d = data;
@@ -113,7 +131,13 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     ngx_pg_srv_conf_t *pscf = d->conf;
     if (!c) return;
     if (!pscf) return;
-    
+    ngx_pg_save_t *s = d->save;
+    s->keep.data = c->data;
+    s->keep.read_handler = c->read->handler;
+    s->keep.write_handler = c->write->handler;
+    c->data = s;
+    c->read->handler = ngx_pg_read_handler;
+    c->write->handler = ngx_pg_write_handler;
     if (!pscf->log) return;
     c->log = pscf->log;
     c->pool->log = pscf->log;
