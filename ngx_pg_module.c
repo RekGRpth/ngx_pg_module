@@ -384,9 +384,9 @@ static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_log_t *l, ngx_buf_t *b)
                 case 'T': ngx_log_debug0(NGX_LOG_DEBUG_HTTP, l, 0, "TRANS_INTRANS"); break;
                 default: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, l, 0, "TRANS_UNKNOWN"); break;
             }
-            ngx_http_upstream_t *u = r->upstream;
-            ngx_pg_data_t *d = u->peer.data;
-            if (!ngx_queue_empty(&d->query.queue)) { ngx_queue_t *q = ngx_queue_head(&d->query.queue); ngx_queue_remove(q); }
+//            ngx_http_upstream_t *u = r->upstream;
+//            ngx_pg_data_t *d = u->peer.data;
+//            if (!ngx_queue_empty(&d->query.queue)) { ngx_queue_t *q = ngx_queue_head(&d->query.queue); ngx_queue_remove(q); }
         } break;
         default: {
             ngx_log_error(NGX_LOG_ERR, l, 0, "unknown command %i:%c", *(b->pos - 1), *(b->pos - 1));
@@ -395,13 +395,22 @@ static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_log_t *l, ngx_buf_t *b)
         } break;
     }
     ngx_http_upstream_t *u = r->upstream;
-    ngx_pg_data_t *d = u->peer.data;
-    return ngx_queue_empty(&d->query.queue) ? NGX_OK : NGX_AGAIN;
+    ngx_connection_t *c = u->peer.connection;
+//    ngx_pg_data_t *d = u->peer.data;
+//    int n;
+    char buf[1];
+    switch (recv(c->fd, buf, 1, MSG_PEEK)) {
+        case -1: if (ngx_socket_errno == NGX_EAGAIN) return NGX_OK; ngx_log_error(NGX_LOG_ERR, l, 0, "recv == -1"); return NGX_ERROR; break;
+        case 0: return NGX_OK; break;
+        default: return NGX_AGAIN; break;
+    }
+//    return ngx_queue_empty(&d->query.queue) ? NGX_OK : NGX_AGAIN;
 }
 
 static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
+    u->headers_in.status_n = NGX_HTTP_OK;
     ngx_buf_t *b = &u->buffer;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", b->last - b->pos);
     return ngx_pg_parse(r, r->connection->log, b);
