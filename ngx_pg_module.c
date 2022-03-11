@@ -69,9 +69,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     if (rc != NGX_OK && rc != NGX_DONE) return rc;
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
-    if (c) {
-        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "requests = %i", c->requests);
-    } else {
+    if (!c) {
         ngx_pg_query_queue_t *qq;
         if (!(qq = ngx_pcalloc(r->pool, sizeof(*qq)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         ngx_queue_insert_head(&d->query.queue, &qq->queue);
@@ -174,32 +172,6 @@ static void ngx_pg_finalize_request(ngx_http_request_t *r, ngx_int_t rc) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
 }
 
-static void ngx_pg_cln_handler(void *data) {
-    ngx_connection_t *c = data;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
-
-    ngx_buf_t *b;
-    ngx_chain_t *cl, *cl_len, *out, *last;
-    uint32_t len = 0;
-
-    if (!(cl = out = ngx_alloc_chain_link(c->pool))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_alloc_chain_link"); return; }
-    if (!(cl->buf = b = ngx_create_temp_buf(c->pool, sizeof(u_char)))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_create_temp_buf"); return; }
-    *b->last++ = (u_char)'X';
-
-    if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(c->pool))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_alloc_chain_link"); return; }
-    if (!(cl->buf = b = ngx_create_temp_buf(c->pool, len += sizeof(len)))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_create_temp_buf"); return; }
-
-    *(uint32_t *)cl_len->buf->last = htonl(len);
-    cl_len->buf->last += sizeof(len);
-
-    cl->next = NULL;
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = out; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, c->log, 0, "%i:%i:%c", i++, *p, *p);
-
-    ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
-
-    ngx_chain_writer(&ctx, NULL);
-}
-
 static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_char *last) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
@@ -224,15 +196,6 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_buf_t *b = &u->buffer;
 //    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", b->last - b->pos);
-    ngx_connection_t *c = u->peer.connection;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "requests = %i", c->requests);
-    if (c->requests == 1) {
-        ngx_pool_cleanup_t *cln = ngx_pool_cleanup_add(c->pool, 0);
-        if (!cln) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
-        cln->handler = ngx_pg_cln_handler;
-        cln->data = c;
-        c->requests++;
-    }
     ngx_pg_data_t *d = u->peer.data;
     while (b->pos < b->last) switch (*b->pos++) {
         case '1': {
@@ -388,11 +351,41 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     return ngx_queue_empty(&d->query.queue) ? NGX_OK : NGX_AGAIN;
 }
 
+static void ngx_pg_cln_handler(void *data) {
+    ngx_connection_t *c = data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
+
+    ngx_buf_t *b;
+    ngx_chain_t *cl, *cl_len, *out, *last;
+    uint32_t len = 0;
+
+    if (!(cl = out = ngx_alloc_chain_link(c->pool))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_alloc_chain_link"); return; }
+    if (!(cl->buf = b = ngx_create_temp_buf(c->pool, sizeof(u_char)))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_create_temp_buf"); return; }
+    *b->last++ = (u_char)'X';
+
+    if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(c->pool))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_alloc_chain_link"); return; }
+    if (!(cl->buf = b = ngx_create_temp_buf(c->pool, len += sizeof(len)))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_create_temp_buf"); return; }
+
+    *(uint32_t *)cl_len->buf->last = htonl(len);
+    cl_len->buf->last += sizeof(len);
+
+    cl->next = NULL;
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = out; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, c->log, 0, "%i:%i:%c", i++, *p, *p);
+
+    ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
+
+    ngx_chain_writer(&ctx, NULL);
+}
+
 static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     ngx_connection_t *c = u->peer.connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "c = %p", c);
+    ngx_pool_cleanup_t *cln = ngx_pool_cleanup_add(c->pool, 0);
+    if (!cln) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
+    cln->handler = ngx_pg_cln_handler;
+    cln->data = c;
     return NGX_OK;
 }
 
