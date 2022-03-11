@@ -277,7 +277,11 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                     case 't': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "table_name = %s", b->pos); break;
                     case 'V': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "severity_nonlocalized = %s", b->pos); break;
                     case 'W': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "context = %s", b->pos); break;
-                    default: ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "unknown error %c", *(b->pos - 1)); return NGX_ERROR; break;
+                    default: {
+                        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "unknown error %i:%c", *(b->pos - 1), *(b->pos - 1));
+                        ngx_uint_t i = 0; for (u_char *p = b->pos - 1; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
+                        return NGX_ERROR;
+                    } break;
                 }
                 while (*b->pos++);
             }
@@ -344,7 +348,11 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             }
             if (!ngx_queue_empty(&d->query.queue)) { ngx_queue_t *q = ngx_queue_head(&d->query.queue); ngx_queue_remove(q); }
         } break;
-        default: ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "unknown command %c", *(b->pos - 1)); return NGX_ERROR; break;
+        default: {
+            ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "unknown command %i:%c", *(b->pos - 1), *(b->pos - 1));
+            ngx_uint_t i = 0; for (u_char *p = b->pos - 1; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
+            return NGX_ERROR;
+        } break;
     }
     if (ngx_queue_empty(&d->query.queue)) { u->headers_in.status_n = NGX_HTTP_OK; return NGX_OK; }
     return NGX_AGAIN;
