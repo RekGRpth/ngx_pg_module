@@ -127,12 +127,9 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "state = %i", state);
     ngx_pg_data_t *d = data;
     d->peer.free(pc, d->peer.data, state);
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "pc->connection = %p", pc->connection);
     if (pc->connection) return;
     ngx_pg_save_t *s = d->save;
     ngx_connection_t *c = s->connection;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "c = %p", c);
-    if (!c) return;
     s->keep.data = c->data;
     s->keep.read_handler = c->read->handler;
     s->keep.write_handler = c->write->handler;
@@ -140,7 +137,6 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     c->read->handler = ngx_pg_read_handler;
     c->write->handler = ngx_pg_write_handler;
     ngx_pg_srv_conf_t *pscf = s->conf;
-    if (!pscf) return;
     if (!pscf->log) return;
     c->log = pscf->log;
     c->pool->log = pscf->log;
@@ -381,8 +377,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
 }
 
 static void ngx_pg_cln_handler(void *data) {
-    ngx_pg_save_t *s = data;
-    ngx_connection_t *c = s->connection;
+    ngx_connection_t *c = data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
 
     ngx_buf_t *b;
@@ -412,18 +407,17 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
     ngx_http_upstream_t *u = r->upstream;
     ngx_connection_t *c = u->peer.connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "c = %p", c);
-    ngx_pg_data_t *d = u->peer.data;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "d->save = %p", d->save);
-    if (d->save) return NGX_OK;
-//    if (!(d->save = c->data)) return NGX_OK;
-    ngx_pg_save_t *s;
-    if (!(s = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
-    s->conf = d->conf;
-    s->connection = c;
+    if (c->requests > 1) return NGX_OK;
     ngx_pool_cleanup_t *cln;
     if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
-    cln->data = /*c->data = */d->save = s;
+    cln->data = c;
     cln->handler = ngx_pg_cln_handler;
+    ngx_pg_data_t *d = u->peer.data;
+    if (!d->conf) return NGX_OK;
+    ngx_pg_save_t *s;
+    if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+    s->conf = d->conf;
+    s->connection = c;
     return NGX_OK;
 }
 
