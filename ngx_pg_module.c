@@ -211,7 +211,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     ngx_buf_t *b = &u->buffer;
-//    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
+    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", b->last - b->pos);
     ngx_connection_t *c = u->peer.connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "requests = %i", c->requests);
@@ -268,8 +268,9 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "Error Response");
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
+            u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
             while (b->pos < b->last) switch (*b->pos++) {
-                case 0: u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR; break;
+                case 0: goto cont;
                 case 'c': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "column_name = %s", b->pos); while (*b->pos++); break;
                 case 'C': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "sqlstate = %s", b->pos); while (*b->pos++); break;
                 case 'd': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "datatype_name = %s", b->pos); while (*b->pos++); break;
@@ -281,7 +282,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                     ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "message_primary = %s", b->pos);
                     u_char *pos = b->pos;
                     while (*b->pos++);
-                    u_char *last = b->pos;
+                    u_char *last = b->pos - 1;
                     if (ngx_pg_process_response(r, pos, last) == NGX_ERROR) return NGX_ERROR;
                 } break;
                 case 'n': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "constraint_name = %s", b->pos); while (*b->pos++); break;
@@ -300,6 +301,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                     return NGX_ERROR;
                 } break;
             }
+            cont:;
         } break;
         case 'K': {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "secret key data from the backend");
