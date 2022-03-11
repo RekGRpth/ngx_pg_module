@@ -1,24 +1,5 @@
 #include <ngx_http.h>
 
-#define PG_DIAG_COLUMN_NAME 'c'
-#define PG_DIAG_CONSTRAINT_NAME 'n'
-#define PG_DIAG_CONTEXT 'W'
-#define PG_DIAG_DATATYPE_NAME 'd'
-#define PG_DIAG_INTERNAL_POSITION 'p'
-#define PG_DIAG_INTERNAL_QUERY 'q'
-#define PG_DIAG_MESSAGE_DETAIL 'D'
-#define PG_DIAG_MESSAGE_HINT 'H'
-#define PG_DIAG_MESSAGE_PRIMARY 'M'
-#define PG_DIAG_SCHEMA_NAME 's'
-#define PG_DIAG_SEVERITY_NONLOCALIZED 'V'
-#define PG_DIAG_SEVERITY 'S'
-#define PG_DIAG_SOURCE_FILE 'F'
-#define PG_DIAG_SOURCE_FUNCTION 'R'
-#define PG_DIAG_SOURCE_LINE 'L'
-#define PG_DIAG_SQLSTATE 'C'
-#define PG_DIAG_STATEMENT_POSITION 'P'
-#define PG_DIAG_TABLE_NAME 't'
-
 ngx_module_t ngx_pg_module;
 
 typedef struct {
@@ -278,24 +259,24 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             b->pos += sizeof(uint32_t);
             while (b->pos < b->last) {
                 switch (*b->pos++) {
-                    case PG_DIAG_COLUMN_NAME: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_COLUMN_NAME = %s", b->pos); break;
-                    case PG_DIAG_CONSTRAINT_NAME: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_CONSTRAINT_NAME = %s", b->pos); break;
-                    case PG_DIAG_CONTEXT: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_CONTEXT = %s", b->pos); break;
-                    case PG_DIAG_DATATYPE_NAME: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_DATATYPE_NAME = %s", b->pos); break;
-                    case PG_DIAG_INTERNAL_POSITION: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_INTERNAL_POSITION = %s", b->pos); break;
-                    case PG_DIAG_INTERNAL_QUERY: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_INTERNAL_QUERY = %s", b->pos); break;
-                    case PG_DIAG_MESSAGE_DETAIL: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_MESSAGE_DETAIL = %s", b->pos); break;
-                    case PG_DIAG_MESSAGE_HINT: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_MESSAGE_HINT = %s", b->pos); break;
-                    case PG_DIAG_MESSAGE_PRIMARY: ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "%s", b->pos); break;
-                    case PG_DIAG_SCHEMA_NAME: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SCHEMA_NAME = %s", b->pos); break;
-                    case PG_DIAG_SEVERITY_NONLOCALIZED: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SEVERITY_NONLOCALIZED = %s", b->pos); break;
-                    case PG_DIAG_SEVERITY: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SEVERITY = %s", b->pos); break;
-                    case PG_DIAG_SOURCE_FILE: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SOURCE_FILE = %s", b->pos); break;
-                    case PG_DIAG_SOURCE_FUNCTION: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SOURCE_FUNCTION = %s", b->pos); break;
-                    case PG_DIAG_SOURCE_LINE: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SOURCE_LINE = %s", b->pos); break;
-                    case PG_DIAG_SQLSTATE: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_SQLSTATE = %s", b->pos); break;
-                    case PG_DIAG_STATEMENT_POSITION: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_STATEMENT_POSITION = %s", b->pos); break;
-                    case PG_DIAG_TABLE_NAME: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "PG_DIAG_TABLE_NAME = %s", b->pos); break;
+                    case 'c': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "column_name = %s", b->pos); break;
+                    case 'C': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "sqlstate = %s", b->pos); break;
+                    case 'd': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "datatype_name = %s", b->pos); break;
+                    case 'D': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "message_detail = %s", b->pos); break;
+                    case 'F': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "source_file = %s", b->pos); break;
+                    case 'H': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "message_hint = %s", b->pos); break;
+                    case 'L': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "source_line = %s", b->pos); break;
+                    case 'M': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "message_primary = %s", b->pos); break;
+                    case 'n': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "constraint_name = %s", b->pos); break;
+                    case 'p': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "internal_position = %s", b->pos); break;
+                    case 'P': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "statement_position = %s", b->pos); break;
+                    case 'q': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "internal_query = %s", b->pos); break;
+                    case 'R': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "source_function = %s", b->pos); break;
+                    case 's': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "schema_name = %s", b->pos); break;
+                    case 'S': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "severity = %s", b->pos); break;
+                    case 't': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "table_name = %s", b->pos); break;
+                    case 'V': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "severity_nonlocalized = %s", b->pos); break;
+                    case 'W': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "context = %s", b->pos); break;
                     default: ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "unknown error %c", *(b->pos - 1)); return NGX_ERROR; break;
                 }
                 while (*b->pos++);
