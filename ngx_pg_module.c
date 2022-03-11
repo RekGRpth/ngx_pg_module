@@ -269,8 +269,12 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
             u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
+            ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
             while (b->pos < b->last) switch (*b->pos++) {
-                case 0: goto cont;
+                case 0: {
+                    if (plcf->upstream.intercept_errors) goto cont;
+                    return NGX_ERROR;
+                } break;
                 case 'c': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "column_name = %s", b->pos); while (*b->pos++); break;
                 case 'C': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "sqlstate = %s", b->pos); while (*b->pos++); break;
                 case 'd': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "datatype_name = %s", b->pos); while (*b->pos++); break;
@@ -283,7 +287,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                     u_char *pos = b->pos;
                     while (*b->pos++);
                     u_char *last = b->pos - 1;
-                    if (ngx_pg_process_response(r, pos, last) == NGX_ERROR) return NGX_ERROR;
+                    if (plcf->upstream.intercept_errors && ngx_pg_process_response(r, pos, last) == NGX_ERROR) return NGX_ERROR;
                 } break;
                 case 'n': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "constraint_name = %s", b->pos); while (*b->pos++); break;
                 case 'p': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "internal_position = %s", b->pos); while (*b->pos++); break;
