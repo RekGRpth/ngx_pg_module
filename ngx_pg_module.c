@@ -191,7 +191,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     ngx_buf_t *b = &u->buffer;
-//    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
+    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", b->last - b->pos);
     ngx_connection_t *c = u->peer.connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "requests = %i", c->requests);
@@ -259,6 +259,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             b->pos += sizeof(uint32_t);
             while (b->pos < b->last) {
                 switch (*b->pos++) {
+                    case 0: return NGX_ERROR; break;
                     case 'c': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "column_name = %s", b->pos); break;
                     case 'C': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "sqlstate = %s", b->pos); break;
                     case 'd': ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "datatype_name = %s", b->pos); break;
@@ -285,7 +286,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 }
                 while (*b->pos++);
             }
-            return NGX_ERROR;
+//            return NGX_ERROR;
         } break;
         case 'K': {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "secret key data from the backend");
