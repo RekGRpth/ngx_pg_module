@@ -385,7 +385,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     return ngx_queue_empty(&d->query.queue) ? NGX_OK : NGX_AGAIN;
 }
 
-static void ngx_pg_cln_handler(void *data) {
+static void ngx_pg_save_cln_handler(void *data) {
     ngx_pg_save_t *s = data;
     ngx_queue_remove(&s->queue);
     ngx_connection_t *c = s->connection;
@@ -437,7 +437,7 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
     ngx_pool_cleanup_t *cln;
     if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
     cln->data = s;
-    cln->handler = ngx_pg_cln_handler;
+    cln->handler = ngx_pg_save_cln_handler;
     return NGX_OK;
 }
 
