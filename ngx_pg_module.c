@@ -194,8 +194,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     ngx_http_upstream_t *u = r->upstream;
     u->headers_in.status_n = NGX_HTTP_OK;
     u->request_sent = 1; // force to reinit_request
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
+    ngx_http_upstream_srv_conf_t *uscf = u->conf->upstream;
     if (uscf->peer.init != ngx_pg_peer_init) ngx_log_error(NGX_LOG_WARN, r->connection->log, 0, "uscf->peer.init != ngx_pg_peer_init");
     uscf->peer.init = ngx_pg_peer_init;
     return NGX_OK;
@@ -265,20 +264,21 @@ static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_http_upstream_t *u, ngx
                 u_char *pos = b->pos;
                 b->pos += len;
                 u_char *last = b->pos;
-                if (ngx_pg_process_response(r, pos, last) == NGX_ERROR) return NGX_ERROR;
+                if (r && ngx_pg_process_response(r, pos, last) == NGX_ERROR) return NGX_ERROR;
             }
         } break;
         case 'E': {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, l, 0, "Error Response");
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, l, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
-            u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
-            ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
+            if (u) u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
             while (b->pos < b->last) switch (*b->pos++) {
                 case 0: {
-                    if (plcf->upstream.intercept_errors) goto cont;
-                    ngx_pg_data_t *d = u->peer.data;
-                    if (d->conf) u->keepalive = 1;
+                    if (u) {
+                        if (u->conf->intercept_errors) goto cont;
+                        ngx_pg_data_t *d = u->peer.data;
+                        if (d->conf) u->keepalive = 1;
+                    }
                     return NGX_ERROR;
                 } break;
                 case 'c': ngx_log_error(NGX_LOG_ERR, l, 0, "column_name = %s", b->pos); while (*b->pos++); break;
@@ -293,7 +293,7 @@ static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_http_upstream_t *u, ngx
                     u_char *pos = b->pos;
                     while (*b->pos++);
                     u_char *last = b->pos - 1;
-                    if (plcf->upstream.intercept_errors && ngx_pg_process_response(r, pos, last) == NGX_ERROR) return NGX_ERROR;
+                    if (u && u->conf->intercept_errors && ngx_pg_process_response(r, pos, last) == NGX_ERROR) return NGX_ERROR;
                 } break;
                 case 'n': ngx_log_error(NGX_LOG_ERR, l, 0, "constraint_name = %s", b->pos); while (*b->pos++); break;
                 case 'p': ngx_log_error(NGX_LOG_ERR, l, 0, "internal_position = %s", b->pos); while (*b->pos++); break;
@@ -343,11 +343,13 @@ static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_http_upstream_t *u, ngx
             value.data = b->pos;
             while (*b->pos++);
             value.len = b->pos - value.data - 1;
-            ngx_table_elt_t *h;
-            if (!(h = ngx_list_push(&r->headers_out.headers))) { ngx_log_error(NGX_LOG_ERR, l, 0, "!ngx_list_push"); return NGX_ERROR; }
-            h->hash = 1;
-            h->key = key;
-            h->value = value;
+            if (r) {
+                ngx_table_elt_t *h;
+                if (!(h = ngx_list_push(&r->headers_out.headers))) { ngx_log_error(NGX_LOG_ERR, l, 0, "!ngx_list_push"); return NGX_ERROR; }
+                h->hash = 1;
+                h->key = key;
+                h->value = value;
+            }
         } break;
         case 'T': {
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, l, 0, "Row Description");
@@ -508,11 +510,11 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     u->process_header = ngx_pg_process_header;
     u->reinit_request = ngx_pg_reinit_request;
     r->state = 0;
-    u->buffering = plcf->upstream.buffering;
+    u->buffering = u->conf->buffering;
     u->input_filter_init = ngx_pg_input_filter_init;
     u->input_filter = ngx_pg_input_filter;
     u->input_filter_ctx = r;
-    if (!plcf->upstream.request_buffering && plcf->upstream.pass_request_body && !r->headers_in.chunked) r->request_body_no_buffering = 1;
+    if (!u->conf->request_buffering && u->conf->pass_request_body && !r->headers_in.chunked) r->request_body_no_buffering = 1;
     if ((rc = ngx_http_read_client_request_body(r, ngx_http_upstream_init)) >= NGX_HTTP_SPECIAL_RESPONSE) return rc;
     return NGX_DONE;
 }
