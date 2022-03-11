@@ -223,7 +223,7 @@ static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_c
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_log_t *l, ngx_buf_t *b) {
+static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_http_upstream_t *u, ngx_connection_t *c, ngx_log_t *l, ngx_buf_t *b) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, l, 0, "%s", __func__);
 //    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, l, 0, "%i:%i:%c", i++, *p, *p);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, l, 0, "len = %i", b->last - b->pos);
@@ -272,7 +272,6 @@ static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_log_t *l, ngx_buf_t *b)
             ngx_log_debug0(NGX_LOG_DEBUG_HTTP, l, 0, "Error Response");
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, l, 0, "len = %i", ntohl(*(uint32_t *)b->pos));
             b->pos += sizeof(uint32_t);
-            ngx_http_upstream_t *u = r->upstream;
             u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
             ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
             while (b->pos < b->last) switch (*b->pos++) {
@@ -394,8 +393,6 @@ static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_log_t *l, ngx_buf_t *b)
             return NGX_ERROR;
         } break;
     }
-    ngx_http_upstream_t *u = r->upstream;
-    ngx_connection_t *c = u->peer.connection;
 //    ngx_pg_data_t *d = u->peer.data;
 //    int n;
     char buf[1];
@@ -413,7 +410,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     u->headers_in.status_n = NGX_HTTP_OK;
     ngx_buf_t *b = &u->buffer;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", b->last - b->pos);
-    return ngx_pg_parse(r, r->connection->log, b);
+    ngx_connection_t *c = u->peer.connection;
+    return ngx_pg_parse(r, u, c, r->connection->log, b);
 }
 
 static void ngx_pg_save_cln_handler(void *data) {
