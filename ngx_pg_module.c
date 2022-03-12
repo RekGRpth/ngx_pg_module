@@ -18,7 +18,7 @@ typedef struct {
 } ngx_pg_query_t;
 
 typedef struct {
-    ngx_chain_t *cl;
+    ngx_chain_t *cmd;
     ngx_queue_t queue;
 } ngx_pg_cmd_queue_t;
 
@@ -81,10 +81,10 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         ngx_queue_insert_head(&d->cmd.queue, &cq->queue);
         ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
         ngx_pg_srv_conf_t *pscf = d->conf;
-        if (!pscf) cq->cl = plcf->connect.cl; else {
+        if (!pscf) cq->cmd = plcf->connect.cl; else {
             ngx_pg_connect_t *connect = pscf->connect.elts;
             ngx_uint_t i;
-            for (i = 0; i < pscf->connect.nelts; i++) for (ngx_uint_t j = 0; j < connect[i].url.naddrs; j++) if (!ngx_memn2cmp((u_char *)pc->sockaddr, (u_char *)connect[i].url.addrs[j].sockaddr, pc->socklen, connect[i].url.addrs[j].socklen)) { cq->cl = connect[i].cl; goto found; }
+            for (i = 0; i < pscf->connect.nelts; i++) for (ngx_uint_t j = 0; j < connect[i].url.naddrs; j++) if (!ngx_memn2cmp((u_char *)pc->sockaddr, (u_char *)connect[i].url.addrs[j].sockaddr, pc->socklen, connect[i].url.addrs[j].socklen)) { cq->cmd = connect[i].cl; goto found; }
 found:
             if (i == pscf->connect.nelts) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "connect not found"); return NGX_BUSY; }
         }
@@ -94,7 +94,7 @@ found:
     ngx_uint_t j = 0;
     for (ngx_queue_t *q = ngx_queue_head(&d->cmd.queue), *_; q != ngx_queue_sentinel(&d->cmd.queue) && (_ = ngx_queue_next(q)); q = _) {
         ngx_pg_cmd_queue_t *cq = ngx_queue_data(q, ngx_pg_cmd_queue_t, queue);
-        for (ngx_chain_t *cmd = cq->cl; cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = cq->cmd; cmd; cmd = cmd->next) {
             if (j++ && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
             cl->buf = cmd->buf;
         }
@@ -355,7 +355,7 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
     ngx_pg_cmd_queue_t *cq = NULL;
     for (ngx_uint_t i = 0; i < plcf->query.nelts; i++) {
         if (!(cq = ngx_pcalloc(r->pool, sizeof(*cq)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
-        cq->cl = elts[i].parse;
+        cq->cmd = elts[i].parse;
         ngx_queue_insert_tail(&d->cmd.queue, &cq->queue);
     }
     if (!cq) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!cq"); return NGX_ERROR; }
