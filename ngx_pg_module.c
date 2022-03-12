@@ -453,10 +453,9 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     u->headers_in.status_n = NGX_HTTP_OK;
-    ngx_buf_t *b = &u->buffer;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "len = %i", b->last - b->pos);
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
+    s->buffer = u->buffer;
     return ngx_pg_parse(r, s);
 }
 
