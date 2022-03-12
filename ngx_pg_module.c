@@ -131,7 +131,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         cln->handler = ngx_pg_save_cln_handler;
         ngx_queue_init(&s->cmd.queue);
         ngx_pg_cmd_queue_t *cq;
-        if (!(cq = ngx_pcalloc(c->pool, sizeof(*cq)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+        if (!(cq = ngx_pcalloc(r->pool, sizeof(*cq)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         ngx_queue_insert_tail(&s->cmd.queue, &cq->queue);
         if (pscf) {
             ngx_pg_connect_t *connect = pscf->connect.elts;
@@ -142,11 +142,10 @@ found:
         } else cq->cmd = plcf->connect.cl;
     }
     ngx_pg_save_t *s = d->save;
-    ngx_connection_t *c = s->connection;
     ngx_pg_cmd_queue_t *cq;
     ngx_pg_query_t *elts = plcf->query.elts;
     for (ngx_uint_t i = 0; i < plcf->query.nelts; i++) {
-        if (!(cq = ngx_pcalloc(c->pool, sizeof(*cq)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+        if (!(cq = ngx_pcalloc(r->pool, sizeof(*cq)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         cq->cmd = elts[i].parse;
         ngx_queue_insert_tail(&s->cmd.queue, &cq->queue);
     }
