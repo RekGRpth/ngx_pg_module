@@ -526,11 +526,11 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     u->process_header = ngx_pg_process_header;
     u->reinit_request = ngx_pg_reinit_request;
     r->state = 0;
-    u->buffering = u->conf->buffering;
+//    u->buffering = u->conf->buffering;
     u->input_filter_init = ngx_pg_input_filter_init;
     u->input_filter = ngx_pg_input_filter;
     u->input_filter_ctx = r;
-    if (!u->conf->request_buffering && u->conf->pass_request_body && !r->headers_in.chunked) r->request_body_no_buffering = 1;
+//    if (!u->conf->request_buffering && u->conf->pass_request_body && !r->headers_in.chunked) r->request_body_no_buffering = 1;
     if ((rc = ngx_http_read_client_request_body(r, ngx_http_upstream_init)) >= NGX_HTTP_SPECIAL_RESPONSE) return rc;
     return NGX_DONE;
 }
@@ -544,77 +544,77 @@ static void *ngx_pg_create_srv_conf(ngx_conf_t *cf) {
 static void *ngx_pg_create_loc_conf(ngx_conf_t *cf) {
     ngx_pg_loc_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
     if (!conf) return NULL;
-    conf->upstream.buffering = NGX_CONF_UNSET;
+//    conf->upstream.buffering = NGX_CONF_UNSET;
     conf->upstream.buffer_size = NGX_CONF_UNSET_SIZE;
     conf->upstream.busy_buffers_size_conf = NGX_CONF_UNSET_SIZE;
     conf->upstream.connect_timeout = NGX_CONF_UNSET_MSEC;
-    conf->upstream.hide_headers = NGX_CONF_UNSET_PTR;
+//    conf->upstream.hide_headers = NGX_CONF_UNSET_PTR;
     conf->upstream.ignore_client_abort = NGX_CONF_UNSET;
     conf->upstream.intercept_errors = NGX_CONF_UNSET;
-    conf->upstream.limit_rate = NGX_CONF_UNSET_SIZE;
-    conf->upstream.local = NGX_CONF_UNSET_PTR;
-    conf->upstream.max_temp_file_size_conf = NGX_CONF_UNSET_SIZE;
+//    conf->upstream.limit_rate = NGX_CONF_UNSET_SIZE;
+//    conf->upstream.local = NGX_CONF_UNSET_PTR;
+//    conf->upstream.max_temp_file_size_conf = NGX_CONF_UNSET_SIZE;
     conf->upstream.next_upstream_timeout = NGX_CONF_UNSET_MSEC;
     conf->upstream.next_upstream_tries = NGX_CONF_UNSET_UINT;
-    conf->upstream.pass_headers = NGX_CONF_UNSET_PTR;
+//    conf->upstream.pass_headers = NGX_CONF_UNSET_PTR;
     conf->upstream.pass_request_body = NGX_CONF_UNSET;
     conf->upstream.read_timeout = NGX_CONF_UNSET_MSEC;
-    conf->upstream.request_buffering = NGX_CONF_UNSET;
+//    conf->upstream.request_buffering = NGX_CONF_UNSET;
     conf->upstream.send_timeout = NGX_CONF_UNSET_MSEC;
     conf->upstream.socket_keepalive = NGX_CONF_UNSET;
-    conf->upstream.store_access = NGX_CONF_UNSET_UINT;
-    conf->upstream.store = NGX_CONF_UNSET;
-    conf->upstream.temp_file_write_size_conf = NGX_CONF_UNSET_SIZE;
+//    conf->upstream.store_access = NGX_CONF_UNSET_UINT;
+//    conf->upstream.store = NGX_CONF_UNSET;
+//    conf->upstream.temp_file_write_size_conf = NGX_CONF_UNSET_SIZE;
     ngx_str_set(&conf->upstream.module, "pg");
     return conf;
 }
 
-static ngx_path_init_t ngx_pg_temp_path = {
+/*static ngx_path_init_t ngx_pg_temp_path = {
 #ifdef NGX_CONF_PREFIX
     ngx_string(NGX_CONF_PREFIX "pg_temp"), { 1, 2, 0 }
 #else
     ngx_string(NGX_PREFIX "pg_temp"), { 1, 2, 0 }
 #endif
-};
+};*/
 
-static ngx_str_t ngx_pg_hide_headers[] = {
+/*static ngx_str_t ngx_pg_hide_headers[] = {
     ngx_string("X-Accel-Expires"),
     ngx_string("X-Accel-Redirect"),
     ngx_string("X-Accel-Limit-Rate"),
     ngx_string("X-Accel-Buffering"),
     ngx_string("X-Accel-Charset"),
     ngx_null_string
-};
+};*/
 
 static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     ngx_pg_loc_conf_t *prev = parent;
     ngx_pg_loc_conf_t *conf = child;
     if (!conf->upstream.upstream) conf->upstream = prev->upstream;
-    if (conf->upstream.store == NGX_CONF_UNSET) {
-        ngx_conf_merge_value(conf->upstream.store, prev->upstream.store, 0);
-        conf->upstream.store_lengths = prev->upstream.store_lengths;
-        conf->upstream.store_values = prev->upstream.store_values;
-    }
-    ngx_conf_merge_bitmask_value(conf->upstream.ignore_headers, prev->upstream.ignore_headers, NGX_CONF_BITMASK_SET);
+//    if (conf->upstream.store == NGX_CONF_UNSET) {
+//        ngx_conf_merge_value(conf->upstream.store, prev->upstream.store, 0);
+//        conf->upstream.store_lengths = prev->upstream.store_lengths;
+//        conf->upstream.store_values = prev->upstream.store_values;
+//    }
+//    ngx_conf_merge_bitmask_value(conf->upstream.ignore_headers, prev->upstream.ignore_headers, NGX_CONF_BITMASK_SET);
     ngx_conf_merge_bitmask_value(conf->upstream.next_upstream, prev->upstream.next_upstream, NGX_CONF_BITMASK_SET|NGX_HTTP_UPSTREAM_FT_ERROR|NGX_HTTP_UPSTREAM_FT_TIMEOUT);
     ngx_conf_merge_bufs_value(conf->upstream.bufs, prev->upstream.bufs, 8, ngx_pagesize);
     ngx_conf_merge_msec_value(conf->upstream.connect_timeout, prev->upstream.connect_timeout, 60000);
     ngx_conf_merge_msec_value(conf->upstream.next_upstream_timeout, prev->upstream.next_upstream_timeout, 0);
     ngx_conf_merge_msec_value(conf->upstream.read_timeout, prev->upstream.read_timeout, 60000);
     ngx_conf_merge_msec_value(conf->upstream.send_timeout, prev->upstream.send_timeout, 60000);
-    ngx_conf_merge_ptr_value(conf->upstream.local, prev->upstream.local, NULL);
+//    ngx_conf_merge_ptr_value(conf->upstream.local, prev->upstream.local, NULL);
     ngx_conf_merge_size_value(conf->upstream.buffer_size, prev->upstream.buffer_size, (size_t)ngx_pagesize);
     ngx_conf_merge_size_value(conf->upstream.busy_buffers_size_conf, prev->upstream.busy_buffers_size_conf, NGX_CONF_UNSET_SIZE);
-    ngx_conf_merge_size_value(conf->upstream.limit_rate, prev->upstream.limit_rate, 0);
-    ngx_conf_merge_size_value(conf->upstream.max_temp_file_size_conf, prev->upstream.max_temp_file_size_conf, NGX_CONF_UNSET_SIZE);
-    ngx_conf_merge_size_value(conf->upstream.temp_file_write_size_conf, prev->upstream.temp_file_write_size_conf, NGX_CONF_UNSET_SIZE);
+//    ngx_conf_merge_size_value(conf->upstream.limit_rate, prev->upstream.limit_rate, 0);
+//    ngx_conf_merge_size_value(conf->upstream.max_temp_file_size_conf, prev->upstream.max_temp_file_size_conf, NGX_CONF_UNSET_SIZE);
+//    ngx_conf_merge_size_value(conf->upstream.temp_file_write_size_conf, prev->upstream.temp_file_write_size_conf, NGX_CONF_UNSET_SIZE);
     ngx_conf_merge_uint_value(conf->upstream.next_upstream_tries, prev->upstream.next_upstream_tries, 0);
-    ngx_conf_merge_uint_value(conf->upstream.store_access, prev->upstream.store_access, 0600);
-    ngx_conf_merge_value(conf->upstream.buffering, prev->upstream.buffering, 0);
+//    ngx_conf_merge_uint_value(conf->upstream.store_access, prev->upstream.store_access, 0600);
+//    ngx_conf_merge_value(conf->upstream.buffering, prev->upstream.buffering, 0);
     ngx_conf_merge_value(conf->upstream.ignore_client_abort, prev->upstream.ignore_client_abort, 0);
     ngx_conf_merge_value(conf->upstream.intercept_errors, prev->upstream.intercept_errors, 0);
     ngx_conf_merge_value(conf->upstream.pass_request_body, prev->upstream.pass_request_body, 0);
-    ngx_conf_merge_value(conf->upstream.request_buffering, prev->upstream.request_buffering, 0);
+//    ngx_conf_merge_value(conf->upstream.request_buffering, prev->upstream.request_buffering, 0);
     ngx_conf_merge_value(conf->upstream.socket_keepalive, prev->upstream.socket_keepalive, 0);
     if (conf->upstream.bufs.num < 2) return "there must be at least 2 \"pg_buffers\"";
     size_t size = conf->upstream.buffer_size;
@@ -622,17 +622,17 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     conf->upstream.busy_buffers_size = conf->upstream.busy_buffers_size_conf == NGX_CONF_UNSET_SIZE ? 2 * size : conf->upstream.busy_buffers_size_conf;
     if (conf->upstream.busy_buffers_size < size) return "\"pg_busy_buffers_size\" must be equal to or greater than the maximum of the value of \"pg_buffer_size\" and one of the \"pg_buffers\"";
     if (conf->upstream.busy_buffers_size > (conf->upstream.bufs.num - 1) * conf->upstream.bufs.size) return "\"pg_busy_buffers_size\" must be less than the size of all \"pg_buffers\" minus one buffer";
-    conf->upstream.temp_file_write_size = conf->upstream.temp_file_write_size_conf == NGX_CONF_UNSET_SIZE ? 2 * size : conf->upstream.temp_file_write_size_conf;
-    if (conf->upstream.temp_file_write_size < size) return "\"pg_temp_file_write_size\" must be equal to or greater than the maximum of the value of \"pg_buffer_size\" and one of the \"pg_buffers\"";
-    conf->upstream.max_temp_file_size = conf->upstream.max_temp_file_size_conf == NGX_CONF_UNSET_SIZE ? 1024 * 1024 * 1024 : conf->upstream.max_temp_file_size_conf;
-    if (conf->upstream.max_temp_file_size && conf->upstream.max_temp_file_size < size) return "\"pg_max_temp_file_size\" must be equal to zero to disable temporary files usage or must be equal to or greater than the maximum of the value of \"pg_buffer_size\" and one of the \"pg_buffers\"";
+//    conf->upstream.temp_file_write_size = conf->upstream.temp_file_write_size_conf == NGX_CONF_UNSET_SIZE ? 2 * size : conf->upstream.temp_file_write_size_conf;
+//    if (conf->upstream.temp_file_write_size < size) return "\"pg_temp_file_write_size\" must be equal to or greater than the maximum of the value of \"pg_buffer_size\" and one of the \"pg_buffers\"";
+//    conf->upstream.max_temp_file_size = conf->upstream.max_temp_file_size_conf == NGX_CONF_UNSET_SIZE ? 1024 * 1024 * 1024 : conf->upstream.max_temp_file_size_conf;
+//    if (conf->upstream.max_temp_file_size && conf->upstream.max_temp_file_size < size) return "\"pg_max_temp_file_size\" must be equal to zero to disable temporary files usage or must be equal to or greater than the maximum of the value of \"pg_buffer_size\" and one of the \"pg_buffers\"";
     if (conf->upstream.next_upstream & NGX_HTTP_UPSTREAM_FT_OFF) conf->upstream.next_upstream = NGX_CONF_BITMASK_SET|NGX_HTTP_UPSTREAM_FT_OFF;
-    if (ngx_conf_merge_path_value(cf, &conf->upstream.temp_path, prev->upstream.temp_path, &ngx_pg_temp_path) != NGX_OK) return NGX_CONF_ERROR;
-    ngx_hash_init_t hash = {0};
-    hash.max_size = 512;
-    hash.bucket_size = ngx_align(64, ngx_cacheline_size);
-    hash.name = "pg_hide_headers_hash";
-    if (ngx_http_upstream_hide_headers_hash(cf, &conf->upstream, &prev->upstream, ngx_pg_hide_headers, &hash) != NGX_OK) return NGX_CONF_ERROR;
+//    if (ngx_conf_merge_path_value(cf, &conf->upstream.temp_path, prev->upstream.temp_path, &ngx_pg_temp_path) != NGX_OK) return NGX_CONF_ERROR;
+//    ngx_hash_init_t hash = {0};
+//    hash.max_size = 512;
+//    hash.bucket_size = ngx_align(64, ngx_cacheline_size);
+//    hash.name = "pg_hide_headers_hash";
+//    if (ngx_http_upstream_hide_headers_hash(cf, &conf->upstream, &prev->upstream, ngx_pg_hide_headers, &hash) != NGX_OK) return NGX_CONF_ERROR;
     return NGX_CONF_OK;
 }
 
