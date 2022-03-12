@@ -456,7 +456,9 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
     s->buffer = u->buffer;
-    return ngx_pg_parse(r, s);
+    ngx_int_t rc = ngx_pg_parse(r, s);
+    u->buffer = s->buffer;
+    return rc;
 }
 
 static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
