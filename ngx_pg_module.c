@@ -168,7 +168,7 @@ found:
         b->pos = b->start;
 //        for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%i:%i:%c", i++, *p, *p);
     }
-    return rc;
+    return NGX_DONE;
 }
 
 static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_char *last) {
