@@ -19,6 +19,7 @@ typedef struct {
 
 typedef struct {
     ngx_chain_t *cmd;
+    ngx_http_request_t *request;
     ngx_queue_t queue;
 } ngx_pg_cmd_queue_t;
 
@@ -132,6 +133,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         ngx_queue_init(&s->cmd.queue);
         ngx_pg_cmd_queue_t *cq;
         if (!(cq = ngx_pcalloc(r->pool, sizeof(*cq)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+        cq->request = r;
         ngx_queue_insert_tail(&s->cmd.queue, &cq->queue);
         if (pscf) {
             ngx_pg_connect_t *connect = pscf->connect.elts;
@@ -147,6 +149,7 @@ found:
     for (ngx_uint_t i = 0; i < plcf->query.nelts; i++) {
         if (!(cq = ngx_pcalloc(r->pool, sizeof(*cq)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         cq->cmd = elts[i].parse;
+        cq->request = r;
         ngx_queue_insert_tail(&s->cmd.queue, &cq->queue);
     }
     ngx_chain_t *cl;
@@ -188,7 +191,7 @@ static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_c
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_pg_save_t *s) {
+static ngx_int_t ngx_pg_parse(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     ngx_buf_t *b = &s->buffer;
 //    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i:%i:%c", i++, *p, *p);
@@ -231,7 +234,12 @@ static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_pg_save_t *s) {
                 u_char *pos = b->pos;
                 b->pos += len;
                 u_char *last = b->pos;
-                if (r && ngx_pg_process_response(r, pos, last) == NGX_ERROR) return NGX_ERROR;
+                if (!ngx_queue_empty(&s->cmd.queue)) {
+                    ngx_queue_t *q = ngx_queue_head(&s->cmd.queue);
+                    ngx_pg_cmd_queue_t *cq = ngx_queue_data(q, ngx_pg_cmd_queue_t, queue);
+                    ngx_http_request_t *r = cq->request;
+                    if (r && ngx_pg_process_response(r, pos, last) == NGX_ERROR) return NGX_ERROR;
+                }
             }
         } break;
         case 'E': {
@@ -240,11 +248,16 @@ static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_pg_save_t *s) {
             b->pos += sizeof(uint32_t);
             while (b->pos < b->last) switch (*b->pos++) {
                 case 0: {
-                    if (r) {
-                        ngx_http_upstream_t *u = r->upstream;
-                        u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
-                        if (u->conf->intercept_errors) goto cont;
-                        u->keepalive = 1;
+                    if (!ngx_queue_empty(&s->cmd.queue)) {
+                        ngx_queue_t *q = ngx_queue_head(&s->cmd.queue);
+                        ngx_pg_cmd_queue_t *cq = ngx_queue_data(q, ngx_pg_cmd_queue_t, queue);
+                        ngx_http_request_t *r = cq->request;
+                        if (r) {
+                            ngx_http_upstream_t *u = r->upstream;
+                            u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
+                            if (u->conf->intercept_errors) goto cont;
+                            u->keepalive = 1;
+                        }
                     }
                     return NGX_ERROR;
                 } break;
@@ -260,9 +273,14 @@ static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_pg_save_t *s) {
                     u_char *pos = b->pos;
                     while (*b->pos++);
                     u_char *last = b->pos - 1;
-                    if (r) {
-                        ngx_http_upstream_t *u = r->upstream;
-                        if (u->conf->intercept_errors && ngx_pg_process_response(r, pos, last) == NGX_ERROR) return NGX_ERROR;
+                    if (!ngx_queue_empty(&s->cmd.queue)) {
+                        ngx_queue_t *q = ngx_queue_head(&s->cmd.queue);
+                        ngx_pg_cmd_queue_t *cq = ngx_queue_data(q, ngx_pg_cmd_queue_t, queue);
+                        ngx_http_request_t *r = cq->request;
+                        if (r) {
+                            ngx_http_upstream_t *u = r->upstream;
+                            if (u->conf->intercept_errors && ngx_pg_process_response(r, pos, last) == NGX_ERROR) return NGX_ERROR;
+                        }
                     }
                 } break;
                 case 'n': ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "constraint_name = %s", b->pos); while (*b->pos++); break;
@@ -313,12 +331,17 @@ static ngx_int_t ngx_pg_parse(ngx_http_request_t *r, ngx_pg_save_t *s) {
             value.data = b->pos;
             while (*b->pos++);
             value.len = b->pos - value.data - 1;
-            if (r) {
-                ngx_table_elt_t *h;
-                if (!(h = ngx_list_push(&r->headers_out.headers))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_list_push"); return NGX_ERROR; }
-                h->hash = 1;
-                h->key = key;
-                h->value = value;
+            if (!ngx_queue_empty(&s->cmd.queue)) {
+                ngx_queue_t *q = ngx_queue_head(&s->cmd.queue);
+                ngx_pg_cmd_queue_t *cq = ngx_queue_data(q, ngx_pg_cmd_queue_t, queue);
+                ngx_http_request_t *r = cq->request;
+                if (r) {
+                    ngx_table_elt_t *h;
+                    if (!(h = ngx_list_push(&r->headers_out.headers))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_list_push"); return NGX_ERROR; }
+                    h->hash = 1;
+                    h->key = key;
+                    h->value = value;
+                }
             }
         } break;
         case 'T': {
@@ -370,7 +393,7 @@ static void ngx_pg_read_handler(ngx_event_t *ev) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
     ngx_connection_t *c = ev->data;
     ngx_pg_save_t *s = c->data;
-    if (ngx_pg_parse(NULL, s) == NGX_OK) return;
+    if (ngx_pg_parse(s) == NGX_OK) return;
     c->data = s->keep.data;
     s->keep.read_handler(ev);
     c->data = s;
@@ -455,7 +478,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
     s->buffer = u->buffer;
-    ngx_int_t rc = ngx_pg_parse(r, s);
+    ngx_int_t rc = ngx_pg_parse(s);
     u->buffer = s->buffer;
     return rc;
 }
