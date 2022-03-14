@@ -110,6 +110,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "s = %p", s);
             if (s->connection == pc->connection) break;
         }
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "sizeof(*d->save) = %i", sizeof(*d->save));
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "pc->connection->pool = %p", pc->connection->pool);
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "d->save = %p", d->save);
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "d->save - pc->connection->pool = %p", (char *)d->save - (char *)pc->connection->pool);
@@ -126,7 +127,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         ngx_connection_t *c = pc->connection;
         if (!c) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!c"); return NGX_ERROR; }
         if (c->pool) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "c->pool"); return NGX_ERROR; }
-        if (!(c->pool = ngx_create_pool(128, pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
+        if (!(c->pool = ngx_create_pool(256, pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
         ngx_pg_save_t *s;
         if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         if (pscf) { ngx_queue_insert_tail(&pscf->save.queue, &s->queue); } else { ngx_queue_init(&s->queue); }
