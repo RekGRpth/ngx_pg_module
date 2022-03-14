@@ -386,6 +386,7 @@ static ngx_int_t ngx_pg_parse(ngx_pg_save_t *s) {
             return NGX_ERROR;
         } break;
     }
+//    b->last = b->pos = b->start;
     return ngx_queue_empty(&s->cmd.queue) ? NGX_OK : NGX_AGAIN;
 }
 
