@@ -1,6 +1,6 @@
 typedef struct {
     int cs;
-    int index;
+    int i;
     int len;
     int s;
     unsigned char any[4];
