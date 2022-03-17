@@ -1,7 +1,7 @@
 typedef struct {
     int index;
     int length;
-    int state;
+    int cs;
     int string;
     unsigned char any[4];
     void *data;

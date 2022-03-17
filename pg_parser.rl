@@ -87,20 +87,20 @@ void pg_parser_init(pg_parser_t *parser) {
     %% write init;
     memset(parser, 0, sizeof(*parser));
     parser->data = data;
-    parser->state = cs;
+    parser->cs = cs;
 }
 
 int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *p, const unsigned char *pe) {
     const unsigned char *b = p;
     const unsigned char *eof = pe;
     const unsigned char *e = pe;
-    const unsigned char *string = parser->state == parser->string ? p : NULL;
-    int cs = parser->state;
+    const unsigned char *string = parser->cs == parser->string ? p : NULL;
+    int cs = parser->cs;
     int rc = 0;
     if (parser->length) e = p + parser->length;
     fprintf(stderr, "got = %i\n", (int)(pe - p));
     %% write exec;
-    parser->state = cs;
+    parser->cs = cs;
     fprintf(stderr, "ret = %i\n", (int)(p - b));
     return p - b;
 }
