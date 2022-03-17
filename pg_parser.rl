@@ -95,9 +95,7 @@ int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings,
     const unsigned char *s = parser->cs == parser->str ? p : NULL;
     int cs = parser->cs;
     int rc = 0;
-    fprintf(stderr, "got = %i\n", (int)(pe - p));
     %% write exec;
     parser->cs = cs;
-    fprintf(stderr, "ret = %i\n", (int)(p - b));
     return p - b;
 }
