@@ -42,7 +42,7 @@
     action row_field_typlen { fprintf(stderr, "row_field_typlen = %i\n", ntohs(*(uint16_t *)parser->any)); }
     action row { if (settings->row && (rc = settings->row(parser))) return rc; }
     action row_nfields { fprintf(stderr, "row_nfields = %i\n", ntohs(*(uint16_t *)parser->any)); }
-    action secret_backend { fprintf(stderr, "secret_backend = %i\n", ntohl(*(uint32_t *)parser->any)); }
+    action secret_pid { fprintf(stderr, "secret_pid = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action secret { if (settings->secret && (rc = settings->secret(parser))) return rc; }
     action secret_key { fprintf(stderr, "secret_key = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action status_done { if (settings->status_done && (rc = settings->status_done(parser))) return rc; }
@@ -71,7 +71,7 @@
     |   "3" %(close) len
     |   "C" %(complete) len str %(complete_val) eos
     |   "D" %(desc) len any2 %(desc_nfields) (any4 %(desc_len) str %(desc_val))** when command
-    |   "K" %(secret) len any4 %(secret_backend) any4 %(secret_key)
+    |   "K" %(secret) len any4 %(secret_pid) any4 %(secret_key)
     |   "R" %(auth) len any4 %(auth_method)
     |   "S" %(status) len str >(status_open) %(status_key) eos str %(status_val) %(status_done) eos
     |   "T" %(row) len any2 %(row_nfields) (str %(row_field_name) eos any4 %(row_field_tableid) any2 %(row_field_columnid) any4 %(row_field_typid) any2 %(row_field_typlen) any4 %(row_field_atttypmod) any2 %(row_field_format))** when command
