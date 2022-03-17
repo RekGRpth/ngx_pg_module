@@ -32,7 +32,7 @@
     action inerror { if (settings->inerror && (rc = settings->inerror(parser))) return rc; }
     action intrans { if (settings->intrans && (rc = settings->intrans(parser))) return rc; }
     action key { if (settings->key && (rc = settings->key(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
-    action len { if (settings->len && (rc = settings->len(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; if (parser->len) e = p + parser->len; }
+    action len { if (settings->len && (rc = settings->len(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; if ((parser->len = ntohl(*(uint32_t *)parser->any))) e = p + parser->len - 4; }
     action method { if (settings->method && (rc = settings->method(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; }
     action nfields { if (settings->nfields && (rc = settings->nfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
@@ -52,10 +52,10 @@
     small = any{2} >any_open $any_all;
 
     main :=
-    (   "1" long >parse
-    |   "2" long >bind
-    |   "3" long >close
-    |   "C" long >complete char %complete_val 0
+    (   "1" long %len >parse when command
+    |   "2" long %len >bind when command
+    |   "3" long %len >close when command
+    |   "C" long %len >complete char %complete_val 0 when command
     |   "D" long %len >data small %tupnfields (long %data_len char %data_val)** when command
     |   "K" long %len >secret long %pid long %key when command
     |   "R" long %len >auth long %method when command
@@ -76,7 +76,7 @@ void pg_parser_init(pg_parser_t *parser) {
 int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *p, const unsigned char *pe) {
     const unsigned char *b = p;
     const unsigned char *eof = pe;
-    const unsigned char *e = parser->len ? p + parser->len : pe;
+    const unsigned char *e = parser->len ? p + parser->len - 4: pe;
     const unsigned char *s = parser->cs == parser->str ? p : NULL;
     int cs = parser->cs;
     int rc = 0;
