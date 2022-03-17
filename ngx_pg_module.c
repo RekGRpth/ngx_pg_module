@@ -222,12 +222,6 @@ static int ngx_pg_parser_status_key(pg_parser_t *parser, size_t len, const unsig
 static int ngx_pg_parser_status(pg_parser_t *parser) {
     ngx_pg_save_t *s = parser->data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    return 0;
-}
-
-static int ngx_pg_parser_status_open(pg_parser_t *parser) {
-    ngx_pg_save_t *s = parser->data;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     if (!parser->len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!parser->len"); return NGX_ERROR; }
     ngx_pg_status_t *status;
     if (!(status = ngx_array_push(&s->status))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
@@ -337,7 +331,6 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .status_done = ngx_pg_parser_status_done,
     .status_key = ngx_pg_parser_status_key,
     .status = ngx_pg_parser_status,
-    .status_open = ngx_pg_parser_status_open,
     .status_val = ngx_pg_parser_status_val,
     .tableid = ngx_pg_parser_tableid,
     .tupnfields = ngx_pg_parser_tupnfields,

@@ -26,7 +26,6 @@ typedef struct {
     pg_parser_cb secret;
     pg_parser_cb status;
     pg_parser_cb status_done;
-    pg_parser_cb status_open;
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb atttypmod;
     pg_parser_ptr_cb columnid;

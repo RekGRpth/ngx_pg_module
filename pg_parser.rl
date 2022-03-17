@@ -40,7 +40,6 @@
     action status_done { if (settings->status_done && (rc = settings->status_done(parser))) return rc; }
     action status { if (settings->status && (rc = settings->status(parser))) return rc; }
     action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser, p - s, s))) return rc; s = NULL; }
-    action status_open { if (settings->status_open && (rc = settings->status_open(parser))) return rc; }
     action status_val { if (s && p - s > 0 && settings->status_val && (rc = settings->status_val(parser, p - s, s))) return rc; s = NULL; }
     action str_all { if (s) parser->str = cs; }
     action str_open { if (!s) s = p; }
@@ -64,7 +63,7 @@
     |   "D" len %data any2 %tupnfields (any4 %data_len str %data_val)** when command
     |   "K" any4 %secret any4 %pid any4 %key
     |   "R" any4 %auth any4 %method
-    |   "S" len %status str >status_open %status_key eos str %status_val %status_done eos
+    |   "S" len str >status %status_key eos str %status_val %status_done eos
     |   "T" len %desc any2 %nfields (str %field eos any4 %tableid any2 %columnid any4 %typid any2 %typlen any4 %atttypmod any2 %format)** when command
     |   "Z" any4 %ready ("I" %idle | "E" %inerror | "T" %intrans)
     )** $all;
