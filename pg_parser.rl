@@ -50,7 +50,7 @@
     action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser, p - s, s))) return rc; s = NULL; }
     action status_open { if (settings->status_open && (rc = settings->status_open(parser))) return rc; }
     action status_value { if (s && p - s > 0 && settings->status_value && (rc = settings->status_value(parser, p - s, s))) return rc; s = NULL; }
-    action str_all { if (s) parser->s = cs; }
+    action str_all { if (s) parser->str = cs; }
     action str_open { if (!s) s = p; }
 
     eos = 0;
@@ -94,7 +94,7 @@ int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings,
     const unsigned char *b = p;
     const unsigned char *eof = pe;
     const unsigned char *e = parser->len ? p + parser->len : pe;
-    const unsigned char *s = parser->cs == parser->s ? p : NULL;
+    const unsigned char *s = parser->cs == parser->str ? p : NULL;
     int cs = parser->cs;
     int rc = 0;
     fprintf(stderr, "got = %i\n", (int)(pe - p));
