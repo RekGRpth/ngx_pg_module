@@ -49,8 +49,7 @@
 
     any2 = any{2} >any_open $any_all;
     any4 = any{4} >any_open $any_all;
-    char = any - 0;
-    str = char* >str_open $str_all;
+    str = (any - 0)** >str_open $str_all;
 
     main :=
     (   "1" any4 >parse
