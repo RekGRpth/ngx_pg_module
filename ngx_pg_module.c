@@ -264,6 +264,13 @@ static int ngx_pg_parser_tup(pg_parser_t *parser) {
     return 0;
 }
 
+static int ngx_pg_parser_tup_typlen(pg_parser_t *parser, const uintptr_t data) {
+    uint16_t length = (uint16_t)data;
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", length);
+    return 0;
+}
+
 static const pg_parser_settings_t ngx_pg_parser_settings = {
     .all = ngx_pg_parser_all,
     .auth_method = ngx_pg_parser_auth_method,
@@ -293,6 +300,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .tup_name = ngx_pg_parser_tup_name,
     .tup_nfields = ngx_pg_parser_tup_nfields,
     .tup = ngx_pg_parser_tup,
+    .tup_typlen = ngx_pg_parser_tup_typlen,
 };
 
 static void ngx_pg_save_cln_handler(void *data) {
