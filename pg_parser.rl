@@ -57,7 +57,7 @@
     |   "3" long >close
     |   "C" long >complete char %complete_val 0
     |   "D" long %len >data small %tupnfields (long %data_len char %data_val)** when command
-    |   "K" long >secret long %pid long %key
+    |   "K" long %len >secret long %pid long %key when command
     |   "R" long %len >auth long %method when command
     |   "S" long %len char >status %status_key 0 char %status_val 0 when command
     |   "T" long %len >desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format)** when command
