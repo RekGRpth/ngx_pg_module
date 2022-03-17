@@ -17,6 +17,7 @@ typedef struct {
     pg_parser_cb close;
     pg_parser_cb complete;
     pg_parser_cb data;
+    pg_parser_cb desc;
     pg_parser_cb parse;
     pg_parser_cb ready;
     pg_parser_cb ready_idle;
@@ -26,7 +27,6 @@ typedef struct {
     pg_parser_cb status;
     pg_parser_cb status_done;
     pg_parser_cb status_open;
-    pg_parser_cb tup;
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb atttypmod;
     pg_parser_ptr_cb auth_method;
