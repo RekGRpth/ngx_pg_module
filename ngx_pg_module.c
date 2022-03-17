@@ -64,6 +64,8 @@ typedef struct {
     ngx_pg_srv_conf_t *conf;
 } ngx_pg_data_t;
 
+static const pg_parser_settings_t ngx_pg_parser_settings = {0};
+
 static void ngx_pg_save_cln_handler(void *data) {
     ngx_pg_save_t *s = data;
     ngx_queue_remove(&s->queue);
@@ -136,6 +138,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!(c->pool = ngx_create_pool(128, pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
         ngx_pg_save_t *s;
         if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+        pg_parser_init(&s->parser);
         if (pscf) { ngx_queue_insert_tail(&pscf->save.queue, &s->queue); } else { ngx_queue_init(&s->queue); }
         s->connection = c;
         ngx_pool_cleanup_t *cln;
@@ -491,9 +494,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
     ngx_buf_t *b = &u->buffer;
-    pg_parser_init(&s->parser);
     ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
-    for (int i; (b->pos < b->last) && (i = pg_parser_execute(&s->parser, b->pos, b->last)) > 0; b->pos += i) ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "i = %i", i);
+    for (int i; (b->pos < b->last) && (i = pg_parser_execute(&s->parser, &ngx_pg_parser_settings, b->pos, b->last)) > 0; b->pos += i) ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "i = %i", i);
     s->buffer = u->buffer;
     ngx_int_t rc = ngx_pg_parse(s);
     u->buffer = s->buffer;
