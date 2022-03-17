@@ -29,11 +29,11 @@ typedef struct {
     pg_parser_cb status_open;
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb atttypmod;
-    pg_parser_ptr_cb auth_method;
     pg_parser_ptr_cb columnid;
     pg_parser_ptr_cb data_len;
     pg_parser_ptr_cb format;
     pg_parser_ptr_cb len;
+    pg_parser_ptr_cb method;
     pg_parser_ptr_cb nfields;
     pg_parser_ptr_cb secret_key;
     pg_parser_ptr_cb secret_pid;

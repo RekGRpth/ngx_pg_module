@@ -77,7 +77,7 @@ static int ngx_pg_parser_all(pg_parser_t *parser, const uintptr_t data) {
     return 0;
 }
 
-static int ngx_pg_parser_auth_method(pg_parser_t *parser, const uintptr_t data) {
+static int ngx_pg_parser_method(pg_parser_t *parser, const uintptr_t data) {
     uint32_t method = (uint32_t)data;
     ngx_pg_save_t *s = parser->data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", method);
@@ -311,7 +311,6 @@ static int ngx_pg_parser_typlen(pg_parser_t *parser, const uintptr_t data) {
 static const pg_parser_settings_t ngx_pg_parser_settings = {
     .all = ngx_pg_parser_all,
     .atttypmod = ngx_pg_parser_atttypmod,
-    .auth_method = ngx_pg_parser_auth_method,
     .auth = ngx_pg_parser_auth,
     .bind = ngx_pg_parser_bind,
     .close = ngx_pg_parser_close,
@@ -324,6 +323,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .desc = ngx_pg_parser_desc,
     .format = ngx_pg_parser_format,
     .len = ngx_pg_parser_len,
+    .method = ngx_pg_parser_method,
     .name = ngx_pg_parser_name,
     .nfields = ngx_pg_parser_nfields,
     .parse = ngx_pg_parser_parse,

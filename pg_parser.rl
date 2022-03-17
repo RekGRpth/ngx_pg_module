@@ -14,7 +14,7 @@
     action any_open { parser->i = 0; }
     action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action auth { if (settings->auth && (rc = settings->auth(parser))) return rc; }
-    action auth_method { if (settings->auth_method && (rc = settings->auth_method(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; }
+    action method { if (settings->method && (rc = settings->method(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; }
     action bind { if (settings->bind && (rc = settings->bind(parser))) return rc; }
     action close { if (settings->close && (rc = settings->close(parser))) return rc; }
     action columnid { if (settings->columnid && (rc = settings->columnid(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
@@ -63,7 +63,7 @@
     |   "C" %complete len str %complete_val eos
     |   "D" %data len any2 %tupnfields (any4 %data_len str %data_val)** when command
     |   "K" %secret len any4 %secret_pid any4 %secret_key
-    |   "R" %auth len any4 %auth_method
+    |   "R" %auth len any4 %method
     |   "S" %status len str >status_open %status_key eos str %status_val %status_done eos
     |   "T" %desc len any2 %nfields (str %name eos any4 %tableid any2 %columnid any4 %typid any2 %typlen any4 %atttypmod any2 %format)** when command
     |   "Z" %ready len ("I" %ready_idle | "E" %ready_inerror | "T" %ready_intrans)
