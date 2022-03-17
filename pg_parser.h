@@ -34,6 +34,7 @@ typedef struct {
     pg_parser_ptr_cb data_nfields;
     pg_parser_ptr_cb secret_key;
     pg_parser_ptr_cb secret_pid;
+    pg_parser_ptr_cb tup_nfields;
     pg_parser_str_cb complete_val;
     pg_parser_str_cb data_val;
     pg_parser_str_cb status_key;

@@ -40,7 +40,7 @@
     action tup_typid { fprintf(stderr, "tup_typid = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action tup_typlen { fprintf(stderr, "tup_typlen = %i\n", ntohs(*(uint16_t *)parser->any)); }
     action tup { if (settings->tup && (rc = settings->tup(parser))) return rc; }
-    action tup_nfields { fprintf(stderr, "tup_nfields = %i\n", ntohs(*(uint16_t *)parser->any)); }
+    action tup_nfields { if (settings->tup_nfields && (rc = settings->tup_nfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action secret_pid { if (settings->secret_pid && (rc = settings->secret_pid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action secret { if (settings->secret && (rc = settings->secret(parser))) return rc; }
     action secret_key { if (settings->secret_key && (rc = settings->secret_key(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
