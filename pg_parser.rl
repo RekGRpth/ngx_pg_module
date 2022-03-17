@@ -14,7 +14,6 @@
     action any_open { parser->i = 0; }
     action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action auth { if (settings->auth && (rc = settings->auth(parser))) return rc; }
-    action method { if (settings->method && (rc = settings->method(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; }
     action bind { if (settings->bind && (rc = settings->bind(parser))) return rc; }
     action close { if (settings->close && (rc = settings->close(parser))) return rc; }
     action columnid { if (settings->columnid && (rc = settings->columnid(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
@@ -26,14 +25,15 @@
     action data_val { if (s && p - s > 0 && settings->data_val && (rc = settings->data_val(parser, p - s, s))) return rc; s = NULL; }
     action desc { if (settings->desc && (rc = settings->desc(parser))) return rc; }
     action format { if (settings->format && (rc = settings->format(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
+    action idle { if (settings->idle && (rc = settings->idle(parser))) return rc; }
+    action inerror { if (settings->inerror && (rc = settings->inerror(parser))) return rc; }
+    action intrans { if (settings->intrans && (rc = settings->intrans(parser))) return rc; }
     action len { if (settings->len && (rc = settings->len(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; if (parser->len) e = p + parser->len; }
+    action method { if (settings->method && (rc = settings->method(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; }
     action name { if (s && p - s > 0 && settings->name && (rc = settings->name(parser, p - s, s))) return rc; s = NULL; }
     action nfields { if (settings->nfields && (rc = settings->nfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
-    action ready_idle { if (settings->ready_idle && (rc = settings->ready_idle(parser))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser))) return rc; }
-    action ready_inerror { if (settings->ready_inerror && (rc = settings->ready_inerror(parser))) return rc; }
-    action ready_intrans { if (settings->ready_intrans && (rc = settings->ready_intrans(parser))) return rc; }
     action secret { if (settings->secret && (rc = settings->secret(parser))) return rc; }
     action secret_key { if (settings->secret_key && (rc = settings->secret_key(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action secret_pid { if (settings->secret_pid && (rc = settings->secret_pid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
@@ -66,7 +66,7 @@
     |   "R" %auth len any4 %method
     |   "S" %status len str >status_open %status_key eos str %status_val %status_done eos
     |   "T" %desc len any2 %nfields (str %name eos any4 %tableid any2 %columnid any4 %typid any2 %typlen any4 %atttypmod any2 %format)** when command
-    |   "Z" %ready len ("I" %ready_idle | "E" %ready_inerror | "T" %ready_intrans)
+    |   "Z" %ready len ("I" %idle | "E" %inerror | "T" %intrans)
     )** $all;
 
     write data;

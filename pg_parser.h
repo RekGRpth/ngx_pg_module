@@ -18,11 +18,11 @@ typedef struct {
     pg_parser_cb complete;
     pg_parser_cb data;
     pg_parser_cb desc;
+    pg_parser_cb idle;
+    pg_parser_cb inerror;
+    pg_parser_cb intrans;
     pg_parser_cb parse;
     pg_parser_cb ready;
-    pg_parser_cb ready_idle;
-    pg_parser_cb ready_inerror;
-    pg_parser_cb ready_intrans;
     pg_parser_cb secret;
     pg_parser_cb status;
     pg_parser_cb status_done;
