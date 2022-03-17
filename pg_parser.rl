@@ -24,6 +24,7 @@
     action data_len { if (settings->data_len && (rc = settings->data_len(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action data_val { if (s && p - s > 0 && settings->data_val && (rc = settings->data_val(parser, p - s, s))) return rc; s = NULL; }
     action desc { if (settings->desc && (rc = settings->desc(parser))) return rc; }
+    action field { if (s && p - s > 0 && settings->field && (rc = settings->field(parser, p - s, s))) return rc; s = NULL; }
     action format { if (settings->format && (rc = settings->format(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action idle { if (settings->idle && (rc = settings->idle(parser))) return rc; }
     action inerror { if (settings->inerror && (rc = settings->inerror(parser))) return rc; }
@@ -31,7 +32,6 @@
     action key { if (settings->key && (rc = settings->key(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action len { if (settings->len && (rc = settings->len(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; if (parser->len) e = p + parser->len; }
     action method { if (settings->method && (rc = settings->method(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; }
-    action name { if (s && p - s > 0 && settings->name && (rc = settings->name(parser, p - s, s))) return rc; s = NULL; }
     action nfields { if (settings->nfields && (rc = settings->nfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
     action pid { if (settings->pid && (rc = settings->pid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
@@ -65,7 +65,7 @@
     |   "K" %secret len any4 %pid any4 %key
     |   "R" %auth len any4 %method
     |   "S" %status len str >status_open %status_key eos str %status_val %status_done eos
-    |   "T" %desc len any2 %nfields (str %name eos any4 %tableid any2 %columnid any4 %typid any2 %typlen any4 %atttypmod any2 %format)** when command
+    |   "T" %desc len any2 %nfields (str %field eos any4 %tableid any2 %columnid any4 %typid any2 %typlen any4 %atttypmod any2 %format)** when command
     |   "Z" %ready len ("I" %idle | "E" %inerror | "T" %intrans)
     )** $all;
 
