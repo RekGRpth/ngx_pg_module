@@ -133,7 +133,7 @@ static int ngx_pg_parser_data_val(pg_parser_t *parser, size_t len, const unsigne
     return 0;
 }
 
-static int ngx_pg_parser_data_nfields(pg_parser_t *parser, const uintptr_t data) {
+static int ngx_pg_parser_data_tupnfields(pg_parser_t *parser, const uintptr_t data) {
     uint16_t length = (uint16_t)data;
     ngx_pg_save_t *s = parser->data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", length);
@@ -317,8 +317,8 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .complete = ngx_pg_parser_complete,
     .complete_val = ngx_pg_parser_complete_val,
     .data_len = ngx_pg_parser_data_len,
-    .data_nfields = ngx_pg_parser_data_nfields,
     .data = ngx_pg_parser_data,
+    .data_tupnfields = ngx_pg_parser_data_tupnfields,
     .data_val = ngx_pg_parser_data_val,
     .len = ngx_pg_parser_len,
     .parse = ngx_pg_parser_parse,

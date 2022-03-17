@@ -30,7 +30,7 @@ typedef struct {
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb auth_method;
     pg_parser_ptr_cb data_len;
-    pg_parser_ptr_cb data_nfields;
+    pg_parser_ptr_cb data_tupnfields;
     pg_parser_ptr_cb len;
     pg_parser_ptr_cb secret_key;
     pg_parser_ptr_cb secret_pid;
