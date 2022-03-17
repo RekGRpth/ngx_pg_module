@@ -23,11 +23,11 @@ typedef struct {
     pg_parser_cb ready_idle;
     pg_parser_cb ready_inerror;
     pg_parser_cb ready_intrans;
-    pg_parser_cb row;
     pg_parser_cb secret;
     pg_parser_cb status;
     pg_parser_cb status_done;
     pg_parser_cb status_open;
+    pg_parser_cb tup;
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb auth_method;
     pg_parser_ptr_cb data_len;
@@ -38,6 +38,7 @@ typedef struct {
     pg_parser_str_cb data_val;
     pg_parser_str_cb status_key;
     pg_parser_str_cb status_val;
+    pg_parser_str_cb tup_name;
 } pg_parser_settings_t;
 
 int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *p, const unsigned char *pe);

@@ -176,12 +176,6 @@ static int ngx_pg_parser_ready_intrans(pg_parser_t *parser) {
     return 0;
 }
 
-static int ngx_pg_parser_row(pg_parser_t *parser) {
-    ngx_pg_save_t *s = parser->data;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    return 0;
-}
-
 static int ngx_pg_parser_secret_key(pg_parser_t *parser, const uintptr_t data) {
     uint32_t length = (uint32_t)data;
     ngx_pg_save_t *s = parser->data;
@@ -251,6 +245,18 @@ static int ngx_pg_parser_status_val(pg_parser_t *parser, size_t len, const unsig
     return 0;
 }
 
+static int ngx_pg_parser_tup_name(pg_parser_t *parser, size_t len, const unsigned char *data) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return 0;
+}
+
+static int ngx_pg_parser_tup(pg_parser_t *parser) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return 0;
+}
+
 static const pg_parser_settings_t ngx_pg_parser_settings = {
     .all = ngx_pg_parser_all,
     .auth_method = ngx_pg_parser_auth_method,
@@ -269,7 +275,6 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .ready_inerror = ngx_pg_parser_ready_inerror,
     .ready_intrans = ngx_pg_parser_ready_intrans,
     .ready = ngx_pg_parser_ready,
-    .row = ngx_pg_parser_row,
     .secret_key = ngx_pg_parser_secret_key,
     .secret = ngx_pg_parser_secret,
     .secret_pid = ngx_pg_parser_secret_pid,
@@ -278,6 +283,8 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .status = ngx_pg_parser_status,
     .status_open = ngx_pg_parser_status_open,
     .status_val = ngx_pg_parser_status_val,
+    .tup_name = ngx_pg_parser_tup_name,
+    .tup = ngx_pg_parser_tup,
 };
 
 static void ngx_pg_save_cln_handler(void *data) {

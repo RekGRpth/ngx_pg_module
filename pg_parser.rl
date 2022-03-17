@@ -35,7 +35,7 @@
     action tup_atttypmod { fprintf(stderr, "tup_atttypmod = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action tup_columnid { fprintf(stderr, "tup_columnid = %i\n", ntohs(*(uint16_t *)parser->any)); }
     action tup_format { fprintf(stderr, "tup_format = %i\n", ntohs(*(uint16_t *)parser->any)); }
-    action tup_name { if (s && p - s > 0) fprintf(stderr, "tup_name = %.*s\n", (int)(p - s), s); s = NULL; }
+    action tup_name { if (s && p - s > 0 && settings->tup_name && (rc = settings->tup_name(parser, p - s, s))) return rc; s = NULL; }
     action tup_tableid { fprintf(stderr, "tup_tableid = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action tup_typid { fprintf(stderr, "tup_typid = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action tup_typlen { fprintf(stderr, "tup_typlen = %i\n", ntohs(*(uint16_t *)parser->any)); }
