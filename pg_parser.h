@@ -7,9 +7,9 @@ typedef struct {
     void *data;
 } pg_parser_t;
 
-typedef int (*pg_parser_cb) (pg_parser_t *parser);
-typedef int (*pg_parser_ptr_cb) (pg_parser_t *parser, const uintptr_t data);
-typedef int (*pg_parser_str_cb) (pg_parser_t *parser, size_t len, const unsigned char *data);
+typedef int (*pg_parser_cb) (const pg_parser_t *parser);
+typedef int (*pg_parser_ptr_cb) (const pg_parser_t *parser, const uintptr_t data);
+typedef int (*pg_parser_str_cb) (const pg_parser_t *parser, size_t len, const unsigned char *data);
 
 typedef struct {
     pg_parser_cb auth;
