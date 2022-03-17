@@ -288,7 +288,7 @@ static int ngx_pg_parser_tup_tableid(pg_parser_t *parser, const uintptr_t data) 
 }
 
 static int ngx_pg_parser_tup_typid(pg_parser_t *parser, const uintptr_t data) {
-    uint16_t length = (uint16_t)data;
+    uint32_t length = (uint32_t)data;
     ngx_pg_save_t *s = parser->data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", length);
     return 0;
