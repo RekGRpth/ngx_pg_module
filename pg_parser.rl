@@ -41,9 +41,9 @@
     action row_field_typlen { fprintf(stderr, "row_field_typlen = %i\n", ntohs(*(uint16_t *)parser->any)); }
     action row { if (settings->row && (rc = settings->row(parser))) return rc; }
     action row_nfields { fprintf(stderr, "row_nfields = %i\n", ntohs(*(uint16_t *)parser->any)); }
-    action secret_pid { fprintf(stderr, "secret_pid = %i\n", ntohl(*(uint32_t *)parser->any)); }
+    action secret_pid { if (settings->secret_pid && (rc = settings->secret_pid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action secret { if (settings->secret && (rc = settings->secret(parser))) return rc; }
-    action secret_key { fprintf(stderr, "secret_key = %i\n", ntohl(*(uint32_t *)parser->any)); }
+    action secret_key { if (settings->secret_key && (rc = settings->secret_key(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action status_done { if (settings->status_done && (rc = settings->status_done(parser))) return rc; }
     action status { if (settings->status && (rc = settings->status(parser))) return rc; }
     action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser, p - s, s))) return rc; s = NULL; }

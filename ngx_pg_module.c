@@ -182,9 +182,23 @@ static int ngx_pg_parser_row(pg_parser_t *parser) {
     return 0;
 }
 
+static int ngx_pg_parser_secret_key(pg_parser_t *parser, const uintptr_t data) {
+    uint32_t length = (uint32_t)data;
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", length);
+    return 0;
+}
+
 static int ngx_pg_parser_secret(pg_parser_t *parser) {
     ngx_pg_save_t *s = parser->data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return 0;
+}
+
+static int ngx_pg_parser_secret_pid(pg_parser_t *parser, const uintptr_t data) {
+    uint32_t length = (uint32_t)data;
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", length);
     return 0;
 }
 
@@ -251,12 +265,14 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .desc_val = ngx_pg_parser_desc_val,
     .len = ngx_pg_parser_len,
     .parse = ngx_pg_parser_parse,
-    .ready = ngx_pg_parser_ready,
     .ready_idle = ngx_pg_parser_ready_idle,
     .ready_inerror = ngx_pg_parser_ready_inerror,
     .ready_intrans = ngx_pg_parser_ready_intrans,
+    .ready = ngx_pg_parser_ready,
     .row = ngx_pg_parser_row,
+    .secret_key = ngx_pg_parser_secret_key,
     .secret = ngx_pg_parser_secret,
+    .secret_pid = ngx_pg_parser_secret_pid,
     .status_done = ngx_pg_parser_status_done,
     .status_key = ngx_pg_parser_status_key,
     .status = ngx_pg_parser_status,
