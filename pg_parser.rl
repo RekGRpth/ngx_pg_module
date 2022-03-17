@@ -15,6 +15,8 @@
     action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action auth { if (settings->auth && (rc = settings->auth(parser))) return rc; }
     action bind { if (settings->bind && (rc = settings->bind(parser))) return rc; }
+    action char_all { if (s) parser->str = cs; }
+    action char_open { if (!s) s = p; }
     action close { if (settings->close && (rc = settings->close(parser))) return rc; }
     action columnid { if (settings->columnid && (rc = settings->columnid(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action command { p < e }
@@ -40,28 +42,26 @@
     action status { if (settings->status && (rc = settings->status(parser))) return rc; }
     action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser, p - s, s))) return rc; s = NULL; }
     action status_val { if (s && p - s > 0 && settings->status_val && (rc = settings->status_val(parser, p - s, s))) return rc; s = NULL; }
-    action str_all { if (s) parser->str = cs; }
-    action str_open { if (!s) s = p; }
     action tableid { if (settings->tableid && (rc = settings->tableid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action tupnfields { if (settings->tupnfields && (rc = settings->tupnfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action typid { if (settings->typid && (rc = settings->typid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
 
-    any2 = any{2} >any_open $any_all;
-    any4 = any{4} >any_open $any_all;
-    str = (any - 0)** >str_open $str_all;
+    char = (any - 0)** >char_open $char_all;
+    long = any{4} >any_open $any_all;
+    small = any{2} >any_open $any_all;
 
     main :=
-    (   "1" any4 >parse
-    |   "2" any4 >bind
-    |   "3" any4 >close
-    |   "C" any4 >complete str %complete_val 0
-    |   "D" any4 %len >data any2 %tupnfields (any4 %data_len str %data_val)** when command
-    |   "K" any4 >secret any4 %pid any4 %key
-    |   "R" any4 %len >auth any4 %method when command
-    |   "S" any4 %len str >status %status_key 0 str %status_val 0 when command
-    |   "T" any4 %len >desc any2 %nfields (str %field 0 any4 %tableid any2 %columnid any4 %typid any2 %typlen any4 %atttypmod any2 %format)** when command
-    |   "Z" any4 >ready ("I" %idle | "E" %inerror | "T" %intrans)
+    (   "1" long >parse
+    |   "2" long >bind
+    |   "3" long >close
+    |   "C" long >complete char %complete_val 0
+    |   "D" long %len >data small %tupnfields (long %data_len char %data_val)** when command
+    |   "K" long >secret long %pid long %key
+    |   "R" long %len >auth long %method when command
+    |   "S" long %len char >status %status_key 0 char %status_val 0 when command
+    |   "T" long %len >desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format)** when command
+    |   "Z" long >ready ("I" %idle | "E" %inerror | "T" %intrans)
     )** $all;
 
     write data;
