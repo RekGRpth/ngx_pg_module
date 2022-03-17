@@ -47,8 +47,7 @@
     action typid { if (settings->typid && (rc = settings->typid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
 
-    eos = 0;
-    char = any - eos;
+    char = any - 0;
     any2 = any{2} >any_open $any_all;
     any4 = any{4} >any_open $any_all;
     str = char* >str_open $str_all;
@@ -58,12 +57,12 @@
     (   "1" any4 >parse
     |   "2" any4 >bind
     |   "3" any4 >close
-    |   "C" any4 >complete str %complete_val eos
+    |   "C" any4 >complete str %complete_val 0
     |   "D" len >data any2 %tupnfields (any4 %data_len str %data_val)** when command
     |   "K" any4 >secret any4 %pid any4 %key
     |   "R" len >auth any4 %method when command
-    |   "S" len str >status %status_key eos str %status_val eos when command
-    |   "T" len >desc any2 %nfields (str %field eos any4 %tableid any2 %columnid any4 %typid any2 %typlen any4 %atttypmod any2 %format)** when command
+    |   "S" len str >status %status_key 0 str %status_val 0 when command
+    |   "T" len >desc any2 %nfields (str %field 0 any4 %tableid any2 %columnid any4 %typid any2 %typlen any4 %atttypmod any2 %format)** when command
     |   "Z" any4 >ready ("I" %idle | "E" %inerror | "T" %intrans)
     )** $all;
 
