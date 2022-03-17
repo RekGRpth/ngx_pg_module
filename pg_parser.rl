@@ -6,6 +6,8 @@
 
 #include "pg_parser.h"
 
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+
 %%{
     machine pg_parser;
     alphtype unsigned char;
