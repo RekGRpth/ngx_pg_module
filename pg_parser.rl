@@ -12,11 +12,11 @@
     machine pg_parser;
     alphtype unsigned char;
 
-    action all { if (settings->all && (rc = settings->all(parser, p))) return rc; }
+    action all { if (settings->all && (rc = settings->all(parser, (uintptr_t)p))) return rc; }
     action any_all { parser->any[parser->index++] = *p; }
     action any_open { parser->index = 0; }
     action auth { if (settings->auth && (rc = settings->auth(parser))) return rc; }
-    action auth_method { fprintf(stderr, "auth_method = %i\n", ntohl(*(uint32_t *)parser->any)); }
+    action auth_method { if (settings->all && (rc = settings->all(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; }
     action bind { if (settings->bind && (rc = settings->bind(parser))) return rc; }
     action close { if (settings->close && (rc = settings->close(parser))) return rc; }
     action command { p < e }

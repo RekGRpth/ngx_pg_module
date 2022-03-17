@@ -64,10 +64,17 @@ typedef struct {
     ngx_pg_srv_conf_t *conf;
 } ngx_pg_data_t;
 
-static int ngx_pg_parser_all(pg_parser_t *parser, const void *data) {
-    const unsigned char *p = data;
+static int ngx_pg_parser_all(pg_parser_t *parser, const uintptr_t data) {
+    const unsigned char *p = (const unsigned char *)data;
     ngx_pg_save_t *s = parser->data;
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "all = %i:%c", *p, *p);
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i:%c", *p, *p);
+    return 0;
+}
+
+static int ngx_pg_parser_auth_method(pg_parser_t *parser, const uintptr_t data) {
+    uint32_t method = (uint32_t)data;
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", method);
     return 0;
 }
 
@@ -139,6 +146,7 @@ static int ngx_pg_parser_status(pg_parser_t *parser) {
 
 static const pg_parser_settings_t ngx_pg_parser_settings = {
     .all = ngx_pg_parser_all,
+    .auth_method = ngx_pg_parser_auth_method,
     .auth = ngx_pg_parser_auth,
     .bind = ngx_pg_parser_bind,
     .close = ngx_pg_parser_close,
@@ -581,7 +589,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
     ngx_buf_t *b = &u->buffer;
-    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
+//    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     for (int i; (b->pos < b->last) && (i = pg_parser_execute(&s->parser, &ngx_pg_parser_settings, b->pos, b->last)) > 0; b->pos += i) ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "i = %i", i);
     s->buffer = u->buffer;
     ngx_int_t rc = ngx_pg_parse(s);
