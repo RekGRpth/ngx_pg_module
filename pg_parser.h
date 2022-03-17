@@ -20,6 +20,9 @@ typedef struct {
     pg_parser_cb len;
     pg_parser_cb parse;
     pg_parser_cb ready;
+    pg_parser_cb ready_idle;
+    pg_parser_cb ready_inerror;
+    pg_parser_cb ready_intrans;
     pg_parser_cb row;
     pg_parser_cb secret;
     pg_parser_cb status;

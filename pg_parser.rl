@@ -29,9 +29,9 @@
     action len { parser->len = ntohl(*(uint32_t *)parser->any) - 4; if (settings->len && (rc = settings->len(parser))) return rc; if (parser->len) e = p + parser->len; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser))) return rc; }
-    action ready_idle { fprintf(stderr, "ready_idle\n"); }
-    action ready_inerror { fprintf(stderr, "ready_inerror\n"); }
-    action ready_intrans { fprintf(stderr, "ready_intrans\n"); }
+    action ready_idle { if (settings->ready_idle && (rc = settings->ready_idle(parser))) return rc; }
+    action ready_inerror { if (settings->ready_inerror && (rc = settings->ready_inerror(parser))) return rc; }
+    action ready_intrans { if (settings->ready_intrans && (rc = settings->ready_intrans(parser))) return rc; }
     action row_field_atttypmod { fprintf(stderr, "row_field_atttypmod = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action row_field_columnid { fprintf(stderr, "row_field_columnid = %i\n", ntohs(*(uint16_t *)parser->any)); }
     action row_field_format { fprintf(stderr, "row_field_format = %i\n", ntohs(*(uint16_t *)parser->any)); }
