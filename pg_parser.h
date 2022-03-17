@@ -8,7 +8,7 @@ typedef struct {
 } pg_parser_t;
 
 typedef int (*pg_parser_cb) (pg_parser_t *parser);
-typedef int (*pg_parser_data_cb) (pg_parser_t *parser, const uintptr_t data);
+typedef int (*pg_parser_ptr_cb) (pg_parser_t *parser, const uintptr_t data);
 typedef int (*pg_parser_str_cb) (pg_parser_t *parser, size_t length, const unsigned char *data);
 
 typedef struct {
@@ -25,8 +25,8 @@ typedef struct {
     pg_parser_cb status;
     pg_parser_cb status_done;
     pg_parser_cb status_open;
-    pg_parser_data_cb all;
-    pg_parser_data_cb auth_method;
+    pg_parser_ptr_cb all;
+    pg_parser_ptr_cb auth_method;
     pg_parser_str_cb status_key;
     pg_parser_str_cb status_value;
 } pg_parser_settings_t;
