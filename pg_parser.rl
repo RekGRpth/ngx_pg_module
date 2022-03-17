@@ -21,7 +21,7 @@
     action close { if (settings->close && (rc = settings->close(parser))) return rc; }
     action command { p < e }
     action complete { if (settings->complete && (rc = settings->complete(parser))) return rc; }
-    action complete_val { if (s && p - s > 0) fprintf(stderr, "complete_val = %.*s\n", (int)(p - s), s); s = NULL; }
+    action complete_val { if (s && p - s > 0 && settings->complete_val && (rc = settings->complete_val(parser, p - s, s))) return rc; s = NULL; }
     action data { if (settings->data && (rc = settings->data(parser))) return rc; }
     action data_tupfield_len { fprintf(stderr, "data_tupfield_len = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action data_tupfield_val { if (s && p - s > 0) fprintf(stderr, "data_tupfield_val = %.*s\n", (int)(p - s), s); s = NULL; }
@@ -69,7 +69,7 @@
     (   "1" %(parse) len
     |   "2" %(bind) len
     |   "3" %(close) len
-    |   "C" %(complete) len str %(complete_val)
+    |   "C" %(complete) len str %(complete_val) eos
     |   "D" %(data) len any2 %(data_tupnfields) (any4 %(data_tupfield_len) str %(data_tupfield_val))** when command
     |   "K" %(secret) len any4 %(secret_backend) any4 %(secret_key)
     |   "R" %(auth) len any4 %(auth_method)

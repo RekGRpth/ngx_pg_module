@@ -108,6 +108,12 @@ static int ngx_pg_parser_complete(pg_parser_t *parser) {
     return 0;
 }
 
+static int ngx_pg_parser_complete_val(pg_parser_t *parser, size_t len, const unsigned char *data) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return 0;
+}
+
 static int ngx_pg_parser_data(pg_parser_t *parser) {
     ngx_pg_save_t *s = parser->data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
@@ -200,6 +206,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .bind = ngx_pg_parser_bind,
     .close = ngx_pg_parser_close,
     .complete = ngx_pg_parser_complete,
+    .complete_val = ngx_pg_parser_complete_val,
     .data = ngx_pg_parser_data,
     .len = ngx_pg_parser_len,
     .parse = ngx_pg_parser_parse,
