@@ -23,10 +23,10 @@
     action complete { if (settings->complete && (rc = settings->complete(parser))) return rc; }
     action complete_value { if (str && p - str > 0) fprintf(stderr, "complete_value = %.*s\n", (int)(p - str), str); str = NULL; }
     action data { if (settings->data && (rc = settings->data(parser))) return rc; }
-    action data_tupfield_length { fprintf(stderr, "data_tupfield_length = %i\n", ntohl(*(uint32_t *)parser->any)); }
+    action data_tupfield_len { fprintf(stderr, "data_tupfield_len = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action data_tupfield_value { if (str && p - str > 0) fprintf(stderr, "data_tupfield_value = %.*s\n", (int)(p - str), str); str = NULL; }
     action data_tupnfields { fprintf(stderr, "data_tupnfields = %i\n", ntohs(*(uint16_t *)parser->any)); }
-    action length { parser->length = ntohl(*(uint32_t *)parser->any) - 4; if (settings->length && (rc = settings->length(parser))) return rc; if (parser->length) e = p + parser->length; }
+    action len { parser->len = ntohl(*(uint32_t *)parser->any) - 4; if (settings->len && (rc = settings->len(parser))) return rc; if (parser->len) e = p + parser->len; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser))) return rc; }
     action ready_trans_idle { fprintf(stderr, "ready_trans_idle\n"); }
@@ -58,7 +58,7 @@
     any2 = any{2} >(any_open) $(any_all);
     any4 = any{4} >(any_open) $(any_all);
     str = char* >(str_open) $(str_all);
-    length = any4 %(length);
+    len = any4 %(len);
 
     ready_trans_idle = "I" %(ready_trans_idle);
     ready_trans_inerror = "E" %(ready_trans_inerror);
@@ -66,16 +66,16 @@
     ready_trans_unknown = any - [EIT] %(ready_trans_unknown);
 
     main :=
-    (   "1" %(parse) length
-    |   "2" %(bind) length
-    |   "3" %(close) length
-    |   "C" %(complete) length str %(complete_value)
-    |   "D" %(data) length any2 %(data_tupnfields) (any4 %(data_tupfield_length) str %(data_tupfield_value))** when command
-    |   "K" %(secret) length any4 %(secret_backend) any4 %(secret_key)
-    |   "R" %(auth) length any4 %(auth_method)
-    |   "S" %(status) length str >(status_open) %(status_key) eos str %(status_value) %(status_done) eos
-    |   "T" %(row) length any2 %(row_nfields) (str %(row_field_name) eos any4 %(row_field_tableid) any2 %(row_field_columnid) any4 %(row_field_typid) any2 %(row_field_typlen) any4 %(row_field_atttypmod) any2 %(row_field_format))** when command
-    |   "Z" %(ready) length (ready_trans_idle | ready_trans_inerror | ready_trans_intrans | ready_trans_unknown)
+    (   "1" %(parse) len
+    |   "2" %(bind) len
+    |   "3" %(close) len
+    |   "C" %(complete) len str %(complete_value)
+    |   "D" %(data) len any2 %(data_tupnfields) (any4 %(data_tupfield_len) str %(data_tupfield_value))** when command
+    |   "K" %(secret) len any4 %(secret_backend) any4 %(secret_key)
+    |   "R" %(auth) len any4 %(auth_method)
+    |   "S" %(status) len str >(status_open) %(status_key) eos str %(status_value) %(status_done) eos
+    |   "T" %(row) len any2 %(row_nfields) (str %(row_field_name) eos any4 %(row_field_tableid) any2 %(row_field_columnid) any4 %(row_field_typid) any2 %(row_field_typlen) any4 %(row_field_atttypmod) any2 %(row_field_format))** when command
+    |   "Z" %(ready) len (ready_trans_idle | ready_trans_inerror | ready_trans_intrans | ready_trans_unknown)
     )** $(all);
 
     write data;
@@ -93,11 +93,10 @@ void pg_parser_init(pg_parser_t *parser) {
 int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *p, const unsigned char *pe) {
     const unsigned char *b = p;
     const unsigned char *eof = pe;
-    const unsigned char *e = pe;
+    const unsigned char *e = parser->len ? p + parser->len : pe;
     const unsigned char *str = parser->cs == parser->str ? p : NULL;
     int cs = parser->cs;
     int rc = 0;
-    if (parser->length) e = p + parser->length;
     fprintf(stderr, "got = %i\n", (int)(pe - p));
     %% write exec;
     parser->cs = cs;

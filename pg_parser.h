@@ -1,7 +1,7 @@
 typedef struct {
     int cs;
     int index;
-    int length;
+    int len;
     int str;
     unsigned char any[4];
     void *data;
@@ -9,7 +9,7 @@ typedef struct {
 
 typedef int (*pg_parser_cb) (pg_parser_t *parser);
 typedef int (*pg_parser_ptr_cb) (pg_parser_t *parser, const uintptr_t data);
-typedef int (*pg_parser_str_cb) (pg_parser_t *parser, size_t length, const unsigned char *data);
+typedef int (*pg_parser_str_cb) (pg_parser_t *parser, size_t len, const unsigned char *data);
 
 typedef struct {
     pg_parser_cb auth;
@@ -17,7 +17,7 @@ typedef struct {
     pg_parser_cb close;
     pg_parser_cb complete;
     pg_parser_cb data;
-    pg_parser_cb length;
+    pg_parser_cb len;
     pg_parser_cb parse;
     pg_parser_cb ready;
     pg_parser_cb row;
