@@ -1,4 +1,5 @@
 #include <ngx_http.h>
+#include "pg_parser.h"
 
 ngx_module_t ngx_pg_module;
 
@@ -45,6 +46,7 @@ typedef struct {
     ngx_buf_t buffer;
     ngx_connection_t *connection;
     ngx_queue_t queue;
+    pg_parser_t parser;
     struct {
         ngx_queue_t queue;
     } cmd;
@@ -204,7 +206,7 @@ static ngx_int_t ngx_pg_process_response(ngx_http_request_t *r, u_char *pos, u_c
 static ngx_int_t ngx_pg_parse(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     ngx_buf_t *b = &s->buffer;
-//    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i:%i:%c", i++, *p, *p);
+    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "len = %i", b->last - b->pos);
     while (b->pos < b->last) switch (*b->pos++) {
         case '1': {
@@ -488,6 +490,10 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     u->headers_in.status_n = NGX_HTTP_OK;
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
+    ngx_buf_t *b = &u->buffer;
+    pg_parser_init(&s->parser);
+    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
+    for (int i; (b->pos < b->last) && (i = pg_parser_execute(&s->parser, b->pos, b->last)) > 0; b->pos += i) ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "i = %i", i);
     s->buffer = u->buffer;
     ngx_int_t rc = ngx_pg_parse(s);
     u->buffer = s->buffer;

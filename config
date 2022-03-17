@@ -1,6 +1,6 @@
 ngx_addon_name=ngx_pg_module
 
-NGX_PG_SRCS="$ngx_addon_dir/ngx_pg_module.c"
+NGX_PG_SRCS="$ngx_addon_dir/ngx_pg_module.c $ngx_addon_dir/pg_parser.c"
 
 if test -n "$ngx_module_link"; then
     ngx_module_name=$ngx_addon_name
