@@ -37,6 +37,7 @@ typedef struct {
     pg_parser_ptr_cb tup_columnid;
     pg_parser_ptr_cb tup_format;
     pg_parser_ptr_cb tup_nfields;
+    pg_parser_ptr_cb tup_tableid;
     pg_parser_ptr_cb tup_typid;
     pg_parser_ptr_cb tup_typlen;
     pg_parser_str_cb complete_val;

@@ -36,7 +36,7 @@
     action tup_columnid { if (settings->tup_columnid && (rc = settings->tup_columnid(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action tup_format { if (settings->tup_format && (rc = settings->tup_format(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action tup_name { if (s && p - s > 0 && settings->tup_name && (rc = settings->tup_name(parser, p - s, s))) return rc; s = NULL; }
-    action tup_tableid { fprintf(stderr, "tup_tableid = %i\n", ntohl(*(uint32_t *)parser->any)); }
+    action tup_tableid { if (settings->tup_tableid && (rc = settings->tup_tableid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action tup_typid { if (settings->tup_typid && (rc = settings->tup_typid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action tup_typlen { if (settings->tup_typlen && (rc = settings->tup_typlen(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action tup { if (settings->tup && (rc = settings->tup(parser))) return rc; }

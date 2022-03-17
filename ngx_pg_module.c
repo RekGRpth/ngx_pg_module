@@ -278,6 +278,13 @@ static int ngx_pg_parser_tup(pg_parser_t *parser) {
     return 0;
 }
 
+static int ngx_pg_parser_tup_tableid(pg_parser_t *parser, const uintptr_t data) {
+    uint32_t length = (uint32_t)data;
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", length);
+    return 0;
+}
+
 static int ngx_pg_parser_tup_typid(pg_parser_t *parser, const uintptr_t data) {
     uint16_t length = (uint16_t)data;
     ngx_pg_save_t *s = parser->data;
@@ -323,6 +330,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .tup_name = ngx_pg_parser_tup_name,
     .tup_nfields = ngx_pg_parser_tup_nfields,
     .tup = ngx_pg_parser_tup,
+    .tup_tableid = ngx_pg_parser_tup_tableid,
     .tup_typid = ngx_pg_parser_tup_typid,
     .tup_typlen = ngx_pg_parser_tup_typlen,
 };
