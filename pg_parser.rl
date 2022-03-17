@@ -26,7 +26,7 @@
     action data_len { if (settings->data_len && (rc = settings->data_len(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action data_nfields { if (settings->data_nfields && (rc = settings->data_nfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action data_val { if (s && p - s > 0 && settings->data_val && (rc = settings->data_val(parser, p - s, s))) return rc; s = NULL; }
-    action len { parser->len = ntohl(*(uint32_t *)parser->any) - 4; if (settings->len && (rc = settings->len(parser))) return rc; if (parser->len) e = p + parser->len; }
+    action len { if (settings->len && (rc = settings->len(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; if (parser->len) e = p + parser->len; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser))) return rc; }
     action ready_idle { if (settings->ready_idle && (rc = settings->ready_idle(parser))) return rc; }
