@@ -1,7 +1,5 @@
 #include <arpa/inet.h>
-#include <ctype.h>
-#include <string.h>
-#include <unistd.h>
+#include <stddef.h>
 
 #include "pg_parser.h"
 
