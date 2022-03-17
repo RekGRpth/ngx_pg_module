@@ -32,13 +32,13 @@ typedef struct {
     pg_parser_ptr_cb auth_method;
     pg_parser_ptr_cb columnid;
     pg_parser_ptr_cb data_len;
-    pg_parser_ptr_cb data_tupnfields;
     pg_parser_ptr_cb format;
     pg_parser_ptr_cb len;
     pg_parser_ptr_cb nfields;
     pg_parser_ptr_cb secret_key;
     pg_parser_ptr_cb secret_pid;
     pg_parser_ptr_cb tableid;
+    pg_parser_ptr_cb tupnfields;
     pg_parser_ptr_cb typid;
     pg_parser_ptr_cb typlen;
     pg_parser_str_cb complete_val;

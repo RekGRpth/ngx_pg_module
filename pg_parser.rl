@@ -23,7 +23,6 @@
     action complete_val { if (s && p - s > 0 && settings->complete_val && (rc = settings->complete_val(parser, p - s, s))) return rc; s = NULL; }
     action data { if (settings->data && (rc = settings->data(parser))) return rc; }
     action data_len { if (settings->data_len && (rc = settings->data_len(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
-    action data_tupnfields { if (settings->data_tupnfields && (rc = settings->data_tupnfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action data_val { if (s && p - s > 0 && settings->data_val && (rc = settings->data_val(parser, p - s, s))) return rc; s = NULL; }
     action format { if (settings->format && (rc = settings->format(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action len { if (settings->len && (rc = settings->len(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; if (parser->len) e = p + parser->len; }
@@ -46,6 +45,7 @@
     action str_open { if (!s) s = p; }
     action tableid { if (settings->tableid && (rc = settings->tableid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action tup { if (settings->tup && (rc = settings->tup(parser))) return rc; }
+    action tupnfields { if (settings->tupnfields && (rc = settings->tupnfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action typid { if (settings->typid && (rc = settings->typid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
 
@@ -61,7 +61,7 @@
     |   "2" %bind len
     |   "3" %close len
     |   "C" %complete len str %complete_val eos
-    |   "D" %data len any2 %data_tupnfields (any4 %data_len str %data_val)** when command
+    |   "D" %data len any2 %tupnfields (any4 %data_len str %data_val)** when command
     |   "K" %secret len any4 %secret_pid any4 %secret_key
     |   "R" %auth len any4 %auth_method
     |   "S" %status len str >status_open %status_key eos str %status_val %status_done eos

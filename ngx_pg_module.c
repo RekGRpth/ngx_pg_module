@@ -133,7 +133,7 @@ static int ngx_pg_parser_data_val(pg_parser_t *parser, size_t len, const unsigne
     return 0;
 }
 
-static int ngx_pg_parser_data_tupnfields(pg_parser_t *parser, const uintptr_t data) {
+static int ngx_pg_parser_tupnfields(pg_parser_t *parser, const uintptr_t data) {
     uint16_t length = (uint16_t)data;
     ngx_pg_save_t *s = parser->data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", length);
@@ -320,7 +320,6 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .complete_val = ngx_pg_parser_complete_val,
     .data_len = ngx_pg_parser_data_len,
     .data = ngx_pg_parser_data,
-    .data_tupnfields = ngx_pg_parser_data_tupnfields,
     .data_val = ngx_pg_parser_data_val,
     .format = ngx_pg_parser_format,
     .len = ngx_pg_parser_len,
@@ -340,6 +339,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .status_open = ngx_pg_parser_status_open,
     .status_val = ngx_pg_parser_status_val,
     .tableid = ngx_pg_parser_tableid,
+    .tupnfields = ngx_pg_parser_tupnfields,
     .tup = ngx_pg_parser_tup,
     .typid = ngx_pg_parser_typid,
     .typlen = ngx_pg_parser_typlen,
