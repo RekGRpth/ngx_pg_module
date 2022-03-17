@@ -16,7 +16,7 @@ typedef struct {
     pg_parser_cb bind;
     pg_parser_cb close;
     pg_parser_cb complete;
-    pg_parser_cb data;
+    pg_parser_cb desc;
     pg_parser_cb len;
     pg_parser_cb parse;
     pg_parser_cb ready;
@@ -27,9 +27,9 @@ typedef struct {
     pg_parser_cb status_open;
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb auth_method;
-    pg_parser_ptr_cb data_tupfield_len;
+    pg_parser_ptr_cb desc_tupfield_len;
     pg_parser_str_cb complete_val;
-    pg_parser_str_cb data_tupfield_val;
+    pg_parser_str_cb desc_tupfield_val;
     pg_parser_str_cb status_key;
     pg_parser_str_cb status_val;
 } pg_parser_settings_t;
