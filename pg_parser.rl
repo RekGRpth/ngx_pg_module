@@ -45,9 +45,11 @@
     action secret_backend { fprintf(stderr, "secret_backend = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action secret { if (settings->secret && (rc = settings->secret(parser))) return rc; }
     action secret_key { fprintf(stderr, "secret_key = %i\n", ntohl(*(uint32_t *)parser->any)); }
+    action status_done { if (settings->status_done && (rc = settings->status_done(parser))) return rc; }
     action status { if (settings->status && (rc = settings->status(parser))) return rc; }
-    action status_key { if (string && p - string > 0) fprintf(stderr, "status_key = %.*s\n", (int)(p - string), string); string = NULL; }
-    action status_value { if (string && p - string > 0) fprintf(stderr, "status_value = %.*s\n", (int)(p - string), string); string = NULL; }
+    action status_key { if (string && p - string > 0 && settings->status_key && (rc = settings->status_key(parser, p - string, string))) return rc; string = NULL; }
+    action status_open { if (settings->status_open && (rc = settings->status_open(parser))) return rc; }
+    action status_value { if (string && p - string > 0 && settings->status_value && (rc = settings->status_value(parser, p - string, string))) return rc; string = NULL; }
     action string_all { if (string) parser->string = cs; }
     action string_open { if (!string) string = p; }
 
@@ -71,7 +73,7 @@
     |   "D" %(data) length any2 %(data_tupnfields) (any4 %(data_tupfield_length) str %(data_tupfield_value))** when command
     |   "K" %(secret) length any4 %(secret_backend) any4 %(secret_key)
     |   "R" %(auth) length any4 %(auth_method)
-    |   "S" %(status) length str %(status_key) eos str %(status_value) eos
+    |   "S" %(status) length str >(status_open) %(status_key) eos str %(status_value) %(status_done) eos
     |   "T" %(row) length any2 %(row_nfields) (str %(row_field_name) eos any4 %(row_field_tableid) any2 %(row_field_columnid) any4 %(row_field_typid) any2 %(row_field_typlen) any4 %(row_field_atttypmod) any2 %(row_field_format))** when command
     |   "Z" %(ready) length (ready_trans_idle | ready_trans_inerror | ready_trans_intrans | ready_trans_unknown)
     )** $(all);
