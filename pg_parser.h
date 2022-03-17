@@ -21,6 +21,7 @@ typedef struct {
     pg_parser_cb row;
     pg_parser_cb secret;
     pg_parser_cb status;
+    pg_parser_data_cb all;
 } pg_parser_settings_t;
 
 int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *p, const unsigned char *pe);

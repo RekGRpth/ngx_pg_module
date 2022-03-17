@@ -64,6 +64,12 @@ typedef struct {
     ngx_pg_srv_conf_t *conf;
 } ngx_pg_data_t;
 
+static int ngx_pg_parser_all(pg_parser_t *parser, const unsigned char *p, const unsigned char *pe) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "all = %i:%c", *p, *p);
+    return 0;
+}
+
 static int ngx_pg_parser_auth(pg_parser_t *parser) {
     ngx_pg_save_t *s = parser->data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
@@ -125,6 +131,7 @@ static int ngx_pg_parser_status(pg_parser_t *parser) {
 }
 
 static const pg_parser_settings_t ngx_pg_parser_settings = {
+    .all = ngx_pg_parser_all,
     .auth = ngx_pg_parser_auth,
     .bind = ngx_pg_parser_bind,
     .close = ngx_pg_parser_close,

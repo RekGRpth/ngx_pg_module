@@ -12,7 +12,7 @@
     machine pg_parser;
     alphtype unsigned char;
 
-    action all { fprintf(stderr, "all = %i:%c\n", *p, *p); }
+    action all { if (settings->all && (rc = settings->all(parser, p, p + 1))) return rc; }
     action any_all { parser->any[parser->index++] = *p; }
     action any_open { parser->index = 0; }
     action auth { if (settings->auth && (rc = settings->auth(parser))) return rc; }
