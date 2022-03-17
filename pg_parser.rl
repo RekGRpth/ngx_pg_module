@@ -12,10 +12,12 @@
     action all { if (settings->all && (rc = settings->all(parser, (uintptr_t)p))) return rc; }
     action any_all { parser->any[parser->i++] = *p; }
     action any_open { parser->i = 0; }
+    action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action auth { if (settings->auth && (rc = settings->auth(parser))) return rc; }
     action auth_method { if (settings->auth_method && (rc = settings->auth_method(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; }
     action bind { if (settings->bind && (rc = settings->bind(parser))) return rc; }
     action close { if (settings->close && (rc = settings->close(parser))) return rc; }
+    action columnid { if (settings->columnid && (rc = settings->columnid(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action command { p < e }
     action complete { if (settings->complete && (rc = settings->complete(parser))) return rc; }
     action complete_val { if (s && p - s > 0 && settings->complete_val && (rc = settings->complete_val(parser, p - s, s))) return rc; s = NULL; }
@@ -23,7 +25,10 @@
     action data_len { if (settings->data_len && (rc = settings->data_len(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action data_tupnfields { if (settings->data_tupnfields && (rc = settings->data_tupnfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action data_val { if (s && p - s > 0 && settings->data_val && (rc = settings->data_val(parser, p - s, s))) return rc; s = NULL; }
+    action format { if (settings->format && (rc = settings->format(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action len { if (settings->len && (rc = settings->len(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; if (parser->len) e = p + parser->len; }
+    action name { if (s && p - s > 0 && settings->name && (rc = settings->name(parser, p - s, s))) return rc; s = NULL; }
+    action nfields { if (settings->nfields && (rc = settings->nfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
     action ready_idle { if (settings->ready_idle && (rc = settings->ready_idle(parser))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser))) return rc; }
@@ -39,15 +44,10 @@
     action status_val { if (s && p - s > 0 && settings->status_val && (rc = settings->status_val(parser, p - s, s))) return rc; s = NULL; }
     action str_all { if (s) parser->str = cs; }
     action str_open { if (!s) s = p; }
-    action tup_atttypmod { if (settings->tup_atttypmod && (rc = settings->tup_atttypmod(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
-    action tup_columnid { if (settings->tup_columnid && (rc = settings->tup_columnid(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
-    action tup_format { if (settings->tup_format && (rc = settings->tup_format(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
+    action tableid { if (settings->tableid && (rc = settings->tableid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action tup { if (settings->tup && (rc = settings->tup(parser))) return rc; }
-    action tup_name { if (s && p - s > 0 && settings->tup_name && (rc = settings->tup_name(parser, p - s, s))) return rc; s = NULL; }
-    action tup_nfields { if (settings->tup_nfields && (rc = settings->tup_nfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
-    action tup_tableid { if (settings->tup_tableid && (rc = settings->tup_tableid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
-    action tup_typid { if (settings->tup_typid && (rc = settings->tup_typid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
-    action tup_typlen { if (settings->tup_typlen && (rc = settings->tup_typlen(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
+    action typid { if (settings->typid && (rc = settings->typid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
+    action typlen { if (settings->typlen && (rc = settings->typlen(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
 
     eos = 0;
     char = any - eos;
@@ -65,7 +65,7 @@
     |   "K" %secret len any4 %secret_pid any4 %secret_key
     |   "R" %auth len any4 %auth_method
     |   "S" %status len str >status_open %status_key eos str %status_val %status_done eos
-    |   "T" %tup len any2 %tup_nfields (str %tup_name eos any4 %tup_tableid any2 %tup_columnid any4 %tup_typid any2 %tup_typlen any4 %tup_atttypmod any2 %tup_format)** when command
+    |   "T" %tup len any2 %nfields (str %name eos any4 %tableid any2 %columnid any4 %typid any2 %typlen any4 %atttypmod any2 %format)** when command
     |   "Z" %ready len ("I" %ready_idle | "E" %ready_inerror | "T" %ready_intrans)
     )** $all;
 
