@@ -32,7 +32,7 @@
     action inerror { if (settings->inerror && (rc = settings->inerror(parser))) return rc; }
     action intrans { if (settings->intrans && (rc = settings->intrans(parser))) return rc; }
     action key { if (settings->key && (rc = settings->key(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
-    action len { if (settings->len && (rc = settings->len(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; if ((parser->len = ntohl(*(uint32_t *)parser->any))) e = p + parser->len - 4; }
+    action len { if ((parser->len = ntohl(*(uint32_t *)parser->any))) e = p + parser->len - 4; if (settings->len && (rc = settings->len(parser, (uintptr_t)parser->len))) return rc; }
     action method { if (settings->method && (rc = settings->method(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; }
     action nfields { if (settings->nfields && (rc = settings->nfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
