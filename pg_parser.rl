@@ -51,27 +51,23 @@
 
     eos = 0;
     char = any - eos;
-    any2 = any{2} >(any_open) $(any_all);
-    any4 = any{4} >(any_open) $(any_all);
-    str = char* >(str_open) $(str_all);
-    len = any4 %(len);
-
-    ready_idle = "I" %(ready_idle);
-    ready_inerror = "E" %(ready_inerror);
-    ready_intrans = "T" %(ready_intrans);
+    any2 = any{2} >any_open $any_all;
+    any4 = any{4} >any_open $any_all;
+    str = char* >str_open $str_all;
+    len = any4 %len;
 
     main :=
-    (   "1" %(parse) len
-    |   "2" %(bind) len
-    |   "3" %(close) len
-    |   "C" %(complete) len str %(complete_val) eos
-    |   "D" %(data) len any2 %(data_nfields) (any4 %(data_len) str %(data_val))** when command
-    |   "K" %(secret) len any4 %(secret_pid) any4 %(secret_key)
-    |   "R" %(auth) len any4 %(auth_method)
-    |   "S" %(status) len str >(status_open) %(status_key) eos str %(status_val) %(status_done) eos
-    |   "T" %(tup) len any2 %(tup_nfields) (str %(tup_name) eos any4 %(tup_tableid) any2 %(tup_columnid) any4 %(tup_typid) any2 %(tup_typlen) any4 %(tup_atttypmod) any2 %(tup_format))** when command
-    |   "Z" %(ready) len (ready_idle | ready_inerror | ready_intrans)
-    )** $(all);
+    (   "1" %parse len
+    |   "2" %bind len
+    |   "3" %close len
+    |   "C" %complete len str %complete_val eos
+    |   "D" %data len any2 %data_nfields (any4 %data_len str %data_val)** when command
+    |   "K" %secret len any4 %secret_pid any4 %secret_key
+    |   "R" %auth len any4 %auth_method
+    |   "S" %status len str >status_open %status_key eos str %status_val %status_done eos
+    |   "T" %tup len any2 %tup_nfields (str %tup_name eos any4 %tup_tableid any2 %tup_columnid any4 %tup_typid any2 %tup_typlen any4 %tup_atttypmod any2 %tup_format)** when command
+    |   "Z" %ready len ("I" %ready_idle | "E" %ready_inerror | "T" %ready_intrans)
+    )** $all;
 
     write data;
 }%%
