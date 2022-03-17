@@ -1,6 +1,5 @@
 #include <arpa/inet.h>
 #include <ctype.h>
-#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -81,10 +80,7 @@
 
 void pg_parser_init(pg_parser_t *parser) {
     int cs = 0;
-    void *data = parser->data;
     %% write init;
-    memset(parser, 0, sizeof(*parser));
-    parser->data = data;
     parser->cs = cs;
 }
 
