@@ -29,9 +29,9 @@
     action len { parser->len = ntohl(*(uint32_t *)parser->any) - 4; if (settings->len && (rc = settings->len(parser))) return rc; if (parser->len) e = p + parser->len; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser))) return rc; }
-    action ready_trans_idle { fprintf(stderr, "ready_trans_idle\n"); }
-    action ready_trans_inerror { fprintf(stderr, "ready_trans_inerror\n"); }
-    action ready_trans_intrans { fprintf(stderr, "ready_trans_intrans\n"); }
+    action ready_idle { fprintf(stderr, "ready_idle\n"); }
+    action ready_inerror { fprintf(stderr, "ready_inerror\n"); }
+    action ready_intrans { fprintf(stderr, "ready_intrans\n"); }
     action row_field_atttypmod { fprintf(stderr, "row_field_atttypmod = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action row_field_columnid { fprintf(stderr, "row_field_columnid = %i\n", ntohs(*(uint16_t *)parser->any)); }
     action row_field_format { fprintf(stderr, "row_field_format = %i\n", ntohs(*(uint16_t *)parser->any)); }
@@ -59,9 +59,9 @@
     str = char* >(str_open) $(str_all);
     len = any4 %(len);
 
-    ready_trans_idle = "I" %(ready_trans_idle);
-    ready_trans_inerror = "E" %(ready_trans_inerror);
-    ready_trans_intrans = "T" %(ready_trans_intrans);
+    ready_idle = "I" %(ready_idle);
+    ready_inerror = "E" %(ready_inerror);
+    ready_intrans = "T" %(ready_intrans);
 
     main :=
     (   "1" %(parse) len
@@ -73,7 +73,7 @@
     |   "R" %(auth) len any4 %(auth_method)
     |   "S" %(status) len str >(status_open) %(status_key) eos str %(status_val) %(status_done) eos
     |   "T" %(row) len any2 %(row_nfields) (str %(row_field_name) eos any4 %(row_field_tableid) any2 %(row_field_columnid) any4 %(row_field_typid) any2 %(row_field_typlen) any4 %(row_field_atttypmod) any2 %(row_field_format))** when command
-    |   "Z" %(ready) len (ready_trans_idle | ready_trans_inerror | ready_trans_intrans)
+    |   "Z" %(ready) len (ready_idle | ready_inerror | ready_intrans)
     )** $(all);
 
     write data;
