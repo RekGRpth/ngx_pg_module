@@ -2,7 +2,7 @@ typedef struct {
     int cs;
     int index;
     int len;
-    int str;
+    int s;
     unsigned char any[4];
     void *data;
 } pg_parser_t;

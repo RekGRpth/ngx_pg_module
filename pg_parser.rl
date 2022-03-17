@@ -21,10 +21,10 @@
     action close { if (settings->close && (rc = settings->close(parser))) return rc; }
     action command { p < e }
     action complete { if (settings->complete && (rc = settings->complete(parser))) return rc; }
-    action complete_value { if (str && p - str > 0) fprintf(stderr, "complete_value = %.*s\n", (int)(p - str), str); str = NULL; }
+    action complete_value { if (s && p - s > 0) fprintf(stderr, "complete_value = %.*s\n", (int)(p - s), s); s = NULL; }
     action data { if (settings->data && (rc = settings->data(parser))) return rc; }
     action data_tupfield_len { fprintf(stderr, "data_tupfield_len = %i\n", ntohl(*(uint32_t *)parser->any)); }
-    action data_tupfield_value { if (str && p - str > 0) fprintf(stderr, "data_tupfield_value = %.*s\n", (int)(p - str), str); str = NULL; }
+    action data_tupfield_value { if (s && p - s > 0) fprintf(stderr, "data_tupfield_value = %.*s\n", (int)(p - s), s); s = NULL; }
     action data_tupnfields { fprintf(stderr, "data_tupnfields = %i\n", ntohs(*(uint16_t *)parser->any)); }
     action len { parser->len = ntohl(*(uint32_t *)parser->any) - 4; if (settings->len && (rc = settings->len(parser))) return rc; if (parser->len) e = p + parser->len; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
@@ -36,7 +36,7 @@
     action row_field_atttypmod { fprintf(stderr, "row_field_atttypmod = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action row_field_columnid { fprintf(stderr, "row_field_columnid = %i\n", ntohs(*(uint16_t *)parser->any)); }
     action row_field_format { fprintf(stderr, "row_field_format = %i\n", ntohs(*(uint16_t *)parser->any)); }
-    action row_field_name { if (str && p - str > 0) fprintf(stderr, "row_field_name = %.*s\n", (int)(p - str), str); str = NULL; }
+    action row_field_name { if (s && p - s > 0) fprintf(stderr, "row_field_name = %.*s\n", (int)(p - s), s); s = NULL; }
     action row_field_tableid { fprintf(stderr, "row_field_tableid = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action row_field_typid { fprintf(stderr, "row_field_typid = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action row_field_typlen { fprintf(stderr, "row_field_typlen = %i\n", ntohs(*(uint16_t *)parser->any)); }
@@ -47,11 +47,11 @@
     action secret_key { fprintf(stderr, "secret_key = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action status_done { if (settings->status_done && (rc = settings->status_done(parser))) return rc; }
     action status { if (settings->status && (rc = settings->status(parser))) return rc; }
-    action status_key { if (str && p - str > 0 && settings->status_key && (rc = settings->status_key(parser, p - str, str))) return rc; str = NULL; }
+    action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser, p - s, s))) return rc; s = NULL; }
     action status_open { if (settings->status_open && (rc = settings->status_open(parser))) return rc; }
-    action status_value { if (str && p - str > 0 && settings->status_value && (rc = settings->status_value(parser, p - str, str))) return rc; str = NULL; }
-    action str_all { if (str) parser->str = cs; }
-    action str_open { if (!str) str = p; }
+    action status_value { if (s && p - s > 0 && settings->status_value && (rc = settings->status_value(parser, p - s, s))) return rc; s = NULL; }
+    action str_all { if (s) parser->s = cs; }
+    action str_open { if (!s) s = p; }
 
     eos = 0;
     char = any - eos;
@@ -94,7 +94,7 @@ int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings,
     const unsigned char *b = p;
     const unsigned char *eof = pe;
     const unsigned char *e = parser->len ? p + parser->len : pe;
-    const unsigned char *str = parser->cs == parser->str ? p : NULL;
+    const unsigned char *s = parser->cs == parser->s ? p : NULL;
     int cs = parser->cs;
     int rc = 0;
     fprintf(stderr, "got = %i\n", (int)(pe - p));
