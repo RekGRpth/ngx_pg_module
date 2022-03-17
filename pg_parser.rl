@@ -34,7 +34,7 @@
     action ready_intrans { if (settings->ready_intrans && (rc = settings->ready_intrans(parser))) return rc; }
     action tup_atttypmod { fprintf(stderr, "tup_atttypmod = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action tup_columnid { fprintf(stderr, "tup_columnid = %i\n", ntohs(*(uint16_t *)parser->any)); }
-    action tup_format { fprintf(stderr, "tup_format = %i\n", ntohs(*(uint16_t *)parser->any)); }
+    action tup_format { if (settings->tup_format && (rc = settings->tup_format(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action tup_name { if (s && p - s > 0 && settings->tup_name && (rc = settings->tup_name(parser, p - s, s))) return rc; s = NULL; }
     action tup_tableid { fprintf(stderr, "tup_tableid = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action tup_typid { fprintf(stderr, "tup_typid = %i\n", ntohl(*(uint32_t *)parser->any)); }
