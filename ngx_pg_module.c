@@ -44,7 +44,7 @@ typedef struct {
 
 typedef struct {
     ngx_str_t key;
-    ngx_str_t value;
+    ngx_str_t val;
 } ngx_pg_status_t;
 
 typedef struct {
@@ -150,8 +150,8 @@ static int ngx_pg_parser_status_done(pg_parser_t *parser) {
     if (!s->status.nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!s->status.nelts"); return NGX_ERROR; }
     ngx_pg_status_t *status = s->status.elts;
     status = &status[s->status.nelts - 1];
-    status->value.len = ngx_strlen(status->value.data);
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V = %V", &status->key, &status->value);
+    status->val.len = ngx_strlen(status->val.data);
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V = %V", &status->key, &status->val);
     return 0;
 }
 
@@ -182,14 +182,14 @@ static int ngx_pg_parser_status_open(pg_parser_t *parser) {
     return 0;
 }
 
-static int ngx_pg_parser_status_value(pg_parser_t *parser, size_t len, const unsigned char *data) {
+static int ngx_pg_parser_status_val(pg_parser_t *parser, size_t len, const unsigned char *data) {
     ngx_pg_save_t *s = parser->data;
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     if (!s->status.nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!s->status.nelts"); return NGX_ERROR; }
     ngx_pg_status_t *status = s->status.elts;
     status = &status[s->status.nelts - 1];
-    if (!status->value.data) status->value.data = status->key.data + (status->key.len = ngx_strlen(status->key.data)) + 1;
-    (void)strncat((char *)status->value.data, (char *)data, len);
+    if (!status->val.data) status->val.data = status->key.data + (status->key.len = ngx_strlen(status->key.data)) + 1;
+    (void)strncat((char *)status->val.data, (char *)data, len);
     return 0;
 }
 
@@ -210,7 +210,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .status_key = ngx_pg_parser_status_key,
     .status = ngx_pg_parser_status,
     .status_open = ngx_pg_parser_status_open,
-    .status_value = ngx_pg_parser_status_value,
+    .status_val = ngx_pg_parser_status_val,
 };
 
 static void ngx_pg_save_cln_handler(void *data) {

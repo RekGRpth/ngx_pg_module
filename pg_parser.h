@@ -28,7 +28,7 @@ typedef struct {
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb auth_method;
     pg_parser_str_cb status_key;
-    pg_parser_str_cb status_value;
+    pg_parser_str_cb status_val;
 } pg_parser_settings_t;
 
 int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *p, const unsigned char *pe);

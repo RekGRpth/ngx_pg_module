@@ -21,10 +21,10 @@
     action close { if (settings->close && (rc = settings->close(parser))) return rc; }
     action command { p < e }
     action complete { if (settings->complete && (rc = settings->complete(parser))) return rc; }
-    action complete_value { if (s && p - s > 0) fprintf(stderr, "complete_value = %.*s\n", (int)(p - s), s); s = NULL; }
+    action complete_val { if (s && p - s > 0) fprintf(stderr, "complete_val = %.*s\n", (int)(p - s), s); s = NULL; }
     action data { if (settings->data && (rc = settings->data(parser))) return rc; }
     action data_tupfield_len { fprintf(stderr, "data_tupfield_len = %i\n", ntohl(*(uint32_t *)parser->any)); }
-    action data_tupfield_value { if (s && p - s > 0) fprintf(stderr, "data_tupfield_value = %.*s\n", (int)(p - s), s); s = NULL; }
+    action data_tupfield_val { if (s && p - s > 0) fprintf(stderr, "data_tupfield_val = %.*s\n", (int)(p - s), s); s = NULL; }
     action data_tupnfields { fprintf(stderr, "data_tupnfields = %i\n", ntohs(*(uint16_t *)parser->any)); }
     action len { parser->len = ntohl(*(uint32_t *)parser->any) - 4; if (settings->len && (rc = settings->len(parser))) return rc; if (parser->len) e = p + parser->len; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
@@ -49,7 +49,7 @@
     action status { if (settings->status && (rc = settings->status(parser))) return rc; }
     action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser, p - s, s))) return rc; s = NULL; }
     action status_open { if (settings->status_open && (rc = settings->status_open(parser))) return rc; }
-    action status_value { if (s && p - s > 0 && settings->status_value && (rc = settings->status_value(parser, p - s, s))) return rc; s = NULL; }
+    action status_val { if (s && p - s > 0 && settings->status_val && (rc = settings->status_val(parser, p - s, s))) return rc; s = NULL; }
     action str_all { if (s) parser->str = cs; }
     action str_open { if (!s) s = p; }
 
@@ -69,11 +69,11 @@
     (   "1" %(parse) len
     |   "2" %(bind) len
     |   "3" %(close) len
-    |   "C" %(complete) len str %(complete_value)
-    |   "D" %(data) len any2 %(data_tupnfields) (any4 %(data_tupfield_len) str %(data_tupfield_value))** when command
+    |   "C" %(complete) len str %(complete_val)
+    |   "D" %(data) len any2 %(data_tupnfields) (any4 %(data_tupfield_len) str %(data_tupfield_val))** when command
     |   "K" %(secret) len any4 %(secret_backend) any4 %(secret_key)
     |   "R" %(auth) len any4 %(auth_method)
-    |   "S" %(status) len str >(status_open) %(status_key) eos str %(status_value) %(status_done) eos
+    |   "S" %(status) len str >(status_open) %(status_key) eos str %(status_val) %(status_done) eos
     |   "T" %(row) len any2 %(row_nfields) (str %(row_field_name) eos any4 %(row_field_tableid) any2 %(row_field_columnid) any4 %(row_field_typid) any2 %(row_field_typlen) any4 %(row_field_atttypmod) any2 %(row_field_format))** when command
     |   "Z" %(ready) len (ready_trans_idle | ready_trans_inerror | ready_trans_intrans | ready_trans_unknown)
     )** $(all);
