@@ -28,15 +28,15 @@
     action idle { if (settings->idle && (rc = settings->idle(parser))) return rc; }
     action inerror { if (settings->inerror && (rc = settings->inerror(parser))) return rc; }
     action intrans { if (settings->intrans && (rc = settings->intrans(parser))) return rc; }
+    action key { if (settings->key && (rc = settings->key(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action len { if (settings->len && (rc = settings->len(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; if (parser->len) e = p + parser->len; }
     action method { if (settings->method && (rc = settings->method(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; }
     action name { if (s && p - s > 0 && settings->name && (rc = settings->name(parser, p - s, s))) return rc; s = NULL; }
     action nfields { if (settings->nfields && (rc = settings->nfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
+    action pid { if (settings->pid && (rc = settings->pid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser))) return rc; }
     action secret { if (settings->secret && (rc = settings->secret(parser))) return rc; }
-    action secret_key { if (settings->secret_key && (rc = settings->secret_key(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
-    action secret_pid { if (settings->secret_pid && (rc = settings->secret_pid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action status_done { if (settings->status_done && (rc = settings->status_done(parser))) return rc; }
     action status { if (settings->status && (rc = settings->status(parser))) return rc; }
     action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser, p - s, s))) return rc; s = NULL; }
@@ -62,7 +62,7 @@
     |   "3" %close len
     |   "C" %complete len str %complete_val eos
     |   "D" %data len any2 %tupnfields (any4 %data_len str %data_val)** when command
-    |   "K" %secret len any4 %secret_pid any4 %secret_key
+    |   "K" %secret len any4 %pid any4 %key
     |   "R" %auth len any4 %method
     |   "S" %status len str >status_open %status_key eos str %status_val %status_done eos
     |   "T" %desc len any2 %nfields (str %name eos any4 %tableid any2 %columnid any4 %typid any2 %typlen any4 %atttypmod any2 %format)** when command
