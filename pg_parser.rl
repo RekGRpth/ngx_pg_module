@@ -57,16 +57,16 @@
     len = any4 %len;
 
     main :=
-    (   "1" %parse len
-    |   "2" %bind len
-    |   "3" %close len
-    |   "C" %complete len str %complete_val eos
+    (   "1" %parse any4
+    |   "2" %bind any4
+    |   "3" %close any4
+    |   "C" %complete any4 str %complete_val eos
     |   "D" %data len any2 %tupnfields (any4 %data_len str %data_val)** when command
-    |   "K" %secret len any4 %pid any4 %key
-    |   "R" %auth len any4 %method
+    |   "K" %secret any4 any4 %pid any4 %key
+    |   "R" %auth any4 any4 %method
     |   "S" %status len str >status_open %status_key eos str %status_val %status_done eos
     |   "T" %desc len any2 %nfields (str %field eos any4 %tableid any2 %columnid any4 %typid any2 %typlen any4 %atttypmod any2 %format)** when command
-    |   "Z" %ready len ("I" %idle | "E" %inerror | "T" %intrans)
+    |   "Z" %ready any4 ("I" %idle | "E" %inerror | "T" %intrans)
     )** $all;
 
     write data;
