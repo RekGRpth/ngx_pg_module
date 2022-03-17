@@ -22,10 +22,10 @@
     action command { p < e }
     action complete { if (settings->complete && (rc = settings->complete(parser))) return rc; }
     action complete_val { if (s && p - s > 0 && settings->complete_val && (rc = settings->complete_val(parser, p - s, s))) return rc; s = NULL; }
-    action desc { if (settings->desc && (rc = settings->desc(parser))) return rc; }
-    action desc_len { if (settings->desc_len && (rc = settings->desc_len(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
-    action desc_nfields { if (settings->desc_nfields && (rc = settings->desc_nfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
-    action desc_val { if (s && p - s > 0 && settings->desc_val && (rc = settings->desc_val(parser, p - s, s))) return rc; s = NULL; }
+    action data { if (settings->data && (rc = settings->data(parser))) return rc; }
+    action data_len { if (settings->data_len && (rc = settings->data_len(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
+    action data_nfields { if (settings->data_nfields && (rc = settings->data_nfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
+    action data_val { if (s && p - s > 0 && settings->data_val && (rc = settings->data_val(parser, p - s, s))) return rc; s = NULL; }
     action len { parser->len = ntohl(*(uint32_t *)parser->any) - 4; if (settings->len && (rc = settings->len(parser))) return rc; if (parser->len) e = p + parser->len; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser))) return rc; }
@@ -68,7 +68,7 @@
     |   "2" %(bind) len
     |   "3" %(close) len
     |   "C" %(complete) len str %(complete_val) eos
-    |   "D" %(desc) len any2 %(desc_nfields) (any4 %(desc_len) str %(desc_val))** when command
+    |   "D" %(data) len any2 %(data_nfields) (any4 %(data_len) str %(data_val))** when command
     |   "K" %(secret) len any4 %(secret_pid) any4 %(secret_key)
     |   "R" %(auth) len any4 %(auth_method)
     |   "S" %(status) len str >(status_open) %(status_key) eos str %(status_val) %(status_done) eos
