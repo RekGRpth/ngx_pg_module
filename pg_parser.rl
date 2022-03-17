@@ -15,20 +15,20 @@
     action all { fprintf(stderr, "all = %i:%c\n", *p, *p); }
     action any_all { parser->any[parser->index++] = *p; }
     action any_open { parser->index = 0; }
-    action auth { if (settings->auth) settings->auth(parser); }
+    action auth { if (settings->auth && (rc = settings->auth(parser))) return rc; }
     action auth_method { fprintf(stderr, "auth_method = %i\n", ntohl(*(uint32_t *)parser->any)); }
-    action bind { if (settings->bind) settings->bind(parser); }
-    action close { if (settings->close) settings->close(parser); }
+    action bind { if (settings->bind && (rc = settings->bind(parser))) return rc; }
+    action close { if (settings->close && (rc = settings->close(parser))) return rc; }
     action command { p < e }
-    action complete { if (settings->complete) settings->complete(parser); }
+    action complete { if (settings->complete && (rc = settings->complete(parser))) return rc; }
     action complete_value { if (string && p - string > 0) fprintf(stderr, "complete_value = %.*s\n", (int)(p - string), string); string = NULL; }
-    action data { if (settings->data) settings->data(parser); }
+    action data { if (settings->data && (rc = settings->data(parser))) return rc; }
     action data_tupfield_length { fprintf(stderr, "data_tupfield_length = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action data_tupfield_value { if (string && p - string > 0) fprintf(stderr, "data_tupfield_value = %.*s\n", (int)(p - string), string); string = NULL; }
     action data_tupnfields { fprintf(stderr, "data_tupnfields = %i\n", ntohs(*(uint16_t *)parser->any)); }
     action length { parser->length = ntohl(*(uint32_t *)parser->any) - 4; fprintf(stderr, "length = %i\n", parser->length); if (parser->length) e = p + parser->length; }
-    action parse { if (settings->parse) settings->parse(parser); }
-    action ready { if (settings->ready) settings->ready(parser); }
+    action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
+    action ready { if (settings->ready && (rc = settings->ready(parser))) return rc; }
     action ready_trans_idle { fprintf(stderr, "ready_trans_idle\n"); }
     action ready_trans_inerror { fprintf(stderr, "ready_trans_inerror\n"); }
     action ready_trans_intrans { fprintf(stderr, "ready_trans_intrans\n"); }
@@ -40,12 +40,12 @@
     action row_field_tableid { fprintf(stderr, "row_field_tableid = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action row_field_typid { fprintf(stderr, "row_field_typid = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action row_field_typlen { fprintf(stderr, "row_field_typlen = %i\n", ntohs(*(uint16_t *)parser->any)); }
-    action row { if (settings->row) settings->row(parser); }
+    action row { if (settings->row && (rc = settings->row(parser))) return rc; }
     action row_nfields { fprintf(stderr, "row_nfields = %i\n", ntohs(*(uint16_t *)parser->any)); }
     action secret_backend { fprintf(stderr, "secret_backend = %i\n", ntohl(*(uint32_t *)parser->any)); }
-    action secret { if (settings->secret) settings->secret(parser); }
+    action secret { if (settings->secret && (rc = settings->secret(parser))) return rc; }
     action secret_key { fprintf(stderr, "secret_key = %i\n", ntohl(*(uint32_t *)parser->any)); }
-    action status { if (settings->status) settings->status(parser); }
+    action status { if (settings->status && (rc = settings->status(parser))) return rc; }
     action status_key { if (string && p - string > 0) fprintf(stderr, "status_key = %.*s\n", (int)(p - string), string); string = NULL; }
     action status_value { if (string && p - string > 0) fprintf(stderr, "status_value = %.*s\n", (int)(p - string), string); string = NULL; }
     action string_all { if (string) parser->string = cs; }
@@ -64,16 +64,16 @@
     ready_trans_unknown = any - [EIT] %(ready_trans_unknown);
 
     main :=
-    (   "1" %(parse) length when command
-    |   "2" %(bind) length when command
-    |   "3" %(close) length when command
-    |   "C" %(complete) length str %(complete_value) eos when command
+    (   "1" %(parse) length
+    |   "2" %(bind) length
+    |   "3" %(close) length
+    |   "C" %(complete) length str %(complete_value)
     |   "D" %(data) length any2 %(data_tupnfields) (any4 %(data_tupfield_length) str %(data_tupfield_value))** when command
-    |   "K" %(secret) length any4 %(secret_backend) any4 %(secret_key) when command
-    |   "R" %(auth) length any4 %(auth_method) when command
-    |   "S" %(status) length str %(status_key) eos str %(status_value) eos when command
+    |   "K" %(secret) length any4 %(secret_backend) any4 %(secret_key)
+    |   "R" %(auth) length any4 %(auth_method)
+    |   "S" %(status) length str %(status_key) eos str %(status_value) eos
     |   "T" %(row) length any2 %(row_nfields) (str %(row_field_name) eos any4 %(row_field_tableid) any2 %(row_field_columnid) any4 %(row_field_typid) any2 %(row_field_typlen) any4 %(row_field_atttypmod) any2 %(row_field_format))** when command
-    |   "Z" %(ready) length (ready_trans_idle | ready_trans_inerror | ready_trans_intrans | ready_trans_unknown) when command
+    |   "Z" %(ready) length (ready_trans_idle | ready_trans_inerror | ready_trans_intrans | ready_trans_unknown)
     )** $(all);
 
     write data;
@@ -94,6 +94,7 @@ int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings,
     const unsigned char *e = pe;
     const unsigned char *string = parser->state == parser->string ? p : NULL;
     int cs = parser->state;
+    int rc = 0;
     if (parser->length) e = p + parser->length;
     fprintf(stderr, "got = %i\n", (int)(pe - p));
     %% write exec;

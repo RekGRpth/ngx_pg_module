@@ -64,7 +64,78 @@ typedef struct {
     ngx_pg_srv_conf_t *conf;
 } ngx_pg_data_t;
 
-static const pg_parser_settings_t ngx_pg_parser_settings = {0};
+static int ngx_pg_parser_auth(pg_parser_t *parser) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return 0;
+}
+
+static int ngx_pg_parser_bind(pg_parser_t *parser) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return 0;
+}
+
+static int ngx_pg_parser_close(pg_parser_t *parser) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return 0;
+}
+
+static int ngx_pg_parser_complete(pg_parser_t *parser) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return 0;
+}
+
+static int ngx_pg_parser_data(pg_parser_t *parser) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return 0;
+}
+
+static int ngx_pg_parser_parse(pg_parser_t *parser) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return 0;
+}
+
+static int ngx_pg_parser_ready(pg_parser_t *parser) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return 0;
+}
+
+static int ngx_pg_parser_row(pg_parser_t *parser) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return 0;
+}
+
+static int ngx_pg_parser_secret(pg_parser_t *parser) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return 0;
+}
+
+static int ngx_pg_parser_status(pg_parser_t *parser) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return 0;
+}
+
+static const pg_parser_settings_t ngx_pg_parser_settings = {
+    .auth = ngx_pg_parser_auth,
+    .bind = ngx_pg_parser_bind,
+    .close = ngx_pg_parser_close,
+    .complete = ngx_pg_parser_complete,
+    .data = ngx_pg_parser_data,
+    .parse = ngx_pg_parser_parse,
+    .ready = ngx_pg_parser_ready,
+    .row = ngx_pg_parser_row,
+    .secret = ngx_pg_parser_secret,
+    .status = ngx_pg_parser_status,
+};
 
 static void ngx_pg_save_cln_handler(void *data) {
     ngx_pg_save_t *s = data;
@@ -138,6 +209,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!(c->pool = ngx_create_pool(128, pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
         ngx_pg_save_t *s;
         if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+        s->parser.data = s;
         pg_parser_init(&s->parser);
         if (pscf) { ngx_queue_insert_tail(&pscf->save.queue, &s->queue); } else { ngx_queue_init(&s->queue); }
         s->connection = c;
