@@ -12,7 +12,7 @@
     machine pg_parser;
     alphtype unsigned char;
 
-    action all { if (settings->all && (rc = settings->all(parser, p, p + 1))) return rc; }
+    action all { if (settings->all && (rc = settings->all(parser, p))) return rc; }
     action any_all { parser->any[parser->index++] = *p; }
     action any_open { parser->index = 0; }
     action auth { if (settings->auth && (rc = settings->auth(parser))) return rc; }
@@ -26,7 +26,7 @@
     action data_tupfield_length { fprintf(stderr, "data_tupfield_length = %i\n", ntohl(*(uint32_t *)parser->any)); }
     action data_tupfield_value { if (string && p - string > 0) fprintf(stderr, "data_tupfield_value = %.*s\n", (int)(p - string), string); string = NULL; }
     action data_tupnfields { fprintf(stderr, "data_tupnfields = %i\n", ntohs(*(uint16_t *)parser->any)); }
-    action length { parser->length = ntohl(*(uint32_t *)parser->any) - 4; fprintf(stderr, "length = %i\n", parser->length); if (parser->length) e = p + parser->length; }
+    action length { parser->length = ntohl(*(uint32_t *)parser->any) - 4; if (settings->length && (rc = settings->length(parser))) return rc; if (parser->length) e = p + parser->length; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser))) return rc; }
     action ready_trans_idle { fprintf(stderr, "ready_trans_idle\n"); }

@@ -64,7 +64,8 @@ typedef struct {
     ngx_pg_srv_conf_t *conf;
 } ngx_pg_data_t;
 
-static int ngx_pg_parser_all(pg_parser_t *parser, const unsigned char *p, const unsigned char *pe) {
+static int ngx_pg_parser_all(pg_parser_t *parser, const void *data) {
+    const unsigned char *p = data;
     ngx_pg_save_t *s = parser->data;
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "all = %i:%c", *p, *p);
     return 0;
@@ -97,6 +98,12 @@ static int ngx_pg_parser_complete(pg_parser_t *parser) {
 static int ngx_pg_parser_data(pg_parser_t *parser) {
     ngx_pg_save_t *s = parser->data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return 0;
+}
+
+static int ngx_pg_parser_length(pg_parser_t *parser) {
+    ngx_pg_save_t *s = parser->data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "length = %i", parser->length);
     return 0;
 }
 
@@ -137,6 +144,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .close = ngx_pg_parser_close,
     .complete = ngx_pg_parser_complete,
     .data = ngx_pg_parser_data,
+    .length = ngx_pg_parser_length,
     .parse = ngx_pg_parser_parse,
     .ready = ngx_pg_parser_ready,
     .row = ngx_pg_parser_row,
