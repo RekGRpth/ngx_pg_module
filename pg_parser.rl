@@ -23,7 +23,7 @@
     action complete { if (settings->complete && (rc = settings->complete(parser))) return rc; }
     action complete_val { if (s && p - s > 0 && settings->complete_val && (rc = settings->complete_val(parser, p - s, s))) return rc; s = NULL; }
     action data { if (settings->data && (rc = settings->data(parser))) return rc; }
-    action data_tupfield_len { fprintf(stderr, "data_tupfield_len = %i\n", ntohl(*(uint32_t *)parser->any)); }
+    action data_tupfield_len { if (settings->data_tupfield_len && (rc = settings->data_tupfield_len(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action data_tupfield_val { if (s && p - s > 0) fprintf(stderr, "data_tupfield_val = %.*s\n", (int)(p - s), s); s = NULL; }
     action data_tupnfields { fprintf(stderr, "data_tupnfields = %i\n", ntohs(*(uint16_t *)parser->any)); }
     action len { parser->len = ntohl(*(uint32_t *)parser->any) - 4; if (settings->len && (rc = settings->len(parser))) return rc; if (parser->len) e = p + parser->len; }

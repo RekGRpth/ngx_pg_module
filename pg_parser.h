@@ -27,6 +27,7 @@ typedef struct {
     pg_parser_cb status_open;
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb auth_method;
+    pg_parser_ptr_cb data_tupfield_len;
     pg_parser_str_cb complete_val;
     pg_parser_str_cb status_key;
     pg_parser_str_cb status_val;
