@@ -81,12 +81,14 @@
 
 void pg_parser_init(pg_parser_t *parser) {
     int cs = 0;
+    void *data = parser->data;
     %% write init;
     memset(parser, 0, sizeof(*parser));
+    parser->data = data;
     parser->state = cs;
 }
 
-int pg_parser_execute(pg_parser_t *parser, const unsigned char *p, const unsigned char *pe) {
+int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *p, const unsigned char *pe) {
     const unsigned char *b = p;
     const unsigned char *eof = pe;
     const unsigned char *e = pe;
