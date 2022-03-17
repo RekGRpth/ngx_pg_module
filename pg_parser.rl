@@ -64,16 +64,16 @@
     ready_trans_unknown = any - [EIT] %(ready_trans_unknown);
 
     main :=
-    (   "1" %(parse) length
-    |   "2" %(bind) length
-    |   "3" %(close) length
-    |   "C" %(complete) length str %(complete_value) eos
+    (   "1" %(parse) length when command
+    |   "2" %(bind) length when command
+    |   "3" %(close) length when command
+    |   "C" %(complete) length str %(complete_value) eos when command
     |   "D" %(data) length any2 %(data_tupnfields) (any4 %(data_tupfield_length) str %(data_tupfield_value))** when command
-    |   "K" %(secret) length any4 %(secret_backend) any4 %(secret_key)
-    |   "R" %(authentication) length any4 %(authentication_method)
-    |   "S" %(status) length str %(status_key) eos str %(status_value) eos
+    |   "K" %(secret) length any4 %(secret_backend) any4 %(secret_key) when command
+    |   "R" %(authentication) length any4 %(authentication_method) when command
+    |   "S" %(status) length str %(status_key) eos str %(status_value) eos when command
     |   "T" %(row) length any2 %(row_nfields) (str %(row_field_name) eos any4 %(row_field_tableid) any2 %(row_field_columnid) any4 %(row_field_typid) any2 %(row_field_typlen) any4 %(row_field_atttypmod) any2 %(row_field_format))** when command
-    |   "Z" %(ready) length (ready_trans_idle | ready_trans_inerror | ready_trans_intrans | ready_trans_unknown)
+    |   "Z" %(ready) length (ready_trans_idle | ready_trans_inerror | ready_trans_intrans | ready_trans_unknown) when command
     )** $(all);
 
     write data;
