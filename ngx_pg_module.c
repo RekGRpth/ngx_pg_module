@@ -198,17 +198,6 @@ static int ngx_pg_parser_pid(pg_parser_t *parser, const uintptr_t data) {
     return 0;
 }
 
-static int ngx_pg_parser_status_done(pg_parser_t *parser) {
-    ngx_pg_save_t *s = parser->data;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    if (!s->status.nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!s->status.nelts"); return NGX_ERROR; }
-    ngx_pg_status_t *status = s->status.elts;
-    status = &status[s->status.nelts - 1];
-    status->val.len = ngx_strlen(status->val.data);
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V = %V", &status->key, &status->val);
-    return 0;
-}
-
 static int ngx_pg_parser_status_key(pg_parser_t *parser, size_t len, const unsigned char *data) {
     ngx_pg_save_t *s = parser->data;
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
@@ -238,6 +227,8 @@ static int ngx_pg_parser_status_val(pg_parser_t *parser, size_t len, const unsig
     status = &status[s->status.nelts - 1];
     if (!status->val.data) status->val.data = status->key.data + (status->key.len = ngx_strlen(status->key.data)) + 1;
     (void)strncat((char *)status->val.data, (char *)data, len);
+    status->val.len = ngx_strlen(status->val.data);
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V = %V", &status->key, &status->val);
     return 0;
 }
 
@@ -328,7 +319,6 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .pid = ngx_pg_parser_pid,
     .ready = ngx_pg_parser_ready,
     .secret = ngx_pg_parser_secret,
-    .status_done = ngx_pg_parser_status_done,
     .status_key = ngx_pg_parser_status_key,
     .status = ngx_pg_parser_status,
     .status_val = ngx_pg_parser_status_val,
