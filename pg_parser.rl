@@ -32,15 +32,15 @@
     action ready_idle { if (settings->ready_idle && (rc = settings->ready_idle(parser))) return rc; }
     action ready_inerror { if (settings->ready_inerror && (rc = settings->ready_inerror(parser))) return rc; }
     action ready_intrans { if (settings->ready_intrans && (rc = settings->ready_intrans(parser))) return rc; }
-    action row_field_atttypmod { fprintf(stderr, "row_field_atttypmod = %i\n", ntohl(*(uint32_t *)parser->any)); }
-    action row_field_columnid { fprintf(stderr, "row_field_columnid = %i\n", ntohs(*(uint16_t *)parser->any)); }
-    action row_field_format { fprintf(stderr, "row_field_format = %i\n", ntohs(*(uint16_t *)parser->any)); }
-    action row_field_name { if (s && p - s > 0) fprintf(stderr, "row_field_name = %.*s\n", (int)(p - s), s); s = NULL; }
-    action row_field_tableid { fprintf(stderr, "row_field_tableid = %i\n", ntohl(*(uint32_t *)parser->any)); }
-    action row_field_typid { fprintf(stderr, "row_field_typid = %i\n", ntohl(*(uint32_t *)parser->any)); }
-    action row_field_typlen { fprintf(stderr, "row_field_typlen = %i\n", ntohs(*(uint16_t *)parser->any)); }
-    action row { if (settings->row && (rc = settings->row(parser))) return rc; }
-    action row_nfields { fprintf(stderr, "row_nfields = %i\n", ntohs(*(uint16_t *)parser->any)); }
+    action tup_atttypmod { fprintf(stderr, "tup_atttypmod = %i\n", ntohl(*(uint32_t *)parser->any)); }
+    action tup_columnid { fprintf(stderr, "tup_columnid = %i\n", ntohs(*(uint16_t *)parser->any)); }
+    action tup_format { fprintf(stderr, "tup_format = %i\n", ntohs(*(uint16_t *)parser->any)); }
+    action tup_name { if (s && p - s > 0) fprintf(stderr, "tup_name = %.*s\n", (int)(p - s), s); s = NULL; }
+    action tup_tableid { fprintf(stderr, "tup_tableid = %i\n", ntohl(*(uint32_t *)parser->any)); }
+    action tup_typid { fprintf(stderr, "tup_typid = %i\n", ntohl(*(uint32_t *)parser->any)); }
+    action tup_typlen { fprintf(stderr, "tup_typlen = %i\n", ntohs(*(uint16_t *)parser->any)); }
+    action tup { if (settings->tup && (rc = settings->tup(parser))) return rc; }
+    action tup_nfields { fprintf(stderr, "tup_nfields = %i\n", ntohs(*(uint16_t *)parser->any)); }
     action secret_pid { if (settings->secret_pid && (rc = settings->secret_pid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action secret { if (settings->secret && (rc = settings->secret(parser))) return rc; }
     action secret_key { if (settings->secret_key && (rc = settings->secret_key(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
@@ -72,7 +72,7 @@
     |   "K" %(secret) len any4 %(secret_pid) any4 %(secret_key)
     |   "R" %(auth) len any4 %(auth_method)
     |   "S" %(status) len str >(status_open) %(status_key) eos str %(status_val) %(status_done) eos
-    |   "T" %(row) len any2 %(row_nfields) (str %(row_field_name) eos any4 %(row_field_tableid) any2 %(row_field_columnid) any4 %(row_field_typid) any2 %(row_field_typlen) any4 %(row_field_atttypmod) any2 %(row_field_format))** when command
+    |   "T" %(tup) len any2 %(tup_nfields) (str %(tup_name) eos any4 %(tup_tableid) any2 %(tup_columnid) any4 %(tup_typid) any2 %(tup_typlen) any4 %(tup_atttypmod) any2 %(tup_format))** when command
     |   "Z" %(ready) len (ready_idle | ready_inerror | ready_intrans)
     )** $(all);
 
