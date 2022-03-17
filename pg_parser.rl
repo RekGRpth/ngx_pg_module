@@ -25,7 +25,7 @@
     action desc { if (settings->desc && (rc = settings->desc(parser))) return rc; }
     action desc_tupfield_len { if (settings->desc_tupfield_len && (rc = settings->desc_tupfield_len(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action desc_tupfield_val { if (s && p - s > 0 && settings->desc_tupfield_val && (rc = settings->desc_tupfield_val(parser, p - s, s))) return rc; s = NULL; }
-    action desc_tupnfields { fprintf(stderr, "desc_tupnfields = %i\n", ntohs(*(uint16_t *)parser->any)); }
+    action desc_tupnfields { if (settings->desc_tupnfields && (rc = settings->desc_tupnfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action len { parser->len = ntohl(*(uint32_t *)parser->any) - 4; if (settings->len && (rc = settings->len(parser))) return rc; if (parser->len) e = p + parser->len; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser))) return rc; }
