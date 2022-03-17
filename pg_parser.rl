@@ -47,9 +47,9 @@
     action typid { if (settings->typid && (rc = settings->typid(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
 
-    char = any - 0;
     any2 = any{2} >any_open $any_all;
     any4 = any{4} >any_open $any_all;
+    char = any - 0;
     str = char* >str_open $str_all;
 
     main :=
