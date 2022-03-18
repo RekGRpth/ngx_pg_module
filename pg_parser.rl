@@ -86,7 +86,7 @@ typedef struct pg_parser_t {
     status_val = str0 @status_val;
     tableid = long @tableid;
     tup_len = long @tup_len;
-    tup_val = str %tup_val;
+    tup_val = str @tup_val;
     typid = long @typid;
     typlen = short @typlen;
 
