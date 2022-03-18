@@ -75,7 +75,7 @@ static int command(pg_parser_t *parser, const pg_parser_settings_t *settings, in
     |   "D" long %len %data small %tupnfields (long %data_len char %data_val)** when command
     |   "K" long %secret long %pid long %key
     |   "R" long %auth long %method
-    |   "S" long %status char %status_key 0 char %status_val 0
+    |   "S" long %len %status char %status_key 0 char %status_val 0
     |   "T" long %len %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format)** when command
     |   "Z" long %ready ("I" %idle | "E" %inerror | "T" %intrans)
     )** $all;
