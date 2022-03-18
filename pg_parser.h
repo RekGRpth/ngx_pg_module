@@ -8,7 +8,7 @@ typedef struct {
     pg_parser_cb close;
     pg_parser_cb complete;
     pg_parser_cb data;
-    pg_parser_cb desc;
+    pg_parser_cb field;
     pg_parser_cb idle;
     pg_parser_cb inerror;
     pg_parser_cb intrans;
@@ -21,10 +21,7 @@ typedef struct {
     pg_parser_ptr_cb data_len;
     pg_parser_ptr_cb format;
     pg_parser_ptr_cb key;
-//    pg_parser_ptr_cb len;
     pg_parser_ptr_cb method;
-//    pg_parser_ptr_cb moredesc;
-//    pg_parser_ptr_cb morelen;
     pg_parser_ptr_cb nfields;
     pg_parser_ptr_cb ntups;
     pg_parser_ptr_cb pid;

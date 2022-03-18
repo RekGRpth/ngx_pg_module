@@ -129,7 +129,7 @@ static ngx_int_t ngx_pg_parser_data_val(ngx_pg_save_t *s, size_t len, const u_ch
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_parser_desc(ngx_pg_save_t *s) {
+static ngx_int_t ngx_pg_parser_field(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     return NGX_OK;
 }
@@ -268,7 +268,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .data_len = (pg_parser_ptr_cb)ngx_pg_parser_data_len,
     .data = (pg_parser_cb)ngx_pg_parser_data,
     .data_val = (pg_parser_str_cb)ngx_pg_parser_data_val,
-    .desc = (pg_parser_cb)ngx_pg_parser_desc,
+    .field = (pg_parser_cb)ngx_pg_parser_field,
     .format = (pg_parser_ptr_cb)ngx_pg_parser_format,
     .idle = (pg_parser_cb)ngx_pg_parser_idle,
     .inerror = (pg_parser_cb)ngx_pg_parser_inerror,
