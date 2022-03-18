@@ -261,6 +261,12 @@ static ngx_int_t ngx_pg_parser_typlen(ngx_pg_save_t *s, const uintptr_t data) {
     return NGX_OK;
 }
 
+static ngx_int_t ngx_pg_parser_when(ngx_pg_save_t *s, const uintptr_t data) {
+    int b = (int)data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", b ? "true" : "false");
+    return NGX_OK;
+}
+
 static const pg_parser_settings_t ngx_pg_parser_settings = {
     .all = (pg_parser_ptr_cb)ngx_pg_parser_all,
     .atttypmod = (pg_parser_ptr_cb)ngx_pg_parser_atttypmod,
@@ -294,6 +300,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .tupnfields = (pg_parser_ptr_cb)ngx_pg_parser_tupnfields,
     .typid = (pg_parser_ptr_cb)ngx_pg_parser_typid,
     .typlen = (pg_parser_ptr_cb)ngx_pg_parser_typlen,
+    .when = (pg_parser_ptr_cb)ngx_pg_parser_when,
 };
 
 static void ngx_pg_save_cln_handler(void *data) {

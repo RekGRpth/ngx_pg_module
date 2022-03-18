@@ -14,6 +14,12 @@ typedef struct pg_parser_t {
     void *data;
 } pg_parser_t;
 
+static int when(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *b, const unsigned char *p) {
+    int rc;
+    if (settings->when && (rc = settings->when(parser->data, (uintptr_t)(!parser->len || p <= b + parser->len)))) return rc;
+    return !parser->len || p <= b + parser->len;
+}
+
 %%{
     machine pg_parser;
     alphtype unsigned char;
@@ -28,7 +34,7 @@ typedef struct pg_parser_t {
     action char_open { if (!s) s = p; }
     action close { if (settings->close && (rc = settings->close(parser->data))) return rc; }
     action columnid { if (settings->columnid && (rc = settings->columnid(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
-    action command { !parser->len || p <= b + parser->len }
+    action command { when(parser, settings, b, p) }
     action complete { if (settings->complete && (rc = settings->complete(parser->data))) return rc; }
     action complete_val { if (s && p - s > 0 && settings->complete_val && (rc = settings->complete_val(parser->data, p - s, s))) return rc; s = NULL; }
     action data { if (settings->data && (rc = settings->data(parser->data))) return rc; }
