@@ -65,7 +65,7 @@ typedef struct pg_parser_t {
     (   "1" long %~parse
     |   "2" long %~bind
     |   "3" long %~close
-    |   "C" long %~complete char %~complete_val 0
+    |   "C" long %~complete char %complete_val 0
     |   "D" long %~tup small %~ntups (long %~tup_len char %*tup_val %when moretups)*
     |   "K" long %~secret long %~pid long %~key
     |   "R" long %~auth long %~method
