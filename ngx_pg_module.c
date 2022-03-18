@@ -142,6 +142,7 @@ static ngx_int_t ngx_pg_parser_parse(ngx_pg_save_t *s) {
 
 static ngx_int_t ngx_pg_parser_ready(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    if (!ngx_queue_empty(&s->cmd.queue)) { ngx_queue_t *q = ngx_queue_head(&s->cmd.queue); ngx_queue_remove(q); }
     return NGX_OK;
 }
 
