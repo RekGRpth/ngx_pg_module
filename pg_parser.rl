@@ -69,16 +69,16 @@ static int when(pg_parser_t *parser, const pg_parser_settings_t *settings, int c
     small = any{2} >any_open $any_all;
 
     main :=
-    (   "1" %cmd long %len >parse when then
-    |   "2" %cmd long %len >bind when then
-    |   "3" %cmd long %len >close when then
-    |   "C" %cmd long %len >complete char %complete_val 0 when then
-    |   "D" %cmd long %len >data small %tupnfields (long %data_len char %data_val)** when then
-    |   "K" %cmd long %len >secret long %pid long %key when then
-    |   "R" %cmd long %len >auth long %method when then
-    |   "S" %cmd long %len char >status %status_key 0 char %status_val 0
-    |   "T" %cmd long %len >desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format)** when then
-    |   "Z" %cmd long %len >ready ("I" %idle | "E" %inerror | "T" %intrans) when then
+    (   "1" %cmd long %len %parse when then
+    |   "2" %cmd long %len %bind when then
+    |   "3" %cmd long %len %close when then
+    |   "C" %cmd long %len %complete char %complete_val 0 when then
+    |   "D" %cmd long %len %data small %tupnfields (long %data_len char %data_val)** when then
+    |   "K" %cmd long %len %secret long %pid long %key when then
+    |   "R" %cmd long %len %auth long %method when then
+    |   "S" %cmd long %len %status char %status_key 0 char %status_val 0
+    |   "T" %cmd long %len %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format)** when then
+    |   "Z" %cmd long %len %ready ("I" %idle | "E" %inerror | "T" %intrans) when then
     )** $all;
 
     write data;
