@@ -24,6 +24,7 @@ typedef struct {
     pg_parser_ptr_cb len;
     pg_parser_ptr_cb method;
     pg_parser_ptr_cb moredesc;
+    pg_parser_ptr_cb morelen;
     pg_parser_ptr_cb nfields;
     pg_parser_ptr_cb pid;
     pg_parser_ptr_cb status;

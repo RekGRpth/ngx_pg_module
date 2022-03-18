@@ -22,6 +22,12 @@ static int moredesc(pg_parser_t *parser, const pg_parser_settings_t *settings, i
     return c;
 }
 
+static int morelen(pg_parser_t *parser, const pg_parser_settings_t *settings, int c) {
+    int rc;
+    if (settings->morelen && (rc = settings->morelen(parser->data, c))) return rc;
+    return c;
+}
+
 %%{
     machine pg_parser;
     alphtype unsigned char;
@@ -52,7 +58,7 @@ static int moredesc(pg_parser_t *parser, const pg_parser_settings_t *settings, i
     action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action moredata { --parser->tupnfields }
     action moredesc { moredesc(parser, settings, --parser->nfields) }
-    action morelen { parser->len }
+    action morelen { morelen(parser, settings, parser->len) }
     action nfields { if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields = ntohs(*(uint16_t *)parser->extend)))) return rc; }
     action parse { if (settings->parse && (rc = settings->parse(parser->data))) return rc; }
     action pid { if (settings->pid && (rc = settings->pid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
