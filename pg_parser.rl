@@ -29,9 +29,6 @@ typedef struct pg_parser_t {
     action columnid { if (settings->columnid && (rc = settings->columnid(parser->data, ntohs(*(uint16_t *)parser->extend)))) return rc; }
     action complete { if (settings->complete && (rc = settings->complete(parser->data))) return rc; }
     action complete_val { if (s && p - s > 0 && settings->complete_val && (rc = settings->complete_val(parser->data, p - s, s))) return rc; s = NULL; }
-    action data { if (settings->data && (rc = settings->data(parser->data))) return rc; }
-    action data_len { if (settings->data_len && (rc = settings->data_len(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
-    action data_val { if (s && p - s > 0 && settings->data_val && (rc = settings->data_val(parser->data, p - s, s))) return rc; s = NULL; }
     action extend_all { parser->extend[parser->i++] = *p; }
     action extend_open { parser->i = 0; }
     action field { if (settings->field && (rc = settings->field(parser->data))) return rc; }
@@ -54,6 +51,9 @@ typedef struct pg_parser_t {
     action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser->data, p - s, s))) return rc; s = NULL; }
     action status_val { if (s && p - s > 0 && settings->status_val && (rc = settings->status_val(parser->data, p - s, s))) return rc; s = NULL; }
     action tableid { if (settings->tableid && (rc = settings->tableid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
+    action tup { if (settings->tup && (rc = settings->tup(parser->data))) return rc; }
+    action tup_len { if (settings->tup_len && (rc = settings->tup_len(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
+    action tup_val { if (s && p - s > 0 && settings->tup_val && (rc = settings->tup_val(parser->data, p - s, s))) return rc; s = NULL; }
     action typid { if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->extend)))) return rc; }
 
@@ -66,7 +66,7 @@ typedef struct pg_parser_t {
     |   "2" long %~bind
     |   "3" long %~close
     |   "C" long %~complete char %~complete_val 0
-    |   "D" long %~data small %~ntups (long %~data_len char %*data_val %when moretups)*
+    |   "D" long %~tup small %~ntups (long %~tup_len char %*tup_val %when moretups)*
     |   "K" long %~secret long %~pid long %~key
     |   "R" long %~auth long %~method
     |   "S" long %~status char %status_key 0 char %status_val 0
