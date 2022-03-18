@@ -77,16 +77,16 @@ typedef struct pg_parser_t {
     small = extend{2} >extend_open $extend_all;
 
     main :=
-    (   "1" long %~parse
-    |   "2" long %~bind
-    |   "3" long %~close
-    |   "C" long %~complete char %~complete_val 0
-    |   "D" long %~data small %~tupnfields (long %~data_len char %~data_val %when moredata)**
-    |   "K" long %~secret long %~pid long %~key
-    |   "R" long %~auth long %~method
-    |   "S" long %~status char %status_key 0 char %status_val 0
-    |   "T" long %~desc small %~nfields (char %~field 0 long %~tableid small %~columnid long %~typid small %~typlen long %~atttypmod small %~format %when moredesc)**
-    |   "Z" long %~ready ("I" %~idle | "E" %~inerror | "T" %~intrans)
+    (   "1" long %parse
+    |   "2" long %bind
+    |   "3" long %close
+    |   "C" long %complete char %~complete_val 0
+    |   "D" long %data small %~tupnfields (long %~data_len char %~data_val %when moredata)**
+    |   "K" long %secret long %pid long %key
+    |   "R" long %auth long %~method
+    |   "S" long %status char %status_key 0 char %status_val 0
+    |   "T" long %desc small %~nfields (char %~field 0 long %~tableid small %~columnid long %~typid small %~typlen long %~atttypmod small %~format %when moredesc)**
+    |   "Z" long %ready ("I" %~idle | "E" %~inerror | "T" %~intrans)
     )** $all;
 
     write data;
