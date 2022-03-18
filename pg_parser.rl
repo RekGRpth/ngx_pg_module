@@ -8,11 +8,17 @@
 typedef struct pg_parser_t {
     const void *data;
     int cs;
-    int i;
     int str;
     uint16_t nfields;
     uint16_t ntups;
-    unsigned char extend[4];
+    struct {
+        size_t i;
+        unsigned char d[4];
+    } l;
+    struct {
+        size_t i;
+        unsigned char d[2];
+    } s;
 } pg_parser_t;
 
 %%{
@@ -20,45 +26,45 @@ typedef struct pg_parser_t {
     alphtype unsigned char;
 
     action all { if (settings->all && (rc = settings->all(parser->data, (uintptr_t)p))) return rc; }
-    action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
+    action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action auth { if (settings->auth && (rc = settings->auth(parser->data))) return rc; }
     action bind { if (settings->bind && (rc = settings->bind(parser->data))) return rc; }
     action close { if (settings->close && (rc = settings->close(parser->data))) return rc; }
-    action columnid { if (settings->columnid && (rc = settings->columnid(parser->data, ntohs(*(uint16_t *)parser->extend)))) return rc; }
+    action columnid { if (settings->columnid && (rc = settings->columnid(parser->data, ntohs(*(uint16_t *)parser->s.d)))) return rc; }
     action complete { if (settings->complete && (rc = settings->complete(parser->data))) return rc; }
     action complete_val { if (s && p - s > 0 && settings->complete_val && (rc = settings->complete_val(parser->data, p - s, s))) return rc; s = NULL; }
-    action extend_all { parser->extend[parser->i++] = *p; }
-    action extend_open { parser->i = 0; }
     action field { if (settings->field && (rc = settings->field(parser->data))) return rc; }
-    action format { if (settings->format && (rc = settings->format(parser->data, ntohs(*(uint16_t *)parser->extend)))) return rc; }
+    action format { if (settings->format && (rc = settings->format(parser->data, ntohs(*(uint16_t *)parser->s.d)))) return rc; }
     action idle { if (settings->idle && (rc = settings->idle(parser->data))) return rc; }
     action inerror { if (settings->inerror && (rc = settings->inerror(parser->data))) return rc; }
     action intrans { if (settings->intrans && (rc = settings->intrans(parser->data))) return rc; }
-    action key { if (settings->key && (rc = settings->key(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
-    action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
+    action key { if (settings->key && (rc = settings->key(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
+    action long { if (parser->l.i > sizeof(parser->l.d)) parser->l.i = 0; parser->l.d[parser->l.i++] = *p; }
+    action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action morefields { --parser->nfields }
     action moretups { --parser->ntups }
     action name { if (s && p - s > 0 && settings->name && (rc = settings->name(parser->data, p - s, s))) return rc; s = NULL; }
-    action nfields { parser->nfields = ntohs(*(uint16_t *)parser->extend); if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields))) return rc; }
-    action ntups { parser->ntups = ntohs(*(uint16_t *)parser->extend); if (settings->ntups && (rc = settings->ntups(parser->data, parser->ntups))) return rc; }
+    action nfields { parser->nfields = ntohs(*(uint16_t *)parser->s.d); if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields))) return rc; }
+    action ntups { parser->ntups = ntohs(*(uint16_t *)parser->s.d); if (settings->ntups && (rc = settings->ntups(parser->data, parser->ntups))) return rc; }
     action parse { if (settings->parse && (rc = settings->parse(parser->data))) return rc; }
-    action pid { if (settings->pid && (rc = settings->pid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
+    action pid { if (settings->pid && (rc = settings->pid(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser->data))) return rc; }
     action secret { if (settings->secret && (rc = settings->secret(parser->data))) return rc; }
-    action status { if (settings->status && (rc = settings->status(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
+    action short { if (parser->s.i > sizeof(parser->s.d)) parser->s.i = 0; parser->s.d[parser->s.i++] = *p; }
+    action status { if (settings->status && (rc = settings->status(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser->data, p - s, s))) return rc; s = NULL; }
     action status_val { if (s && p - s > 0 && settings->status_val && (rc = settings->status_val(parser->data, p - s, s))) return rc; s = NULL; }
     action str { if (!s) s = p; if (s) parser->str = cs; }
-    action tableid { if (settings->tableid && (rc = settings->tableid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
+    action tableid { if (settings->tableid && (rc = settings->tableid(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action tup { if (settings->tup && (rc = settings->tup(parser->data))) return rc; }
-    action tup_len { if (settings->tup_len && (rc = settings->tup_len(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
+    action tup_len { if (settings->tup_len && (rc = settings->tup_len(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action tup_val { if (s && p - s > 0 && settings->tup_val && (rc = settings->tup_val(parser->data, p - s, s))) return rc; s = NULL; }
-    action typid { if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
-    action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->extend)))) return rc; }
+    action typid { if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
+    action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->s.d)))) return rc; }
 
     char = extend - 0;
-    long = (extend extend extend extend) >extend_open $extend_all;
-    small = (extend extend) >extend_open $extend_all;
+    long = (extend @long){4};
+    short = (extend @short){2};
     str = (char @str)*;
 
     main :=
@@ -66,11 +72,11 @@ typedef struct pg_parser_t {
     |   "2" long %bind
     |   "3" long %close
     |   "C" long %complete str %complete_val 0
-    |   "D" long %tup small %ntups (long %tup_len str %tup_val %when moretups)*
+    |   "D" long %tup short %ntups (long %tup_len str %tup_val %when moretups)*
     |   "K" long %secret long %pid long %key
     |   "R" long %auth long %method
     |   "S" long %status str %status_key 0 str %status_val 0
-    |   "T" long %field small %nfields (str %name 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format %when morefields)*
+    |   "T" long %field short %nfields (str %name 0 long %tableid short %columnid long %typid short %typlen long %atttypmod short %format %when morefields)*
     |   "Z" long %ready ("I" %idle | "E" %inerror | "T" %intrans)
     )** $all;
 
