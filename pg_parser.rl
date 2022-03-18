@@ -57,7 +57,7 @@ typedef struct pg_parser_t {
     action typid { if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->extend)))) return rc; }
 
-    char = (extend - 0)* >char_open $char_all;
+    char = (extend - 0)** >char_open $char_all;
     long = extend{4} >extend_open $extend_all;
     small = extend{2} >extend_open $extend_all;
 
@@ -66,11 +66,11 @@ typedef struct pg_parser_t {
     |   "2" long %bind
     |   "3" long %close
     |   "C" long %complete char %complete_val 0
-    |   "D" long %data small %tupnfields (long %data_len char %data_val when moredata)*
+    |   "D" long %data small %tupnfields (long %data_len char %data_val when moredata)**
     |   "K" long %secret long %pid long %key
     |   "R" long %auth long %method
     |   "S" long %status char %status_key 0 char %status_val 0
-    |   "T" long %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format when moredesc)*
+    |   "T" long %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format when moredesc)**
     |   "Z" long %ready ("I" >idle | "E" >inerror | "T" >intrans)
     )** $all;
 
