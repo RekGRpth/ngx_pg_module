@@ -26,7 +26,7 @@ static int moredesc(pg_parser_t *parser, const pg_parser_settings_t *settings, i
     machine pg_parser;
     alphtype unsigned char;
 
-    action all { if (settings->all && (rc = settings->all(parser->data, (uintptr_t)p))) return rc; }
+    action all { if (settings->all && (rc = settings->all(parser->data, (uintptr_t)p))) return rc; if (parser->len) parser->len--; }
     action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action auth { if (settings->auth && (rc = settings->auth(parser->data))) return rc; }
     action bind { if (settings->bind && (rc = settings->bind(parser->data))) return rc; }
@@ -48,10 +48,11 @@ static int moredesc(pg_parser_t *parser, const pg_parser_settings_t *settings, i
     action inerror { if (settings->inerror && (rc = settings->inerror(parser->data))) return rc; }
     action intrans { if (settings->intrans && (rc = settings->intrans(parser->data))) return rc; }
     action key { if (settings->key && (rc = settings->key(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
-    action len { if (settings->len && (rc = settings->len(parser->data, parser->len = ntohl(*(uint32_t *)parser->extend)))) return rc; }
+    action len { if (settings->len && (rc = settings->len(parser->data, parser->len = ntohl(*(uint32_t *)parser->extend) - 4))) return rc; }
     action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action moredata { --parser->tupnfields }
     action moredesc { moredesc(parser, settings, --parser->nfields) }
+    action morelen { parser->len }
     action nfields { if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields = ntohs(*(uint16_t *)parser->extend)))) return rc; }
     action parse { if (settings->parse && (rc = settings->parse(parser->data))) return rc; }
     action pid { if (settings->pid && (rc = settings->pid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
@@ -76,7 +77,7 @@ static int moredesc(pg_parser_t *parser, const pg_parser_settings_t *settings, i
     |   "C" long %len %complete char %complete_val 0
     |   "D" long %len %data small %tupnfields (long %data_len char %data_val %when moredata)**
     |   "K" long %len %secret long %pid long %key
-    |   "R" long %len %auth long %method
+    |   "R" long %len %auth long %method %when morelen
     |   "S" long %len %status char %status_key 0 char %status_val 0
     |   "T" long %len %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format %when moredesc)**
     |   "Z" long %len %ready ("I" >idle | "E" >inerror | "T" >intrans)
