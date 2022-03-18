@@ -12,6 +12,7 @@ typedef struct pg_parser_t {
     int str;
     uint16_t nfields;
     uint16_t tupnfields;
+    uint32_t len;
     unsigned char extend[4];
 } pg_parser_t;
 
@@ -47,6 +48,7 @@ static int moredesc(pg_parser_t *parser, const pg_parser_settings_t *settings, i
     action inerror { if (settings->inerror && (rc = settings->inerror(parser->data))) return rc; }
     action intrans { if (settings->intrans && (rc = settings->intrans(parser->data))) return rc; }
     action key { if (settings->key && (rc = settings->key(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
+    action len { if (settings->len && (rc = settings->len(parser->data, parser->len = ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action moredata { --parser->tupnfields }
     action moredesc { moredesc(parser, settings, --parser->nfields) }
@@ -68,16 +70,16 @@ static int moredesc(pg_parser_t *parser, const pg_parser_settings_t *settings, i
     small = extend{2} >extend_open $extend_all;
 
     main :=
-    (   "1" long %parse
-    |   "2" long %bind
-    |   "3" long %close
-    |   "C" long %complete char %complete_val 0
-    |   "D" long %data small %tupnfields (long %data_len char %data_val %when moredata)**
-    |   "K" long %secret long %pid long %key
-    |   "R" long %auth long %method
-    |   "S" long %status char %status_key 0 char %status_val 0
-    |   "T" long %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format %when moredesc)**
-    |   "Z" long %ready ("I" >idle | "E" >inerror | "T" >intrans)
+    (   "1" long %len %parse
+    |   "2" long %len %bind
+    |   "3" long %len %close
+    |   "C" long %len %complete char %complete_val 0
+    |   "D" long %len %data small %tupnfields (long %data_len char %data_val %when moredata)**
+    |   "K" long %len %secret long %pid long %key
+    |   "R" long %len %auth long %method
+    |   "S" long %len %status char %status_key 0 char %status_val 0
+    |   "T" long %len %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format %when moredesc)**
+    |   "Z" long %len %ready ("I" >idle | "E" >inerror | "T" >intrans)
     )** $all;
 
     write data;
