@@ -98,11 +98,11 @@ typedef struct pg_parser_t {
     |   "2" extend4 %bind
     |   "3" extend4 %close
     |   "C" extend4 %complete complete_val
-    |   "D" extend4 %tup ntups (tup)*
+    |   "D" extend4 %tup ntups tup*
     |   "K" extend4 %secret pid key
     |   "R" extend4 %auth method
     |   "S" long %status status_key status_val
-    |   "T" extend4 %field nfields (field)*
+    |   "T" extend4 %field nfields field*
     |   "Z" extend4 %ready ready
     )** $all;
 
