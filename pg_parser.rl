@@ -6,18 +6,19 @@
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 
 typedef struct pg_parser_t {
+    const void *data;
+    int cmd;
     int cs;
     int i;
     int len;
     int str;
     unsigned char any[4];
-    void *data;
 } pg_parser_t;
 
-static int when(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *b, const unsigned char *p) {
+static int when(pg_parser_t *parser, const pg_parser_settings_t *settings, int c) {
     int rc;
-    if (settings->when && (rc = settings->when(parser->data, (uintptr_t)(!parser->len || p < b + parser->len)))) return rc;
-    return !parser->len || p < b + parser->len;
+    if (settings->when && (rc = settings->when(parser->data, (uintptr_t)c))) return rc;
+    return c;
 }
 
 %%{
@@ -57,32 +58,34 @@ static int when(pg_parser_t *parser, const pg_parser_settings_t *settings, const
     action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser->data, p - s, s))) return rc; s = NULL; }
     action status_val { if (s && p - s > 0 && settings->status_val && (rc = settings->status_val(parser->data, p - s, s))) return rc; s = NULL; }
     action tableid { if (settings->tableid && (rc = settings->tableid(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
-    action then { when(parser, settings, b, p) }
+    action then { when(parser, settings, !parser->len || p < c + parser->len) }
     action tupnfields { if (settings->tupnfields && (rc = settings->tupnfields(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action typid { if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
+    action cmd { if (!c) c = p; if (c) parser->cmd = cs; }
 
     char = (any - 0)** >char_open $char_all;
     long = any{4} >any_open $any_all;
     small = any{2} >any_open $any_all;
 
     main :=
-    (   "1" long %len >parse when then
-    |   "2" long %len >bind when then
-    |   "3" long %len >close when then
-    |   "C" long %len >complete char %complete_val 0 when then
-    |   "D" long %len >data small %tupnfields (long %data_len char %data_val)** when then
-    |   "K" long %len >secret long %pid long %key when then
-    |   "R" long %len >auth long %method when then
-    |   "S" long %len char >status %status_key 0 char %status_val 0
-    |   "T" long %len >desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format)** when then
-    |   "Z" long %len >ready ("I" %idle | "E" %inerror | "T" %intrans) when then
+    (   "1" %cmd long %len >parse when then
+    |   "2" %cmd long %len >bind when then
+    |   "3" %cmd long %len >close when then
+    |   "C" %cmd long %len >complete char %complete_val 0 when then
+    |   "D" %cmd long %len >data small %tupnfields (long %data_len char %data_val)** when then
+    |   "K" %cmd long %len >secret long %pid long %key when then
+    |   "R" %cmd long %len >auth long %method when then
+    |   "S" %cmd long %len char >status %status_key 0 char %status_val 0
+    |   "T" %cmd long %len >desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format)** when then
+    |   "Z" %cmd long %len >ready ("I" %idle | "E" %inerror | "T" %intrans) when then
     )** $all;
 
     write data;
 }%%
 
 int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *b, const unsigned char *p, const unsigned char *pe, const unsigned char *eof) {
+    const unsigned char *c = parser->cs == parser->cmd ? p : NULL;
     const unsigned char *s = parser->cs == parser->str ? p : NULL;
     int cs = parser->cs;
     int rc = 0;
