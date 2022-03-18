@@ -64,9 +64,9 @@ typedef struct pg_parser_t {
 
     char = extend - 0;
     extend4 = extend{4};
-    long = (extend @long){4};
-    short = (extend @short){2};
-    str = (char @str)*;
+    long = extend{4} $long;
+    short = extend{2} $short;
+    str = char* $str;
 
     atttypmod = long %atttypmod;
     columnid = short %columnid;
@@ -89,17 +89,21 @@ typedef struct pg_parser_t {
     typid = long %typid;
     typlen = short %typlen;
 
+    field = name tableid columnid typid typlen atttypmod format %when morefields;
+    ready = idle | inerror | intrans;
+    tup = tup_len tup_val %when moretups;
+
     main :=
     (   "1" extend4 %parse
     |   "2" extend4 %bind
     |   "3" extend4 %close
     |   "C" extend4 %complete complete_val
-    |   "D" extend4 %tup ntups (tup_len tup_val %when moretups)*
+    |   "D" extend4 %tup ntups (tup)*
     |   "K" extend4 %secret pid key
     |   "R" extend4 %auth method
     |   "S" long %status status_key status_val
-    |   "T" extend4 %field nfields (name tableid columnid typid typlen atttypmod format %when morefields)*
-    |   "Z" extend4 %ready (idle | inerror | intrans)
+    |   "T" extend4 %field nfields (field)*
+    |   "Z" extend4 %ready ready
     )** $all;
 
     write data;
