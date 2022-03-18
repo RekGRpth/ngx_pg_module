@@ -12,11 +12,11 @@ typedef struct pg_parser_t {
     uint16_t nfields;
     uint16_t ntups;
     struct {
-        size_t i;
+        short int i;
         unsigned char d[4];
     } l;
     struct {
-        size_t i;
+        short int i;
         unsigned char d[2];
     } s;
 } pg_parser_t;
@@ -39,7 +39,7 @@ typedef struct pg_parser_t {
     action inerror { if (settings->inerror && (rc = settings->inerror(parser->data))) return rc; }
     action intrans { if (settings->intrans && (rc = settings->intrans(parser->data))) return rc; }
     action key { if (settings->key && (rc = settings->key(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
-    action long { if (parser->l.i > sizeof(parser->l.d)) parser->l.i = 0; parser->l.d[parser->l.i++] = *p; }
+    action long { if (parser->l.i >= 4) parser->l.i = 0; parser->l.d[parser->l.i++] = *p; }
     action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action morefields { --parser->nfields }
     action moretups { --parser->ntups }
@@ -50,7 +50,7 @@ typedef struct pg_parser_t {
     action pid { if (settings->pid && (rc = settings->pid(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser->data))) return rc; }
     action secret { if (settings->secret && (rc = settings->secret(parser->data))) return rc; }
-    action short { if (parser->s.i > sizeof(parser->s.d)) parser->s.i = 0; parser->s.d[parser->s.i++] = *p; }
+    action short { if (parser->s.i >= 2) parser->s.i = 0; parser->s.d[parser->s.i++] = *p; }
     action status { if (settings->status && (rc = settings->status(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser->data, p - s, s))) return rc; s = NULL; }
     action status_val { if (s && p - s > 0 && settings->status_val && (rc = settings->status_val(parser->data, p - s, s))) return rc; s = NULL; }
@@ -63,21 +63,22 @@ typedef struct pg_parser_t {
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->s.d)))) return rc; }
 
     char = extend - 0;
+    extend4 = extend{4};
     long = (extend @long){4};
     short = (extend @short){2};
     str = (char @str)*;
 
     main :=
-    (   "1" long %parse
-    |   "2" long %bind
-    |   "3" long %close
-    |   "C" long %complete str %complete_val 0
-    |   "D" long %tup short %ntups (long %tup_len str %tup_val %when moretups)*
-    |   "K" long %secret long %pid long %key
-    |   "R" long %auth long %method
+    (   "1" extend4 %parse
+    |   "2" extend4 %bind
+    |   "3" extend4 %close
+    |   "C" extend4 %complete str %complete_val 0
+    |   "D" extend4 %tup short %ntups (long %tup_len str %tup_val %when moretups)*
+    |   "K" extend4 %secret long %pid long %key
+    |   "R" extend4 %auth long %method
     |   "S" long %status str %status_key 0 str %status_val 0
-    |   "T" long %field short %nfields (str %name 0 long %tableid short %columnid long %typid short %typlen long %atttypmod short %format %when morefields)*
-    |   "Z" long %ready ("I" %idle | "E" %inerror | "T" %intrans)
+    |   "T" extend4 %field short %nfields (str %name 0 long %tableid short %columnid long %typid short %typlen long %atttypmod short %format %when morefields)*
+    |   "Z" extend4 %ready ("I" %idle | "E" %inerror | "T" %intrans)
     )** $all;
 
     write data;
