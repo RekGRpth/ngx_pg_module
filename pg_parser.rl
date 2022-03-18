@@ -48,8 +48,8 @@ static int moredesc(pg_parser_t *parser, const pg_parser_settings_t *settings, i
     action intrans { if (settings->intrans && (rc = settings->intrans(parser->data))) return rc; }
     action key { if (settings->key && (rc = settings->key(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
-    action moredata { parser->tupnfields-- }
-    action moredesc { moredesc(parser, settings, parser->nfields--) }
+    action moredata { --parser->tupnfields }
+    action moredesc { moredesc(parser, settings, --parser->nfields) }
     action nfields { if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields = ntohs(*(uint16_t *)parser->extend)))) return rc; }
     action parse { if (settings->parse && (rc = settings->parse(parser->data))) return rc; }
     action pid { if (settings->pid && (rc = settings->pid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
@@ -72,11 +72,11 @@ static int moredesc(pg_parser_t *parser, const pg_parser_settings_t *settings, i
     |   "2" long %bind
     |   "3" long %close
     |   "C" long %complete char %complete_val 0
-    |   "D" long %data small %tupnfields (long %data_len char %data_val when moredata)**
+    |   "D" long %data small %tupnfields (long %data_len char %data_val %when moredata)**
     |   "K" long %secret long %pid long %key
     |   "R" long %auth long %method
     |   "S" long %status char %status_key 0 char %status_val 0
-    |   "T" long %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format when moredesc)**
+    |   "T" long %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format %when moredesc)**
     |   "Z" long %ready ("I" >idle | "E" >inerror | "T" >intrans)
     )** $all;
 
