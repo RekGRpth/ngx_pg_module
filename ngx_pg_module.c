@@ -172,6 +172,12 @@ static ngx_int_t ngx_pg_parser_method(ngx_pg_save_t *s, const uintptr_t data) {
     return NGX_OK;
 }
 
+static ngx_int_t ngx_pg_parser_moredesc(ngx_pg_save_t *s, const uintptr_t data) {
+    uint16_t moredesc = (uint16_t)data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", moredesc);
+    return NGX_OK;
+}
+
 static ngx_int_t ngx_pg_parser_nfields(ngx_pg_save_t *s, const uintptr_t data) {
     uint16_t nfields = (uint16_t)data;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", nfields);
@@ -276,6 +282,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .intrans = (pg_parser_cb)ngx_pg_parser_intrans,
     .key = (pg_parser_ptr_cb)ngx_pg_parser_key,
     .method = (pg_parser_ptr_cb)ngx_pg_parser_method,
+    .moredesc = (pg_parser_ptr_cb)ngx_pg_parser_moredesc,
     .nfields = (pg_parser_ptr_cb)ngx_pg_parser_nfields,
     .parse = (pg_parser_cb)ngx_pg_parser_parse,
     .pid = (pg_parser_ptr_cb)ngx_pg_parser_pid,
