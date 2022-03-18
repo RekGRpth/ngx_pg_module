@@ -23,8 +23,6 @@ typedef struct pg_parser_t {
     action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action auth { if (settings->auth && (rc = settings->auth(parser->data))) return rc; }
     action bind { if (settings->bind && (rc = settings->bind(parser->data))) return rc; }
-    action char_all { if (s) parser->str = cs; }
-    action char_open { if (!s) s = p; }
     action close { if (settings->close && (rc = settings->close(parser->data))) return rc; }
     action columnid { if (settings->columnid && (rc = settings->columnid(parser->data, ntohs(*(uint16_t *)parser->extend)))) return rc; }
     action complete { if (settings->complete && (rc = settings->complete(parser->data))) return rc; }
@@ -50,6 +48,7 @@ typedef struct pg_parser_t {
     action status { if (settings->status && (rc = settings->status(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser->data, p - s, s))) return rc; s = NULL; }
     action status_val { if (s && p - s > 0 && settings->status_val && (rc = settings->status_val(parser->data, p - s, s))) return rc; s = NULL; }
+    action str { if (!s) s = p; if (s) parser->str = cs; }
     action tableid { if (settings->tableid && (rc = settings->tableid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action tup { if (settings->tup && (rc = settings->tup(parser->data))) return rc; }
     action tup_len { if (settings->tup_len && (rc = settings->tup_len(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
@@ -57,20 +56,21 @@ typedef struct pg_parser_t {
     action typid { if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->extend)))) return rc; }
 
-    char = (extend - 0)* >char_open $char_all;
+    char = extend - 0;
     long = (extend extend extend extend) >extend_open $extend_all;
     small = (extend extend) >extend_open $extend_all;
+    str = (char @str)*;
 
     main :=
     (   "1" long %parse
     |   "2" long %bind
     |   "3" long %close
-    |   "C" long %complete char %complete_val 0
-    |   "D" long %tup small %ntups (long %tup_len char %tup_val %when moretups)*
+    |   "C" long %complete str %complete_val 0
+    |   "D" long %tup small %ntups (long %tup_len str %tup_val %when moretups)*
     |   "K" long %secret long %pid long %key
     |   "R" long %auth long %method
-    |   "S" long %status char %status_key 0 char %status_val 0
-    |   "T" long %field small %nfields (char %name 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format %when morefields)*
+    |   "S" long %status str %status_key 0 str %status_val 0
+    |   "T" long %field small %nfields (str %name 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format %when morefields)*
     |   "Z" long %ready ("I" %idle | "E" %inerror | "T" %intrans)
     )** $all;
 
