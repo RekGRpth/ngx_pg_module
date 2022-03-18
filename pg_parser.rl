@@ -44,7 +44,7 @@ typedef struct pg_parser_t {
     action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action morebyte { parser->len-- }
     action morefields { if (!--parser->nfields) fnext main; }
-    action moretups { if (!--parser->ntups) fnext main; }
+    action moretups { parser->ntups-- }
     action name { if (s && settings->name && (rc = settings->name(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action nfields { parser->nfields = ntohs(*(uint16_t *)parser->s.d); if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields))) return rc; }
     action ntups { parser->ntups = ntohs(*(uint16_t *)parser->s.d); if (settings->ntups && (rc = settings->ntups(parser->data, parser->ntups))) return rc; }
@@ -95,7 +95,7 @@ typedef struct pg_parser_t {
 
     field = name tableid columnid typid typlen atttypmod format @morefields;
     ready = idle | inerror | intrans;
-    tup = tup_len tup_val %moretups;
+    tup = tup_len %when moretups tup_val;
 
     main :=
     (   "1" extend4 @parse
