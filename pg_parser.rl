@@ -72,9 +72,9 @@ typedef struct pg_parser_t {
     columnid = short %columnid;
     complete_val = str %complete_val 0;
     format = short %format;
-    idle = "I" %idle;
-    inerror = "E" %inerror;
-    intrans = "T" %intrans;
+    idle = "I" @idle;
+    inerror = "E" @inerror;
+    intrans = "T" @intrans;
     key = long %key;
     method = long %method;
     name = str %name 0;
