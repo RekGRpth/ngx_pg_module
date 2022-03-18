@@ -12,7 +12,6 @@ typedef struct pg_parser_t {
     int str;
     uint16_t nfields;
     uint16_t tupnfields;
-    uint32_t len;
     unsigned char extend[4];
 } pg_parser_t;
 
@@ -20,7 +19,7 @@ typedef struct pg_parser_t {
     machine pg_parser;
     alphtype unsigned char;
 
-    action all { if (parser->len) parser->len--; if (settings->all && (rc = settings->all(parser->data, parser->len, p))) return rc; }
+    action all { if (settings->all && (rc = settings->all(parser->data, (uintptr_t)p))) return rc; }
     action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action auth { if (settings->auth && (rc = settings->auth(parser->data))) return rc; }
     action bind { if (settings->bind && (rc = settings->bind(parser->data))) return rc; }
@@ -42,7 +41,7 @@ typedef struct pg_parser_t {
     action inerror { if (settings->inerror && (rc = settings->inerror(parser->data))) return rc; }
     action intrans { if (settings->intrans && (rc = settings->intrans(parser->data))) return rc; }
     action key { if (settings->key && (rc = settings->key(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
-    action len { if (settings->len && (rc = settings->len(parser->data, parser->len = ntohl(*(uint32_t *)parser->extend) - 4))) return rc; }
+    action len { if (settings->len && (rc = settings->len(parser->data, ntohl(*(uint32_t *)parser->extend) - 4))) return rc; }
     action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action moredata { parser->tupnfields-- }
     action moredesc { parser->nfields-- }
