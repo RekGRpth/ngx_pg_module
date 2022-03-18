@@ -58,20 +58,20 @@ typedef struct pg_parser_t {
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->extend)))) return rc; }
 
     char = (extend - 0)* >char_open $char_all;
-    long = extend{4} >extend_open $extend_all;
-    small = extend{2} >extend_open $extend_all;
+    long = (extend extend extend extend) >extend_open $extend_all;
+    small = (extend extend) >extend_open $extend_all;
 
     main :=
-    (   "1" long %~parse
-    |   "2" long %~bind
-    |   "3" long %~close
-    |   "C" long %~complete char %complete_val 0
-    |   "D" long %~tup small %~ntups (long %~tup_len char %*tup_val %when moretups)*
-    |   "K" long %~secret long %~pid long %~key
-    |   "R" long %~auth long %~method
-    |   "S" long %~status char %status_key 0 char %status_val 0
-    |   "T" long %~field small %~nfields (char %name 0 long %~tableid small %~columnid long %~typid small %~typlen long %~atttypmod small %~format %when morefields)*
-    |   "Z" long %~ready ("I" %~idle | "E" %~inerror | "T" %~intrans)
+    (   "1" long %parse
+    |   "2" long %bind
+    |   "3" long %close
+    |   "C" long %complete char %complete_val 0
+    |   "D" long %tup small %ntups (long %tup_len char %tup_val %when moretups)*
+    |   "K" long %secret long %pid long %key
+    |   "R" long %auth long %method
+    |   "S" long %status char %status_key 0 char %status_val 0
+    |   "T" long %field small %nfields (char %name 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format %when morefields)*
+    |   "Z" long %ready ("I" %idle | "E" %inerror | "T" %intrans)
     )** $all;
 
     write data;
