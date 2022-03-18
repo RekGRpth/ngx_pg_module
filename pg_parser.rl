@@ -11,6 +11,7 @@ typedef struct pg_parser_t {
     int str;
     uint16_t nfields;
     uint16_t ntups;
+    uint32_t len;
     struct {
         short int i;
         unsigned char d[4];
@@ -57,7 +58,7 @@ typedef struct pg_parser_t {
     action str { if (!s) s = p; if (s) parser->str = cs; }
     action tableid { if (settings->tableid && (rc = settings->tableid(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action tup { if (settings->tup && (rc = settings->tup(parser->data))) return rc; }
-    action tup_len { if (settings->tup_len && (rc = settings->tup_len(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
+    action tup_len { parser->len = ntohl(*(uint32_t *)parser->l.d); if (settings->tup_len && (rc = settings->tup_len(parser->data, parser->len))) return rc; }
     action tup_val { if (s && settings->tup_val && (rc = settings->tup_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action typid { if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->s.d)))) return rc; }
