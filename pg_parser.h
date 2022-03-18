@@ -46,5 +46,5 @@ typedef struct {
     pg_parser_str_cb status_val;
 } pg_parser_settings_t;
 
-int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *p, const unsigned char *pe);
+int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *b, const unsigned char *p, const unsigned char *pe, const unsigned char *eof);
 void pg_parser_init(pg_parser_t *parser);

@@ -758,7 +758,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_pg_save_t *s = d->save;
     ngx_buf_t *b = &u->buffer;
 //    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
-    for (int i; (b->pos < b->last) && (i = pg_parser_execute(&s->parser, &ngx_pg_parser_settings, b->pos, b->last)) > 0; b->pos += i) ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "i = %i", i);
+    for (int i; (b->pos < b->last) && (i = pg_parser_execute(&s->parser, &ngx_pg_parser_settings, b->pos, b->pos, b->last, b->last == b->end ? b->last : NULL)) > 0; b->pos += i) ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "i = %i", i);
     s->buffer = u->buffer;
     ngx_int_t rc = ngx_pg_parse(s);
     u->buffer = s->buffer;

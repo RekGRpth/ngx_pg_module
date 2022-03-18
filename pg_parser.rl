@@ -73,9 +73,7 @@ void pg_parser_init(pg_parser_t *parser) {
     parser->cs = cs;
 }
 
-int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *p, const unsigned char *pe) {
-    const unsigned char *b = p;
-    const unsigned char *eof = pe;
+int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *b, const unsigned char *p, const unsigned char *pe, const unsigned char *eof) {
     const unsigned char *s = parser->cs == parser->str ? p : NULL;
     int cs = parser->cs;
     int rc = 0;
