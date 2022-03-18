@@ -739,6 +739,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     while (b->pos < b->last && (rc = pg_parser_execute(s->parser, &ngx_pg_parser_settings, b->pos, b->pos, b->last, b->last == b->end ? b->last : NULL)) > 0) {
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
         b->pos += rc;
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos < b->last = %s", b->pos < b->last ? "true" : "false");
     }
     if (rc < 0) return rc;
     return ngx_queue_empty(&s->cmd.queue) ? NGX_OK : NGX_AGAIN;
