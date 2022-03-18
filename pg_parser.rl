@@ -35,7 +35,7 @@ static int command(pg_parser_t *parser, const pg_parser_settings_t *settings, in
     action char_open { if (!s) s = p; }
     action close { if (settings->close && (rc = settings->close(parser->data))) return rc; }
     action columnid { if (settings->columnid && (rc = settings->columnid(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
-    action command { command(parser, settings, !parser->len || p < c + parser->len) }
+    action command { command(parser, settings, !parser->len || p <= c + parser->len) }
     action complete { if (settings->complete && (rc = settings->complete(parser->data))) return rc; }
     action complete_val { if (s && p - s > 0 && settings->complete_val && (rc = settings->complete_val(parser->data, p - s, s))) return rc; s = NULL; }
     action data { if (settings->data && (rc = settings->data(parser->data))) return rc; }
@@ -77,7 +77,7 @@ static int command(pg_parser_t *parser, const pg_parser_settings_t *settings, in
     |   "R" long %auth long %method
     |   "S" long %len %status char %status_key 0 char %status_val 0
     |   "T" long %len %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format)** when command
-    |   "Z" long %ready ("I" %idle | "E" %inerror | "T" %intrans)
+    |   "Z" long %ready ("I" >idle | "E" >inerror | "T" >intrans)
     )** $all;
 
     write data;
