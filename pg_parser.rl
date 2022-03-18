@@ -16,15 +16,15 @@ typedef struct pg_parser_t {
 
 static int when(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *b, const unsigned char *p) {
     int rc;
-    if (settings->when && (rc = settings->when(parser->data, (uintptr_t)(!parser->len || p <= b + parser->len)))) return rc;
-    return !parser->len || p <= b + parser->len;
+    if (settings->when && (rc = settings->when(parser->data, (uintptr_t)(!parser->len || p < b + parser->len)))) return rc;
+    return !parser->len || p < b + parser->len;
 }
 
 %%{
     machine pg_parser;
     alphtype unsigned char;
 
-    action all { if (parser->len) parser->len--; if (settings->all && (rc = settings->all(parser->data, parser->len, p))) return rc; }
+    action all { if (settings->all && (rc = settings->all(parser->data, parser->len, p))) return rc; }
     action any_all { parser->any[parser->i++] = *p; }
     action any_open { parser->i = 0; }
     action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
@@ -34,7 +34,6 @@ static int when(pg_parser_t *parser, const pg_parser_settings_t *settings, const
     action char_open { if (!s) s = p; }
     action close { if (settings->close && (rc = settings->close(parser->data))) return rc; }
     action columnid { if (settings->columnid && (rc = settings->columnid(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
-    action command { when(parser, settings, b, p) }
     action complete { if (settings->complete && (rc = settings->complete(parser->data))) return rc; }
     action complete_val { if (s && p - s > 0 && settings->complete_val && (rc = settings->complete_val(parser->data, p - s, s))) return rc; s = NULL; }
     action data { if (settings->data && (rc = settings->data(parser->data))) return rc; }
@@ -58,6 +57,7 @@ static int when(pg_parser_t *parser, const pg_parser_settings_t *settings, const
     action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser->data, p - s, s))) return rc; s = NULL; }
     action status_val { if (s && p - s > 0 && settings->status_val && (rc = settings->status_val(parser->data, p - s, s))) return rc; s = NULL; }
     action tableid { if (settings->tableid && (rc = settings->tableid(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
+    action then { when(parser, settings, b, p) }
     action tupnfields { if (settings->tupnfields && (rc = settings->tupnfields(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action typid { if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
@@ -67,16 +67,16 @@ static int when(pg_parser_t *parser, const pg_parser_settings_t *settings, const
     small = any{2} >any_open $any_all;
 
     main :=
-    (   "1" long %len >parse when command
-    |   "2" long %len >bind when command
-    |   "3" long %len >close when command
-    |   "C" long %len >complete char %complete_val 0 when command
-    |   "D" long %len >data small %tupnfields (long %data_len char %data_val)** when command
-    |   "K" long %len >secret long %pid long %key when command
-    |   "R" long %len >auth long %method when command
+    (   "1" long %len >parse when then
+    |   "2" long %len >bind when then
+    |   "3" long %len >close when then
+    |   "C" long %len >complete char %complete_val 0 when then
+    |   "D" long %len >data small %tupnfields (long %data_len char %data_val)** when then
+    |   "K" long %len >secret long %pid long %key when then
+    |   "R" long %len >auth long %method when then
     |   "S" long %len char >status %status_key 0 char %status_val 0
-    |   "T" long %len >desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format)** when command
-    |   "Z" long %len >ready ("I" %idle | "E" %inerror | "T" %intrans) when command
+    |   "T" long %len >desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format)** when then
+    |   "Z" long %len >ready ("I" %idle | "E" %inerror | "T" %intrans) when then
     )** $all;
 
     write data;
