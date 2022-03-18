@@ -15,17 +15,16 @@ typedef struct {
     pg_parser_cb parse;
     pg_parser_cb ready;
     pg_parser_cb secret;
-    pg_parser_cb status;
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb atttypmod;
     pg_parser_ptr_cb columnid;
     pg_parser_ptr_cb data_len;
     pg_parser_ptr_cb format;
     pg_parser_ptr_cb key;
-    pg_parser_ptr_cb len;
     pg_parser_ptr_cb method;
     pg_parser_ptr_cb nfields;
     pg_parser_ptr_cb pid;
+    pg_parser_ptr_cb status;
     pg_parser_ptr_cb tableid;
     pg_parser_ptr_cb tupnfields;
     pg_parser_ptr_cb typid;

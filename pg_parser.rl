@@ -41,7 +41,6 @@ typedef struct pg_parser_t {
     action inerror { if (settings->inerror && (rc = settings->inerror(parser->data))) return rc; }
     action intrans { if (settings->intrans && (rc = settings->intrans(parser->data))) return rc; }
     action key { if (settings->key && (rc = settings->key(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
-    action len { if (settings->len && (rc = settings->len(parser->data, ntohl(*(uint32_t *)parser->extend) - 4))) return rc; }
     action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action moredata { parser->tupnfields-- }
     action moredesc { parser->nfields-- }
@@ -50,7 +49,7 @@ typedef struct pg_parser_t {
     action pid { if (settings->pid && (rc = settings->pid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser->data))) return rc; }
     action secret { if (settings->secret && (rc = settings->secret(parser->data))) return rc; }
-    action status { if (settings->status && (rc = settings->status(parser->data))) return rc; }
+    action status { if (settings->status && (rc = settings->status(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser->data, p - s, s))) return rc; s = NULL; }
     action status_val { if (s && p - s > 0 && settings->status_val && (rc = settings->status_val(parser->data, p - s, s))) return rc; s = NULL; }
     action tableid { if (settings->tableid && (rc = settings->tableid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
@@ -70,7 +69,7 @@ typedef struct pg_parser_t {
     |   "D" long %data small %tupnfields (long %data_len char %data_val when moredata)*
     |   "K" long %secret long %pid long %key
     |   "R" long %auth long %method
-    |   "S" long %len %status char %status_key 0 char %status_val 0
+    |   "S" long %status char %status_key 0 char %status_val 0
     |   "T" long %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format when moredesc)*
     |   "Z" long %ready ("I" >idle | "E" >inerror | "T" >intrans)
     )** $all;
