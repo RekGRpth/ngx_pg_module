@@ -739,7 +739,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
         b->pos += rc;
     }
-    if (rc != NGX_OK) return rc;
+    if (rc < 0) return rc;
     return ngx_queue_empty(&s->cmd.queue) ? NGX_OK : NGX_AGAIN;
 //    s->buffer = u->buffer;
 //    rc = ngx_pg_parse(s);
