@@ -66,7 +66,7 @@ typedef struct pg_parser_t {
     extend4 = extend{4};
     long = extend{4} $long;
     short = extend{2} $short;
-    str = char** $str;
+    str = char* $str;
     str0 = str 0;
 
     atttypmod = long @atttypmod;
@@ -99,11 +99,11 @@ typedef struct pg_parser_t {
     |   "2" extend4 @bind
     |   "3" extend4 @close
     |   "C" extend4 @complete complete_val
-    |   "D" extend4 @tup ntups tup**
+    |   "D" extend4 @tup ntups tup*
     |   "K" extend4 @secret pid key
     |   "R" extend4 @auth method
     |   "S" long @status status_key status_val
-    |   "T" extend4 @field nfields field**
+    |   "T" extend4 @field nfields field*
     |   "Z" extend4 @ready ready
     )** $all;
 
