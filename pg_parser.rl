@@ -42,8 +42,8 @@ typedef struct pg_parser_t {
     action key { if (settings->key && (rc = settings->key(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action long { if (parser->l.i >= 4) parser->l.i = 0; parser->l.d[parser->l.i++] = *p; }
     action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
+    action morebyte { if (!--parser->len) fnext byte; }
     action morefields { if (!--parser->nfields) fnext main; }
-    action morestr { if (!--parser->len) fnext strl; }
     action moretups { if (!--parser->ntups) fnext main; }
     action name { if (s && settings->name && (rc = settings->name(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action nfields { parser->nfields = ntohs(*(uint16_t *)parser->s.d); if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields))) return rc; }
@@ -70,7 +70,7 @@ typedef struct pg_parser_t {
     short = extend{2} $short;
     str = char** $str;
     str0 = str 0;
-    strl = (char @morestr)** $str;
+    byte = (char @morebyte)** $str;
 
     atttypmod = long @atttypmod;
     columnid = short @columnid;
@@ -89,7 +89,7 @@ typedef struct pg_parser_t {
     status_val = str0 @status_val;
     tableid = long @tableid;
     tup_len = long @tup_len;
-    tup_val = strl @tup_val;
+    tup_val = byte @tup_val;
     typid = long @typid;
     typlen = short @typlen;
 
