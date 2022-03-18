@@ -68,17 +68,38 @@ typedef struct pg_parser_t {
     short = (extend @short){2};
     str = (char @str)*;
 
+    atttypmod = long %atttypmod;
+    columnid = short %columnid;
+    complete_val = str %complete_val 0;
+    format = short %format;
+    idle = "I" %idle;
+    inerror = "E" %inerror;
+    intrans = "T" %intrans;
+    key = long %key;
+    method = long %method;
+    name = str %name 0;
+    nfields = short %nfields;
+    ntups = short %ntups;
+    pid = long %pid;
+    status_key = str %status_key 0;
+    status_val = str %status_val 0;
+    tableid = long %tableid;
+    tup_len = long %tup_len;
+    tup_val = str %tup_val;
+    typid = long %typid;
+    typlen = short %typlen;
+
     main :=
     (   "1" extend4 %parse
     |   "2" extend4 %bind
     |   "3" extend4 %close
-    |   "C" extend4 %complete str %complete_val 0
-    |   "D" extend4 %tup short %ntups (long %tup_len str %tup_val %when moretups)*
-    |   "K" extend4 %secret long %pid long %key
-    |   "R" extend4 %auth long %method
-    |   "S" long %status str %status_key 0 str %status_val 0
-    |   "T" extend4 %field short %nfields (str %name 0 long %tableid short %columnid long %typid short %typlen long %atttypmod short %format %when morefields)*
-    |   "Z" extend4 %ready ("I" %idle | "E" %inerror | "T" %intrans)
+    |   "C" extend4 %complete complete_val
+    |   "D" extend4 %tup ntups (tup_len tup_val %when moretups)*
+    |   "K" extend4 %secret pid key
+    |   "R" extend4 %auth method
+    |   "S" long %status status_key status_val
+    |   "T" extend4 %field nfields (name tableid columnid typid typlen atttypmod format %when morefields)*
+    |   "Z" extend4 %ready (idle | inerror | intrans)
     )** $all;
 
     write data;
