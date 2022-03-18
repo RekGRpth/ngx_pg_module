@@ -26,15 +26,15 @@ typedef struct {
 //    pg_parser_ptr_cb moredesc;
 //    pg_parser_ptr_cb morelen;
     pg_parser_ptr_cb nfields;
+    pg_parser_ptr_cb ntups;
     pg_parser_ptr_cb pid;
     pg_parser_ptr_cb status;
     pg_parser_ptr_cb tableid;
-    pg_parser_ptr_cb tupnfields;
     pg_parser_ptr_cb typid;
     pg_parser_ptr_cb typlen;
     pg_parser_str_cb complete_val;
     pg_parser_str_cb data_val;
-    pg_parser_str_cb field;
+    pg_parser_str_cb name;
     pg_parser_str_cb status_key;
     pg_parser_str_cb status_val;
 } pg_parser_settings_t;
