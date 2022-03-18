@@ -24,7 +24,7 @@ static int when(pg_parser_t *parser, const pg_parser_settings_t *settings, const
     machine pg_parser;
     alphtype unsigned char;
 
-    action all { if (parser->len) parser->len--; if (settings->all && (rc = settings->all(parser->data, (uintptr_t)p))) return rc; }
+    action all { if (parser->len) parser->len--; if (settings->all && (rc = settings->all(parser->data, parser->len, p))) return rc; }
     action any_all { parser->any[parser->i++] = *p; }
     action any_open { parser->i = 0; }
     action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
