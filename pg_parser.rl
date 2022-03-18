@@ -43,7 +43,7 @@ typedef struct pg_parser_t {
     action long { if (parser->l.i >= 4) parser->l.i = 0; parser->l.d[parser->l.i++] = *p; }
     action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action morebyte { parser->len-- }
-    action morefields { if (!--parser->nfields) fnext main; }
+    action morefields { parser->nfields-- }
     action moretups { parser->ntups-- }
     action name { if (s && settings->name && (rc = settings->name(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action nfields { parser->nfields = ntohs(*(uint16_t *)parser->s.d); if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields))) return rc; }
@@ -72,42 +72,42 @@ typedef struct pg_parser_t {
     str0 = str 0;
     byte = (char when morebyte)** $str;
 
-    atttypmod = long @atttypmod;
-    columnid = short @columnid;
-    complete_val = str0 @complete_val;
-    format = short @format;
-    idle = "I" @idle;
-    inerror = "E" @inerror;
-    intrans = "T" @intrans;
-    key = long @key;
-    method = long @method;
-    name = str0 @name;
-    nfields = short @nfields;
-    ntups = short @ntups;
-    pid = long @pid;
-    status_key = str0 @status_key;
-    status_val = str0 @status_val;
-    tableid = long @tableid;
-    tup_len = long @tup_len;
+    atttypmod = long %atttypmod;
+    columnid = short %columnid;
+    complete_val = str0 %complete_val;
+    format = short %format;
+    idle = "I" %idle;
+    inerror = "E" %inerror;
+    intrans = "T" %intrans;
+    key = long %key;
+    method = long %method;
+    name = str0 %name;
+    nfields = short %nfields;
+    ntups = short %ntups;
+    pid = long %pid;
+    status_key = str0 %status_key;
+    status_val = str0 %status_val;
+    tableid = long %tableid;
+    tup_len = long %tup_len;
     tup_val = byte %tup_val;
-    typid = long @typid;
-    typlen = short @typlen;
+    typid = long %typid;
+    typlen = short %typlen;
 
-    field = name tableid columnid typid typlen atttypmod format @morefields;
+    field = name tableid columnid typid typlen atttypmod format;
     ready = idle | inerror | intrans;
-    tup = tup_len %when moretups tup_val;
+    tup = tup_len tup_val;
 
     main :=
-    (   "1" extend4 @parse
-    |   "2" extend4 @bind
-    |   "3" extend4 @close
-    |   "C" extend4 @complete complete_val
-    |   "D" extend4 @tup ntups tup**
-    |   "K" extend4 @secret pid key
-    |   "R" extend4 @auth method
-    |   "S" long @status status_key status_val
-    |   "T" extend4 @field nfields field**
-    |   "Z" extend4 @ready ready
+    (   "1" extend4 %parse
+    |   "2" extend4 %bind
+    |   "3" extend4 %close
+    |   "C" extend4 %complete complete_val
+    |   "D" extend4 %tup ntups (tup when moretups)**
+    |   "K" extend4 %secret pid key
+    |   "R" extend4 %auth method
+    |   "S" long %status status_key status_val
+    |   "T" extend4 %field nfields (field when morefields)**
+    |   "Z" extend4 %ready ready
     )** $all;
 
     write data;
