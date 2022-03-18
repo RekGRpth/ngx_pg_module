@@ -47,7 +47,7 @@ static int when(pg_parser_t *parser, const pg_parser_settings_t *settings, int c
     action inerror { if (settings->inerror && (rc = settings->inerror(parser->data))) return rc; }
     action intrans { if (settings->intrans && (rc = settings->intrans(parser->data))) return rc; }
     action key { if (settings->key && (rc = settings->key(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
-    action len { if (settings->len && (rc = settings->len(parser->data, (uintptr_t)(parser->len = ntohl(*(uint32_t *)parser->any) - 4)))) return rc; }
+    action len { if (settings->len && (rc = settings->len(parser->data, (uintptr_t)(parser->len = ntohl(*(uint32_t *)parser->any) - 4)))) return rc; if (!c) c = p; if (c) parser->cmd = cs; }
     action method { if (settings->method && (rc = settings->method(parser->data, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; }
     action nfields { if (settings->nfields && (rc = settings->nfields(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action parse { if (settings->parse && (rc = settings->parse(parser->data))) return rc; }
@@ -62,23 +62,22 @@ static int when(pg_parser_t *parser, const pg_parser_settings_t *settings, int c
     action tupnfields { if (settings->tupnfields && (rc = settings->tupnfields(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action typid { if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
-    action cmd { if (!c) c = p; if (c) parser->cmd = cs; }
 
     char = (any - 0)** >char_open $char_all;
     long = any{4} >any_open $any_all;
     small = any{2} >any_open $any_all;
 
     main :=
-    (   "1" %cmd long %len %parse when then
-    |   "2" %cmd long %len %bind when then
-    |   "3" %cmd long %len %close when then
-    |   "C" %cmd long %len %complete char %complete_val 0 when then
-    |   "D" %cmd long %len %data small %tupnfields (long %data_len char %data_val)** when then
-    |   "K" %cmd long %len %secret long %pid long %key when then
-    |   "R" %cmd long %len %auth long %method when then
-    |   "S" %cmd long %len %status char %status_key 0 char %status_val 0
-    |   "T" %cmd long %len %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format)** when then
-    |   "Z" %cmd long %len %ready ("I" %idle | "E" %inerror | "T" %intrans) when then
+    (   "1" long %len %parse when then
+    |   "2" long %len %bind when then
+    |   "3" long %len %close when then
+    |   "C" long %len %complete char %complete_val 0 when then
+    |   "D" long %len %data small %tupnfields (long %data_len char %data_val)** when then
+    |   "K" long %len %secret long %pid long %key when then
+    |   "R" long %len %auth long %method when then
+    |   "S" long %len %status char %status_key 0 char %status_val 0
+    |   "T" long %len %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format)** when then
+    |   "Z" long %len %ready ("I" %idle | "E" %inerror | "T" %intrans) when then
     )** $all;
 
     write data;
