@@ -83,7 +83,7 @@ static int morelen(pg_parser_t *parser, const pg_parser_settings_t *settings, in
     |   "C" long %len %complete char %complete_val 0
     |   "D" long %len %data small %tupnfields (long %data_len char %data_val %when moredata)**
     |   "K" long %len %secret long %pid long %key %when morelen
-    |   "R" long %len %auth long %method %when morelen
+    |   "R" long %~len %~auth long %~method %when morelen
     |   "S" long %len %status char %status_key 0 char %status_val 0 %when morelen
     |   "T" long %len %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format %when moredesc)**
     |   "Z" long %len %ready ("I" >idle | "E" >inerror | "T" >intrans)
