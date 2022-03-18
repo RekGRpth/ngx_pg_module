@@ -73,7 +73,7 @@ typedef struct {
 static int ngx_pg_parser_all(const pg_parser_t *parser, const uintptr_t data) {
     const unsigned char *p = (const unsigned char *)data;
     ngx_pg_save_t *s = parser->data;
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i:%c", *p, *p);
+    ngx_log_debug3(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i:%c = %i", *p, *p, parser->len);
     return 0;
 }
 

@@ -9,7 +9,7 @@
     machine pg_parser;
     alphtype unsigned char;
 
-    action all { if (settings->all && (rc = settings->all(parser, (uintptr_t)p))) return rc; }
+    action all { if (parser->len) parser->len--; if (settings->all && (rc = settings->all(parser, (uintptr_t)p))) return rc; }
     action any_all { parser->any[parser->i++] = *p; }
     action any_open { parser->i = 0; }
     action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
@@ -19,7 +19,7 @@
     action char_open { if (!s) s = p; }
     action close { if (settings->close && (rc = settings->close(parser))) return rc; }
     action columnid { if (settings->columnid && (rc = settings->columnid(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
-    action command { p < e }
+    action command { !parser->len || p <= b + parser->len }
     action complete { if (settings->complete && (rc = settings->complete(parser))) return rc; }
     action complete_val { if (s && p - s > 0 && settings->complete_val && (rc = settings->complete_val(parser, p - s, s))) return rc; s = NULL; }
     action data { if (settings->data && (rc = settings->data(parser))) return rc; }
@@ -32,7 +32,7 @@
     action inerror { if (settings->inerror && (rc = settings->inerror(parser))) return rc; }
     action intrans { if (settings->intrans && (rc = settings->intrans(parser))) return rc; }
     action key { if (settings->key && (rc = settings->key(parser, ntohl(*(uint32_t *)parser->any)))) return rc; }
-    action len { if ((parser->len = ntohl(*(uint32_t *)parser->any))) e = p + parser->len - 4; if (settings->len && (rc = settings->len(parser, (uintptr_t)parser->len))) return rc; }
+    action len { if (settings->len && (rc = settings->len(parser, (uintptr_t)(parser->len = ntohl(*(uint32_t *)parser->any) - 4)))) return rc; }
     action method { if (settings->method && (rc = settings->method(parser, (uintptr_t)ntohl(*(uint32_t *)parser->any)))) return rc; }
     action nfields { if (settings->nfields && (rc = settings->nfields(parser, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action parse { if (settings->parse && (rc = settings->parse(parser))) return rc; }
@@ -59,9 +59,9 @@
     |   "D" long %len >data small %tupnfields (long %data_len char %data_val)** when command
     |   "K" long %len >secret long %pid long %key when command
     |   "R" long %len >auth long %method when command
-    |   "S" long %len char >status %status_key 0 char %status_val 0 when command
+    |   "S" long %len char >status %status_key 0 char %status_val 0
     |   "T" long %len >desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format)** when command
-    |   "Z" long %len >ready ("I" %idle | "E" %inerror | "T" %intrans)
+    |   "Z" long %len >ready ("I" %idle | "E" %inerror | "T" %intrans) when command
     )** $all;
 
     write data;
@@ -76,7 +76,6 @@ void pg_parser_init(pg_parser_t *parser) {
 int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *p, const unsigned char *pe) {
     const unsigned char *b = p;
     const unsigned char *eof = pe;
-    const unsigned char *e = parser->len ? p + parser->len - 4: pe;
     const unsigned char *s = parser->cs == parser->str ? p : NULL;
     int cs = parser->cs;
     int rc = 0;
