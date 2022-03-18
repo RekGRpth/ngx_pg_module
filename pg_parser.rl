@@ -16,12 +16,6 @@ typedef struct pg_parser_t {
     unsigned char extend[4];
 } pg_parser_t;
 
-/*static int command(pg_parser_t *parser, const pg_parser_settings_t *settings, int c) {
-    int rc;
-    if (settings->when && (rc = settings->when(parser->data, (uintptr_t)c))) return rc;
-    return c;
-}*/
-
 %%{
     machine pg_parser;
     alphtype unsigned char;
@@ -34,7 +28,6 @@ typedef struct pg_parser_t {
     action char_open { if (!s) s = p; }
     action close { if (settings->close && (rc = settings->close(parser->data))) return rc; }
     action columnid { if (settings->columnid && (rc = settings->columnid(parser->data, ntohs(*(uint16_t *)parser->extend)))) return rc; }
-#    action command { command(parser, settings, !parser->len || p <= c + parser->len) }
     action complete { if (settings->complete && (rc = settings->complete(parser->data))) return rc; }
     action complete_val { if (s && p - s > 0 && settings->complete_val && (rc = settings->complete_val(parser->data, p - s, s))) return rc; s = NULL; }
     action data { if (settings->data && (rc = settings->data(parser->data))) return rc; }
@@ -49,9 +42,11 @@ typedef struct pg_parser_t {
     action inerror { if (settings->inerror && (rc = settings->inerror(parser->data))) return rc; }
     action intrans { if (settings->intrans && (rc = settings->intrans(parser->data))) return rc; }
     action key { if (settings->key && (rc = settings->key(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
-    action len { if (settings->len && (rc = settings->len(parser->data, (uintptr_t)(parser->len = ntohl(*(uint32_t *)parser->extend) - 4)))) return rc; }
-    action method { if (settings->method && (rc = settings->method(parser->data, (uintptr_t)ntohl(*(uint32_t *)parser->extend)))) return rc; }
-    action nfields { if (settings->nfields && (rc = settings->nfields(parser->data, ntohs(*(uint16_t *)parser->extend)))) return rc; }
+    action len { if (settings->len && (rc = settings->len(parser->data, parser->len = ntohl(*(uint32_t *)parser->extend) - 4))) return rc; }
+    action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
+    action moredata { parser->tupnfields-- }
+    action moredesc { parser->nfields-- }
+    action nfields { if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields = ntohs(*(uint16_t *)parser->extend)))) return rc; }
     action parse { if (settings->parse && (rc = settings->parse(parser->data))) return rc; }
     action pid { if (settings->pid && (rc = settings->pid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser->data))) return rc; }
@@ -60,7 +55,7 @@ typedef struct pg_parser_t {
     action status_key { if (s && p - s > 0 && settings->status_key && (rc = settings->status_key(parser->data, p - s, s))) return rc; s = NULL; }
     action status_val { if (s && p - s > 0 && settings->status_val && (rc = settings->status_val(parser->data, p - s, s))) return rc; s = NULL; }
     action tableid { if (settings->tableid && (rc = settings->tableid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
-    action tupnfields { if (settings->tupnfields && (rc = settings->tupnfields(parser->data, ntohs(*(uint16_t *)parser->extend)))) return rc; }
+    action tupnfields { if (settings->tupnfields && (rc = settings->tupnfields(parser->data, parser->tupnfields = ntohs(*(uint16_t *)parser->extend)))) return rc; }
     action typid { if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->extend)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->extend)))) return rc; }
 
@@ -73,11 +68,11 @@ typedef struct pg_parser_t {
     |   "2" long %bind
     |   "3" long %close
     |   "C" long %complete char %complete_val 0
-    |   "D" long %data small %tupnfields (long %data_len char %data_val)**
+    |   "D" long %data small %tupnfields (long %data_len char %data_val when moredata)**
     |   "K" long %secret long %pid long %key
     |   "R" long %auth long %method
     |   "S" long %len %status char %status_key 0 char %status_val 0
-    |   "T" long %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format)**
+    |   "T" long %desc small %nfields (char %field 0 long %tableid small %columnid long %typid small %typlen long %atttypmod small %format when moredesc)**
     |   "Z" long %ready ("I" >idle | "E" >inerror | "T" >intrans)
     )** $all;
 

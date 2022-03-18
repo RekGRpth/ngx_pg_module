@@ -30,7 +30,6 @@ typedef struct {
     pg_parser_ptr_cb tupnfields;
     pg_parser_ptr_cb typid;
     pg_parser_ptr_cb typlen;
-    pg_parser_ptr_cb when;
     pg_parser_str_cb complete_val;
     pg_parser_str_cb data_val;
     pg_parser_str_cb field;
