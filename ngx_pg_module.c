@@ -109,8 +109,7 @@ static ngx_int_t ngx_pg_parser_complete(ngx_pg_save_t *s) {
 }
 
 static ngx_int_t ngx_pg_parser_complete_val(ngx_pg_save_t *s, size_t len, const u_char *data) {
-    ngx_str_t str = {len, data};
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V", &str);
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     return NGX_OK;
 }
 
@@ -126,8 +125,7 @@ static ngx_int_t ngx_pg_parser_data_len(ngx_pg_save_t *s, const uintptr_t data) 
 }
 
 static ngx_int_t ngx_pg_parser_data_val(ngx_pg_save_t *s, size_t len, const u_char *data) {
-    ngx_str_t str = {len, data};
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V", &str);
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     return NGX_OK;
 }
 
@@ -137,8 +135,7 @@ static ngx_int_t ngx_pg_parser_desc(ngx_pg_save_t *s) {
 }
 
 static ngx_int_t ngx_pg_parser_field(ngx_pg_save_t *s, size_t len, const u_char *data) {
-    ngx_str_t str = {len, data};
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V", &str);
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     return NGX_OK;
 }
 
@@ -204,8 +201,7 @@ static ngx_int_t ngx_pg_parser_secret(ngx_pg_save_t *s) {
 }
 
 static ngx_int_t ngx_pg_parser_status_key(ngx_pg_save_t *s, size_t len, const u_char *data) {
-    ngx_str_t str = {len, data};
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V", &str);
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     if (!s->status.nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); return NGX_ERROR; }
     ngx_pg_status_t *status = s->status.elts;
     status = &status[s->status.nelts - 1];
@@ -225,8 +221,7 @@ static ngx_int_t ngx_pg_parser_status(ngx_pg_save_t *s, const uintptr_t data) {
 }
 
 static ngx_int_t ngx_pg_parser_status_val(ngx_pg_save_t *s, size_t len, const u_char *data) {
-    ngx_str_t str = {len, data};
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V", &str);
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     if (!s->status.nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); return NGX_ERROR; }
     ngx_pg_status_t *status = s->status.elts;
     status = &status[s->status.nelts - 1];
