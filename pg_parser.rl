@@ -5,6 +5,15 @@
 
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 
+typedef struct pg_parser_t {
+    int cs;
+    int i;
+    int len;
+    int str;
+    unsigned char any[4];
+    void *data;
+} pg_parser_t;
+
 %%{
     machine pg_parser;
     alphtype unsigned char;
@@ -67,12 +76,6 @@
     write data;
 }%%
 
-void pg_parser_init(pg_parser_t *parser) {
-    int cs = 0;
-    %% write init;
-    parser->cs = cs;
-}
-
 int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *b, const unsigned char *p, const unsigned char *pe, const unsigned char *eof) {
     const unsigned char *s = parser->cs == parser->str ? p : NULL;
     int cs = parser->cs;
@@ -80,4 +83,15 @@ int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings,
     %% write exec;
     parser->cs = cs;
     return p - b;
+}
+
+size_t pg_parser_size(void) {
+    return sizeof(pg_parser_t);
+}
+
+void pg_parser_init(pg_parser_t *parser, const void *data) {
+    int cs = 0;
+    %% write init;
+    parser->cs = cs;
+    parser->data = data;
 }

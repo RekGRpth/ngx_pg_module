@@ -1,12 +1,3 @@
-typedef struct {
-    int cs;
-    int i;
-    int len;
-    int str;
-    unsigned char any[4];
-    void *data;
-} pg_parser_t;
-
 typedef long int (*pg_parser_cb) (void *data);
 typedef long int (*pg_parser_ptr_cb) (void *data, const uintptr_t ptr);
 typedef long int (*pg_parser_str_cb) (void *data, size_t len, const unsigned char *str);
@@ -46,5 +37,8 @@ typedef struct {
     pg_parser_str_cb status_val;
 } pg_parser_settings_t;
 
+typedef struct pg_parser_t pg_parser_t;
+
 int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *b, const unsigned char *p, const unsigned char *pe, const unsigned char *eof);
-void pg_parser_init(pg_parser_t *parser);
+size_t pg_parser_size(void);
+void pg_parser_init(pg_parser_t *parser, const void *data);
