@@ -39,11 +39,11 @@ typedef struct pg_parser_t {
     action len { parser->any[parser->i++] = *p; }
     action method { parser->i = 0; if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
 
-    action nbytescheck { fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); if (!parser->nbytes) fgoto tup; fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); }
-    action nfieldscheck { fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); if (!parser->nfields) fgoto main; fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); }
-    action ntupscheck { fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); if (!parser->ntups) fgoto main; fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); }
+    action nbytescheck { fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); if (!parser->nbytes) { fhold; fgoto tup; } fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); }
+    action nfieldscheck { fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); if (!parser->nfields) { fhold; fgoto main; } fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); }
+    action ntupscheck { fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); if (!parser->ntups) { fhold; fgoto main; } fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); }
 
-    action nbytesdec { fprintf(stderr, "%i:%c len2 = %i\n", *p, *p, parser->nbytes); parser->nbytes--; fprintf(stderr, "%i:%c len2 = %i\n", *p, *p, parser->nbytes); }
+    action nbytesdec { fprintf(stderr, "%i:%c nbytes2 = %i\n", *p, *p, parser->nbytes); parser->nbytes--; fprintf(stderr, "%i:%c nbytes2 = %i\n", *p, *p, parser->nbytes); }
     action nfieldsdec { fprintf(stderr, "%i:%c nfields2 = %i\n", *p, *p, parser->nfields); parser->nfields--; fprintf(stderr, "%i:%c nfields2 = %i\n", *p, *p, parser->nfields); }
     action ntupsdec { fprintf(stderr, "%i:%c ntups2 = %i\n", *p, *p, parser->ntups); parser->ntups--; fprintf(stderr, "%i:%c ntups2 = %i\n", *p, *p, parser->ntups); }
 
