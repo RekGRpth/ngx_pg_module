@@ -39,11 +39,11 @@ typedef struct pg_parser_t {
     action len { parser->any[parser->i++] = *p; }
     action method { parser->i = 0; if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
 
-    action nbytescheck { fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); if (!parser->nbytes) {   if (s && settings->tup_val && (rc = settings->tup_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0;     fhold; fgoto tup; } fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); }
+    action nbytescheck { fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); if (parser->nbytes--) fgoto bytestr; else fnext tup; }
     action nfieldscheck { fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); if (!--parser->nfields) fnext main; }
     action ntupscheck { fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); if (!--parser->ntups) fnext main; }
 
-    action nbytesdec { fprintf(stderr, "%i:%c nbytes2 = %i\n", *p, *p, parser->nbytes); parser->nbytes--; fgoto bytestr; fprintf(stderr, "%i:%c nbytes2 = %i\n", *p, *p, parser->nbytes); }
+#    action nbytesdec { fprintf(stderr, "%i:%c nbytes2 = %i\n", *p, *p, parser->nbytes); parser->nbytes--; fgoto bytestr; fprintf(stderr, "%i:%c nbytes2 = %i\n", *p, *p, parser->nbytes); }
 #    action nfieldsdec { fprintf(stderr, "%i:%c nfields2 = %i\n", *p, *p, parser->nfields); parser->nfields--; fprintf(stderr, "%i:%c nfields2 = %i\n", *p, *p, parser->nfields); }
 #    action ntupsdec { fprintf(stderr, "%i:%c ntups2 = %i\n", *p, *p, parser->ntups); parser->ntups--; fprintf(stderr, "%i:%c ntups2 = %i\n", *p, *p, parser->ntups); }
 
@@ -62,12 +62,12 @@ typedef struct pg_parser_t {
     action tableid { parser->i = 0; if (settings->tableid && (rc = settings->tableid(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action tup { if (settings->tup && (rc = settings->tup(parser->data))) return rc; }
     action nbytes { parser->i = 0; parser->nbytes = ntohl(*(uint32_t *)parser->any); if (settings->nbytes && (rc = settings->nbytes(parser->data, parser->nbytes))) return rc; }
-#    action tup_val { if (s && settings->tup_val && (rc = settings->tup_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
+    action tup_val { if (s && settings->tup_val && (rc = settings->tup_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action typid { parser->i = 0; if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action typlen { parser->i = 0; if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
 
     byte = any $byte;
-    bytestr = (byte >nbytescheck @nbytesdec)*;
+    bytestr = (byte @nbytescheck)*;
     len = any $len;
     str = (any - 0) $str;
     zerostr = str** 0;
@@ -89,7 +89,7 @@ typedef struct pg_parser_t {
     status_val = zerostr @status_val;
     tableid = len{4} @tableid;
     nbytes = len{4} @nbytes;
-    tup_val = bytestr;
+    tup_val = bytestr @tup_val;
     typid = len{4} @typid;
     typlen = len{2} @typlen;
 
