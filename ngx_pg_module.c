@@ -70,6 +70,27 @@ typedef struct {
     ngx_pg_srv_conf_t *conf;
 } ngx_pg_data_t;
 
+static ngx_int_t ngx_pg_add_response(ngx_http_request_t *r, size_t len, const u_char *data) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    ngx_http_upstream_t *u = r->upstream;
+    ngx_chain_t *cl, **ll;
+    for (cl = u->out_bufs, ll = &u->out_bufs; cl; cl = cl->next) ll = &cl->next;
+    if (!(cl = ngx_chain_get_free_buf(r->pool, &u->free_bufs))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
+    *ll = cl;
+    ngx_buf_t *b = cl->buf;
+    if (b->start) ngx_pfree(r->pool, b->start);
+    if (!(b->start = ngx_palloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_palloc"); return NGX_ERROR; }
+    b->end = b->start + len;
+    b->flush = 1;
+    b->last = ngx_copy(b->start, data, len);
+    b->memory = 1;
+    b->pos = b->start;
+    b->tag = u->output.tag;
+    b->temporary = 1;
+    for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%c", *p, *p);
+    return NGX_OK;
+}
+
 static ngx_int_t ngx_pg_parser_all(ngx_pg_save_t *s, const uintptr_t data) {
     const u_char *p = (const u_char *)data;
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i:%c", *p, *p);
@@ -126,6 +147,12 @@ static ngx_int_t ngx_pg_parser_nbytes(ngx_pg_save_t *s, const uintptr_t data) {
 
 static ngx_int_t ngx_pg_parser_byte(ngx_pg_save_t *s, size_t len, const u_char *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    if (!ngx_queue_empty(&s->cmd.queue)) {
+        ngx_queue_t *q = ngx_queue_head(&s->cmd.queue);
+        ngx_pg_cmd_queue_t *cq = ngx_queue_data(q, ngx_pg_cmd_queue_t, queue);
+        ngx_http_request_t *r = cq->request;
+        if (r && ngx_pg_add_response(r, len, data) == NGX_ERROR) return NGX_ERROR;
+    }
     return NGX_OK;
 }
 
