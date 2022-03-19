@@ -120,7 +120,7 @@ static ngx_int_t ngx_pg_parser_fatal(ngx_pg_save_t *s) {
 
 static ngx_int_t ngx_pg_parser_unknown(ngx_pg_save_t *s, size_t len, const u_char *str) {
     for (u_char *p = str; p < str + len; p++) ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%i:%c", *p, *p);
-    return NGX_ERROR;
+    return NGX_HTTP_UPSTREAM_INVALID_HEADER;
 }
 
 static ngx_int_t ngx_pg_parser_bind(ngx_pg_save_t *s) {
