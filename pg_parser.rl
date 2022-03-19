@@ -72,42 +72,42 @@ typedef struct pg_parser_t {
     zerostr = str** $str zero;
     bytestr = (byte when morebyte)** $str;
 
-    atttypmod = long %atttypmod;
-    columnid = short %columnid;
-    complete_val = zerostr %complete_val;
-    format = short %format;
-    idle = "I" %idle;
-    inerror = "E" %inerror;
-    intrans = "T" %intrans;
-    key = long %key;
-    method = long %method;
-    name = zerostr %name;
-    nfields = short %nfields;
-    ntups = short %ntups;
-    pid = long %pid;
-    status_key = zerostr %status_key;
-    status_val = zerostr %status_val;
-    tableid = long %tableid;
-    tup_len = long %tup_len;
-    tup_val = bytestr %tup_val;
-    typid = long %typid;
-    typlen = short %typlen;
+    atttypmod = long @atttypmod;
+    columnid = short @columnid;
+    complete_val = zerostr @complete_val;
+    format = short @format;
+    idle = "I" @idle;
+    inerror = "E" @inerror;
+    intrans = "T" @intrans;
+    key = long @key;
+    method = long @method;
+    name = zerostr @name;
+    nfields = short @nfields;
+    ntups = short @ntups;
+    pid = long @pid;
+    status_key = zerostr @status_key;
+    status_val = zerostr @status_val;
+    tableid = long @tableid;
+    tup_len = long @tup_len;
+    tup_val = bytestr @tup_val;
+    typid = long @typid;
+    typlen = short @typlen;
 
     field = name tableid columnid typid typlen atttypmod format;
     ready = idle | inerror | intrans;
     tup = tup_len tup_val;
 
     main :=
-    (   "1" byte{4} %parse
-    |   "2" byte{4} %bind
-    |   "3" byte{4} %close
-    |   "C" byte{4} %complete complete_val
-    |   "D" byte{4} %tup ntups (tup when moretups)**
-    |   "K" byte{4} %secret pid key
-    |   "R" byte{4} %auth method
-    |   "S" long %status status_key status_val
-    |   "T" byte{4} %field nfields (field when morefields)**
-    |   "Z" byte{4} %ready ready
+    (   "1" byte{4} @parse
+    |   "2" byte{4} @bind
+    |   "3" byte{4} @close
+    |   "C" byte{4} @complete complete_val
+    |   "D" byte{4} @tup ntups (tup when moretups)**
+    |   "K" byte{4} @secret pid key
+    |   "R" byte{4} @auth method
+    |   "S" long @status status_key status_val
+    |   "T" byte{4} @field nfields (field when morefields)**
+    |   "Z" byte{4} @ready ready
     )** $all;
 
     write data;
