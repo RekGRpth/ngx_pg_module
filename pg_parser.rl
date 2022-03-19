@@ -64,12 +64,12 @@ typedef struct pg_parser_t {
     action typid { if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->s.d)))) return rc; }
 
-    zero = 0;
-    byte = any;
-    long = byte{4} $long;
-    short = byte{2} $short;
-    zerostr = (byte - zero)** $str zero;
-    bytestr = (byte $str @morebyte)**;
+    byte = any $str @morebyte;
+    bytestr = byte**;
+    long = any{4} $long;
+    short = any{2} $short;
+    str = (any - 0) $str;
+    zerostr = str** 0;
 
     atttypmod = long @atttypmod;
     columnid = short @columnid;
@@ -97,16 +97,16 @@ typedef struct pg_parser_t {
     tup = tup_len tup_val;
 
     main :=
-    (   "1" byte{4} @parse
-    |   "2" byte{4} @bind
-    |   "3" byte{4} @close
-    |   "C" byte{4} @complete complete_val
-    |   "D" byte{4} @tup ntups (tup @moretups)**
-    |   "K" byte{4} @secret pid key
-    |   "R" byte{4} @auth method
+    (   "1" any{4} @parse
+    |   "2" any{4} @bind
+    |   "3" any{4} @close
+    |   "C" any{4} @complete complete_val
+    |   "D" any{4} @tup ntups (tup @moretups)**
+    |   "K" any{4} @secret pid key
+    |   "R" any{4} @auth method
     |   "S" long @status status_key status_val
-    |   "T" byte{4} @field nfields (field @morefields)**
-    |   "Z" byte{4} @ready ready
+    |   "T" any{4} @field nfields (field @morefields)**
+    |   "Z" any{4} @ready ready
     )** $all;
 
     write data;
