@@ -31,10 +31,28 @@ typedef struct {
     pg_parser_ptr_cb typid;
     pg_parser_ptr_cb typlen;
     pg_parser_str_cb byte;
+    pg_parser_str_cb column;
     pg_parser_str_cb complete_val;
+    pg_parser_str_cb constraint;
+    pg_parser_str_cb context;
+    pg_parser_str_cb datatype;
+    pg_parser_str_cb detail;
+    pg_parser_str_cb file;
+    pg_parser_str_cb function;
+    pg_parser_str_cb hint;
+    pg_parser_str_cb internal;
+    pg_parser_str_cb line;
     pg_parser_str_cb name;
+    pg_parser_str_cb nonlocalized;
+    pg_parser_str_cb primary;
+    pg_parser_str_cb query;
+    pg_parser_str_cb schema;
+    pg_parser_str_cb severity;
+    pg_parser_str_cb sqlstate;
+    pg_parser_str_cb statement;
     pg_parser_str_cb status_key;
     pg_parser_str_cb status_val;
+    pg_parser_str_cb table;
     pg_parser_str_cb unknown;
 } pg_parser_settings_t;
 
