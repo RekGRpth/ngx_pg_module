@@ -28,6 +28,7 @@ typedef struct pg_parser_t {
     action columnid { if (settings->columnid && (rc = settings->columnid(parser->data, &parser->s))) return rc; }
     action complete { if (settings->complete && (rc = settings->complete(parser->data))) return rc; }
     action complete_val { if (s && settings->complete_val && (rc = settings->complete_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
+    action error { if (settings->error && (rc = settings->error(parser->data))) return rc; }
     action field { if (settings->field && (rc = settings->field(parser->data))) return rc; }
     action format { if (settings->format && (rc = settings->format(parser->data, &parser->s))) return rc; }
     action idle { if (settings->idle && (rc = settings->idle(parser->data))) return rc; }
@@ -94,6 +95,7 @@ typedef struct pg_parser_t {
     |   "3" any{4} @close
     |   "C" any{4} @complete complete_val
     |   "D" any{4} @tup ntups tup*
+    |   "E" any{4} @error
     |   "K" any{4} @secret pid key
     |   "R" any{4} @auth method
     |   "S" long @status status_key status_val

@@ -7,6 +7,7 @@ typedef struct {
     pg_parser_cb bind;
     pg_parser_cb close;
     pg_parser_cb complete;
+    pg_parser_cb error;
     pg_parser_cb field;
     pg_parser_cb idle;
     pg_parser_cb inerror;
