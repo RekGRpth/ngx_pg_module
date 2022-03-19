@@ -115,7 +115,7 @@ static ngx_int_t ngx_pg_parser_error(ngx_pg_save_t *s) {
 
 static ngx_int_t ngx_pg_parser_fatal(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    return NGX_OK;
+    return NGX_ERROR;
 }
 
 static ngx_int_t ngx_pg_parser_unknown(ngx_pg_save_t *s, size_t len, const u_char *str) {
