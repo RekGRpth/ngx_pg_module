@@ -24,7 +24,6 @@ typedef struct pg_parser_t {
     action atttypmod { parser->i = 0; if (settings->atttypmod && (rc = settings->atttypmod(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action auth { if (settings->auth && (rc = settings->auth(parser->data))) return rc; }
     action bind { if (settings->bind && (rc = settings->bind(parser->data))) return rc; }
-#    action byte { if (!s) s = p; if (s) parser->str = cs; }
     action close { if (settings->close && (rc = settings->close(parser->data))) return rc; }
     action columnid { parser->i = 0; if (settings->columnid && (rc = settings->columnid(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
     action complete { if (settings->complete && (rc = settings->complete(parser->data))) return rc; }
