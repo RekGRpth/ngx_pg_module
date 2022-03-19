@@ -43,7 +43,7 @@ typedef struct pg_parser_t {
     action long { if (parser->l.i >= 4) parser->l.i = 0; parser->l.d[parser->l.i++] = *p; }
     action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action morebyte { parser->len-- }
-    action morefields { parser->nfields-- }
+    action morefields { if (!--parser->nfields) fnext main; }
     action moretups { parser->ntups-- }
     action name { if (s && settings->name && (rc = settings->name(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action nfields { parser->nfields = ntohs(*(uint16_t *)parser->s.d); if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields))) return rc; }
@@ -106,7 +106,7 @@ typedef struct pg_parser_t {
     |   "K" byte{4} @secret pid key
     |   "R" byte{4} @auth method
     |   "S" long @status status_key status_val
-    |   "T" byte{4} @field nfields (field when morefields)**
+    |   "T" byte{4} @field nfields (field @morefields)**
     |   "Z" byte{4} @ready ready
     )** $all;
 
