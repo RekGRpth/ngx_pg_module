@@ -42,7 +42,7 @@ typedef struct pg_parser_t {
     action key { if (settings->key && (rc = settings->key(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action long { if (parser->l.i >= 4) parser->l.i = 0; parser->l.d[parser->l.i++] = *p; }
     action method { if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
-    action morebyte { parser->len-- }
+    action morebyte { if (!--parser->len) fnext tup; }
     action morefields { if (!--parser->nfields) fnext main; }
     action moretups { if (!--parser->ntups) fnext main; }
     action name { if (s && settings->name && (rc = settings->name(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
@@ -70,7 +70,7 @@ typedef struct pg_parser_t {
     long = byte{4} $long;
     short = byte{2} $short;
     zerostr = str** $str zero;
-    bytestr = (byte when morebyte)** $str;
+    bytestr = (byte @morebyte)** $str;
 
     atttypmod = long @atttypmod;
     columnid = short @columnid;
