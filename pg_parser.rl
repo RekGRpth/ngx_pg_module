@@ -64,32 +64,32 @@ typedef struct pg_parser_t {
     action typid { if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->s.d)))) return rc; }
 
-    char = extend - 0;
-    extend4 = extend{4};
-    long = extend{4} $long;
-    short = extend{2} $short;
-    str = char** $str;
-    str0 = str 0;
-    byte = (char when morebyte)** $str;
+    zero = 0;
+    byte = extend;
+    str = byte - zero;
+    long = byte{4} $long;
+    short = byte{2} $short;
+    zerostr = str** $str zero;
+    bytestr = (byte when morebyte)** $str;
 
     atttypmod = long %atttypmod;
     columnid = short %columnid;
-    complete_val = str0 %complete_val;
+    complete_val = zerostr %complete_val;
     format = short %format;
     idle = "I" %idle;
     inerror = "E" %inerror;
     intrans = "T" %intrans;
     key = long %key;
     method = long %method;
-    name = str0 %name;
+    name = zerostr %name;
     nfields = short %nfields;
     ntups = short %ntups;
     pid = long %pid;
-    status_key = str0 %status_key;
-    status_val = str0 %status_val;
+    status_key = zerostr %status_key;
+    status_val = zerostr %status_val;
     tableid = long %tableid;
     tup_len = long %tup_len;
-    tup_val = byte %tup_val;
+    tup_val = bytestr %tup_val;
     typid = long %typid;
     typlen = short %typlen;
 
@@ -98,16 +98,16 @@ typedef struct pg_parser_t {
     tup = tup_len tup_val;
 
     main :=
-    (   "1" extend4 %parse
-    |   "2" extend4 %bind
-    |   "3" extend4 %close
-    |   "C" extend4 %complete complete_val
-    |   "D" extend4 %tup ntups (tup when moretups)**
-    |   "K" extend4 %secret pid key
-    |   "R" extend4 %auth method
+    (   "1" byte{4} %parse
+    |   "2" byte{4} %bind
+    |   "3" byte{4} %close
+    |   "C" byte{4} %complete complete_val
+    |   "D" byte{4} %tup ntups (tup when moretups)**
+    |   "K" byte{4} %secret pid key
+    |   "R" byte{4} %auth method
     |   "S" long %status status_key status_val
-    |   "T" extend4 %field nfields (field when morefields)**
-    |   "Z" extend4 %ready ready
+    |   "T" byte{4} %field nfields (field when morefields)**
+    |   "Z" byte{4} %ready ready
     )** $all;
 
     write data;
