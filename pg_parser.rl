@@ -40,12 +40,12 @@ typedef struct pg_parser_t {
     action method { parser->i = 0; if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
 
     action nbytescheck { fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); if (!parser->nbytes) {   if (s && settings->tup_val && (rc = settings->tup_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0;     fhold; fgoto tup; } fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); }
-    action nfieldscheck { fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); if (!--parser->nfields) { fnext main; } fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); }
-    action ntupscheck { fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); if (!parser->ntups) { fhold; fgoto main; } fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); }
+    action nfieldscheck { fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); if (!--parser->nfields) fnext main; }
+    action ntupscheck { fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); if (!--parser->ntups) fnext main; }
 
     action nbytesdec { fprintf(stderr, "%i:%c nbytes2 = %i\n", *p, *p, parser->nbytes); parser->nbytes--; fgoto bytestr; fprintf(stderr, "%i:%c nbytes2 = %i\n", *p, *p, parser->nbytes); }
 #    action nfieldsdec { fprintf(stderr, "%i:%c nfields2 = %i\n", *p, *p, parser->nfields); parser->nfields--; fprintf(stderr, "%i:%c nfields2 = %i\n", *p, *p, parser->nfields); }
-    action ntupsdec { fprintf(stderr, "%i:%c ntups2 = %i\n", *p, *p, parser->ntups); parser->ntups--; fprintf(stderr, "%i:%c ntups2 = %i\n", *p, *p, parser->ntups); }
+#    action ntupsdec { fprintf(stderr, "%i:%c ntups2 = %i\n", *p, *p, parser->ntups); parser->ntups--; fprintf(stderr, "%i:%c ntups2 = %i\n", *p, *p, parser->ntups); }
 
     action name { if (s && settings->name && (rc = settings->name(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action nfields { parser->i = 0; parser->nfields = ntohs(*(uint16_t *)parser->any); if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields))) return rc; }
@@ -102,7 +102,7 @@ typedef struct pg_parser_t {
     |   "2" any{4} @bind
     |   "3" any{4} @close
     |   "C" any{4} @complete complete_val
-    |   "D" any{4} @tup ntups (tup >ntupscheck @ntupsdec)*
+    |   "D" any{4} @tup ntups (tup @ntupscheck)*
     |   "K" any{4} @secret pid key
     |   "R" any{4} @auth method
     |   "S" len{4} @status status_key status_val
