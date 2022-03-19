@@ -58,9 +58,10 @@ typedef struct pg_parser_t {
     action typid { parser->i = 0; if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action typlen { parser->i = 0; if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
 
+    char = any - 0;
     byte = any $str @nbytescheck;
     len = any $len;
-    str = (any - 0)* $str 0;
+    str = char* $str 0;
 
     atttypmod = len{4} @atttypmod;
     columnid = len{2} @columnid;
@@ -82,20 +83,20 @@ typedef struct pg_parser_t {
     typid = len{4} @typid;
     typlen = len{2} @typlen;
 
-    field = name tableid columnid typid typlen atttypmod format;
+    field = name tableid columnid typid typlen atttypmod format @nfieldscheck;
     ready = idle | inerror | intrans;
-    tup = nbytes byte;
+    tup = nbytes byte @ntupscheck;
 
     main :=
     (   "1" any{4} @parse
     |   "2" any{4} @bind
     |   "3" any{4} @close
     |   "C" any{4} @complete complete_val
-    |   "D" any{4} @tup ntups (tup @ntupscheck)*
+    |   "D" any{4} @tup ntups tup*
     |   "K" any{4} @secret pid key
     |   "R" any{4} @auth method
     |   "S" len{4} @status status_key status_val
-    |   "T" any{4} @field nfields (field @nfieldscheck)*
+    |   "T" any{4} @field nfields field*
     |   "Z" any{4} @ready ready
     )** $all;
 
