@@ -62,7 +62,7 @@ typedef struct pg_parser_t {
     bytestr = byte @nbytescheck;
     len = any $len;
     str = (any - 0) $str;
-    zerostr = str** 0;
+    zerostr = str* 0;
 
     atttypmod = len{4} @atttypmod;
     columnid = len{2} @columnid;
