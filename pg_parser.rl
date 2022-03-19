@@ -35,7 +35,6 @@ typedef struct pg_parser_t {
     action intrans { if (settings->intrans && (rc = settings->intrans(parser->data))) return rc; }
     action key { if (settings->key && (rc = settings->key(parser->data, &parser->l))) return rc; }
     action long { if (!parser->i) { parser->i = 4; parser->l = 0; } parser->l |= *p << ((2 << 2) * --parser->i); }
-    action short { if (!parser->i) { parser->i = 2; parser->s = 0; } parser->s |= *p << ((2 << 2) * --parser->i); }
     action method { if (settings->method && (rc = settings->method(parser->data, &parser->l))) return rc; }
     action name { if (s && settings->name && (rc = settings->name(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action nbytescheck { if (parser->nbytes--) fgoto byte; if (s && settings->byte && (rc = settings->byte(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; fhold; fnext tup; }
@@ -48,14 +47,16 @@ typedef struct pg_parser_t {
     action pid { if (settings->pid && (rc = settings->pid(parser->data, &parser->l))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser->data))) return rc; }
     action secret { if (settings->secret && (rc = settings->secret(parser->data))) return rc; }
-    action status_key { if (s && settings->status_key && (rc = settings->status_key(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
+    action short { if (!parser->i) { parser->i = 2; parser->s = 0; } parser->s |= *p << ((2 << 2) * --parser->i); }
     action status { if (settings->status && (rc = settings->status(parser->data, &parser->l))) return rc; }
+    action status_key { if (s && settings->status_key && (rc = settings->status_key(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action status_val { if (s && settings->status_val && (rc = settings->status_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action str { if (!s) s = p; if (s) parser->str = cs; }
     action tableid { if (settings->tableid && (rc = settings->tableid(parser->data, &parser->l))) return rc; }
     action tup { if (settings->tup && (rc = settings->tup(parser->data))) return rc; }
     action typid { if (settings->typid && (rc = settings->typid(parser->data, &parser->l))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, &parser->s))) return rc; }
+    action unknown { if (settings->unknown && (rc = settings->unknown(parser->data))) return rc; }
 
     byte = any $str @nbytescheck;
     char = any - 0;
@@ -98,7 +99,7 @@ typedef struct pg_parser_t {
     |   "S" long @status status_key status_val
     |   "T" any{4} @field nfields field*
     |   "Z" any{4} @ready ready
-    )** $all;
+    )** $all $!unknown;
 
     write data;
 }%%
