@@ -9,11 +9,12 @@ typedef struct pg_parser_t {
     const void *data;
     int cs;
     int str;
-    short int i;
+    unsigned char i;
+    unsigned long l;
+    unsigned long nbytes;
     unsigned short nfields;
     unsigned short ntups;
-    unsigned long nbytes;
-    unsigned char any[4];
+    unsigned short s;
 } pg_parser_t;
 
 %%{
@@ -21,65 +22,67 @@ typedef struct pg_parser_t {
     alphtype unsigned char;
 
     action all { if (settings->all && (rc = settings->all(parser->data, (uintptr_t)p))) return rc; }
-    action atttypmod { parser->i = 0; if (settings->atttypmod && (rc = settings->atttypmod(parser->data, ntohl(*(unsigned long *)parser->any)))) return rc; }
+    action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser->data, parser->l))) return rc; }
     action auth { if (settings->auth && (rc = settings->auth(parser->data))) return rc; }
     action bind { if (settings->bind && (rc = settings->bind(parser->data))) return rc; }
     action close { if (settings->close && (rc = settings->close(parser->data))) return rc; }
-    action columnid { parser->i = 0; if (settings->columnid && (rc = settings->columnid(parser->data, ntohs(*(unsigned short *)parser->any)))) return rc; }
+    action columnid { if (settings->columnid && (rc = settings->columnid(parser->data, parser->s))) return rc; }
     action complete { if (settings->complete && (rc = settings->complete(parser->data))) return rc; }
     action complete_val { if (s && settings->complete_val && (rc = settings->complete_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action field { if (settings->field && (rc = settings->field(parser->data))) return rc; }
-    action format { parser->i = 0; if (settings->format && (rc = settings->format(parser->data, ntohs(*(unsigned short *)parser->any)))) return rc; }
+    action format { if (settings->format && (rc = settings->format(parser->data, parser->s))) return rc; }
     action idle { if (settings->idle && (rc = settings->idle(parser->data))) return rc; }
     action inerror { if (settings->inerror && (rc = settings->inerror(parser->data))) return rc; }
     action intrans { if (settings->intrans && (rc = settings->intrans(parser->data))) return rc; }
-    action key { parser->i = 0; if (settings->key && (rc = settings->key(parser->data, ntohl(*(unsigned long *)parser->any)))) return rc; }
-    action len { parser->any[parser->i++] = *p; }
-    action method { parser->i = 0; if (settings->method && (rc = settings->method(parser->data, ntohl(*(unsigned long *)parser->any)))) return rc; }
+    action key { if (settings->key && (rc = settings->key(parser->data, parser->l))) return rc; }
+    action long { if (!parser->i) { parser->i = 4; parser->l = 0; } parser->l |= *p << ((2 << 2) * --parser->i); }
+    action short { if (!parser->i) { parser->i = 2; parser->s = 0; } parser->s |= *p << ((2 << 2) * --parser->i); }
+    action method { if (settings->method && (rc = settings->method(parser->data, parser->l))) return rc; }
     action name { if (s && settings->name && (rc = settings->name(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action nbytescheck { if (parser->nbytes--) fgoto byte; if (s && settings->byte && (rc = settings->byte(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; fhold; fnext tup; }
-    action nbytes { parser->i = 0; parser->nbytes = ntohl(*(unsigned long *)parser->any); if (settings->nbytes && (rc = settings->nbytes(parser->data, parser->nbytes))) return rc; }
+    action nbytes { parser->nbytes = parser->l; if (settings->nbytes && (rc = settings->nbytes(parser->data, parser->nbytes))) return rc; }
     action nfieldscheck { if (!--parser->nfields) fnext main; }
-    action nfields { parser->i = 0; parser->nfields = ntohs(*(unsigned short *)parser->any); if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields))) return rc; }
+    action nfields { parser->nfields = parser->s; if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields))) return rc; }
     action ntupscheck { if (!--parser->ntups) fnext main; }
-    action ntups { parser->i = 0; parser->ntups = ntohs(*(unsigned short *)parser->any); if (settings->ntups && (rc = settings->ntups(parser->data, parser->ntups))) return rc; }
+    action ntups { parser->ntups = parser->s; if (settings->ntups && (rc = settings->ntups(parser->data, parser->ntups))) return rc; }
     action parse { if (settings->parse && (rc = settings->parse(parser->data))) return rc; }
-    action pid { parser->i = 0; if (settings->pid && (rc = settings->pid(parser->data, ntohl(*(unsigned long *)parser->any)))) return rc; }
+    action pid { if (settings->pid && (rc = settings->pid(parser->data, parser->l))) return rc; }
     action ready { if (settings->ready && (rc = settings->ready(parser->data))) return rc; }
     action secret { if (settings->secret && (rc = settings->secret(parser->data))) return rc; }
     action status_key { if (s && settings->status_key && (rc = settings->status_key(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
-    action status { parser->i = 0; if (settings->status && (rc = settings->status(parser->data, ntohl(*(unsigned long *)parser->any)))) return rc; }
+    action status { if (settings->status && (rc = settings->status(parser->data, parser->l))) return rc; }
     action status_val { if (s && settings->status_val && (rc = settings->status_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action str { if (!s) s = p; if (s) parser->str = cs; }
-    action tableid { parser->i = 0; if (settings->tableid && (rc = settings->tableid(parser->data, ntohl(*(unsigned long *)parser->any)))) return rc; }
+    action tableid { if (settings->tableid && (rc = settings->tableid(parser->data, parser->l))) return rc; }
     action tup { if (settings->tup && (rc = settings->tup(parser->data))) return rc; }
-    action typid { parser->i = 0; if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(unsigned long *)parser->any)))) return rc; }
-    action typlen { parser->i = 0; if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(unsigned short *)parser->any)))) return rc; }
+    action typid { if (settings->typid && (rc = settings->typid(parser->data, parser->l))) return rc; }
+    action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, parser->s))) return rc; }
 
-    char = any - 0;
     byte = any $str @nbytescheck;
-    len = any $len;
+    char = any - 0;
+    long = any{4} $long;
+    short = any{2} $short;
     str = char* $str 0;
 
-    atttypmod = len{4} @atttypmod;
-    columnid = len{2} @columnid;
+    atttypmod = long @atttypmod;
+    columnid = short @columnid;
     complete_val = str @complete_val;
-    format = len{2} @format;
+    format = short @format;
     idle = "I" @idle;
     inerror = "E" @inerror;
     intrans = "T" @intrans;
-    key = len{4} @key;
-    method = len{4} @method;
+    key = long @key;
+    method = long @method;
     name = str @name;
-    nbytes = len{4} @nbytes;
-    nfields = len{2} @nfields;
-    ntups = len{2} @ntups;
-    pid = len{4} @pid;
+    nbytes = long @nbytes;
+    nfields = short @nfields;
+    ntups = short @ntups;
+    pid = long @pid;
     status_key = str @status_key;
     status_val = str @status_val;
-    tableid = len{4} @tableid;
-    typid = len{4} @typid;
-    typlen = len{2} @typlen;
+    tableid = long @tableid;
+    typid = long @typid;
+    typlen = short @typlen;
 
     field = name tableid columnid typid typlen atttypmod format @nfieldscheck;
     ready = idle | inerror | intrans;
@@ -93,7 +96,7 @@ typedef struct pg_parser_t {
     |   "D" any{4} @tup ntups tup*
     |   "K" any{4} @secret pid key
     |   "R" any{4} @auth method
-    |   "S" len{4} @status status_key status_val
+    |   "S" long @status status_key status_val
     |   "T" any{4} @field nfields field*
     |   "Z" any{4} @ready ready
     )** $all;
