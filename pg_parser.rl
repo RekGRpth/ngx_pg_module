@@ -66,7 +66,7 @@ typedef struct pg_parser_t {
     action typlen { parser->i = 0; if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
 
     byte = any $str;
-    bytestr = (byte >nbytescheck @nbytesdec)**;
+    bytestr = (byte >nbytescheck @nbytesdec)*;
     len = any $len;
     str = (any - 0) $str;
     zerostr = str** 0;
@@ -101,11 +101,11 @@ typedef struct pg_parser_t {
     |   "2" any{4} @bind
     |   "3" any{4} @close
     |   "C" any{4} @complete complete_val
-    |   "D" any{4} @tup ntups (tup >ntupscheck @ntupsdec)**
+    |   "D" any{4} @tup ntups (tup >ntupscheck @ntupsdec)*
     |   "K" any{4} @secret pid key
     |   "R" any{4} @auth method
     |   "S" len{4} @status status_key status_val
-    |   "T" any{4} @field nfields (field >nfieldscheck @nfieldsdec)**
+    |   "T" any{4} @field nfields (field >nfieldscheck @nfieldsdec)*
     |   "Z" any{4} @ready ready
     )** $all;
 
