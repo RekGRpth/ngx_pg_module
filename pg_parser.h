@@ -1,5 +1,5 @@
 typedef long int (*pg_parser_cb) (void *data);
-typedef long int (*pg_parser_ptr_cb) (void *data, const uintptr_t ptr);
+typedef long int (*pg_parser_ptr_cb) (void *data, const void *ptr);
 typedef long int (*pg_parser_str_cb) (void *data, size_t len, const unsigned char *str);
 
 typedef struct {
