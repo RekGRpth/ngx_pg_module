@@ -115,12 +115,12 @@ static ngx_int_t ngx_pg_parser_error(ngx_pg_save_t *s) {
 
 static ngx_int_t ngx_pg_parser_fatal(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    return NGX_ERROR;
+    return NGX_HTTP_UPSTREAM_INVALID_HEADER;
 }
 
 static ngx_int_t ngx_pg_parser_unknown(ngx_pg_save_t *s, size_t len, const u_char *str) {
     for (u_char *p = str; p < str + len; p++) ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%i:%c", *p, *p);
-    return NGX_ERROR;
+    return NGX_HTTP_UPSTREAM_INVALID_HEADER;
 }
 
 static ngx_int_t ngx_pg_parser_bind(ngx_pg_save_t *s) {
@@ -875,7 +875,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_buf_t *b = &u->buffer;
 //    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     ngx_int_t rc = NGX_OK;
-    while (b->pos < b->last) b->pos += pg_parser_execute(&rc, s->parser, &ngx_pg_parser_settings, b->pos, b->pos, b->last, b->last == b->end ? b->last : NULL);
+    while (rc == NGX_OK && b->pos < b->last) b->pos += pg_parser_execute(&rc, s->parser, &ngx_pg_parser_settings, b->pos, b->pos, b->last, b->last == b->end ? b->last : NULL);
 //        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
 //        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos < b->last = %s", b->pos < b->last ? "true" : "false");
 //    }
