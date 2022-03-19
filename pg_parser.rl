@@ -34,6 +34,7 @@ typedef struct pg_parser_t {
     action datatype { if (s && settings->datatype && (rc = settings->datatype(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action detail { if (s && settings->detail && (rc = settings->detail(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action error { if (settings->error && (rc = settings->error(parser->data))) return rc; }
+    action fatal { if (settings->fatal && (rc = settings->fatal(parser->data))) return rc; }
     action field { if (settings->field && (rc = settings->field(parser->data))) return rc; }
     action file { if (s && settings->file && (rc = settings->file(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action format { if (settings->format && (rc = settings->format(parser->data, &parser->s))) return rc; }
@@ -104,7 +105,8 @@ typedef struct pg_parser_t {
     typlen = short @typlen;
 
     error =
-    ("c" str @column
+    (0 @fatal
+    |"c" str @column
     |"C" str @sqlstate
     |"d" str @datatype
     |"D" str @detail
