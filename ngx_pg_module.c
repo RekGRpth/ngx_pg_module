@@ -124,7 +124,7 @@ static ngx_int_t ngx_pg_parser_nbytes(ngx_pg_save_t *s, const uintptr_t data) {
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_parser_tup_val(ngx_pg_save_t *s, size_t len, const u_char *data) {
+static ngx_int_t ngx_pg_parser_byte(ngx_pg_save_t *s, size_t len, const u_char *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     return NGX_OK;
 }
@@ -261,6 +261,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .atttypmod = (pg_parser_ptr_cb)ngx_pg_parser_atttypmod,
     .auth = (pg_parser_cb)ngx_pg_parser_auth,
     .bind = (pg_parser_cb)ngx_pg_parser_bind,
+    .byte = (pg_parser_str_cb)ngx_pg_parser_byte,
     .close = (pg_parser_cb)ngx_pg_parser_close,
     .columnid = (pg_parser_ptr_cb)ngx_pg_parser_columnid,
     .complete = (pg_parser_cb)ngx_pg_parser_complete,
@@ -285,7 +286,6 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .status_val = (pg_parser_str_cb)ngx_pg_parser_status_val,
     .tableid = (pg_parser_ptr_cb)ngx_pg_parser_tableid,
     .tup = (pg_parser_cb)ngx_pg_parser_tup,
-    .tup_val = (pg_parser_str_cb)ngx_pg_parser_tup_val,
     .typid = (pg_parser_ptr_cb)ngx_pg_parser_typid,
     .typlen = (pg_parser_ptr_cb)ngx_pg_parser_typlen,
 };

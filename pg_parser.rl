@@ -38,7 +38,7 @@ typedef struct pg_parser_t {
     action len { parser->any[parser->i++] = *p; }
     action method { parser->i = 0; if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action name { if (s && settings->name && (rc = settings->name(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
-    action nbytescheck { if (parser->nbytes--) fgoto byte; if (s && settings->tup_val && (rc = settings->tup_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; fhold; fnext tup; }
+    action nbytescheck { if (parser->nbytes--) fgoto byte; if (s && settings->byte && (rc = settings->byte(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; fhold; fnext tup; }
     action nbytes { parser->i = 0; parser->nbytes = ntohl(*(uint32_t *)parser->any); if (settings->nbytes && (rc = settings->nbytes(parser->data, parser->nbytes))) return rc; }
     action nfieldscheck { if (!--parser->nfields) fnext main; }
     action nfields { parser->i = 0; parser->nfields = ntohs(*(uint16_t *)parser->any); if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields))) return rc; }
@@ -54,7 +54,6 @@ typedef struct pg_parser_t {
     action str { if (!s) s = p; if (s) parser->str = cs; }
     action tableid { parser->i = 0; if (settings->tableid && (rc = settings->tableid(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action tup { if (settings->tup && (rc = settings->tup(parser->data))) return rc; }
-#    action tup_val { if (s && settings->tup_val && (rc = settings->tup_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action typid { parser->i = 0; if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action typlen { parser->i = 0; if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
 

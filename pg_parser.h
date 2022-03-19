@@ -29,11 +29,11 @@ typedef struct {
     pg_parser_ptr_cb tableid;
     pg_parser_ptr_cb typid;
     pg_parser_ptr_cb typlen;
+    pg_parser_str_cb byte;
     pg_parser_str_cb complete_val;
     pg_parser_str_cb name;
     pg_parser_str_cb status_key;
     pg_parser_str_cb status_val;
-    pg_parser_str_cb tup_val;
 } pg_parser_settings_t;
 
 typedef struct pg_parser_t pg_parser_t;
