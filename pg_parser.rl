@@ -66,11 +66,10 @@ typedef struct pg_parser_t {
 
     zero = 0;
     byte = any;
-    str = byte - zero;
     long = byte{4} $long;
     short = byte{2} $short;
-    zerostr = str** $str zero;
-    bytestr = (byte @morebyte)** $str;
+    zerostr = (byte - zero)** $str zero;
+    bytestr = (byte $str @morebyte)**;
 
     atttypmod = long @atttypmod;
     columnid = short @columnid;
