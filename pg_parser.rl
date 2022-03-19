@@ -16,6 +16,8 @@ typedef struct pg_parser_t {
     unsigned char any[4];
 } pg_parser_t;
 
+#include <stdio.h>
+
 %%{
     machine pg_parser;
     alphtype unsigned char;
@@ -36,9 +38,9 @@ typedef struct pg_parser_t {
     action key { parser->i = 0; if (settings->key && (rc = settings->key(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action len { parser->any[parser->i++] = *p; }
     action method { parser->i = 0; if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
-    action morebyte { if (!--parser->len) fnext tup; }
-    action morefields { if (!--parser->nfields) fnext main; }
-    action moretups { if (!--parser->ntups) fnext main; }
+    action morebyte { fprintf(stderr, "%i:%c len = %i\n", *p, *p, parser->len); if (!--parser->len) fgoto tup; fprintf(stderr, "%i:%c len = %i\n", *p, *p, parser->len); }
+    action morefields { fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); if (!--parser->nfields) fgoto main; fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); }
+    action moretups { fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); if (!--parser->ntups) fgoto main; fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); }
     action name { if (s && settings->name && (rc = settings->name(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action nfields { parser->i = 0; parser->nfields = ntohs(*(uint16_t *)parser->any); if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields))) return rc; }
     action ntups { parser->i = 0; parser->ntups = ntohs(*(uint16_t *)parser->any); if (settings->ntups && (rc = settings->ntups(parser->data, parser->ntups))) return rc; }
