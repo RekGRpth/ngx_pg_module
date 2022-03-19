@@ -72,13 +72,13 @@ typedef struct pg_parser_t {
     key = len{4} @key;
     method = len{4} @method;
     name = str @name;
+    nbytes = len{4} @nbytes;
     nfields = len{2} @nfields;
     ntups = len{2} @ntups;
     pid = len{4} @pid;
     status_key = str @status_key;
     status_val = str @status_val;
     tableid = len{4} @tableid;
-    nbytes = len{4} @nbytes;
     typid = len{4} @typid;
     typlen = len{2} @typlen;
 
