@@ -56,7 +56,7 @@ typedef struct pg_parser_t {
     action tup { if (settings->tup && (rc = settings->tup(parser->data))) return rc; }
     action typid { if (settings->typid && (rc = settings->typid(parser->data, &parser->l))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, &parser->s))) return rc; }
-    action unknown { if (settings->unknown && (rc = settings->unknown(parser->data))) return rc; }
+    action unknown { if (settings->unknown && (rc = settings->unknown(parser->data, pe - p, p))) return rc; }
 
     byte = any $str @nbytescheck;
     char = any - 0;

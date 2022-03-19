@@ -15,7 +15,6 @@ typedef struct {
     pg_parser_cb ready;
     pg_parser_cb secret;
     pg_parser_cb tup;
-    pg_parser_cb unknown;
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb atttypmod;
     pg_parser_ptr_cb columnid;
@@ -35,6 +34,7 @@ typedef struct {
     pg_parser_str_cb name;
     pg_parser_str_cb status_key;
     pg_parser_str_cb status_val;
+    pg_parser_str_cb unknown;
 } pg_parser_settings_t;
 
 typedef struct pg_parser_t pg_parser_t;
