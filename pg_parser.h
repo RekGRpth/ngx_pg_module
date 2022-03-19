@@ -59,6 +59,6 @@ typedef struct {
 
 typedef struct pg_parser_t pg_parser_t;
 
-int pg_parser_execute(pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *b, const unsigned char *p, const unsigned char *pe, const unsigned char *eof);
+size_t pg_parser_execute(long *rc, pg_parser_t *parser, const pg_parser_settings_t *settings, const unsigned char *b, const unsigned char *p, const unsigned char *pe, const unsigned char *eof);
 size_t pg_parser_size(void);
 void pg_parser_init(pg_parser_t *parser, const void *data);
