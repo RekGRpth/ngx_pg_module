@@ -151,7 +151,7 @@ static ngx_int_t ngx_pg_parser_complete_val(ngx_pg_save_t *s, size_t len, const 
 
 static ngx_int_t ngx_pg_parser_tup(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    return NGX_OK;
+    return NGX_DONE;
 }
 
 static ngx_int_t ngx_pg_parser_nbytes(ngx_pg_save_t *s, const void *ptr) {
