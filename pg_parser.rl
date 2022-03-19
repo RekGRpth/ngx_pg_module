@@ -65,7 +65,7 @@ typedef struct pg_parser_t {
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->s.d)))) return rc; }
 
     zero = 0;
-    byte = extend;
+    byte = any;
     str = byte - zero;
     long = byte{4} $long;
     short = byte{2} $short;
