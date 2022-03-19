@@ -39,7 +39,7 @@ typedef struct pg_parser_t {
     action len { parser->any[parser->i++] = *p; }
     action method { parser->i = 0; if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
 
-    action nbytescheck { fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); if (parser->nbytes--) fgoto bytestr; }
+    action nbytescheck { fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); if (parser->nbytes--) fgoto bytestr; fhold; fnext tup; }
     action nfieldscheck { fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); if (!--parser->nfields) fnext main; }
     action ntupscheck { fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); if (!--parser->ntups) fnext main; }
 
