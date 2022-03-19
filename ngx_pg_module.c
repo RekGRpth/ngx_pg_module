@@ -118,9 +118,9 @@ static ngx_int_t ngx_pg_parser_tup(ngx_pg_save_t *s) {
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_parser_tup_len(ngx_pg_save_t *s, const uintptr_t data) {
-    uint32_t len = (uint32_t)data;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
+static ngx_int_t ngx_pg_parser_nbytes(ngx_pg_save_t *s, const uintptr_t data) {
+    uint32_t nbytes = (uint32_t)data;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", nbytes);
     return NGX_OK;
 }
 
@@ -265,9 +265,6 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .columnid = (pg_parser_ptr_cb)ngx_pg_parser_columnid,
     .complete = (pg_parser_cb)ngx_pg_parser_complete,
     .complete_val = (pg_parser_str_cb)ngx_pg_parser_complete_val,
-    .tup_len = (pg_parser_ptr_cb)ngx_pg_parser_tup_len,
-    .tup = (pg_parser_cb)ngx_pg_parser_tup,
-    .tup_val = (pg_parser_str_cb)ngx_pg_parser_tup_val,
     .field = (pg_parser_cb)ngx_pg_parser_field,
     .format = (pg_parser_ptr_cb)ngx_pg_parser_format,
     .idle = (pg_parser_cb)ngx_pg_parser_idle,
@@ -276,6 +273,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .key = (pg_parser_ptr_cb)ngx_pg_parser_key,
     .method = (pg_parser_ptr_cb)ngx_pg_parser_method,
     .name = (pg_parser_str_cb)ngx_pg_parser_name,
+    .nbytes = (pg_parser_ptr_cb)ngx_pg_parser_nbytes,
     .nfields = (pg_parser_ptr_cb)ngx_pg_parser_nfields,
     .ntups = (pg_parser_ptr_cb)ngx_pg_parser_ntups,
     .parse = (pg_parser_cb)ngx_pg_parser_parse,
@@ -286,6 +284,8 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .status = (pg_parser_ptr_cb)ngx_pg_parser_status,
     .status_val = (pg_parser_str_cb)ngx_pg_parser_status_val,
     .tableid = (pg_parser_ptr_cb)ngx_pg_parser_tableid,
+    .tup = (pg_parser_cb)ngx_pg_parser_tup,
+    .tup_val = (pg_parser_str_cb)ngx_pg_parser_tup_val,
     .typid = (pg_parser_ptr_cb)ngx_pg_parser_typid,
     .typlen = (pg_parser_ptr_cb)ngx_pg_parser_typlen,
 };

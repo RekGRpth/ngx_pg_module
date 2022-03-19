@@ -12,7 +12,7 @@ typedef struct pg_parser_t {
     short int i;
     uint16_t nfields;
     uint16_t ntups;
-    uint32_t len;
+    uint32_t nbytes;
     unsigned char any[4];
 } pg_parser_t;
 
@@ -38,9 +38,15 @@ typedef struct pg_parser_t {
     action key { parser->i = 0; if (settings->key && (rc = settings->key(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action len { parser->any[parser->i++] = *p; }
     action method { parser->i = 0; if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
-    action morebyte { fprintf(stderr, "%i:%c len = %i\n", *p, *p, parser->len); if (!--parser->len) fgoto tup; fprintf(stderr, "%i:%c len = %i\n", *p, *p, parser->len); }
-    action morefields { fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); if (!--parser->nfields) fgoto main; fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); }
-    action moretups { fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); if (!--parser->ntups) fgoto main; fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); }
+
+    action nbytescheck { fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); if (!parser->nbytes) fgoto tup; fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); }
+    action nfieldscheck { fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); if (!parser->nfields) fgoto main; fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); }
+    action ntupscheck { fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); if (!parser->ntups) fgoto main; fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); }
+
+    action nbytesdec { fprintf(stderr, "%i:%c len2 = %i\n", *p, *p, parser->nbytes); parser->nbytes--; fprintf(stderr, "%i:%c len2 = %i\n", *p, *p, parser->nbytes); }
+    action nfieldsdec { fprintf(stderr, "%i:%c nfields2 = %i\n", *p, *p, parser->nfields); parser->nfields--; fprintf(stderr, "%i:%c nfields2 = %i\n", *p, *p, parser->nfields); }
+    action ntupsdec { fprintf(stderr, "%i:%c ntups2 = %i\n", *p, *p, parser->ntups); parser->ntups--; fprintf(stderr, "%i:%c ntups2 = %i\n", *p, *p, parser->ntups); }
+
     action name { if (s && settings->name && (rc = settings->name(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action nfields { parser->i = 0; parser->nfields = ntohs(*(uint16_t *)parser->any); if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields))) return rc; }
     action ntups { parser->i = 0; parser->ntups = ntohs(*(uint16_t *)parser->any); if (settings->ntups && (rc = settings->ntups(parser->data, parser->ntups))) return rc; }
@@ -54,13 +60,13 @@ typedef struct pg_parser_t {
     action str { if (!s) s = p; if (s) parser->str = cs; }
     action tableid { parser->i = 0; if (settings->tableid && (rc = settings->tableid(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action tup { if (settings->tup && (rc = settings->tup(parser->data))) return rc; }
-    action tup_len { parser->i = 0; parser->len = ntohl(*(uint32_t *)parser->any); if (settings->tup_len && (rc = settings->tup_len(parser->data, parser->len))) return rc; }
+    action nbytes { parser->i = 0; parser->nbytes = ntohl(*(uint32_t *)parser->any); if (settings->nbytes && (rc = settings->nbytes(parser->data, parser->nbytes))) return rc; }
     action tup_val { if (s && settings->tup_val && (rc = settings->tup_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
     action typid { parser->i = 0; if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action typlen { parser->i = 0; if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
 
     byte = any $str;
-    bytestr = (byte @morebyte)**;
+    bytestr = (byte >nbytescheck %nbytesdec)**;
     len = any $len;
     str = (any - 0) $str;
     zerostr = str** 0;
@@ -81,25 +87,25 @@ typedef struct pg_parser_t {
     status_key = zerostr @status_key;
     status_val = zerostr @status_val;
     tableid = len{4} @tableid;
-    tup_len = len{4} @tup_len;
+    nbytes = len{4} @nbytes;
     tup_val = bytestr @tup_val;
     typid = len{4} @typid;
     typlen = len{2} @typlen;
 
     field = name tableid columnid typid typlen atttypmod format;
     ready = idle | inerror | intrans;
-    tup = tup_len tup_val;
+    tup = nbytes tup_val;
 
     main :=
     (   "1" any{4} @parse
     |   "2" any{4} @bind
     |   "3" any{4} @close
     |   "C" any{4} @complete complete_val
-    |   "D" any{4} @tup ntups (tup @moretups)**
+    |   "D" any{4} @tup ntups (tup >ntupscheck %ntupsdec)**
     |   "K" any{4} @secret pid key
     |   "R" any{4} @auth method
     |   "S" len{4} @status status_key status_val
-    |   "T" any{4} @field nfields (field @morefields)**
+    |   "T" any{4} @field nfields (field >nfieldscheck %nfieldsdec)**
     |   "Z" any{4} @ready ready
     )** $all;
 
