@@ -64,8 +64,8 @@ typedef struct pg_parser_t {
     action typid { if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->l.d)))) return rc; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->s.d)))) return rc; }
 
-    byte = any $str @morebyte;
-    bytestr = byte**;
+    byte = any $str;
+    bytestr = (byte @morebyte)**;
     long = any{4} $long;
     short = any{2} $short;
     str = (any - 0) $str;
