@@ -38,7 +38,7 @@ typedef struct pg_parser_t {
     action len { parser->any[parser->i++] = *p; }
     action method { parser->i = 0; if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action name { if (s && settings->name && (rc = settings->name(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
-    action nbytescheck { if (parser->nbytes--) fgoto bytestr; if (s && settings->tup_val && (rc = settings->tup_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; fhold; fnext tup; }
+    action nbytescheck { if (parser->nbytes--) fgoto byte; if (s && settings->tup_val && (rc = settings->tup_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; fhold; fnext tup; }
     action nbytes { parser->i = 0; parser->nbytes = ntohl(*(uint32_t *)parser->any); if (settings->nbytes && (rc = settings->nbytes(parser->data, parser->nbytes))) return rc; }
     action nfieldscheck { if (!--parser->nfields) fnext main; }
     action nfields { parser->i = 0; parser->nfields = ntohs(*(uint16_t *)parser->any); if (settings->nfields && (rc = settings->nfields(parser->data, parser->nfields))) return rc; }
@@ -58,34 +58,33 @@ typedef struct pg_parser_t {
     action typid { parser->i = 0; if (settings->typid && (rc = settings->typid(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
     action typlen { parser->i = 0; if (settings->typlen && (rc = settings->typlen(parser->data, ntohs(*(uint16_t *)parser->any)))) return rc; }
 
-    bytestr = any $str @nbytescheck;
+    byte = any $str @nbytescheck;
     len = any $len;
-    zerostr = (any - 0)* $str 0;
+    str = (any - 0)* $str 0;
 
     atttypmod = len{4} @atttypmod;
     columnid = len{2} @columnid;
-    complete_val = zerostr @complete_val;
+    complete_val = str @complete_val;
     format = len{2} @format;
     idle = "I" @idle;
     inerror = "E" @inerror;
     intrans = "T" @intrans;
     key = len{4} @key;
     method = len{4} @method;
-    name = zerostr @name;
+    name = str @name;
     nfields = len{2} @nfields;
     ntups = len{2} @ntups;
     pid = len{4} @pid;
-    status_key = zerostr @status_key;
-    status_val = zerostr @status_val;
+    status_key = str @status_key;
+    status_val = str @status_val;
     tableid = len{4} @tableid;
     nbytes = len{4} @nbytes;
-    tup_val = bytestr;
     typid = len{4} @typid;
     typlen = len{2} @typlen;
 
     field = name tableid columnid typid typlen atttypmod format;
     ready = idle | inerror | intrans;
-    tup = nbytes tup_val;
+    tup = nbytes byte;
 
     main :=
     (   "1" any{4} @parse
