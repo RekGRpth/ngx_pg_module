@@ -40,11 +40,11 @@ typedef struct pg_parser_t {
     action method { parser->i = 0; if (settings->method && (rc = settings->method(parser->data, ntohl(*(uint32_t *)parser->any)))) return rc; }
 
     action nbytescheck { fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); if (!parser->nbytes) {   if (s && settings->tup_val && (rc = settings->tup_val(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0;     fhold; fgoto tup; } fprintf(stderr, "%i:%c nbytes = %i\n", *p, *p, parser->nbytes); }
-    action nfieldscheck { fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); if (!parser->nfields) { fhold; fgoto main; } fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); }
+    action nfieldscheck { fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); if (!--parser->nfields) { fnext main; } fprintf(stderr, "%i:%c nfields = %i\n", *p, *p, parser->nfields); }
     action ntupscheck { fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); if (!parser->ntups) { fhold; fgoto main; } fprintf(stderr, "%i:%c ntups = %i\n", *p, *p, parser->ntups); }
 
     action nbytesdec { fprintf(stderr, "%i:%c nbytes2 = %i\n", *p, *p, parser->nbytes); parser->nbytes--; fgoto bytestr; fprintf(stderr, "%i:%c nbytes2 = %i\n", *p, *p, parser->nbytes); }
-    action nfieldsdec { fprintf(stderr, "%i:%c nfields2 = %i\n", *p, *p, parser->nfields); parser->nfields--; fprintf(stderr, "%i:%c nfields2 = %i\n", *p, *p, parser->nfields); }
+#    action nfieldsdec { fprintf(stderr, "%i:%c nfields2 = %i\n", *p, *p, parser->nfields); parser->nfields--; fprintf(stderr, "%i:%c nfields2 = %i\n", *p, *p, parser->nfields); }
     action ntupsdec { fprintf(stderr, "%i:%c ntups2 = %i\n", *p, *p, parser->ntups); parser->ntups--; fprintf(stderr, "%i:%c ntups2 = %i\n", *p, *p, parser->ntups); }
 
     action name { if (s && settings->name && (rc = settings->name(parser->data, p - s, s))) return rc; s = NULL; parser->str = 0; }
@@ -106,7 +106,7 @@ typedef struct pg_parser_t {
     |   "K" any{4} @secret pid key
     |   "R" any{4} @auth method
     |   "S" len{4} @status status_key status_val
-    |   "T" any{4} @field nfields (field >nfieldscheck @nfieldsdec)*
+    |   "T" any{4} @field nfields (field @nfieldscheck)*
     |   "Z" any{4} @ready ready
     )** $all;
 
