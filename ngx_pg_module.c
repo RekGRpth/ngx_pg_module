@@ -98,7 +98,7 @@ static ngx_int_t ngx_pg_parser_all(ngx_pg_save_t *s, const void *ptr) {
 }
 
 static ngx_int_t ngx_pg_parser_atttypmod(ngx_pg_save_t *s, const void *ptr) {
-    unsigned long atttypmod = (unsigned long)ptr;
+    unsigned long atttypmod = *(unsigned long *)ptr;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", atttypmod);
     return NGX_OK;
 }
@@ -237,7 +237,7 @@ static ngx_int_t ngx_pg_parser_status_key(ngx_pg_save_t *s, size_t len, const u_
 }
 
 static ngx_int_t ngx_pg_parser_status(ngx_pg_save_t *s, const void *ptr) {
-    unsigned long length = (unsigned long)ptr;
+    unsigned long length = *(unsigned long *)ptr;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", length);
     if (!length) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!length"); return NGX_ERROR; }
 //    ngx_pg_status_t *status;
