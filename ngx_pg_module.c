@@ -134,16 +134,16 @@ static ngx_int_t ngx_pg_parser_idle(ngx_pg_save_t *s) {
     ngx_connection_t *c = s->connection;
 //    int n = recv(c->fd, buf, 1, MSG_PEEK);
 //    ngx_err_t err = ngx_socket_errno;
-    switch (recv(c->fd, buf, 1, MSG_PEEK)) {
-        case 0: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "recv == 0"); break;
-        case -1: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "recv == -1"); break;
-        case 1: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "recv == 1"); return NGX_AGAIN; break;
+//    switch (recv(c->fd, buf, 1, MSG_PEEK)) {
+//        case 0: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "recv == 0"); break;
+//        case -1: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "recv == -1"); break;
+//        case 1: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "recv == 1"); return NGX_AGAIN; break;
 //        default: {
 //            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", n);
 //            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", err);
 //        } break;
-    }
-    return NGX_OK;
+//    }
+    return recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
 //    return !s->requests++ ? NGX_AGAIN : NGX_OK;
 }
 static ngx_int_t ngx_pg_parser_inerror(ngx_pg_save_t *s) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); return NGX_OK; }
