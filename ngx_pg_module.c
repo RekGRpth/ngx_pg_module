@@ -335,7 +335,6 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
 //        if (!(cq = ngx_pcalloc(r->pool, sizeof(*cq)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
 //        cq->request = r;
 //        ngx_queue_insert_tail(&s->cmd.queue, &cq->queue);
-        s->request = r;
         ngx_pg_connect_t *connect;
         if (pscf) {
             connect = pscf->connect.elts;
@@ -353,7 +352,8 @@ found:
             if (/*cmd->next && */!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
     }
-//    ngx_pg_save_t *s = d->save;
+    ngx_pg_save_t *s = d->save;
+    s->request = r;
 //    cl->buf = plcf->query->buf;
 //    ngx_uint_t j = 0;
     for (ngx_chain_t *cmd = plcf->query.parse; cmd; cmd = cmd->next) {
