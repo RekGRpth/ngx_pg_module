@@ -57,6 +57,7 @@ typedef struct pg_parser_t {
     action nonlocalized { if (s && settings->nonlocalized && (rc = settings->nonlocalized(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
     action ntupscheck { if (!--parser->ntups) fnext main; }
     action ntups { parser->ntups = parser->s; if (settings->ntups && (rc = settings->ntups(parser->data, &parser->ntups))) fbreak; }
+    action option { if (s && settings->option && (rc = settings->option(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
     action parse { if (settings->parse && (rc = settings->parse(parser->data))) fbreak; }
     action pid { if (settings->pid && (rc = settings->pid(parser->data, &parser->l))) fbreak; }
     action primary { if (s && settings->primary && (rc = settings->primary(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
@@ -69,8 +70,6 @@ typedef struct pg_parser_t {
     action sqlstate { if (s && settings->sqlstate && (rc = settings->sqlstate(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
     action statement { if (s && settings->statement && (rc = settings->statement(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
     action status { if (settings->status && (rc = settings->status(parser->data, &parser->l))) fbreak; }
-    action status_key { if (s && settings->status_key && (rc = settings->status_key(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
-    action status_val { if (s && settings->status_val && (rc = settings->status_val(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
     action str { if (!s) s = p; if (s) parser->str = cs; }
     action tableid { if (settings->tableid && (rc = settings->tableid(parser->data, &parser->l))) fbreak; }
     action table { if (s && settings->table && (rc = settings->table(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
@@ -78,6 +77,7 @@ typedef struct pg_parser_t {
     action typid { if (settings->typid && (rc = settings->typid(parser->data, &parser->l))) fbreak; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, &parser->s))) fbreak; }
     action unknown { if (settings->unknown && (rc = settings->unknown(parser->data, pe - p, p))) fbreak; }
+    action value { if (s && settings->value && (rc = settings->value(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
 
     byte = any $str @nbytescheck;
     char = any - 0;
@@ -99,8 +99,8 @@ typedef struct pg_parser_t {
     nfields = short @nfields;
     ntups = short @ntups;
     pid = long @pid;
-    status_key = str @status_key;
-    status_val = str @status_val;
+    option = str @option;
+    value = str @value;
     tableid = long @tableid;
     typid = long @typid;
     typlen = short @typlen;
@@ -139,7 +139,7 @@ typedef struct pg_parser_t {
     |"E" any{4} @error error*
     |"K" any{4} @secret pid key
     |"R" any{4} @auth method
-    |"S" long @status status_key status_val
+    |"S" long @status option value
     |"T" any{4} @field nfields field*
     |"Z" any{4} @ready ready
     )** $all $!unknown;

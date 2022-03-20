@@ -45,16 +45,16 @@ typedef struct {
     pg_parser_str_cb line;
     pg_parser_str_cb name;
     pg_parser_str_cb nonlocalized;
+    pg_parser_str_cb option;
     pg_parser_str_cb primary;
     pg_parser_str_cb query;
     pg_parser_str_cb schema;
     pg_parser_str_cb severity;
     pg_parser_str_cb sqlstate;
     pg_parser_str_cb statement;
-    pg_parser_str_cb status_key;
-    pg_parser_str_cb status_val;
     pg_parser_str_cb table;
     pg_parser_str_cb unknown;
+    pg_parser_str_cb value;
 } pg_parser_settings_t;
 
 typedef struct pg_parser_t pg_parser_t;
