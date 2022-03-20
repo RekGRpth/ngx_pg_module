@@ -523,7 +523,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         if (ngx_array_init(&s->status, c->pool, 1, sizeof(ngx_pg_status_t)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
         if (!(s->parser = ngx_pcalloc(c->pool, pg_parser_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
-        pg_parser_init(s->parser, s);
+        pg_parser_init(s->parser, &ngx_pg_parser_settings, s);
         if (pscf) { ngx_queue_insert_tail(&pscf->save.queue, &s->queue); } else { ngx_queue_init(&s->queue); }
         s->connection = c;
         ngx_pool_cleanup_t *cln;
@@ -897,7 +897,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_buf_t *b = &u->buffer;
 //    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     ngx_int_t rc = NGX_OK;
-    while (rc == NGX_OK && b->pos < b->last) b->pos += pg_parser_execute(&rc, s->parser, &ngx_pg_parser_settings, b->pos, b->pos, b->last, b->last == b->end ? b->last : NULL);
+    while (b->pos < b->last && (rc = pg_parser_execute(s->parser, b->last - b->pos, &b->pos)) == NGX_OK);
+//    while (rc == NGX_OK && b->pos < b->last) b->pos += pg_parser_execute(&rc, s->parser, &ngx_pg_parser_settings, b->pos, b->pos, b->last, b->last == b->end ? b->last : NULL);
 //        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
 //        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos < b->last = %s", b->pos < b->last ? "true" : "false");
 //    }
@@ -936,7 +937,8 @@ static ngx_int_t ngx_pg_input_filter(void *data, ssize_t bytes) {
     ngx_buf_t *b = &u->buffer;
     ngx_int_t rc = NGX_OK;
     u_char *last = b->last + bytes;
-    while (rc == NGX_OK && b->last < last) b->last += pg_parser_execute(&rc, s->parser, &ngx_pg_parser_settings, b->last, b->last, last, last == b->end ? last : NULL);
+    while (b->last < last && (rc = pg_parser_execute(s->parser, bytes, &b->last)) == NGX_OK);
+//    while (rc == NGX_OK && b->last < last) b->last += pg_parser_execute(&rc, s->parser, &ngx_pg_parser_settings, b->last, b->last, last, last == b->end ? last : NULL);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
 //    ngx_uint_t i = 0; for (u_char *p = b->last; p < b->last + bytes; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
 //    b->last += bytes;
