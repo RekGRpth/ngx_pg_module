@@ -284,9 +284,11 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
     if (pc->connection) {
         if (pscf) for (ngx_queue_t *q = ngx_queue_head(&pscf->save.queue), *_; q != ngx_queue_sentinel(&pscf->save.queue) && (_ = ngx_queue_next(q)); q = _) {
-            ngx_pg_save_t *s = d->save = ngx_queue_data(q, ngx_pg_save_t, queue);
+            ngx_pg_save_t *s = ngx_queue_data(q, ngx_pg_save_t, queue);
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "s = %p", s);
-            if (s->connection == pc->connection) break;
+            if (s->connection != pc->connection) continue;
+            d->save = s;
+            break;
         }
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "sizeof(*pc->connection->pool) = %i", sizeof(*pc->connection->pool));
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "sizeof(*d->save) = %i", sizeof(*d->save));
