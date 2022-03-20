@@ -54,6 +54,7 @@ typedef struct {
     ngx_connection_t *connection;
     ngx_http_request_t *request;
     ngx_queue_t queue;
+    ngx_uint_t requests;
     pg_parser_t *parser;
     /*struct {
         ngx_queue_t queue;
@@ -125,7 +126,12 @@ static ngx_int_t ngx_pg_parser_file(ngx_pg_save_t *s, size_t len, const u_char *
 static ngx_int_t ngx_pg_parser_format(ngx_pg_save_t *s, const void *ptr) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", *(unsigned short *)ptr); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_function(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_hint(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
-static ngx_int_t ngx_pg_parser_idle(ngx_pg_save_t *s) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); return NGX_OK; }
+static ngx_int_t ngx_pg_parser_idle(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+//    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", s->connection->requests);
+//    if (s->connection->read->ready) return NGX_AGAIN;
+    return !s->requests++ ? NGX_AGAIN : NGX_OK;
+}
 static ngx_int_t ngx_pg_parser_inerror(ngx_pg_save_t *s) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_internal(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_intrans(ngx_pg_save_t *s) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); return NGX_OK; }
