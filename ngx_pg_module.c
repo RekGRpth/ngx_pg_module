@@ -276,11 +276,11 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         case NGX_OK: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = NGX_OK"); break;
         default: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = %i", rc); return rc; break;
     }
+    ngx_chain_t *cl;
     ngx_http_request_t *r = d->request;
+    ngx_http_upstream_t *u = r->upstream;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     ngx_pg_srv_conf_t *pscf = d->conf;
-    ngx_chain_t *cl;
-    ngx_http_upstream_t *u = r->upstream;
     if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
     if (pc->connection) {
         if (pscf) for (ngx_queue_t *q = ngx_queue_head(&pscf->save.queue), *_; q != ngx_queue_sentinel(&pscf->save.queue) && (_ = ngx_queue_next(q)); q = _) {
