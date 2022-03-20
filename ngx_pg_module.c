@@ -290,6 +290,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             d->save = s;
             break;
         }
+        if (!d->save) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!s"); return NGX_ERROR; }
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "sizeof(*pc->connection->pool) = %i", sizeof(*pc->connection->pool));
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "sizeof(*d->save) = %i", sizeof(*d->save));
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "pc->connection->pool = %p", pc->connection->pool);
