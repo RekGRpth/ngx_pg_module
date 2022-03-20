@@ -344,7 +344,7 @@ found:
 //        ngx_uint_t j = 0;
         for (ngx_chain_t *cmd = connect->cl; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
-            if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+            if (/*cmd->next && */!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
     }
 //    ngx_pg_save_t *s = d->save;
@@ -352,7 +352,7 @@ found:
 //    ngx_uint_t j = 0;
     for (ngx_chain_t *cmd = plcf->query.parse; cmd; cmd = cmd->next) {
         cl->buf = cmd->buf;
-        if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        if (/*cmd->next && */!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
     }
 //    ngx_pg_cmd_queue_t *cq;
 //    ngx_pg_query_t *elts = plcf->query.elts;
