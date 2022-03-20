@@ -1193,7 +1193,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
     *b->last++ = (u_char)'S';
 
-    if (!(cl = cl_len = /*cl->next = */ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(len)))) return "!ngx_create_temp_buf";
 
     *(uint32_t *)cl_len->buf->last = htonl(len);
