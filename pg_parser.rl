@@ -28,8 +28,8 @@ typedef struct pg_parser_t {
     action close { if (settings->close && (rc = settings->close(parser->data))) fbreak; }
     action columnid { if (settings->columnid && (rc = settings->columnid(parser->data, &parser->s))) fbreak; }
     action column { if (s && settings->column && (rc = settings->column(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
+    action command { if (s && settings->command && (rc = settings->command(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
     action complete { if (settings->complete && (rc = settings->complete(parser->data))) fbreak; }
-    action complete_val { if (s && settings->complete_val && (rc = settings->complete_val(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
     action constraint { if (s && settings->constraint && (rc = settings->constraint(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
     action context { if (s && settings->context && (rc = settings->context(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
     action datatype { if (s && settings->datatype && (rc = settings->datatype(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
@@ -87,7 +87,7 @@ typedef struct pg_parser_t {
 
     atttypmod = long @atttypmod;
     columnid = short @columnid;
-    complete_val = str @complete_val;
+    command = str @command;
     format = short @format;
     idle = "I" @idle;
     inerror = "E" @inerror;
@@ -134,7 +134,7 @@ typedef struct pg_parser_t {
     ("1" any{4} @parse
     |"2" any{4} @bind
     |"3" any{4} @close
-    |"C" any{4} @complete complete_val
+    |"C" any{4} @complete command
     |"D" any{4} @tup ntups tup*
     |"E" any{4} @error error*
     |"K" any{4} @secret pid key

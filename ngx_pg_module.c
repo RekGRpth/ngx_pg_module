@@ -112,8 +112,8 @@ static ngx_int_t ngx_pg_parser_byte(ngx_pg_save_t *s, size_t len, const u_char *
 static ngx_int_t ngx_pg_parser_close(ngx_pg_save_t *s) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_columnid(ngx_pg_save_t *s, const void *ptr) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", *(unsigned short *)ptr); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_column(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
+static ngx_int_t ngx_pg_parser_command(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_complete(ngx_pg_save_t *s) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); return NGX_OK; }
-static ngx_int_t ngx_pg_parser_complete_val(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_constraint(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_context(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_datatype(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
@@ -192,8 +192,8 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .close = (pg_parser_cb)ngx_pg_parser_close,
     .columnid = (pg_parser_ptr_cb)ngx_pg_parser_columnid,
     .column = (pg_parser_str_cb)ngx_pg_parser_column,
+    .command = (pg_parser_str_cb)ngx_pg_parser_command,
     .complete = (pg_parser_cb)ngx_pg_parser_complete,
-    .complete_val = (pg_parser_str_cb)ngx_pg_parser_complete_val,
     .constraint = (pg_parser_str_cb)ngx_pg_parser_constraint,
     .context = (pg_parser_str_cb)ngx_pg_parser_context,
     .datatype = (pg_parser_str_cb)ngx_pg_parser_datatype,

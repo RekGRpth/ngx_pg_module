@@ -33,7 +33,7 @@ typedef struct {
     pg_parser_ptr_cb typlen;
     pg_parser_str_cb byte;
     pg_parser_str_cb column;
-    pg_parser_str_cb complete_val;
+    pg_parser_str_cb command;
     pg_parser_str_cb constraint;
     pg_parser_str_cb context;
     pg_parser_str_cb datatype;
