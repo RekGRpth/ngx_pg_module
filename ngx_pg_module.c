@@ -17,11 +17,8 @@ typedef struct {
 
 typedef struct {
     ngx_chain_t *connect;
+    ngx_http_upstream_peer_t peer;
     ngx_log_t *log;
-    struct {
-        ngx_http_upstream_init_peer_pt init;
-        ngx_http_upstream_init_pt init_upstream;
-    } peer;
 } ngx_pg_srv_conf_t;
 
 typedef struct {
