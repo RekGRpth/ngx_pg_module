@@ -31,9 +31,6 @@ typedef struct {
         ngx_http_upstream_init_peer_pt init;
         ngx_http_upstream_init_pt init_upstream;
     } peer;
-    struct {
-        ngx_queue_t queue;
-    } save;
 } ngx_pg_srv_conf_t;
 
 typedef struct {
@@ -46,7 +43,6 @@ typedef struct {
     ngx_buf_t buffer;
     ngx_connection_t *connection;
     ngx_http_request_t *request;
-    ngx_queue_t queue;
     pg_parser_t *parser;
     struct {
         ngx_event_handler_pt read_handler;
@@ -229,7 +225,6 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
 
 static void ngx_pg_save_cln_handler(void *data) {
     ngx_pg_save_t *s = data;
-    ngx_queue_remove(&s->queue);
 
     ngx_connection_t *c = s->connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
@@ -271,25 +266,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     ngx_pg_srv_conf_t *pscf = d->conf;
     if (!(cl = u->request_bufs = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
-    if (pc->connection) {
-        if (pscf) for (ngx_queue_t *q = ngx_queue_head(&pscf->save.queue), *_; q != ngx_queue_sentinel(&pscf->save.queue) && (_ = ngx_queue_next(q)); q = _) {
-            ngx_pg_save_t *s = ngx_queue_data(q, ngx_pg_save_t, queue);
-            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "s = %p", s);
-            if (s->connection != pc->connection) continue;
-            d->save = s;
-            break;
-        }
-        if (!d->save) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!s"); return NGX_ERROR; }
-        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "sizeof(*pc->connection->pool) = %i", sizeof(*pc->connection->pool));
-        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "sizeof(*d->save) = %i", sizeof(*d->save));
-        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "pc->connection->pool = %p", pc->connection->pool);
-        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "d->save = %p", d->save);
-        if (sizeof(*d->save) <= pc->connection->pool->max) {
-            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "pc->connection->pool + sizeof(*pc->connection->pool) = %p", (char *)pc->connection->pool + sizeof(*pc->connection->pool));
-        } else {}
-        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "d->save - pc->connection->pool = %p", (char *)d->save - (char *)pc->connection->pool);
-        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "pc->connection->pool - d->save = %p", (char *)pc->connection->pool - (char *)d->save);
-    } else {
+    ngx_pg_save_t *s;
+    if (pc->connection) s = d->save = (ngx_pg_save_t *)((char *)pc->connection->pool + sizeof(*pc->connection->pool)); else {
         pc->get = ngx_event_get_peer;
         switch ((rc = ngx_event_connect_peer(pc))) {
             case NGX_AGAIN: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = NGX_AGAIN"); break;
@@ -301,13 +279,12 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         ngx_connection_t *c = pc->connection;
         if (!c) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!c"); return NGX_ERROR; }
         if (c->pool) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "c->pool"); return NGX_ERROR; }
-        if (!(c->pool = ngx_create_pool(128, pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
-        ngx_pg_save_t *s;
+        if (!(c->pool = ngx_create_pool(128 + sizeof(*s), pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
         if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+        if ((char *)s != (char *)c->pool + sizeof(*c->pool)) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "wrong pool"); return NGX_ERROR; }
         if (ngx_array_init(&s->option, c->pool, 1, sizeof(ngx_pg_status_t)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
         if (!(s->parser = ngx_pcalloc(c->pool, pg_parser_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         pg_parser_init(s->parser, &ngx_pg_parser_settings, s);
-        if (pscf) { ngx_queue_insert_tail(&pscf->save.queue, &s->queue); } else { ngx_queue_init(&s->queue); }
         s->connection = c;
         ngx_pool_cleanup_t *cln;
         if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
@@ -326,18 +303,17 @@ found:
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
     }
-    ngx_pg_save_t *s = d->save;
     s->request = r;
     for (ngx_chain_t *cmd = plcf->query.parse; cmd; cmd = cmd->next) {
         cl->buf = cmd->buf;
         if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
     }
     cl->next = NULL;
-    ngx_uint_t i = 0;
+//    ngx_uint_t i = 0;
     for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
         b->pos = b->start;
-        for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%i:%i:%c", i++, *p, *p);
+//        for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%i:%i:%c", i++, *p, *p);
     }
     return NGX_DONE;
 }
@@ -565,25 +541,12 @@ static char *ngx_pg_log_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     return ngx_log_set_log(cf, &pscf->log);
 }
 
-static void ngx_pg_srv_cln_handler(void *data) {
-    ngx_pg_srv_conf_t *pscf = data;
-    for (ngx_queue_t *q = ngx_queue_head(&pscf->save.queue), *_; q != ngx_queue_sentinel(&pscf->save.queue) && (_ = ngx_queue_next(q)); q = _) {
-        ngx_pg_save_t *s = ngx_queue_data(q, ngx_pg_save_t, queue);
-        ngx_pg_save_cln_handler(s);
-    }
-}
-
 static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *uscf) {
     ngx_log_error(NGX_LOG_ERR, cf->log, 0, "srv_conf = %s", uscf->srv_conf ? "true" : "false");
     if (uscf->srv_conf) {
         ngx_pg_srv_conf_t *pscf = ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module);
         if (pscf->peer.init_upstream(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "peer.init_upstream != NGX_OK"); return NGX_ERROR; }
         pscf->peer.init = uscf->peer.init ? uscf->peer.init : ngx_http_upstream_init_round_robin_peer;
-        ngx_queue_init(&pscf->save.queue);
-        ngx_pool_cleanup_t *cln;
-        if (!(cln = ngx_pool_cleanup_add(cf->pool, 0))) { ngx_log_error(NGX_LOG_ERR, cf->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
-        cln->data = pscf;
-        cln->handler = ngx_pg_srv_cln_handler;
     } else {
         if (ngx_http_upstream_init_round_robin(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "ngx_http_upstream_init_round_robin != NGX_OK"); return NGX_ERROR; }
     }
