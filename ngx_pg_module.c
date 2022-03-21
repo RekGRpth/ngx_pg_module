@@ -288,16 +288,16 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         ngx_chain_t *connect = pscf ? pscf->connect : plcf->connect;
         for (ngx_chain_t *cmd = connect; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
-            ngx_buf_t *b = cl->buf;
-            b->pos = b->start;
+//            ngx_buf_t *b = cl->buf;
+//            b->pos = b->start;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
     }
     s->request = r;
     for (ngx_chain_t *cmd = plcf->parse; cmd; cmd = cmd->next) {
         cl->buf = cmd->buf;
-        ngx_buf_t *b = cl->buf;
-        b->pos = b->start;
+//        ngx_buf_t *b = cl->buf;
+//        b->pos = b->start;
         if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
     }
     cl->next = NULL;
