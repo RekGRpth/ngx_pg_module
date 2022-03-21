@@ -20,6 +20,7 @@ typedef struct {
 
 typedef struct {
     ngx_chain_t *connect;
+    ngx_http_complex_value_t complex;
     ngx_http_upstream_conf_t upstream;
     ngx_pg_query_t query;
 } ngx_pg_loc_conf_t;
@@ -720,17 +721,24 @@ static char *ngx_pg_log_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 
 static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->upstream.upstream) return "duplicate";
+    if (plcf->upstream.upstream || plcf->complex.value.data) return "duplicate";
     ngx_http_core_loc_conf_t *clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
     clcf->handler = ngx_pg_handler;
     if (clcf->name.data[clcf->name.len - 1] == '/') clcf->auto_redirect = 1;
     ngx_str_t *elts = cf->args->elts;
+    if (ngx_http_script_variables_count(&elts[1])) {
+        ngx_http_compile_complex_value_t ccv = {cf, &elts[1], &plcf->complex, 0, 0, 0};
+        if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+        return NGX_CONF_OK;
+    }
     ngx_url_t url = {0};
-    url.no_resolve = 1;
+    if (!plcf->connect) url.no_resolve = 1;
     url.url = elts[1];
 //    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &plcf->connect.url.url);
     if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &url, 0))) return NGX_CONF_ERROR;
 //    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "naddrs = %i", plcf->connect.url.naddrs);
+    ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
+    uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
     return NGX_CONF_OK;
 }
 
