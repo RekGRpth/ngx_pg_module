@@ -63,12 +63,12 @@ long pg_parser_execute(pg_parser_t *parser, size_t size, uint8_t **data);
 size_t pg_parser_size(void);
 void pg_parser_init(pg_parser_t *parser, const pg_parser_settings_t *settings, const void *data);
 
-inline static uint8_t *pg_write_uint32(uint8_t *p, long l) {
-    for (uint8_t i = 4; i; *p++ = l >> (2 << 2) * --i);
+inline static uint8_t *pg_write_uint32(uint8_t *p, uint32_t n) {
+    for (uint8_t i = 4; i; *p++ = n >> (2 << 2) * --i);
     return p;
 }
 
-inline static uint8_t *pg_write_uint16(uint8_t *p, short s) {
-    for (uint8_t i = 2; i; *p++ = s >> (2 << 2) * --i);
+inline static uint8_t *pg_write_uint16(uint8_t *p, uint16_t n) {
+    for (uint8_t i = 2; i; *p++ = n >> (2 << 2) * --i);
     return p;
 }
