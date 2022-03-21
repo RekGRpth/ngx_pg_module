@@ -671,19 +671,19 @@ static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_chain_t *con
 
 static char *ngx_pg_connect_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->connect || plcf->upstream.upstream) return "duplicate";
-    ngx_http_core_loc_conf_t *clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
-    clcf->handler = ngx_pg_handler;
-    if (clcf->name.data[clcf->name.len - 1] == '/') clcf->auto_redirect = 1;
-    char *rv;
+    if (plcf->connect) return "duplicate";
+//    ngx_http_core_loc_conf_t *clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
+//    clcf->handler = ngx_pg_handler;
+//    if (clcf->name.data[clcf->name.len - 1] == '/') clcf->auto_redirect = 1;
+//    char *rv;
     if (!(plcf->connect = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if ((rv = ngx_pg_connect(cf, cmd, plcf->connect)) != NGX_CONF_OK) return rv;
+    return ngx_pg_connect(cf, cmd, plcf->connect);
 //    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &plcf->connect.url);
 //    if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &plcf->connect.url, 0))) return NGX_CONF_ERROR;
 //    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "naddrs = %i", plcf->connect.url.naddrs);
-    ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
-    uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
-    return NGX_CONF_OK;
+//    ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
+//    uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
+//    return NGX_CONF_OK;
 }
 
 static char *ngx_pg_connect_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
