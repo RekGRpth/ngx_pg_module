@@ -1,20 +1,21 @@
 #include <stddef.h>
+#include <stdint.h>
 
 #include "pg_parser.h"
 
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 
 typedef struct pg_parser_t {
+    const pg_parser_settings_t *settings;
     const void *data;
     int cs;
     int str;
+    uint16_t nfields;
+    uint16_t ntups;
+    uint16_t s;
+    uint32_t l;
+    uint32_t nbytes;
     unsigned char i;
-    unsigned long l;
-    unsigned long nbytes;
-    unsigned short nfields;
-    unsigned short ntups;
-    unsigned short s;
-    const pg_parser_settings_t *settings;
 } pg_parser_t;
 
 %%{
