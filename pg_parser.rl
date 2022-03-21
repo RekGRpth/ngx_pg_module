@@ -48,7 +48,6 @@ typedef struct pg_parser_t {
     action intrans { if (settings->intrans && (rc = settings->intrans(parser->data))) fbreak; }
     action key { if (settings->key && (rc = settings->key(parser->data, &parser->l))) fbreak; }
     action line { if (s && settings->line && (rc = settings->line(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
-    action long { if (!parser->i) { parser->i = 4; parser->l = 0; } parser->l |= *p << ((2 << 2) * --parser->i); }
     action method { if (settings->method && (rc = settings->method(parser->data, &parser->l))) fbreak; }
     action name { if (s && settings->name && (rc = settings->name(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
     action nbytescheck { if (parser->nbytes--) fgoto byte; if (s && settings->byte && (rc = settings->byte(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; fhold; fnext tup; }
@@ -67,7 +66,6 @@ typedef struct pg_parser_t {
     action schema { if (s && settings->schema && (rc = settings->schema(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
     action secret { if (settings->secret && (rc = settings->secret(parser->data))) fbreak; }
     action severity { if (s && settings->severity && (rc = settings->severity(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
-    action short { if (!parser->i) { parser->i = 2; parser->s = 0; } parser->s |= *p << ((2 << 2) * --parser->i); }
     action sqlstate { if (s && settings->sqlstate && (rc = settings->sqlstate(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
     action statement { if (s && settings->statement && (rc = settings->statement(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
     action status { if (settings->status && (rc = settings->status(parser->data, &parser->l))) fbreak; }
@@ -77,34 +75,36 @@ typedef struct pg_parser_t {
     action tup { if (settings->tup && (rc = settings->tup(parser->data))) fbreak; }
     action typid { if (settings->typid && (rc = settings->typid(parser->data, &parser->l))) fbreak; }
     action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, &parser->s))) fbreak; }
+    action uint16 { if (!parser->i) { parser->i = 2; parser->s = 0; } parser->s |= *p << ((2 << 2) * --parser->i); }
+    action uint32 { if (!parser->i) { parser->i = 4; parser->l = 0; } parser->l |= *p << ((2 << 2) * --parser->i); }
     action unknown { if (settings->unknown && (rc = settings->unknown(parser->data, pe - p, p))) fbreak; }
     action value { if (s && settings->value && (rc = settings->value(parser->data, p - s, s))) fbreak; s = NULL; parser->str = 0; }
 
     byte = any $str @nbytescheck;
     char = any - 0;
-    long = any{4} $long;
-    short = any{2} $short;
     str = char* $str 0;
+    uint16 = any{2} $uint16;
+    uint32 = any{4} $uint32;
 
-    atttypmod = long @atttypmod;
-    columnid = short @columnid;
+    atttypmod = uint32 @atttypmod;
+    columnid = uint16 @columnid;
     command = str @command;
-    format = short @format;
+    format = uint16 @format;
     idle = "I" @idle;
     inerror = "E" @inerror;
     intrans = "T" @intrans;
-    key = long @key;
-    method = long @method;
+    key = uint32 @key;
+    method = uint32 @method;
     name = str @name;
-    nbytes = long @nbytes;
-    nfields = short @nfields;
-    ntups = short @ntups;
-    pid = long @pid;
+    nbytes = uint32 @nbytes;
+    nfields = uint16 @nfields;
+    ntups = uint16 @ntups;
+    pid = uint32 @pid;
     option = str @option;
     value = str @value;
-    tableid = long @tableid;
-    typid = long @typid;
-    typlen = short @typlen;
+    tableid = uint32 @tableid;
+    typid = uint32 @typid;
+    typlen = uint16 @typlen;
 
     error =
     (0 @fatal
@@ -140,7 +140,7 @@ typedef struct pg_parser_t {
     |"E" any{4} @error error*
     |"K" any{4} @secret pid key
     |"R" any{4} @auth method
-    |"S" long @status option value
+    |"S" uint32 @status option value
     |"T" any{4} @field nfields field*
     |"Z" any{4} @ready ready
     )** $all $!unknown;
