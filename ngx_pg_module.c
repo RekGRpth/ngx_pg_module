@@ -709,7 +709,7 @@ inline static ngx_chain_t *ngx_pg_close(ngx_pool_t *p) {
     if (!(cl = close = ngx_pg_write_uint8(p, NULL, 'C'))) return NULL;
     if (!(cl = cl->next = cl_len = ngx_pg_alloc_len(p, &len))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_uint8(p, &len, 'P'))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_uint8(p, &len, 0))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_str(p, &len, (ngx_str_t)ngx_string("")))) return NULL;
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
     cl->next = NULL;
     return close;
