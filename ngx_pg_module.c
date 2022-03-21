@@ -634,7 +634,7 @@ inline static ngx_chain_t *ngx_pg_write_str(ngx_pool_t *p, uint32_t *len, ngx_st
     ngx_chain_t *cl;
     if (!(cl = ngx_alloc_chain_link(p))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_alloc_chain_link"); return NULL; }
     if (!(cl->buf = ngx_create_temp_buf(p, str.len + sizeof(uint8_t)))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_create_temp_buf"); return NULL; }
-    cl->buf->last = ngx_copy(cl->buf->last, str.data, str.len);
+    if (str.len) cl->buf->last = ngx_copy(cl->buf->last, str.data, str.len);
     cl->buf->last = pg_write_uint8(cl->buf->last, 0);
     if (len) *len += str.len + sizeof(uint8_t);
     return cl;
