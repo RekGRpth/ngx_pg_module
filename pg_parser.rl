@@ -12,10 +12,10 @@ typedef struct pg_parser_t {
     int str;
     uint16_t nfields;
     uint16_t ntups;
-    uint16_t s;
-    uint32_t l;
+    uint16_t uint16;
     uint32_t nbytes;
-    uint8_t i;
+    uint32_t uint32;
+    uint8_t uint8;
 } pg_parser_t;
 
 %%{
@@ -23,11 +23,11 @@ typedef struct pg_parser_t {
     alphtype unsigned char;
 
     action all { if (settings->all && (rc = settings->all(parser->data, p))) fbreak; }
-    action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser->data, &parser->l))) fbreak; }
+    action atttypmod { if (settings->atttypmod && (rc = settings->atttypmod(parser->data, &parser->uint32))) fbreak; }
     action auth { if (settings->auth && (rc = settings->auth(parser->data))) fbreak; }
     action bind { if (settings->bind && (rc = settings->bind(parser->data))) fbreak; }
     action close { if (settings->close && (rc = settings->close(parser->data))) fbreak; }
-    action columnid { if (settings->columnid && (rc = settings->columnid(parser->data, &parser->s))) fbreak; }
+    action columnid { if (settings->columnid && (rc = settings->columnid(parser->data, &parser->uint16))) fbreak; }
     action column { if (str && settings->column && (rc = settings->column(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action command { if (str && settings->command && (rc = settings->command(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action complete { if (settings->complete && (rc = settings->complete(parser->data))) fbreak; }
@@ -39,27 +39,27 @@ typedef struct pg_parser_t {
     action fatal { if (settings->fatal && (rc = settings->fatal(parser->data))) fbreak; }
     action field { if (settings->field && (rc = settings->field(parser->data))) fbreak; }
     action file { if (str && settings->file && (rc = settings->file(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
-    action format { if (settings->format && (rc = settings->format(parser->data, &parser->s))) fbreak; }
+    action format { if (settings->format && (rc = settings->format(parser->data, &parser->uint16))) fbreak; }
     action function { if (str && settings->function && (rc = settings->function(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action hint { if (str && settings->hint && (rc = settings->hint(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action idle { if (settings->idle && (rc = settings->idle(parser->data))) fbreak; }
     action inerror { if (settings->inerror && (rc = settings->inerror(parser->data))) fbreak; }
     action internal { if (str && settings->internal && (rc = settings->internal(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action intrans { if (settings->intrans && (rc = settings->intrans(parser->data))) fbreak; }
-    action key { if (settings->key && (rc = settings->key(parser->data, &parser->l))) fbreak; }
+    action key { if (settings->key && (rc = settings->key(parser->data, &parser->uint32))) fbreak; }
     action line { if (str && settings->line && (rc = settings->line(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
-    action method { if (settings->method && (rc = settings->method(parser->data, &parser->l))) fbreak; }
+    action method { if (settings->method && (rc = settings->method(parser->data, &parser->uint32))) fbreak; }
     action name { if (str && settings->name && (rc = settings->name(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action nbytescheck { if (parser->nbytes--) fgoto byte; if (str && settings->byte && (rc = settings->byte(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; fhold; fnext tup; }
-    action nbytes { parser->nbytes = parser->l; if (settings->nbytes && (rc = settings->nbytes(parser->data, &parser->nbytes))) fbreak; }
+    action nbytes { parser->nbytes = parser->uint32; if (settings->nbytes && (rc = settings->nbytes(parser->data, &parser->nbytes))) fbreak; }
     action nfieldscheck { if (!--parser->nfields) fnext main; }
-    action nfields { parser->nfields = parser->s; if (settings->nfields && (rc = settings->nfields(parser->data, &parser->nfields))) fbreak; }
+    action nfields { parser->nfields = parser->uint16; if (settings->nfields && (rc = settings->nfields(parser->data, &parser->nfields))) fbreak; }
     action nonlocalized { if (str && settings->nonlocalized && (rc = settings->nonlocalized(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action ntupscheck { if (!--parser->ntups) fnext main; }
-    action ntups { parser->ntups = parser->s; if (settings->ntups && (rc = settings->ntups(parser->data, &parser->ntups))) fbreak; }
+    action ntups { parser->ntups = parser->uint16; if (settings->ntups && (rc = settings->ntups(parser->data, &parser->ntups))) fbreak; }
     action option { if (str && settings->option && (rc = settings->option(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action parse { if (settings->parse && (rc = settings->parse(parser->data))) fbreak; }
-    action pid { if (settings->pid && (rc = settings->pid(parser->data, &parser->l))) fbreak; }
+    action pid { if (settings->pid && (rc = settings->pid(parser->data, &parser->uint32))) fbreak; }
     action primary { if (str && settings->primary && (rc = settings->primary(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action query { if (str && settings->query && (rc = settings->query(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action ready { if (settings->ready && (rc = settings->ready(parser->data))) fbreak; }
@@ -68,15 +68,15 @@ typedef struct pg_parser_t {
     action severity { if (str && settings->severity && (rc = settings->severity(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action sqlstate { if (str && settings->sqlstate && (rc = settings->sqlstate(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action statement { if (str && settings->statement && (rc = settings->statement(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
-    action status { if (settings->status && (rc = settings->status(parser->data, &parser->l))) fbreak; }
+    action status { if (settings->status && (rc = settings->status(parser->data, &parser->uint32))) fbreak; }
     action str { if (!str) str = p; if (str) parser->str = cs; }
-    action tableid { if (settings->tableid && (rc = settings->tableid(parser->data, &parser->l))) fbreak; }
+    action tableid { if (settings->tableid && (rc = settings->tableid(parser->data, &parser->uint32))) fbreak; }
     action table { if (str && settings->table && (rc = settings->table(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action tup { if (settings->tup && (rc = settings->tup(parser->data))) fbreak; }
-    action typid { if (settings->typid && (rc = settings->typid(parser->data, &parser->l))) fbreak; }
-    action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, &parser->s))) fbreak; }
-    action uint16 { if (!parser->i) { parser->i = 2; parser->s = 0; } parser->s |= *p << ((2 << 2) * --parser->i); }
-    action uint32 { if (!parser->i) { parser->i = 4; parser->l = 0; } parser->l |= *p << ((2 << 2) * --parser->i); }
+    action typid { if (settings->typid && (rc = settings->typid(parser->data, &parser->uint32))) fbreak; }
+    action typlen { if (settings->typlen && (rc = settings->typlen(parser->data, &parser->uint16))) fbreak; }
+    action uint16 { if (!parser->uint8) { parser->uint8 = 2; parser->uint16 = 0; } parser->uint16 |= *p << ((2 << 2) * --parser->uint8); }
+    action uint32 { if (!parser->uint8) { parser->uint8 = 4; parser->uint32 = 0; } parser->uint32 |= *p << ((2 << 2) * --parser->uint8); }
     action unknown { if (settings->unknown && (rc = settings->unknown(parser->data, pe - p, p))) fbreak; }
     action value { if (str && settings->value && (rc = settings->value(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
 
