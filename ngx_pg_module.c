@@ -257,14 +257,14 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!(c->pool = ngx_create_pool(128 + sizeof(*s), pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
         if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         if ((char *)s != (char *)c->pool + sizeof(*c->pool)) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "wrong pool"); return NGX_ERROR; }
-        if (ngx_array_init(&s->option, c->pool, 1, sizeof(ngx_pg_option_t)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
-        if (!(s->parser = ngx_pcalloc(c->pool, pg_parser_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
-        pg_parser_init(s->parser, &ngx_pg_parser_settings, s);
-        s->connection = c;
         ngx_pool_cleanup_t *cln;
         if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
         cln->data = c;
         cln->handler = (ngx_pool_cleanup_pt)ngx_pg_save_cln_handler;
+        if (ngx_array_init(&s->option, c->pool, 1, sizeof(ngx_pg_option_t)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
+        if (!(s->parser = ngx_pcalloc(c->pool, pg_parser_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+        pg_parser_init(s->parser, &ngx_pg_parser_settings, s);
+        s->connection = c;
         ngx_chain_t *connect = pscf ? pscf->connect : plcf->connect;
         for (ngx_chain_t *cmd = connect; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
