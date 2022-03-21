@@ -218,7 +218,7 @@ static void ngx_pg_save_cln_handler(ngx_connection_t *c) {
     uint32_t len = 0;
 
     if (!(cl = out = ngx_alloc_chain_link(c->pool))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_alloc_chain_link"); return; }
-    if (!(cl->buf = b = ngx_create_temp_buf(c->pool, sizeof(u_char)))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_create_temp_buf"); return; }
+    if (!(cl->buf = b = ngx_create_temp_buf(c->pool, sizeof(uint8_t)))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_create_temp_buf"); return; }
     b->last = pg_write_uint8(b->last, 'X');
 
     if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(c->pool))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_alloc_chain_link"); return; }
@@ -550,13 +550,13 @@ static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_chain_t *con
     ngx_str_t *elts = cf->args->elts;
     for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
         if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-        if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += elts[i].len + sizeof(u_char)))) return "!ngx_create_temp_buf";
+        if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += elts[i].len + sizeof(uint8_t)))) return "!ngx_create_temp_buf";
         for (ngx_uint_t j = 0; j < elts[i].len; j++) b->last = pg_write_uint8(b->last, elts[i].data[j] == '=' ? 0 : elts[i].data[j]);
         b->last = pg_write_uint8(b->last, 0);
     }
 
     if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 0);
 
     connect->buf->last = pg_write_uint32(connect->buf->last, len);
@@ -622,18 +622,18 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_str_t *elts = cf->args->elts;
 
     if (!(cl = plcf->parse = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 'P');
 
     if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(len)))) return "!ngx_create_temp_buf";
 
     if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 0);
 
     if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += elts[1].len + sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += elts[1].len + sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = ngx_copy(b->last, elts[1].data, elts[1].len);
     b->last = pg_write_uint8(b->last, 0);
 
@@ -646,18 +646,18 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     len = 0;
 
     if (!(cl = cl->next = plcf->bind = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 'B');
 
     if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(len)))) return "!ngx_create_temp_buf";
 
     if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 0);
 
     if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 0);
 
     if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
@@ -677,18 +677,18 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     len = 0;
 
     if (!(cl = cl->next = plcf->describe = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 'D');
 
     if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(len)))) return "!ngx_create_temp_buf";
 
     if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 'P');
 
     if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 0);
 
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
@@ -696,14 +696,14 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     len = 0;
 
     if (!(cl = cl->next = plcf->execute = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 'E');
 
     if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(len)))) return "!ngx_create_temp_buf";
 
     if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 0);
 
     if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
@@ -715,18 +715,18 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     len = 0;
 
     if (!(cl = cl->next = plcf->close = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 'C');
 
     if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(len)))) return "!ngx_create_temp_buf";
 
     if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 'P');
 
     if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 0);
 
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
@@ -734,7 +734,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     len = 0;
 
     if (!(cl = cl->next = plcf->sync = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
+    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(uint8_t)))) return "!ngx_create_temp_buf";
     b->last = pg_write_uint8(b->last, 'S');
 
     if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
