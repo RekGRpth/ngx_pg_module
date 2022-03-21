@@ -223,10 +223,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .value = (pg_parser_str_cb)ngx_pg_parser_value,
 };
 
-static void ngx_pg_save_cln_handler(void *data) {
-    ngx_pg_save_t *s = data;
-
-    ngx_connection_t *c = s->connection;
+static void ngx_pg_save_cln_handler(ngx_connection_t *c) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
 
     ngx_buf_t *b;
@@ -288,8 +285,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         s->connection = c;
         ngx_pool_cleanup_t *cln;
         if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
-        cln->data = s;
-        cln->handler = ngx_pg_save_cln_handler;
+        cln->data = c;
+        cln->handler = (ngx_pool_cleanup_pt)ngx_pg_save_cln_handler;
         ngx_pg_connect_t *connect;
         if (pscf) {
             connect = pscf->connect.elts;
