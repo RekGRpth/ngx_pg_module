@@ -6,17 +6,13 @@ ngx_module_t ngx_pg_module;
 typedef struct {
     ngx_chain_t *bind;
     ngx_chain_t *close;
+    ngx_chain_t *connect;
     ngx_chain_t *describe;
     ngx_chain_t *execute;
     ngx_chain_t *parse;
     ngx_chain_t *sync;
-} ngx_pg_query_t;
-
-typedef struct {
-    ngx_chain_t *connect;
     ngx_http_complex_value_t complex;
     ngx_http_upstream_conf_t upstream;
-    ngx_pg_query_t query;
 } ngx_pg_loc_conf_t;
 
 typedef struct {
@@ -289,7 +285,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         }
     }
     s->request = r;
-    for (ngx_chain_t *cmd = plcf->query.parse; cmd; cmd = cmd->next) {
+    for (ngx_chain_t *cmd = plcf->parse; cmd; cmd = cmd->next) {
         cl->buf = cmd->buf;
         if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
     }
@@ -639,7 +635,7 @@ static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
 
-    if (plcf->query.parse) return "duplicate";
+    if (plcf->parse) return "duplicate";
 
     ngx_buf_t *b;
     ngx_chain_t *cl, *cl_len;
@@ -647,7 +643,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 
     ngx_str_t *elts = cf->args->elts;
 
-    if (!(cl = plcf->query.parse = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if (!(cl = plcf->parse = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
     *b->last++ = (u_char)'P';
 
@@ -673,7 +669,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 
     len = 0;
 
-    if (!(cl = cl->next = plcf->query.bind = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if (!(cl = cl->next = plcf->bind = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
     *b->last++ = (u_char)'B';
 
@@ -708,7 +704,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 
     len = 0;
 
-    if (!(cl = cl->next = plcf->query.describe = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if (!(cl = cl->next = plcf->describe = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
     *b->last++ = (u_char)'D';
 
@@ -728,7 +724,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 
     len = 0;
 
-    if (!(cl = cl->next = plcf->query.execute = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if (!(cl = cl->next = plcf->execute = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
     *b->last++ = (u_char)'E';
 
@@ -749,7 +745,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 
     len = 0;
 
-    if (!(cl = cl->next = plcf->query.close = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if (!(cl = cl->next = plcf->close = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
     *b->last++ = (u_char)'C';
 
@@ -769,7 +765,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 
     len = 0;
 
-    if (!(cl = cl->next = plcf->query.sync = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
+    if (!(cl = cl->next = plcf->sync = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, sizeof(u_char)))) return "!ngx_create_temp_buf";
     *b->last++ = (u_char)'S';
 
@@ -780,7 +776,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     cl_len->buf->last += sizeof(len);
 
     cl->next = NULL;
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = plcf->query.parse; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = plcf->parse; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
 
     return NGX_CONF_OK;
 }
