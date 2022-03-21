@@ -288,16 +288,16 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         ngx_chain_t *connect = pscf ? pscf->connect : plcf->connect;
         for (ngx_chain_t *cmd = connect; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
-//            ngx_buf_t *b = cl->buf;
-//            b->pos = b->start;
+            ngx_buf_t *b = cl->buf;
+            b->pos = b->start;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
     }
     s->request = r;
     for (ngx_chain_t *cmd = plcf->parse; cmd; cmd = cmd->next) {
         cl->buf = cmd->buf;
-//        ngx_buf_t *b = cl->buf;
-//        b->pos = b->start;
+        ngx_buf_t *b = cl->buf;
+        b->pos = b->start;
         if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
     }
     cl->next = NULL;
@@ -742,7 +742,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     if (!(cl = cl->next = plcf->close = ngx_pg_close(cf->pool))) return NGX_CONF_ERROR;
     while (cl->next) cl = cl->next;
     if (!(cl = cl->next = plcf->sync = ngx_pg_sync(cf->pool))) return NGX_CONF_ERROR;
-    ngx_uint_t i = 0; for (ngx_chain_t *cl = plcf->parse; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = plcf->parse; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
     return NGX_CONF_OK;
 }
 
