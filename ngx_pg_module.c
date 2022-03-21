@@ -701,16 +701,16 @@ static char *ngx_pg_connect_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *c
 //    connect->us->fail_timeout = 10;
 //    connect->us->max_fails = 1;
 //    connect->us->weight = 1;
-    char *rv;
+//    char *rv;
     if (!(pscf->connect = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-    if ((rv = ngx_pg_connect(cf, cmd, pscf->connect)) != NGX_CONF_OK) return rv;
+    return ngx_pg_connect(cf, cmd, pscf->connect);
 //    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &connect->url.url);
 //    if (ngx_parse_url(cf->pool, &connect->url) != NGX_OK) return connect->url.err ? connect->url.err : "ngx_parse_url != NGX_OK";
 //    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "naddrs = %i", connect->url.naddrs);
 //    connect->us->addrs = connect->url.addrs;
 //    connect->us->naddrs = connect->url.naddrs;
 //    connect->us->name = connect->url.url;
-    return NGX_CONF_OK;
+//    return NGX_CONF_OK;
 }
 
 static char *ngx_pg_log_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
