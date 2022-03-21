@@ -227,15 +227,21 @@ static ngx_chain_t *ngx_pg_alloc_len(ngx_pool_t *p, uint32_t *len) {
     return cl;
 }
 
-static void ngx_pg_save_cln_handler(ngx_connection_t *c) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
-    ngx_chain_t *cl, *cl_len, *out, *last;
+static ngx_chain_t *ngx_pg_exit(ngx_pool_t *p) {
+    ngx_chain_t *cl, *cl_len, *sync;
     uint32_t len = 0;
-    if (!(cl = out = ngx_pg_write_uint8(c->pool, NULL, 'X'))) return;
-    if (!(cl = cl->next = cl_len = ngx_pg_alloc_len(c->pool, &len))) return;
+    if (!(cl = sync = ngx_pg_write_uint8(p, NULL, 'X'))) return NULL;
+    if (!(cl = cl->next = cl_len = ngx_pg_alloc_len(p, &len))) return NULL;
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
     cl->next = NULL;
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = out; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, c->log, 0, "%i:%i:%c", i++, *p, *p);
+    return sync;
+}
+
+static void ngx_pg_save_cln_handler(ngx_connection_t *c) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
+    ngx_chain_t *out, *last;
+    if (!(out = ngx_pg_exit(c->pool))) return;
+    ngx_uint_t i = 0; for (ngx_chain_t *cl = out; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, c->log, 0, "%i:%i:%c", i++, *p, *p);
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
     ngx_chain_writer(&ctx, NULL);
 }
