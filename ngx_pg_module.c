@@ -718,6 +718,22 @@ static char *ngx_pg_log_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     return ngx_log_set_log(cf, &pscf->log);
 }
 
+static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_loc_conf_t *plcf = conf;
+    if (plcf->upstream.upstream) return "duplicate";
+    ngx_http_core_loc_conf_t *clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
+    clcf->handler = ngx_pg_handler;
+    if (clcf->name.data[clcf->name.len - 1] == '/') clcf->auto_redirect = 1;
+    ngx_str_t *elts = cf->args->elts;
+    ngx_url_t url = {0};
+    url.no_resolve = 1;
+    url.url = elts[1];
+//    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &plcf->connect.url.url);
+    if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &url, 0))) return NGX_CONF_ERROR;
+//    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "naddrs = %i", plcf->connect.url.naddrs);
+    return NGX_CONF_OK;
+}
+
 static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
 
@@ -864,22 +880,6 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     cl->next = NULL;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = plcf->query.parse; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
 
-    return NGX_CONF_OK;
-}
-
-static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->upstream.upstream) return "duplicate";
-    ngx_http_core_loc_conf_t *clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
-    clcf->handler = ngx_pg_handler;
-    if (clcf->name.data[clcf->name.len - 1] == '/') clcf->auto_redirect = 1;
-    ngx_str_t *elts = cf->args->elts;
-    ngx_url_t url = {0};
-    url.no_resolve = 1;
-    url.url = elts[1];
-//    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "url = %V", &plcf->connect.url.url);
-    if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &url, 0))) return NGX_CONF_ERROR;
-//    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "naddrs = %i", plcf->connect.url.naddrs);
     return NGX_CONF_OK;
 }
 
