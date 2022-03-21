@@ -213,27 +213,16 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
 
 static void ngx_pg_save_cln_handler(ngx_connection_t *c) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
-    static ngx_chain_t *out = NULL;
-    if (!out) {
-        ngx_buf_t *b;
-        ngx_chain_t *cl, *cl_len;
-        uint32_t len = 0;
-
-        if (!(cl = out = ngx_alloc_chain_link(c->pool))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_alloc_chain_link"); return; }
-        if (!(cl->buf = b = ngx_create_temp_buf(c->pool, sizeof(u_char)))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_create_temp_buf"); return; }
-        *b->last++ = (u_char)'X';
-
-        if (!(cl = cl_len = cl->next = ngx_alloc_chain_link(c->pool))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_alloc_chain_link"); return; }
-        if (!(cl->buf = b = ngx_create_temp_buf(c->pool, len += sizeof(len)))) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "!ngx_create_temp_buf"); return; }
-
-        *(uint32_t *)cl_len->buf->last = htonl(len);
-        cl_len->buf->last += sizeof(len);
-
-        cl->next = NULL;
-//        ngx_uint_t i = 0; for (ngx_chain_t *cl = out; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, c->log, 0, "%i:%i:%c", i++, *p, *p);
-    }
+    u_char disconnect[] = {'X', 0, 0, 0, 4};
+    ngx_buf_t buf = {0};
+    buf.end = (u_char *)&disconnect + sizeof(disconnect);
+    buf.last = (u_char *)&disconnect + sizeof(disconnect);
+    buf.pos = (u_char *)&disconnect;
+    buf.start = (u_char *)&disconnect;
+    buf.temporary = 1;
+    ngx_chain_t out = {.buf = &buf, .next = NULL};
     ngx_chain_t *last;
-    ngx_chain_writer_ctx_t ctx = {.out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0};
+    ngx_chain_writer_ctx_t ctx = {.out = &out, .last = &last, .connection = c, .pool = c->pool, .limit = 0};
     ngx_chain_writer(&ctx, NULL);
 }
 
