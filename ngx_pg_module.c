@@ -574,33 +574,12 @@ static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_chain_t **co
     uint32_t len = 0;
     if (!(cl = *connect = ngx_pg_alloc_len(cf->pool, &len))) return NGX_CONF_ERROR;
     if (!(cl = cl->next = ngx_pg_write_uint32(cf->pool, &len, 0x00030000))) return NGX_CONF_ERROR;
-
-
-//    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(len)))) return "!ngx_create_temp_buf";
-
-//    if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-//    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(ver)))) return "!ngx_create_temp_buf";
-//    b->last = pg_write_uint32(b->last, ver);
-
     ngx_str_t *elts = cf->args->elts;
-    for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
-        if (!(cl = cl->next = ngx_pg_write_opt(cf->pool, &len, &elts[i]))) return NGX_CONF_ERROR;
-//        if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-//        if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += elts[i].len + sizeof(uint8_t)))) return "!ngx_create_temp_buf";
-//        for (ngx_uint_t j = 0; j < elts[i].len; j++) b->last = pg_write_uint8(b->last, elts[i].data[j] == '=' ? 0 : elts[i].data[j]);
-//        b->last = pg_write_uint8(b->last, 0);
-    }
-
+    for (ngx_uint_t i = 1; i < cf->args->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(cf->pool, &len, &elts[i]))) return NGX_CONF_ERROR;
     if (!(cl = cl->next = ngx_pg_write_uint8(cf->pool, &len, 0))) return NGX_CONF_ERROR;
-//    if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
-//    if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(uint8_t)))) return "!ngx_create_temp_buf";
-//    b->last = pg_write_uint8(b->last, 0);
-
     (*connect)->buf->last = pg_write_uint32((*connect)->buf->last, len);
-
     cl->next = NULL;
-
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = connect; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = *connect; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
     return NGX_CONF_OK;
 }
 
