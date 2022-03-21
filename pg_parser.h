@@ -62,3 +62,13 @@ typedef struct pg_parser_t pg_parser_t;
 long pg_parser_execute(pg_parser_t *parser, size_t size, uint8_t **data);
 size_t pg_parser_size(void);
 void pg_parser_init(pg_parser_t *parser, const pg_parser_settings_t *settings, const void *data);
+
+inline static uint8_t *ngx_pg_write_long(uint8_t *p, long l) {
+    for (uint8_t i = 4; i; *p++ = l >> (2 << 2) * --i);
+    return p;
+}
+
+inline static uint8_t *ngx_pg_write_short(uint8_t *p, short s) {
+    for (uint8_t i = 2; i; *p++ = s >> (2 << 2) * --i);
+    return p;
+}

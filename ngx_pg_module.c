@@ -524,16 +524,6 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
     return NGX_OK;
 }
 
-static u_char *ngx_pg_write_long(u_char *p, long l) {
-    for (uint8_t i = 4; i; *p++ = l >> (2 << 2) * --i);
-    return p;
-}
-
-static u_char *ngx_pg_write_short(u_char *p, short s) {
-    for (uint8_t i = 2; i; *p++ = s >> (2 << 2) * --i);
-    return p;
-}
-
 static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_chain_t *connect) {
     ngx_buf_t *b;
     ngx_chain_t *cl = connect;
