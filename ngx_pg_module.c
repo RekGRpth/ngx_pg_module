@@ -738,9 +738,9 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     if (!(cl = cl->next = plcf->describe = ngx_pg_describe(cf->pool))) return NGX_CONF_ERROR;
     while (cl->next) cl = cl->next;
     if (!(cl = cl->next = plcf->execute = ngx_pg_execute(cf->pool))) return NGX_CONF_ERROR;
-    while (cl->next) cl = cl->next;
-//    if (!(cl = cl->next = plcf->close = ngx_pg_close(cf->pool))) return NGX_CONF_ERROR;
 //    while (cl->next) cl = cl->next;
+//    if (!(cl = cl->next = plcf->close = ngx_pg_close(cf->pool))) return NGX_CONF_ERROR;
+    while (cl->next) cl = cl->next;
     if (!(cl = cl->next = plcf->sync = ngx_pg_sync(cf->pool))) return NGX_CONF_ERROR;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = plcf->parse; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
     return NGX_CONF_OK;
