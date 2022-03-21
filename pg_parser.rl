@@ -148,14 +148,14 @@ typedef struct pg_parser_t {
     write data;
 }%%
 
-long pg_parser_execute(pg_parser_t *parser, size_t size, uint8_t **data) {
+intptr_t pg_parser_execute(pg_parser_t *parser, size_t size, uint8_t **data) {
     const pg_parser_settings_t *settings = parser->settings;
     const uint8_t *eof = NULL;
     const uint8_t *p = *data;
     const uint8_t *pe = p + size;
     const uint8_t *s = parser->cs == parser->str ? p : NULL;
     int cs = parser->cs;
-    long rc = 0;
+    intptr_t rc = 0;
     %% write exec;
     parser->cs = cs;
     *data = p;
