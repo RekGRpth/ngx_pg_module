@@ -525,12 +525,12 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
 }
 
 static u_char *ngx_pg_write_long(u_char *p, long n) {
-    for (u_char i = 4; i; *p++ = n >> (2 << 2) * --i);
+    for (uint8_t i = 4; i; *p++ = n >> (2 << 2) * --i);
     return p;
 }
 
 static u_char *ngx_pg_write_short(u_char *p, long n) {
-    for (u_char i = 2; i; *p++ = n >> (2 << 2) * --i);
+    for (uint8_t i = 2; i; *p++ = n >> (2 << 2) * --i);
     return p;
 }
 
@@ -640,8 +640,7 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += sizeof(uint16_t)))) return "!ngx_create_temp_buf";
     b->last = ngx_pg_write_short(b->last, 0);
 
-    *(uint32_t *)cl_len->buf->last = htonl(len);
-    cl_len->buf->last += sizeof(len);
+    cl_len->buf->last = ngx_pg_write_long(cl_len->buf->last, len);
 
     len = 0;
 
