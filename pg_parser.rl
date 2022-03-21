@@ -15,7 +15,7 @@ typedef struct pg_parser_t {
     uint16_t s;
     uint32_t l;
     uint32_t nbytes;
-    unsigned char i;
+    uint8_t i;
 } pg_parser_t;
 
 %%{
@@ -148,12 +148,12 @@ typedef struct pg_parser_t {
     write data;
 }%%
 
-long pg_parser_execute(pg_parser_t *parser, size_t size, unsigned char **data) {
+long pg_parser_execute(pg_parser_t *parser, size_t size, uint8_t **data) {
     const pg_parser_settings_t *settings = parser->settings;
-    const unsigned char *eof = NULL;
-    const unsigned char *p = *data;
-    const unsigned char *pe = p + size;
-    const unsigned char *s = parser->cs == parser->str ? p : NULL;
+    const uint8_t *eof = NULL;
+    const uint8_t *p = *data;
+    const uint8_t *pe = p + size;
+    const uint8_t *s = parser->cs == parser->str ? p : NULL;
     int cs = parser->cs;
     long rc = 0;
     %% write exec;
