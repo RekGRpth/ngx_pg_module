@@ -656,7 +656,7 @@ inline static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, ngx_str_t str) {
     uint32_t len = 0;
     if (!(cl = parse = ngx_pg_write_uint8(p, NULL, 'P'))) return NULL;
     if (!(cl = cl->next = cl_len = ngx_pg_alloc_len(p, &len))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_uint8(p, &len, 0))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_str(p, &len, (ngx_str_t)ngx_string("")))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &len, str))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_uint16(p, &len, 0))) return NULL;
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
