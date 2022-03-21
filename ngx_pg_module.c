@@ -540,7 +540,7 @@ static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_chain_t *con
     for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
         if (!(cl = cl->next = ngx_alloc_chain_link(cf->pool))) return "!ngx_alloc_chain_link";
         if (!(cl->buf = b = ngx_create_temp_buf(cf->pool, len += elts[i].len + sizeof(u_char)))) return "!ngx_create_temp_buf";
-        for (ngx_uint_t j = 0; j < elts[i].len; j++) *b->last++ = elts[i].data[j] == '=' ? (u_char)0 : elts[i].data[j];
+        for (ngx_uint_t j = 0; j < elts[i].len; j++) b->last = pg_write_uint8(b->last, elts[i].data[j] == '=' ? 0 : elts[i].data[j]);
         b->last = pg_write_uint8(b->last, 0);
     }
 
