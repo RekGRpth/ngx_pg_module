@@ -566,14 +566,14 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_int_t rc = NGX_OK;
     while (b->pos < b->last && (rc = pg_parser_execute(s->parser, b->last - b->pos, &b->pos)) == NGX_OK);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos = %p", b->pos);
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->last = %p", b->last);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
     if (rc == NGX_OK) {
         char buf[1];
         ngx_connection_t *c = s->connection;
         rc = s->state == ngx_pg_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
     }
     if (b->pos == b->last) b->pos = b->last = b->start;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
     return rc;
 }
 
