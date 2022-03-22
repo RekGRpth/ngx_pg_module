@@ -103,6 +103,11 @@ static ngx_int_t ngx_pg_parser_error(ngx_pg_save_t *s, const void *ptr) {
     if (r) {
         ngx_http_upstream_t *u = r->upstream;
         u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
+        ngx_pg_data_t *d = u->peer.data;
+        ngx_pg_key_val_t *error;
+        if (!(error = ngx_array_push(d->error))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
+        ngx_memzero(error, sizeof(*error));
+        if (!(error->key.data = ngx_pcalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
     }
     return NGX_OK;
 }
