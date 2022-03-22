@@ -246,8 +246,16 @@ inline static ngx_chain_t *ngx_pg_exit(ngx_pool_t *p) {
     return sync;
 }
 
-static void ngx_pg_save_cln_handler(ngx_connection_t *c) {
+static void ngx_pg_save_cln_handler(ngx_pg_save_t *s) {
+    ngx_connection_t *c = s->connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
+    ngx_http_request_t *r = s->request;
+    if (r) {
+        ngx_http_upstream_t *u = r->upstream;
+        ngx_pg_data_t *d = u->peer.data;
+        d->save = NULL;
+        s->request = NULL;
+    }
     ngx_chain_t *out, *last;
     if (!(out = ngx_pg_exit(c->pool))) return;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = out; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, c->log, 0, "%i:%i:%c", i++, *p, *p);
@@ -289,7 +297,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if ((char *)s != (char *)c->pool + sizeof(*c->pool)) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "wrong pool"); return NGX_ERROR; }
         ngx_pool_cleanup_t *cln;
         if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
-        cln->data = c;
+        cln->data = s;
         cln->handler = (ngx_pool_cleanup_pt)ngx_pg_save_cln_handler;
         if (ngx_array_init(&s->option, c->pool, 1, sizeof(ngx_pg_key_val_t)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
         if (!(s->parser = ngx_pcalloc(c->pool, pg_parser_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
@@ -569,6 +577,7 @@ static ngx_int_t pg_option_get_handler(ngx_http_request_t *r, ngx_http_variable_
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
+    if (!s) return NGX_OK;
     ngx_pg_key_val_t *elts = s->option.elts;
     ngx_str_t *name = (ngx_str_t *)data;
     ngx_uint_t i;
