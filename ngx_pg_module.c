@@ -84,7 +84,12 @@ static ngx_int_t ngx_pg_parser_constraint(ngx_pg_save_t *s, size_t len, const u_
 static ngx_int_t ngx_pg_parser_context(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_datatype(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_detail(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
-static ngx_int_t ngx_pg_parser_error(ngx_pg_save_t *s) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); return NGX_OK; }
+static ngx_int_t ngx_pg_parser_error(ngx_pg_save_t *s, const void *ptr) {
+    uint32_t len;
+    if (!(len = *(uint32_t *)ptr)) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); return NGX_ERROR; }
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
+    return NGX_OK;
+}
 static ngx_int_t ngx_pg_parser_fatal(ngx_pg_save_t *s) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
 static ngx_int_t ngx_pg_parser_field(ngx_pg_save_t *s) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_file(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
@@ -171,7 +176,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .context = (pg_parser_str_cb)ngx_pg_parser_context,
     .datatype = (pg_parser_str_cb)ngx_pg_parser_datatype,
     .detail = (pg_parser_str_cb)ngx_pg_parser_detail,
-    .error = (pg_parser_cb)ngx_pg_parser_error,
+    .error = (pg_parser_ptr_cb)ngx_pg_parser_error,
     .fatal = (pg_parser_cb)ngx_pg_parser_fatal,
     .field = (pg_parser_cb)ngx_pg_parser_field,
     .file = (pg_parser_str_cb)ngx_pg_parser_file,

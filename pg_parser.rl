@@ -35,7 +35,7 @@ typedef struct pg_parser_t {
     action context { if (str && settings->context && (rc = settings->context(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action datatype { if (str && settings->datatype && (rc = settings->datatype(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action detail { if (str && settings->detail && (rc = settings->detail(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
-    action error { if (settings->error && (rc = settings->error(parser->data))) fbreak; }
+    action error { if (settings->error && (rc = settings->error(parser->data, &parser->uint32))) fbreak; }
     action fatal { if (settings->fatal && (rc = settings->fatal(parser->data))) fbreak; }
     action field { if (settings->field && (rc = settings->field(parser->data))) fbreak; }
     action file { if (str && settings->file && (rc = settings->file(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
@@ -137,7 +137,7 @@ typedef struct pg_parser_t {
     |"3" any{4} @close
     |"C" any{4} @complete command
     |"D" any{4} @tup ntups tup*
-    |"E" any{4} @error error*
+    |"E" uint32 @error error*
     |"K" any{4} @secret pid key
     |"R" any{4} @auth method
     |"S" uint32 @status option value
