@@ -58,7 +58,7 @@ typedef struct {
     ngx_pool_t *pool;
 } ngx_pg_data_t;
 
-static ngx_int_t ngx_pg_add_response(ngx_http_request_t *r, size_t len, const u_char *data) {
+static ngx_int_t ngx_pg_add_response(ngx_http_request_t *r, size_t len, const u_char *str) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     ngx_chain_t *cl, **ll;
@@ -67,12 +67,31 @@ static ngx_int_t ngx_pg_add_response(ngx_http_request_t *r, size_t len, const u_
     *ll = cl;
     ngx_buf_t *b = cl->buf;
     b->flush = 1;
-    b->last = data + len;
+    b->last = str + len;
     b->memory = 1;
-    b->pos = data;
+    b->pos = str;
     b->tag = u->output.tag;
     b->temporary = 1;
     for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%c", *p, *p);
+    return NGX_OK;
+}
+
+static ngx_int_t ngx_pg_add_error(ngx_http_request_t *r, ngx_str_t key, size_t len, const u_char *str) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    ngx_http_upstream_t *u = r->upstream;
+    ngx_pg_data_t *d = u->peer.data;
+    if (d->error->nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!nelts"); return NGX_ERROR; }
+    ngx_pg_key_val_t *elts = d->error->elts;
+    ngx_pg_key_val_t *error = &elts[d->error->nelts - 1];
+    if (error->key.len != key.len || ngx_strncasecmp(error->key.data, key.data, key.len)) {
+        if (!(error = ngx_array_push(d->error))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
+        ngx_memzero(error, sizeof(*error));
+        error->val.data = elts[d->error->nelts - 2].val.data + elts[d->error->nelts - 2].val.len + 1;
+    }
+    error->key = key;
+    (void)strncat((char *)error->val.data, (char *)str, len);
+    error->val.len = ngx_strlen(error->val.data);
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%V = %V", &error->key, &error->val);
     return NGX_OK;
 }
 
@@ -88,7 +107,12 @@ static ngx_int_t ngx_pg_parser_byte(ngx_pg_save_t *s, size_t len, const u_char *
 }
 static ngx_int_t ngx_pg_parser_close(ngx_pg_save_t *s) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_columnid(ngx_pg_save_t *s, const void *ptr) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", *(uint16_t *)ptr); return NGX_OK; }
-static ngx_int_t ngx_pg_parser_column(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
+static ngx_int_t ngx_pg_parser_column(ngx_pg_save_t *s, size_t len, const u_char *str) {
+    ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str);
+    ngx_http_request_t *r = s->request;
+    if (r) return ngx_pg_add_error(r, (ngx_str_t)ngx_string("column"), len, str);
+    return NGX_OK;
+}
 static ngx_int_t ngx_pg_parser_command(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_complete(ngx_pg_save_t *s) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_constraint(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
@@ -107,7 +131,7 @@ static ngx_int_t ngx_pg_parser_error(ngx_pg_save_t *s, const void *ptr) {
         ngx_pg_key_val_t *error;
         if (!(error = ngx_array_push(d->error))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
         ngx_memzero(error, sizeof(*error));
-        if (!(error->key.data = ngx_pcalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
+        if (!(error->val.data = ngx_pcalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
     }
     return NGX_OK;
 }
@@ -133,9 +157,10 @@ static ngx_int_t ngx_pg_parser_option(ngx_pg_save_t *s, size_t len, const u_char
     if (!len) return NGX_OK;
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
     if (!s->option->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); return NGX_ERROR; }
-    ngx_pg_key_val_t *option = s->option->elts;
-    option = &option[s->option->nelts - 1];
+    ngx_pg_key_val_t *elts = s->option->elts;
+    ngx_pg_key_val_t *option = &elts[s->option->nelts - 1];
     (void)strncat((char *)option->key.data, (char *)str, len);
+    option->key.len = ngx_strlen(option->key.data);
     return NGX_OK;
 }
 static ngx_int_t ngx_pg_parser_parse(ngx_pg_save_t *s) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); return NGX_OK; }
@@ -170,7 +195,7 @@ static ngx_int_t ngx_pg_parser_value(ngx_pg_save_t *s, size_t len, const u_char 
     if (!s->option->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); return NGX_ERROR; }
     ngx_pg_key_val_t *option = s->option->elts;
     option = &option[s->option->nelts - 1];
-    if (!option->val.data) option->val.data = option->key.data + (option->key.len = ngx_strlen(option->key.data)) + 1;
+    if (!option->val.data) option->val.data = option->key.data + option->key.len + 1;
     (void)strncat((char *)option->val.data, (char *)str, len);
     option->val.len = ngx_strlen(option->val.data);
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V = %V", &option->key, &option->val);
