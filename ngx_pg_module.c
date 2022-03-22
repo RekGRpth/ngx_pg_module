@@ -33,12 +33,18 @@ typedef struct {
     ngx_str_t val;
 } ngx_pg_key_val_t;
 
+/*typedef struct {
+    ngx_pool_t *pool;
+    void *data;
+} ngx_pg_pool_t;*/
+
 typedef struct {
     ngx_array_t option;
     ngx_buf_t buffer;
     ngx_connection_t *connection;
     ngx_http_request_t *request;
     ngx_pg_state_t state;
+    ngx_pool_t *pool;
     pg_parser_t *parser;
     struct {
         ngx_event_handler_pt read_handler;
@@ -53,6 +59,7 @@ typedef struct {
     ngx_peer_connection_t peer;
     ngx_pg_save_t *save;
     ngx_pg_srv_conf_t *conf;
+    ngx_pool_t *pool;
 } ngx_pg_data_t;
 
 static ngx_int_t ngx_pg_add_response(ngx_http_request_t *r, size_t len, const u_char *data) {
@@ -147,7 +154,7 @@ static ngx_int_t ngx_pg_parser_status(ngx_pg_save_t *s, const void *ptr) {
     ngx_pg_key_val_t *option;
     if (!(option = ngx_array_push(&s->option))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
     ngx_memzero(option, sizeof(*option));
-    if (!(option->key.data = ngx_pcalloc(s->connection->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
+    if (!(option->key.data = ngx_pcalloc(s->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
     return NGX_OK;
 }
 static ngx_int_t ngx_pg_parser_tableid(ngx_pg_save_t *s, const void *ptr) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", *(uint32_t *)ptr); return NGX_OK; }
@@ -260,7 +267,7 @@ static void ngx_pg_save_cln_handler(ngx_pg_save_t *s) {
         ngx_pg_data_t *d = u->peer.data;
         d->save = NULL;
         s->request = NULL;
-    }
+    } else ngx_destroy_pool(s->pool);
     ngx_chain_t *out, *last;
     if (!(out = ngx_pg_exit(c->pool))) return;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = out; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, c->log, 0, "%i:%i:%c", i++, *p, *p);
@@ -303,7 +310,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
         cln->data = s;
         cln->handler = (ngx_pool_cleanup_pt)ngx_pg_save_cln_handler;
-        if (ngx_array_init(&s->option, c->pool, 1, sizeof(ngx_pg_key_val_t)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
+        if (!(s->pool = ngx_create_pool(128, pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
+        if (ngx_array_init(&s->option, s->pool, 1, sizeof(ngx_pg_key_val_t)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
         if (!(s->parser = ngx_pcalloc(c->pool, pg_parser_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         pg_parser_init(s->parser, &ngx_pg_parser_settings, s);
         s->connection = c;
@@ -315,6 +323,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
     }
+    d->pool = s->pool;
     s->request = r;
     for (ngx_chain_t *cmd = plcf->parse; cmd; cmd = cmd->next) {
         cl->buf = cmd->buf;
@@ -372,10 +381,22 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     c->write->log = pscf->log;
 }
 
+static void ngx_pg_data_cln_handler(ngx_pg_data_t *d) {
+    ngx_http_request_t *r = d->request;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    ngx_pg_save_t *s = d->save;
+    if (s) return;
+    ngx_destroy_pool(d->pool);
+}
+
 static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_conf_t *uscf) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "srv_conf = %s", uscf->srv_conf ? "true" : "false");
     ngx_pg_data_t *d;
     if (!(d = ngx_pcalloc(r->pool, sizeof(*d)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+    ngx_pool_cleanup_t *cln;
+    if (!(cln = ngx_pool_cleanup_add(r->pool, 0))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
+    cln->data = d;
+    cln->handler = (ngx_pool_cleanup_pt)ngx_pg_data_cln_handler;
     if (uscf->srv_conf) {
         ngx_pg_srv_conf_t *pscf = ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module);
         if (pscf->peer.init(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
