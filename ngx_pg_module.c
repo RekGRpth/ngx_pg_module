@@ -425,7 +425,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     if (rc == NGX_OK) {
         char buf[1];
         ngx_connection_t *c = s->connection;
-        rc = recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
+        rc = s->state == ngx_pg_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
     }
     if (b->pos == b->last) b->pos = b->last = b->start;
     return rc;
