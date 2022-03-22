@@ -499,7 +499,8 @@ static void ngx_pg_data_cln_handler(ngx_pg_data_t *d) {
     ngx_http_request_t *r = d->request;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_pg_save_t *s = d->save;
-    if (s) return;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%p", s);
+    if (!s) return;
     ngx_destroy_pool(d->pool);
 }
 
