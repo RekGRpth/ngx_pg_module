@@ -80,7 +80,7 @@ static ngx_int_t ngx_pg_add_error(ngx_http_request_t *r, ngx_str_t key, size_t l
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     ngx_pg_data_t *d = u->peer.data;
-    if (d->error->nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!nelts"); return NGX_ERROR; }
+    if (!d->error->nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!nelts"); return NGX_ERROR; }
     ngx_pg_key_val_t *elts = d->error->elts;
     ngx_pg_key_val_t *error = &elts[d->error->nelts - 1];
     if (error->key.len != key.len || ngx_strncasecmp(error->key.data, key.data, key.len)) {
@@ -170,7 +170,12 @@ static ngx_int_t ngx_pg_parser_query(ngx_pg_save_t *s, size_t len, const u_char 
 static ngx_int_t ngx_pg_parser_ready(ngx_pg_save_t *s) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_schema(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_secret(ngx_pg_save_t *s) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); return NGX_OK; }
-static ngx_int_t ngx_pg_parser_severity(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
+static ngx_int_t ngx_pg_parser_severity(ngx_pg_save_t *s, size_t len, const u_char *str) {
+    ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str);
+    ngx_http_request_t *r = s->request;
+    if (r) return ngx_pg_add_error(r, (ngx_str_t)ngx_string("severity"), len, str);
+    return NGX_OK;
+}
 static ngx_int_t ngx_pg_parser_sqlstate(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_statement(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_status(ngx_pg_save_t *s, const void *ptr) {
