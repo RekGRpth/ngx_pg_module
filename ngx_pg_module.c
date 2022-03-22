@@ -361,6 +361,7 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "pscf = %p", pscf);
     if (!pscf) return;
     ngx_pg_save_t *s = d->save;
+    d->save = NULL;
     s->request = NULL;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "s = %p", s);
     ngx_connection_t *c = s->connection;
