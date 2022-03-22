@@ -93,6 +93,11 @@ static ngx_int_t ngx_pg_parser_context(ngx_pg_save_t *s, size_t len, const u_cha
 static ngx_int_t ngx_pg_parser_datatype(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_detail(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_error(ngx_pg_save_t *s, const void *ptr) {
+    ngx_http_request_t *r = s->request;
+    if (r) {
+        ngx_http_upstream_t *u = r->upstream;
+        u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
     uint32_t len;
     if (!(len = *(uint32_t *)ptr)) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); return NGX_ERROR; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
