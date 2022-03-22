@@ -435,6 +435,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     }
     d->option = s->option;
     d->pool = s->pool;
+    s->pool->log = pc->log;
     s->request = r;
     for (ngx_chain_t *cmd = plcf->parse; cmd; cmd = cmd->next) {
         cl->buf = cmd->buf;
@@ -487,11 +488,13 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     c->data = s;
     c->read->handler = ngx_pg_read_handler;
     c->write->handler = ngx_pg_write_handler;
+    s->pool->log = c->log;
     if (!pscf->log) return;
     c->log = pscf->log;
-    c->pool->log = pscf->log;
-    c->read->log = pscf->log;
-    c->write->log = pscf->log;
+    c->pool->log = c->log;
+    c->read->log = c->log;
+    c->write->log = c->log;
+    s->pool->log = c->log;
 }
 
 static void ngx_pg_data_cln_handler(ngx_pg_data_t *d) {
