@@ -373,18 +373,14 @@ inline static ngx_chain_t *ngx_pg_exit(ngx_pool_t *p) {
 static void ngx_pg_save_cln_handler(ngx_pg_save_t *s) {
     ngx_connection_t *c = s->connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
-    ngx_http_request_t *r = s->request;
-    if (r) {
-        ngx_http_upstream_t *u = r->upstream;
-        ngx_pg_data_t *d = u->peer.data;
-        d->save = NULL;
-        s->request = NULL;
-    } else ngx_destroy_pool(s->pool);
     ngx_chain_t *out, *last;
     if (!(out = ngx_pg_exit(c->pool))) return;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = out; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, c->log, 0, "%i:%i:%c", i++, *p, *p);
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
     ngx_chain_writer(&ctx, NULL);
+    ngx_http_request_t *r = s->request;
+    if (r) return;
+    ngx_destroy_pool(s->pool);
 }
 
 static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
@@ -477,6 +473,7 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "pscf = %p", pscf);
     if (!pscf) return;
     ngx_pg_save_t *s = d->save;
+    d->pool = NULL;
     d->save = NULL;
     s->request = NULL;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "s = %p", s);
@@ -498,10 +495,10 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
 static void ngx_pg_data_cln_handler(ngx_pg_data_t *d) {
     ngx_http_request_t *r = d->request;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    ngx_pg_save_t *s = d->save;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%p", s);
-    if (!s) return;
-    ngx_destroy_pool(d->pool);
+    ngx_pool_t *p = d->pool;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%p", p);
+    if (!p) return;
+    ngx_destroy_pool(p);
 }
 
 static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_conf_t *uscf) {
