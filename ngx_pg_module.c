@@ -383,6 +383,7 @@ static void ngx_pg_save_cln_handler(ngx_pg_save_t *s) {
     ngx_pool_t *p = s->pool;
     if (!p) return;
     ngx_destroy_pool(p);
+    ngx_close_connection(c);
 }
 
 static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
