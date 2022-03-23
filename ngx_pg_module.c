@@ -1025,7 +1025,7 @@ static ngx_chain_t *ngx_pg_sync(ngx_pool_t *p) {
 
 static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->query) return "duplicate";
+    if (plcf->query || plcf->parse) return "duplicate";
     ngx_str_t *elts = cf->args->elts;
     ngx_str_t query = elts[1];
     if (!(plcf->close = ngx_pg_close(cf->pool))) return NGX_CONF_ERROR;
