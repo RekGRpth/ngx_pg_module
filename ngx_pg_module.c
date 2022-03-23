@@ -401,6 +401,15 @@ static ngx_chain_t *ngx_pg_write_str(ngx_pool_t *p, uint32_t *len, ngx_str_t str
     return cl;
 }
 
+static ngx_chain_t *ngx_pg_write_byte(ngx_pool_t *p, uint32_t *len, ngx_str_t str) {
+    ngx_chain_t *cl;
+    if (!(cl = ngx_alloc_chain_link(p))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_alloc_chain_link"); return NULL; }
+    if (!(cl->buf = ngx_create_temp_buf(p, str.len))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_create_temp_buf"); return NULL; }
+    if (str.len) cl->buf->last = ngx_copy(cl->buf->last, str.data, str.len);
+    if (len) *len += str.len;
+    return cl;
+}
+
 static ngx_chain_t *ngx_pg_write_uint16(ngx_pool_t *p, uint32_t *len, uint16_t uint16) {
     ngx_chain_t *cl;
     if (!(cl = ngx_alloc_chain_link(p))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_alloc_chain_link"); return NULL; }
@@ -436,7 +445,7 @@ static ngx_chain_t *ngx_pg_bind(ngx_http_request_t *r) {
             ngx_str_t value;
             if (ngx_http_complex_value(r, &elts[i].complex, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "ngx_http_complex_value != NGX_OK"); return NULL; }
             if (!(cl = cl->next = ngx_pg_write_uint32(p, &len, value.len))) return NULL;
-            if (!(cl = cl->next = ngx_pg_write_str(p, &len, value))) return NULL;
+            if (!(cl = cl->next = ngx_pg_write_byte(p, &len, value))) return NULL;
         } else {
             if (!(cl = cl->next = ngx_pg_write_uint32(p, &len, -1))) return NULL;
         }
