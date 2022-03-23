@@ -510,8 +510,32 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         }
         if (!(cl = cl->next = ngx_pg_bind(r))) return NGX_ERROR;
         while (cl->next) cl = cl->next;
+        for (ngx_chain_t *cmd = plcf->parse; cmd; cmd = cmd->next) {
+            cl->buf = cmd->buf;
+            ngx_buf_t *b = cl->buf;
+            b->pos = b->start;
+            if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        }
+        for (ngx_chain_t *cmd = plcf->execute; cmd; cmd = cmd->next) {
+            cl->buf = cmd->buf;
+            ngx_buf_t *b = cl->buf;
+            b->pos = b->start;
+            if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        }
+        for (ngx_chain_t *cmd = plcf->close; cmd; cmd = cmd->next) {
+            cl->buf = cmd->buf;
+            ngx_buf_t *b = cl->buf;
+            b->pos = b->start;
+            if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        }
+        for (ngx_chain_t *cmd = plcf->sync; cmd; cmd = cmd->next) {
+            cl->buf = cmd->buf;
+            ngx_buf_t *b = cl->buf;
+            b->pos = b->start;
+            if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        }
     } else {
-        for (ngx_chain_t *cmd = plcf->query; cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = plcf->describe; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
             b->pos = b->start;
@@ -519,7 +543,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         }
     }
     cl->next = NULL;
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%i:%i:%c", i++, *p, *p);
+    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%i:%i:%c", i++, *p, *p);
     return NGX_DONE;
 }
 
