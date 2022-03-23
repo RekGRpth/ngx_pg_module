@@ -6,7 +6,6 @@ typedef struct {
     pg_parser_cb auth;
     pg_parser_cb bind;
     pg_parser_cb close;
-    pg_parser_cb complete;
     pg_parser_cb fatal;
     pg_parser_cb field;
     pg_parser_cb idle;
@@ -19,6 +18,7 @@ typedef struct {
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb atttypmod;
     pg_parser_ptr_cb columnid;
+    pg_parser_ptr_cb complete;
     pg_parser_ptr_cb error;
     pg_parser_ptr_cb format;
     pg_parser_ptr_cb key;
