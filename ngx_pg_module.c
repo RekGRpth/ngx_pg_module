@@ -501,7 +501,14 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     d->pool = s->pool;
     s->pool->log = pc->log;
     s->request = r;
-    if (plcf->arg.nelts) {
+    if (plcf->query) {
+        for (ngx_chain_t *cmd = plcf->query; cmd; cmd = cmd->next) {
+            cl->buf = cmd->buf;
+            ngx_buf_t *b = cl->buf;
+            b->pos = b->start;
+            if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        }
+    } else {
         for (ngx_chain_t *cmd = plcf->parse; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
@@ -529,13 +536,6 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
         for (ngx_chain_t *cmd = plcf->sync; cmd; cmd = cmd->next) {
-            cl->buf = cmd->buf;
-            ngx_buf_t *b = cl->buf;
-            b->pos = b->start;
-            if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
-        }
-    } else {
-        for (ngx_chain_t *cmd = plcf->query; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
             b->pos = b->start;
@@ -1028,12 +1028,15 @@ static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *con
     if (plcf->query || plcf->parse) return "duplicate";
     ngx_str_t *elts = cf->args->elts;
     ngx_str_t query = elts[1];
-    if (!(plcf->close = ngx_pg_close(cf->pool))) return NGX_CONF_ERROR;
-    if (!(plcf->describe = ngx_pg_describe(cf->pool))) return NGX_CONF_ERROR;
-    if (!(plcf->execute = ngx_pg_execute(cf->pool))) return NGX_CONF_ERROR;
-    if (!(plcf->parse = ngx_pg_parse(cf->pool, query, &plcf->arg))) return NGX_CONF_ERROR;
-    if (!(plcf->query = ngx_pg_query(cf->pool, query))) return NGX_CONF_ERROR;
-    if (!(plcf->sync = ngx_pg_sync(cf->pool))) return NGX_CONF_ERROR;
+    if (plcf->arg.nelts) {
+        if (!(plcf->close = ngx_pg_close(cf->pool))) return NGX_CONF_ERROR;
+        if (!(plcf->describe = ngx_pg_describe(cf->pool))) return NGX_CONF_ERROR;
+        if (!(plcf->execute = ngx_pg_execute(cf->pool))) return NGX_CONF_ERROR;
+        if (!(plcf->parse = ngx_pg_parse(cf->pool, query, &plcf->arg))) return NGX_CONF_ERROR;
+        if (!(plcf->sync = ngx_pg_sync(cf->pool))) return NGX_CONF_ERROR;
+    } else {
+        if (!(plcf->query = ngx_pg_query(cf->pool, query))) return NGX_CONF_ERROR;
+    }
     return NGX_CONF_OK;
 }
 
