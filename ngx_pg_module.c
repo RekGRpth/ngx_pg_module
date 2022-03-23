@@ -510,7 +510,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         }
         if (!(cl = cl->next = ngx_pg_bind(r))) return NGX_ERROR;
         while (cl->next) cl = cl->next;
-        for (ngx_chain_t *cmd = plcf->parse; cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = plcf->describe; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
             b->pos = b->start;
@@ -535,7 +535,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
     } else {
-        for (ngx_chain_t *cmd = plcf->describe; cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = plcf->query; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
             b->pos = b->start;
