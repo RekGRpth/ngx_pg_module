@@ -1,5 +1,18 @@
 # nginx raw postgres connection
 
+pg_arg
+-------------
+* Syntax: **pg_arg** *$arg* | NULL [ *type* ]
+* Default: --
+* Context: location, if in location
+
+Sets query argument and type, can be several:
+```nginx
+pg_arg NULL; # query argument is NULL and auto type
+pg_arg NULL 25; # query argument is NULL and type of TEXTOID
+pg_arg $arg; # query argument is taken from $arg variable and auto type
+pg_arg $arg 25; # query argument is taken from $arg variable and type of TEXTOID
+```
 pg_pass
 -------------
 * Syntax: **pg_pass** *host:port* | *$upstream*
