@@ -1,1 +1,1 @@
-# ngx_pg_module
+# nginx raw postgres connection
