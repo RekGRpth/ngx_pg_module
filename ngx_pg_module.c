@@ -21,6 +21,7 @@ typedef struct {
     ngx_chain_t *connect;
     ngx_chain_t *describe;
     ngx_chain_t *execute;
+    ngx_chain_t *flush;
     ngx_chain_t *parse;
     ngx_chain_t *query;
     ngx_chain_t *sync;
@@ -1010,6 +1011,17 @@ static ngx_chain_t *ngx_pg_execute(ngx_pool_t *p) {
     return execute;
 }
 
+static ngx_chain_t *ngx_pg_flush(ngx_pool_t *p) {
+    ngx_chain_t *cl, *cl_len, *flush;
+    uint32_t len = 0;
+    if (!(cl = flush = ngx_pg_write_uint8(p, NULL, 'H'))) return NULL;
+    if (!(cl = cl->next = cl_len = ngx_pg_alloc_len(p, &len))) return NULL;
+    cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
+    cl->next = NULL;
+    ngx_uint_t i = 0; for (ngx_chain_t *cl = flush; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
+    return flush;
+}
+
 static ngx_chain_t *ngx_pg_close(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_len, *close;
     uint32_t len = 0;
@@ -1042,6 +1054,7 @@ static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *con
         if (!(plcf->close = ngx_pg_close(cf->pool))) return NGX_CONF_ERROR;
         if (!(plcf->describe = ngx_pg_describe(cf->pool))) return NGX_CONF_ERROR;
         if (!(plcf->execute = ngx_pg_execute(cf->pool))) return NGX_CONF_ERROR;
+        if (!(plcf->flush = ngx_pg_flush(cf->pool))) return NGX_CONF_ERROR;
         if (!(plcf->parse = ngx_pg_parse(cf->pool, elts[1], plcf->arg))) return NGX_CONF_ERROR;
         if (!(plcf->sync = ngx_pg_sync(cf->pool))) return NGX_CONF_ERROR;
     } else {
