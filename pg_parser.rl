@@ -30,7 +30,7 @@ typedef struct pg_parser_t {
     action columnid { if (settings->columnid && (rc = settings->columnid(parser->data, &parser->uint16))) fbreak; }
     action column { if (str && settings->column && (rc = settings->column(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action command { if (str && settings->command && (rc = settings->command(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
-    action complete { if (settings->complete && (rc = settings->complete(parser->data, &parser->uint32))) fbreak; }
+    action complete { if (settings->complete && (rc = settings->complete(parser->data))) fbreak; }
     action constraint { if (str && settings->constraint && (rc = settings->constraint(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action context { if (str && settings->context && (rc = settings->context(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action datatype { if (str && settings->datatype && (rc = settings->datatype(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
@@ -135,7 +135,7 @@ typedef struct pg_parser_t {
     ("1" any{4} @parse
     |"2" any{4} @bind
     |"3" any{4} @close
-    |"C" uint32 @complete command
+    |"C" any{4} @complete command
     |"D" any{4} @tup ntups tup*
     |"E" uint32 @error error*
     |"K" any{4} @secret pid key
