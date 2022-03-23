@@ -155,6 +155,7 @@ static ngx_int_t ngx_pg_parser_error(ngx_pg_save_t *s, const void *ptr) {
         ngx_http_upstream_t *u = r->upstream;
         u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
         ngx_pg_data_t *d = u->peer.data;
+        if (!(d->error = ngx_array_create(r->pool, 1, sizeof(ngx_pg_key_val_t)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); return NGX_ERROR; }
         ngx_pg_key_val_t *error;
         if (!(error = ngx_array_push(d->error))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
         ngx_memzero(error, sizeof(*error));
@@ -636,7 +637,6 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
     u->peer.data = d;
     u->peer.free = ngx_pg_peer_free;
     u->peer.get = ngx_pg_peer_get;
-    if (!(d->error = ngx_array_create(r->pool, 1, sizeof(ngx_pg_key_val_t)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_array_create"); return NGX_ERROR; }
     return NGX_OK;
 }
 
