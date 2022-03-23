@@ -17,7 +17,7 @@ typedef struct {
 } ngx_pg_arg_t;
 
 typedef struct {
-    ngx_array_t arg;
+    ngx_array_t *arg;
     ngx_chain_t *bind;
     ngx_chain_t *close;
     ngx_chain_t *connect;
@@ -991,8 +991,8 @@ static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *con
 static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     ngx_pg_arg_t *arg;
-    if (!plcf->arg.nelts && ngx_array_init(&plcf->arg, cf->pool, 1, sizeof(*arg)) != NGX_OK) return "ngx_array_init != NGX_OK";
-    if (!(arg = ngx_array_push(&plcf->arg))) return "!ngx_array_push";
+    if (!plcf->arg && !(plcf->arg = ngx_array_create(cf->pool, 1, sizeof(*arg)))) return "!ngx_array_create";
+    if (!(arg = ngx_array_push(plcf->arg))) return "!ngx_array_push";
     ngx_memzero(arg, sizeof(*arg));
     ngx_str_t *elts = cf->args->elts;
     ngx_str_t type = elts[1];
