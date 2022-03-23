@@ -64,6 +64,7 @@ typedef struct {
     ngx_pg_save_t *save;
     ngx_pg_srv_conf_t *conf;
     ngx_pool_t *pool;
+    uint16_t nfields;
 } ngx_pg_data_t;
 
 static ngx_int_t ngx_pg_add_response(ngx_http_request_t *r, size_t len, const u_char *str) {
@@ -204,7 +205,17 @@ static ngx_int_t ngx_pg_parser_line(ngx_pg_save_t *s, size_t len, const u_char *
 static ngx_int_t ngx_pg_parser_method(ngx_pg_save_t *s, const void *ptr) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", *(uint32_t *)ptr); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_name(ngx_pg_save_t *s, size_t len, const u_char *str) { ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str); return NGX_OK; }
 static ngx_int_t ngx_pg_parser_nbytes(ngx_pg_save_t *s, const void *ptr) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", *(uint32_t *)ptr); return NGX_OK; }
-static ngx_int_t ngx_pg_parser_nfields(ngx_pg_save_t *s, const void *ptr) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", *(uint16_t *)ptr); return NGX_OK; }
+static ngx_int_t ngx_pg_parser_nfields(ngx_pg_save_t *s, const void *ptr) {
+    uint16_t nfields = *(uint16_t *)ptr;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", nfields);
+    ngx_http_request_t *r = s->request;
+    if (r) {
+        ngx_http_upstream_t *u = r->upstream;
+        ngx_pg_data_t *d = u->peer.data;
+        d->nfields = nfields;
+    }
+    return NGX_OK;
+}
 static ngx_int_t ngx_pg_parser_nonlocalized(ngx_pg_save_t *s, size_t len, const u_char *str) {
     ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str);
     ngx_http_request_t *r = s->request;
@@ -855,6 +866,22 @@ static ngx_int_t pg_option_get_handler(ngx_http_request_t *r, ngx_http_variable_
     return NGX_OK;
 }
 
+static ngx_int_t pg_result_nfields_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    v->not_found = 1;
+    ngx_http_upstream_t *u = r->upstream;
+    if (!u) return NGX_OK;
+    if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
+    ngx_pg_data_t *d = u->peer.data;
+    v->len = snprintf(NULL, 0, "%i", d->nfields);
+    if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
+    v->len = ngx_snprintf(v->data, v->len, "%i", d->nfields) - v->data;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+    return NGX_OK;
+}
+
 static const ngx_http_variable_t ngx_pg_variables[] = {
   { .name = ngx_string("pg_error_"),
     .set_handler = NULL,
@@ -867,6 +894,12 @@ static const ngx_http_variable_t ngx_pg_variables[] = {
     .get_handler = pg_option_get_handler,
     .data = 0,
     .flags = NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX,
+    .index = 0 },
+  { .name = ngx_string("pg_result_nfields"),
+    .set_handler = NULL,
+    .get_handler = pg_result_nfields_get_handler,
+    .data = 0,
+    .flags = NGX_HTTP_VAR_CHANGEABLE,
     .index = 0 },
     ngx_http_null_variable
 };
