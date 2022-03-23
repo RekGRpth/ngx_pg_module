@@ -1036,15 +1036,14 @@ static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *con
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->query || plcf->parse) return "duplicate";
     ngx_str_t *elts = cf->args->elts;
-    ngx_str_t query = elts[1];
     if (plcf->arg->nelts) {
         if (!(plcf->close = ngx_pg_close(cf->pool))) return NGX_CONF_ERROR;
         if (!(plcf->describe = ngx_pg_describe(cf->pool))) return NGX_CONF_ERROR;
         if (!(plcf->execute = ngx_pg_execute(cf->pool))) return NGX_CONF_ERROR;
-        if (!(plcf->parse = ngx_pg_parse(cf->pool, query, plcf->arg))) return NGX_CONF_ERROR;
+        if (!(plcf->parse = ngx_pg_parse(cf->pool, elts[1], plcf->arg))) return NGX_CONF_ERROR;
         if (!(plcf->sync = ngx_pg_sync(cf->pool))) return NGX_CONF_ERROR;
     } else {
-        if (!(plcf->query = ngx_pg_query(cf->pool, query))) return NGX_CONF_ERROR;
+        if (!(plcf->query = ngx_pg_query(cf->pool, elts[1]))) return NGX_CONF_ERROR;
     }
     return NGX_CONF_OK;
 }
@@ -1056,20 +1055,20 @@ static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     if (!(arg = ngx_array_push(plcf->arg))) return "!ngx_array_push";
     ngx_memzero(arg, sizeof(*arg));
     ngx_str_t *elts = cf->args->elts;
-    ngx_str_t type = elts[1];
-    ngx_str_t value = elts[2];
-    ngx_int_t n = ngx_atoi(type.data, type.len);
+    if (elts[1].len != sizeof("NULL") - 1 || ngx_strncasecmp(elts[1].data, "NULL", sizeof("NULL") - 1)) {
+        ngx_http_compile_complex_value_t ccv = {cf, &elts[1], &arg->complex, 0, 0, 0};
+        if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+    }
+    if (cf->args->nelts <= 2) return NGX_CONF_OK;
+    ngx_int_t n = ngx_atoi(elts[2].data, elts[2].len);
     if (n == NGX_ERROR) return "ngx_atoi == NGX_ERROR";
     arg->type = n;
-    if (value.len == sizeof("NULL") - 1 && !ngx_strncasecmp(value.data, "NULL", sizeof("NULL") - 1)) return NGX_CONF_OK;
-    ngx_http_compile_complex_value_t ccv = {cf, &value, &arg->complex, 0, 0, 0};
-    if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     return NGX_CONF_OK;
 }
 
 static ngx_command_t ngx_pg_commands[] = {
   { .name = ngx_string("pg_arg"),
-    .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE2,
+    .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE,
     .set = ngx_pg_arg_loc_conf,
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
     .offset = offsetof(ngx_pg_loc_conf_t, arg),
