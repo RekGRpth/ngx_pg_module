@@ -17,7 +17,7 @@ typedef struct {
 } ngx_pg_arg_t;
 
 typedef struct {
-    ngx_array_t *arg;
+    ngx_array_t arg;
     ngx_chain_t *bind;
     ngx_chain_t *close;
     ngx_chain_t *connect;
@@ -893,14 +893,16 @@ static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, ngx_str_t str) {
     return query;
 }
 
-static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, ngx_str_t str) {
+static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, ngx_str_t str, ngx_array_t *arg) {
     ngx_chain_t *cl, *cl_len, *parse;
     uint32_t len = 0;
     if (!(cl = parse = ngx_pg_write_uint8(p, NULL, 'P'))) return NULL;
     if (!(cl = cl->next = cl_len = ngx_pg_alloc_len(p, &len))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &len, (ngx_str_t)ngx_string("")))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &len, str))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_uint16(p, &len, 0))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_uint16(p, &len, arg->nelts))) return NULL;
+    ngx_pg_arg_t *elts = arg->elts;
+    for (ngx_uint_t i = 0; i < arg->nelts; i++) if (!(cl = cl->next = ngx_pg_write_uint32(p, &len, elts[i].type))) return NULL;
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
     cl->next = NULL;
     return parse;
@@ -972,8 +974,9 @@ static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *con
     if (plcf->query) return "duplicate";
     ngx_chain_t *cl;
     ngx_str_t *elts = cf->args->elts;
-    if (!(plcf->query = ngx_pg_query(cf->pool, elts[1]))) return NGX_CONF_ERROR;
-    if (!(cl = plcf->parse = ngx_pg_parse(cf->pool, elts[1]))) return NGX_CONF_ERROR;
+    ngx_str_t query = elts[1];
+    if (!(plcf->query = ngx_pg_query(cf->pool, query))) return NGX_CONF_ERROR;
+    if (!(cl = plcf->parse = ngx_pg_parse(cf->pool, query, &plcf->arg))) return NGX_CONF_ERROR;
     while (cl->next) cl = cl->next;
     if (!(cl = cl->next = plcf->bind = ngx_pg_bind(cf->pool))) return NGX_CONF_ERROR;
     while (cl->next) cl = cl->next;
@@ -991,8 +994,8 @@ static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *con
 static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     ngx_pg_arg_t *arg;
-    if (!plcf->arg && !(plcf->arg = ngx_array_create(cf->pool, 1, sizeof(*arg)))) return "!ngx_array_create";
-    if (!(arg = ngx_array_push(plcf->arg))) return "!ngx_array_push";
+    if (!plcf->arg.nelts && ngx_array_init(&plcf->arg, cf->pool, 1, sizeof(*arg)) != NGX_OK) return "ngx_array_init != NGX_OK";
+    if (!(arg = ngx_array_push(&plcf->arg))) return "!ngx_array_push";
     ngx_memzero(arg, sizeof(*arg));
     ngx_str_t *elts = cf->args->elts;
     ngx_str_t type = elts[1];
