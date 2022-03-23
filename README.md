@@ -51,3 +51,23 @@ pg_query "select now()"; # simple query
 pg_query "select $1, $2"; # extended query with 2 arguments, which must be defined abowe
 ```
 # Embedded Variables
+$pg_option_
+-------------
+* Syntax: $pg_option_*name*
+
+Option *name* from connection:
+```nginx
+add_header application_name $pg_option_application_name always;
+add_header client_encoding $pg_option_client_encoding always;
+add_header DateStyle $pg_option_DateStyle always;
+add_header default_transaction_read_only $pg_option_default_transaction_read_only always;
+add_header in_hot_standby $pg_option_in_hot_standby always;
+add_header integer_datetimes $pg_option_integer_datetimes always;
+add_header IntervalStyle $pg_option_IntervalStyle always;
+add_header is_superuser $pg_option_is_superuser always;
+add_header server_encoding $pg_option_server_encoding always;
+add_header server_version $pg_option_server_version always;
+add_header session_authorization $pg_option_session_authorization always;
+add_header standard_conforming_strings $pg_option_standard_conforming_strings always;
+add_header TimeZone $pg_option_TimeZone always;
+```
