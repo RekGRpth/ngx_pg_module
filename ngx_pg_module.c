@@ -440,8 +440,7 @@ static ngx_chain_t *ngx_pg_bind(ngx_http_request_t *r) {
     if (!(cl = cl->next = cl_len = ngx_pg_alloc_len(p, &len))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &len, (ngx_str_t)ngx_string("")))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &len, (ngx_str_t)ngx_string("")))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_uint16(p, &len, plcf->arg->nelts))) return NULL;
-    for (ngx_uint_t i = 0; i < plcf->arg->nelts; i++) if (!(cl = cl->next = ngx_pg_write_uint16(p, &len, 0))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_uint16(p, &len, 0))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_uint16(p, &len, plcf->arg->nelts))) return NULL;
     for (ngx_uint_t i = 0; i < plcf->arg->nelts; i++) {
         if (elts[i].complex.value.data) {
