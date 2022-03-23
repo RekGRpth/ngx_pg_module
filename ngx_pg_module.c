@@ -445,7 +445,7 @@ static ngx_chain_t *ngx_pg_bind(ngx_http_request_t *r) {
     if (!(cl = cl->next = ngx_pg_write_uint16(p, &len, 0))) return NULL;
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
     cl->next = NULL;
-    ngx_uint_t i = 0; for (ngx_chain_t *cl = bind; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
+    ngx_uint_t i = 0; for (ngx_chain_t *cl = bind; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%i:%i:%c", i++, *c, *c);
     return bind;
 }
 
