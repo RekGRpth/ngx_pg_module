@@ -1,5 +1,15 @@
 # nginx raw postgres connection
 
+pg_connect
+-------------
+* Syntax: **pg_connect** *option=value* [ ... ]
+* Default: --
+* Context: location, if in location, upstream
+
+Sets connection option(s):
+```nginx
+pg_connect user=user database=database application_name=application_name; # set user, database and application_name
+```
 pg_arg
 -------------
 * Syntax: **pg_arg** *$arg* | NULL [ *type* ]
