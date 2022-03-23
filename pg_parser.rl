@@ -37,7 +37,7 @@ typedef struct pg_parser_t {
     action detail { if (str && settings->detail && (rc = settings->detail(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action error { if (settings->error && (rc = settings->error(parser->data, &parser->uint32))) fbreak; }
     action fatal { if (settings->fatal && (rc = settings->fatal(parser->data))) fbreak; }
-    action field { if (settings->field && (rc = settings->field(parser->data))) fbreak; }
+    action field { if (settings->field && (rc = settings->field(parser->data, &parser->uint32))) fbreak; }
     action file { if (str && settings->file && (rc = settings->file(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
     action format { if (settings->format && (rc = settings->format(parser->data, &parser->uint16))) fbreak; }
     action function { if (str && settings->function && (rc = settings->function(parser->data, p - str, str))) fbreak; str = NULL; parser->str = 0; }
@@ -141,7 +141,7 @@ typedef struct pg_parser_t {
     |"K" any{4} @secret pid key
     |"R" any{4} @auth method
     |"S" uint32 @status option value
-    |"T" any{4} @field nfields field*
+    |"T" uint32 @field nfields field*
     |"Z" any{4} @ready ready
     )** $all $!unknown;
 
