@@ -805,6 +805,7 @@ static ngx_int_t pg_error_get_handler(ngx_http_request_t *r, ngx_http_variable_v
     if (!u) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
+    if (!d->error) return NGX_OK;
     ngx_pg_key_val_t *elts = d->error->elts;
     ngx_str_t *name = (ngx_str_t *)data;
     ngx_uint_t i;
@@ -825,6 +826,7 @@ static ngx_int_t pg_option_get_handler(ngx_http_request_t *r, ngx_http_variable_
     if (!u) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
+    if (!d->option) return NGX_OK;
     ngx_pg_key_val_t *elts = d->option->elts;
     ngx_str_t *name = (ngx_str_t *)data;
     ngx_uint_t i;
