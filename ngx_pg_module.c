@@ -11,6 +11,13 @@ typedef enum {
 } ngx_pg_state_t;
 
 typedef struct {
+    ngx_flag_t notnull;
+    ngx_http_complex_value_t complex;
+    ngx_uint_t type;
+} ngx_pg_arg_t;
+
+typedef struct {
+    ngx_array_t arg;
     ngx_chain_t *bind;
     ngx_chain_t *close;
     ngx_chain_t *connect;
@@ -839,12 +846,12 @@ static char *ngx_pg_connect_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *c
     return ngx_pg_connect(cf, cmd, &pscf->connect);
 }
 
-static char *ngx_pg_log_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+static char *ngx_pg_log_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_srv_conf_t *pscf = conf;
     return ngx_log_set_log(cf, &pscf->log);
 }
 
-static char *ngx_pg_pass_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+static char *ngx_pg_pass_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->upstream.upstream || plcf->complex.value.data) return "duplicate";
     ngx_http_core_loc_conf_t *clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
@@ -960,7 +967,7 @@ inline static ngx_chain_t *ngx_pg_sync(ngx_pool_t *p) {
     return sync;
 }
 
-static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->query) return "duplicate";
     ngx_chain_t *cl;
@@ -981,7 +988,32 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     return NGX_CONF_OK;
 }
 
+static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_loc_conf_t *plcf = conf;
+    ngx_pg_arg_t *arg;
+    if (!plcf->arg.nelts && ngx_array_init(&plcf->arg, cf->pool, 1, sizeof(*arg)) != NGX_OK) return "ngx_array_init != NGX_OK";
+    if (!(arg = ngx_array_push(&plcf->arg))) return "!ngx_array_push";
+    ngx_memzero(arg, sizeof(*arg));
+    ngx_str_t *elts = cf->args->elts;
+    ngx_str_t type = elts[1];
+    ngx_str_t value = elts[2];
+//    arg->type = ngx_pg_arg_type(type);
+    ngx_int_t n = ngx_atoi(type.data, type.len);
+    if (n == NGX_ERROR) return "ngx_atoi == NGX_ERROR";
+    arg->type = n;
+    if (value.len == sizeof("NULL") - 1 && !ngx_strncasecmp(value.data, "NULL", sizeof("NULL") - 1)) return NGX_CONF_OK;
+    ngx_http_compile_complex_value_t ccv = {cf, &value, &arg->complex, 0, 0, 0};
+    if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+    return NGX_CONF_OK;
+}
+
 static ngx_command_t ngx_pg_commands[] = {
+  { .name = ngx_string("pg_arg"),
+    .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE2,
+    .set = ngx_pg_arg_loc_conf,
+    .conf = NGX_HTTP_LOC_CONF_OFFSET,
+    .offset = offsetof(ngx_pg_loc_conf_t, arg),
+    .post = NULL },
   { .name = ngx_string("pg_connect"),
     .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE,
     .set = ngx_pg_connect_loc_conf,
@@ -1002,13 +1034,13 @@ static ngx_command_t ngx_pg_commands[] = {
     .post = NULL },
   { .name = ngx_string("pg_log"),
     .type = NGX_HTTP_UPS_CONF|NGX_CONF_1MORE,
-    .set = ngx_pg_log_conf,
+    .set = ngx_pg_log_ups_conf,
     .conf = NGX_HTTP_SRV_CONF_OFFSET,
     .offset = 0,
     .post = NULL },
   { .name = ngx_string("pg_pass"),
     .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1,
-    .set = ngx_pg_pass_conf,
+    .set = ngx_pg_pass_loc_conf,
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
     .offset = 0,
     .post = NULL },
@@ -1020,7 +1052,7 @@ static ngx_command_t ngx_pg_commands[] = {
     .post = NULL },
   { .name = ngx_string("pg_query"),
     .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1,
-    .set = ngx_pg_query_conf,
+    .set = ngx_pg_query_loc_conf,
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
     .offset = 0,
     .post = NULL },
