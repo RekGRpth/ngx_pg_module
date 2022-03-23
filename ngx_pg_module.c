@@ -155,8 +155,8 @@ static ngx_int_t ngx_pg_parser_error(ngx_pg_save_t *s, const void *ptr) {
         ngx_http_upstream_t *u = r->upstream;
         u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
         ngx_pg_data_t *d = u->peer.data;
-        if (!(d->error = ngx_array_create(r->pool, 1, sizeof(ngx_pg_key_val_t)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); return NGX_ERROR; }
         ngx_pg_key_val_t *error;
+        if (!(d->error = ngx_array_create(r->pool, 1, sizeof(*error)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); return NGX_ERROR; }
         if (!(error = ngx_array_push(d->error))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
         ngx_memzero(error, sizeof(*error));
         if (!(error->val.data = ngx_pcalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
