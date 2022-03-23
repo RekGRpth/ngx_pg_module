@@ -1,4 +1,5 @@
-nginx raw postgres connection
+# Nginx raw PostgreSQL connection
+it uses ragel-based PostgreSQL connection parser with zero-alloc and zero-copy
 
 # Directives
 
