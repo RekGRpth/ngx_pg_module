@@ -1,4 +1,6 @@
-# nginx raw postgres connection
+nginx raw postgres connection
+
+# Directives
 
 pg_arg
 -------------
@@ -48,3 +50,4 @@ pg_query "select 1/0"; # simple query with error
 pg_query "select now()"; # simple query
 pg_query "select $1, $2"; # extended query with 2 arguments, which must be defined abowe
 ```
+# Embedded Variables
