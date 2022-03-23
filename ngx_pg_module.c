@@ -507,6 +507,12 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             b->pos = b->start;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
+        for (ngx_chain_t *cmd = plcf->flush; cmd; cmd = cmd->next) {
+            cl->buf = cmd->buf;
+            ngx_buf_t *b = cl->buf;
+            b->pos = b->start;
+            if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        }
     }
     d->option = s->option;
     d->pool = s->pool;
@@ -517,7 +523,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
             b->pos = b->start;
-            if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+            if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
     } else if (plcf->parse) {
         for (ngx_chain_t *cmd = plcf->parse; cmd; cmd = cmd->next) {
@@ -550,9 +556,15 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
             b->pos = b->start;
-            if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+            if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
     } else { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!query && !parse"); return NGX_ERROR; }
+    for (ngx_chain_t *cmd = plcf->flush; cmd; cmd = cmd->next) {
+        cl->buf = cmd->buf;
+        ngx_buf_t *b = cl->buf;
+        b->pos = b->start;
+        if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+    }
     cl->next = NULL;
     ngx_uint_t i = 0; for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%i:%i:%c", i++, *p, *p);
     return NGX_DONE;
@@ -1050,11 +1062,11 @@ static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *con
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->query || plcf->parse) return "duplicate";
     ngx_str_t *elts = cf->args->elts;
+    if (!(plcf->flush = ngx_pg_flush(cf->pool))) return NGX_CONF_ERROR;
     if (plcf->arg) {
         if (!(plcf->close = ngx_pg_close(cf->pool))) return NGX_CONF_ERROR;
         if (!(plcf->describe = ngx_pg_describe(cf->pool))) return NGX_CONF_ERROR;
         if (!(plcf->execute = ngx_pg_execute(cf->pool))) return NGX_CONF_ERROR;
-        if (!(plcf->flush = ngx_pg_flush(cf->pool))) return NGX_CONF_ERROR;
         if (!(plcf->parse = ngx_pg_parse(cf->pool, elts[1], plcf->arg))) return NGX_CONF_ERROR;
         if (!(plcf->sync = ngx_pg_sync(cf->pool))) return NGX_CONF_ERROR;
     } else {
