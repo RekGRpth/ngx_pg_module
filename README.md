@@ -51,6 +51,31 @@ pg_query "select now()"; # simple query
 pg_query "select $1, $2"; # extended query with 2 arguments, which must be defined abowe
 ```
 # Embedded Variables
+$pg_error_
+-------------
+* Syntax: $pg_error_*name*
+
+Error *name* from connection:
+```nginx
+add_header column $pg_error_column always;
+add_header constraint $pg_error_constraint always;
+add_header context $pg_error_context always;
+add_header datatype $pg_error_datatype always;
+add_header detail $pg_error_detail always;
+add_header file $pg_error_file always;
+add_header function $pg_error_function always;
+add_header hint $pg_error_hint always;
+add_header internal $pg_error_internal always;
+add_header line $pg_error_line always;
+add_header nonlocalized $pg_error_nonlocalized always;
+add_header primary $pg_error_primary always;
+add_header query $pg_error_query always;
+add_header schema $pg_error_schema always;
+add_header severity $pg_error_severity always;
+add_header sqlstate $pg_error_sqlstate always;
+add_header statement $pg_error_statement always;
+add_header table $pg_error_table always;
+```
 $pg_option_
 -------------
 * Syntax: $pg_option_*name*
