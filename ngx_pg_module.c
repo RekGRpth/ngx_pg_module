@@ -17,6 +17,7 @@ typedef struct {
     ngx_chain_t *describe;
     ngx_chain_t *execute;
     ngx_chain_t *parse;
+    ngx_chain_t *query;
     ngx_chain_t *sync;
     ngx_http_complex_value_t complex;
     ngx_http_upstream_conf_t upstream;
@@ -437,7 +438,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     d->pool = s->pool;
     s->pool->log = pc->log;
     s->request = r;
-    for (ngx_chain_t *cmd = plcf->parse; cmd; cmd = cmd->next) {
+    for (ngx_chain_t *cmd = plcf->query; cmd; cmd = cmd->next) {
         cl->buf = cmd->buf;
         ngx_buf_t *b = cl->buf;
         b->pos = b->start;
@@ -961,10 +962,10 @@ inline static ngx_chain_t *ngx_pg_sync(ngx_pool_t *p) {
 
 static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->parse) return "duplicate";
+    if (plcf->query) return "duplicate";
     ngx_chain_t *cl;
     ngx_str_t *elts = cf->args->elts;
-//    if (!(cl = plcf->parse = ngx_pg_query(cf->pool, elts[1]))) return NGX_CONF_ERROR;
+    if (!(plcf->query = ngx_pg_query(cf->pool, elts[1]))) return NGX_CONF_ERROR;
     if (!(cl = plcf->parse = ngx_pg_parse(cf->pool, elts[1]))) return NGX_CONF_ERROR;
     while (cl->next) cl = cl->next;
     if (!(cl = cl->next = plcf->bind = ngx_pg_bind(cf->pool))) return NGX_CONF_ERROR;
@@ -972,11 +973,11 @@ static char *ngx_pg_query_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     if (!(cl = cl->next = plcf->describe = ngx_pg_describe(cf->pool))) return NGX_CONF_ERROR;
     while (cl->next) cl = cl->next;
     if (!(cl = cl->next = plcf->execute = ngx_pg_execute(cf->pool))) return NGX_CONF_ERROR;
-//    while (cl->next) cl = cl->next;
-//    if (!(cl = cl->next = plcf->close = ngx_pg_close(cf->pool))) return NGX_CONF_ERROR;
+    while (cl->next) cl = cl->next;
+    if (!(cl = cl->next = plcf->close = ngx_pg_close(cf->pool))) return NGX_CONF_ERROR;
     while (cl->next) cl = cl->next;
     if (!(cl = cl->next = plcf->sync = ngx_pg_sync(cf->pool))) return NGX_CONF_ERROR;
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = plcf->parse; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = plcf->query; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
     return NGX_CONF_OK;
 }
 
