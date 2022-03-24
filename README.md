@@ -147,4 +147,59 @@ $pg_res_atttypmod_
 Result atttypmod of *number* field:
 ```nginx
 add_header atttypmod_0 $pg_res_atttypmod_0 always;
+add_header atttypmod_1 $pg_res_atttypmod_1 always;
+```
+$pg_res_columnid_
+-------------
+* Syntax: $pg_res_columnid_*number*
+
+Result columnid of *number* field:
+```nginx
+add_header columnid_0 $pg_res_columnid_0 always;
+add_header columnid_1 $pg_res_columnid_1 always;
+```
+$pg_res_format_
+-------------
+* Syntax: $pg_res_format_*number*
+
+Result format of *number* field:
+```nginx
+add_header format_0 $pg_res_format_0 always;
+add_header format_1 $pg_res_format_1 always;
+```
+$pg_res_name_
+-------------
+* Syntax: $pg_res_name_*number*
+
+Result name of *number* field:
+```nginx
+add_header name_0 $pg_res_name_0 always;
+add_header name_1 $pg_res_name_1 always;
+```
+$pg_res_tableid_
+-------------
+* Syntax: $pg_res_tableid_*number*
+
+Result tableid of *number* field:
+```nginx
+add_header tableid_0 $pg_res_tableid_0 always;
+add_header tableid_1 $pg_res_tableid_1 always;
+```
+$pg_res_typid_
+-------------
+* Syntax: $pg_res_typid_*number*
+
+Result typid of *number* field:
+```nginx
+add_header typid_0 $pg_res_typid_0 always;
+add_header typid_1 $pg_res_typid_1 always;
+```
+$pg_res_typlen_
+-------------
+* Syntax: $pg_res_typlen_*number*
+
+Result typlen of *number* field:
+```nginx
+add_header typlen_0 $pg_res_typlen_0 always;
+add_header typlen_1 $pg_res_typlen_1 always;
 ```
