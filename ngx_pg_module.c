@@ -962,11 +962,8 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
     ngx_http_request_t *r = p->input_ctx;
     ngx_http_upstream_t *u = r->upstream;
     for (ngx_chain_t *cl = u->out_bufs; cl; cl = cl->next) {
-        ngx_chain_t *pcl;
-        if (!(pcl = ngx_chain_get_free_buf(p->pool, &p->free))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
-        pcl->buf = cl->buf;
-        if (p->in) *p->last_in = pcl; else p->in = pcl;
-        p->last_in = &pcl->next;
+        if (p->in) *p->last_in = cl; else p->in = cl;
+        p->last_in = &cl->next;
     }
     return NGX_OK;
 }
