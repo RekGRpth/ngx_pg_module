@@ -79,6 +79,22 @@ location = /pg {
 }
 ```
 # Embedded Variables
+$pg_con_pid
+-------------
+* Syntax: $pg_con_pid
+
+Backend pid:
+```nginx
+add_header pid $pg_con_pid always;
+```
+$pg_res_nfields
+-------------
+* Syntax: $pg_res_nfields
+
+Result nfields:
+```nginx
+add_header nfields $pg_res_nfields always;
+```
 $pg_err_
 -------------
 * Syntax: $pg_err_*name*
