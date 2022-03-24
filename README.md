@@ -44,9 +44,17 @@ pg_pas
 
 Sets PostgreSQL host and port or upstream (nginx variables allowed):
 ```nginx
-pg_pas postgres:5432; # PostgreSQL host is postgres and port is 5432
-pg_pas postgres; # upstream is postgres
-pg_pas $postgres; # upstream is taken from $postgres variable
+location = /pg {
+    pg_pas postgres:5432; # PostgreSQL host is postgres and port is 5432
+}
+# or
+location = /pg {
+    pg_pas postgres; # upstream is postgres
+}
+# or
+location = /pg {
+    pg_pas $postgres; # upstream is taken from $postgres variable
+}
 ```
 pg_sql
 -------------
