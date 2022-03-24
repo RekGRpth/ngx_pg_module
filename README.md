@@ -120,17 +120,17 @@ Option *name* from connection:
 ```nginx
 add_header application_name $pg_opt_application_name always;
 add_header client_encoding $pg_opt_client_encoding always;
-add_header DateStyle $pg_opt_DateStyle always;
+add_header datestyle $pg_opt_datestyle always;
 add_header default_transaction_read_only $pg_opt_default_transaction_read_only always;
 add_header in_hot_standby $pg_opt_in_hot_standby always;
 add_header integer_datetimes $pg_opt_integer_datetimes always;
-add_header IntervalStyle $pg_opt_IntervalStyle always;
+add_header intervalstyle $pg_opt_intervalstyle always;
 add_header is_superuser $pg_opt_is_superuser always;
 add_header server_encoding $pg_opt_server_encoding always;
 add_header server_version $pg_opt_server_version always;
 add_header session_authorization $pg_opt_session_authorization always;
 add_header standard_conforming_strings $pg_opt_standard_conforming_strings always;
-add_header TimeZone $pg_opt_TimeZone always;
+add_header timezone $pg_opt_timezone always;
 ```
 $pg_res_nfields
 -------------
