@@ -217,7 +217,7 @@ static ngx_int_t ngx_pg_parser_detail(ngx_pg_save_t *s, size_t len, const u_char
 
 static ngx_int_t ngx_pg_parser_error(ngx_pg_save_t *s, const void *ptr) {
     uint32_t len;
-    if (!(len = *(uint32_t *)ptr)) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_ERROR; return s->rc; }
+    if (!(len = *(uint32_t *)ptr)) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
     ngx_pg_data_t *d = s->data;
     if (d) {
@@ -241,7 +241,7 @@ static ngx_int_t ngx_pg_parser_fatal(ngx_pg_save_t *s) {
 
 static ngx_int_t ngx_pg_parser_field(ngx_pg_save_t *s, const void *ptr) {
     uint32_t len;
-    if (!(len = *(uint32_t *)ptr)) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_ERROR; return s->rc; }
+    if (!(len = *(uint32_t *)ptr)) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
     ngx_pg_data_t *d = s->data;
     if (d) {
@@ -328,7 +328,7 @@ static ngx_int_t ngx_pg_parser_name(ngx_pg_save_t *s, size_t len, const u_char *
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
     ngx_pg_data_t *d = s->data;
     if (d) {
-        if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_ERROR; return s->rc; }
+        if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
         ngx_pg_field_t *elts = d->field->elts;
         ngx_pg_field_t *field = &elts[d->field->nelts - 1];
         (void)strncat((char *)field->name.data, (char *)str, len);
@@ -375,7 +375,7 @@ static ngx_int_t ngx_pg_parser_ntups(ngx_pg_save_t *s, const void *ptr) {
 static ngx_int_t ngx_pg_parser_option(ngx_pg_save_t *s, size_t len, const u_char *str) {
     if (!len) { s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
-    if (!s->option->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_ERROR; return s->rc; }
+    if (!s->option->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_pg_key_val_t *elts = s->option->elts;
     ngx_pg_key_val_t *option = &elts[s->option->nelts - 1];
     (void)strncat((char *)option->key.data, (char *)str, len);
@@ -452,7 +452,7 @@ static ngx_int_t ngx_pg_parser_statement(ngx_pg_save_t *s, size_t len, const u_c
 
 static ngx_int_t ngx_pg_parser_status(ngx_pg_save_t *s, const void *ptr) {
     uint32_t len;
-    if (!(len = *(uint32_t *)ptr)) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_ERROR; return s->rc; }
+    if (!(len = *(uint32_t *)ptr)) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
     ngx_pg_key_val_t *option;
     if (!(option = ngx_array_push(s->option))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
@@ -520,7 +520,7 @@ static ngx_int_t ngx_pg_parser_unknown(ngx_pg_save_t *s, size_t len, const u_cha
 static ngx_int_t ngx_pg_parser_value(ngx_pg_save_t *s, size_t len, const u_char *str) {
     if (!len) { s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
-    if (!s->option->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_ERROR; return s->rc; }
+    if (!s->option->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_pg_key_val_t *option = s->option->elts;
     option = &option[s->option->nelts - 1];
     if (!option->val.data) option->val.data = option->key.data + option->key.len + 1;
