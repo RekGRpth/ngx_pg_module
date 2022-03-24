@@ -87,14 +87,6 @@ Backend pid:
 ```nginx
 add_header pid $pg_con_pid always;
 ```
-$pg_res_nfields
--------------
-* Syntax: $pg_res_nfields
-
-Result nfields:
-```nginx
-add_header nfields $pg_res_nfields always;
-```
 $pg_err_
 -------------
 * Syntax: $pg_err_*name*
@@ -139,4 +131,12 @@ add_header server_version $pg_opt_server_version always;
 add_header session_authorization $pg_opt_session_authorization always;
 add_header standard_conforming_strings $pg_opt_standard_conforming_strings always;
 add_header TimeZone $pg_opt_TimeZone always;
+```
+$pg_res_nfields
+-------------
+* Syntax: $pg_res_nfields
+
+Result nfields:
+```nginx
+add_header nfields $pg_res_nfields always;
 ```
