@@ -324,7 +324,7 @@ static ngx_int_t ngx_pg_parser_method(ngx_pg_save_t *s, const void *ptr) {
 }
 
 static ngx_int_t ngx_pg_parser_name(ngx_pg_save_t *s, size_t len, const u_char *str) {
-    if (!len) return s->rc; // ???
+    if (!len) { s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
     ngx_pg_data_t *d = s->data;
     if (d) {
@@ -373,7 +373,7 @@ static ngx_int_t ngx_pg_parser_ntups(ngx_pg_save_t *s, const void *ptr) {
 }
 
 static ngx_int_t ngx_pg_parser_option(ngx_pg_save_t *s, size_t len, const u_char *str) {
-    if (!len) return s->rc; // ???
+    if (!len) { s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
     if (!s->option->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_ERROR; return s->rc; }
     ngx_pg_key_val_t *elts = s->option->elts;
@@ -518,7 +518,7 @@ static ngx_int_t ngx_pg_parser_unknown(ngx_pg_save_t *s, size_t len, const u_cha
 }
 
 static ngx_int_t ngx_pg_parser_value(ngx_pg_save_t *s, size_t len, const u_char *str) {
-    if (!len) return s->rc; // ???
+    if (!len) { s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
     if (!s->option->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_ERROR; return s->rc; }
     ngx_pg_key_val_t *option = s->option->elts;
