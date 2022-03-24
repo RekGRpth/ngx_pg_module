@@ -49,7 +49,7 @@ typedef struct {
     ngx_pg_data_t *data;
     ngx_pg_state_t state;
     ngx_pool_t *pool;
-    ngx_uint_t requests;
+    ngx_uint_t ready;
     pg_parser_t *parser;
     uint32_t pid;
     struct {
@@ -383,7 +383,6 @@ static ngx_int_t ngx_pg_parser_option(ngx_pg_save_t *s, size_t len, const u_char
 
 static ngx_int_t ngx_pg_parser_parse(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    s->requests++;
     return NGX_OK;
 }
 
@@ -412,6 +411,7 @@ static ngx_int_t ngx_pg_parser_query(ngx_pg_save_t *s, size_t len, const u_char 
 
 static ngx_int_t ngx_pg_parser_ready(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    s->ready++;
     return NGX_OK;
 }
 
@@ -926,7 +926,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     if (rc == NGX_OK) {
         char buf[1];
         ngx_connection_t *c = s->connection;
-        rc = !s->requests || s->state == ngx_pg_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
+        rc = s->ready <= 1 || s->state == ngx_pg_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
     }
     if (b->pos == b->last) b->pos = b->last = b->start;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
