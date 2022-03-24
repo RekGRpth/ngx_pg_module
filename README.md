@@ -26,17 +26,17 @@ Sets connection option(s) (no nginx variables allowed):
 ```nginx
 pg_con user=user database=database application_name=application_name; # set user, database and application_name
 ```
-pg_pass
+pg_pas
 -------------
-* Syntax: **pg_pass** *host:port* | *$upstream*
+* Syntax: **pg_pas** *host:port* | *$upstream*
 * Default: --
 * Context: location, if in location
 
 Sets PostgreSQL host and port or upstream (nginx variables allowed):
 ```nginx
-pg_pass postgres:5432; # PostgreSQL host is postgres and port is 5432
-pg_pass postgres; # upstream is postgres
-pg_pass $postgres; # upstream is taken from $postgres variable
+pg_pas postgres:5432; # PostgreSQL host is postgres and port is 5432
+pg_pas postgres; # upstream is postgres
+pg_pas $postgres; # upstream is taken from $postgres variable
 ```
 pg_sql
 -------------
