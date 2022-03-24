@@ -356,6 +356,7 @@ static ngx_int_t ngx_pg_parser_nbytes(ngx_pg_save_t *s, const void *ptr) {
     ngx_str_t *str;
     if (!(str = ngx_array_push(tup->str))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
     ngx_memzero(str, sizeof(*str));
+    if (nbytes == (uint32_t)-1) return s->rc;
     if (!(str->data = ngx_pcalloc(r->pool, str->len = nbytes))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pcalloc"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
