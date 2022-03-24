@@ -1394,7 +1394,7 @@ static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_chain_t **co
     if (!(cl = cl->next = ngx_pg_write_uint8(cf->pool, &len, 0))) return NGX_CONF_ERROR;
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
     cl->next = NULL;
-    ngx_uint_t i = 0; for (ngx_chain_t *cl = *connect; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = *connect; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
     return NGX_CONF_OK;
 }
 
@@ -1447,7 +1447,7 @@ static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, ngx_str_t str) {
     if (!(cl = cl->next = ngx_pg_write_str(p, &len, str))) return NULL;
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
     cl->next = NULL;
-    ngx_uint_t i = 0; for (ngx_chain_t *cl = query; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = query; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
     return query;
 }
 
@@ -1463,7 +1463,7 @@ static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, ngx_str_t str, ngx_array_t *arg)
     for (ngx_uint_t i = 0; i < arg->nelts; i++) if (!(cl = cl->next = ngx_pg_write_uint32(p, &len, elts[i].type))) return NULL;
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
     cl->next = NULL;
-    ngx_uint_t i = 0; for (ngx_chain_t *cl = parse; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = parse; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
     return parse;
 }
 
@@ -1476,7 +1476,7 @@ static ngx_chain_t *ngx_pg_describe(ngx_pool_t *p) {
     if (!(cl = cl->next = ngx_pg_write_str(p, &len, (ngx_str_t)ngx_string("")))) return NULL;
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
     cl->next = NULL;
-    ngx_uint_t i = 0; for (ngx_chain_t *cl = describe; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = describe; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
     return describe;
 }
 
@@ -1489,7 +1489,7 @@ static ngx_chain_t *ngx_pg_execute(ngx_pool_t *p) {
     if (!(cl = cl->next = ngx_pg_write_uint32(p, &len, 0))) return NULL;
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
     cl->next = NULL;
-    ngx_uint_t i = 0; for (ngx_chain_t *cl = execute; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = execute; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
     return execute;
 }
 
@@ -1500,7 +1500,7 @@ static ngx_chain_t *ngx_pg_flush(ngx_pool_t *p) {
     if (!(cl = cl->next = cl_len = ngx_pg_alloc_len(p, &len))) return NULL;
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
     cl->next = NULL;
-    ngx_uint_t i = 0; for (ngx_chain_t *cl = flush; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = flush; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
     return flush;
 }
 
@@ -1513,7 +1513,7 @@ static ngx_chain_t *ngx_pg_close(ngx_pool_t *p) {
     if (!(cl = cl->next = ngx_pg_write_str(p, &len, (ngx_str_t)ngx_string("")))) return NULL;
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
     cl->next = NULL;
-    ngx_uint_t i = 0; for (ngx_chain_t *cl = close; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = close; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
     return close;
 }
 
@@ -1524,7 +1524,7 @@ static ngx_chain_t *ngx_pg_sync(ngx_pool_t *p) {
     if (!(cl = cl->next = cl_len = ngx_pg_alloc_len(p, &len))) return NULL;
     cl_len->buf->last = pg_write_uint32(cl_len->buf->last, len);
     cl->next = NULL;
-    ngx_uint_t i = 0; for (ngx_chain_t *cl = sync; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = sync; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
     return sync;
 }
 
