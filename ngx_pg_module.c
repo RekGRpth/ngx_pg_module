@@ -1043,6 +1043,65 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     return NGX_CONF_OK;
 }
 
+static ngx_int_t ngx_pg_connection_pid_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    v->not_found = 1;
+    ngx_http_upstream_t *u = r->upstream;
+    if (!u) return NGX_OK;
+    if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
+    ngx_pg_data_t *d = u->peer.data;
+    v->len = snprintf(NULL, 0, "%i", d->pid);
+    if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
+    v->len = ngx_snprintf(v->data, v->len, "%i", d->pid) - v->data;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+    return NGX_OK;
+}
+
+static ngx_int_t ngx_pg_error_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    v->not_found = 1;
+    ngx_http_upstream_t *u = r->upstream;
+    if (!u) return NGX_OK;
+    if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
+    ngx_pg_data_t *d = u->peer.data;
+    if (!d->error) return NGX_OK;
+    ngx_pg_key_val_t *elts = d->error->elts;
+    ngx_str_t *name = (ngx_str_t *)data;
+    ngx_uint_t i;
+    for (i = 0; i < d->error->nelts; i++) if (name->len - sizeof("pg_error_") + 1 == elts[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_error_") - 1, elts[i].key.data, elts[i].key.len)) break;
+    if (i == d->error->nelts) return NGX_OK;
+    v->data = elts[i].val.data;
+    v->len = elts[i].val.len;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+    return NGX_OK;
+}
+
+static ngx_int_t ngx_pg_option_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    v->not_found = 1;
+    ngx_http_upstream_t *u = r->upstream;
+    if (!u) return NGX_OK;
+    if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
+    ngx_pg_data_t *d = u->peer.data;
+    if (!d->option) return NGX_OK;
+    ngx_pg_key_val_t *elts = d->option->elts;
+    ngx_str_t *name = (ngx_str_t *)data;
+    ngx_uint_t i;
+    for (i = 0; i < d->option->nelts; i++) if (name->len - sizeof("pg_option_") + 1 == elts[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_option_") - 1, elts[i].key.data, elts[i].key.len)) break;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", i == d->option->nelts ? "true" : "false");
+    if (i == d->option->nelts) return NGX_OK;
+    v->data = elts[i].val.data;
+    v->len = elts[i].val.len;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+    return NGX_OK;
+}
+
 static ngx_int_t ngx_pg_result_atttypmod_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
@@ -1103,65 +1162,6 @@ static ngx_int_t ngx_pg_result_format_get_handler(ngx_http_request_t *r, ngx_htt
     v->len = snprintf(NULL, 0, "%i", elts[i].format);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
     v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].format) - v->data;
-    v->valid = 1;
-    v->no_cacheable = 0;
-    v->not_found = 0;
-    return NGX_OK;
-}
-
-static ngx_int_t ngx_pg_connection_pid_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    v->not_found = 1;
-    ngx_http_upstream_t *u = r->upstream;
-    if (!u) return NGX_OK;
-    if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
-    ngx_pg_data_t *d = u->peer.data;
-    v->len = snprintf(NULL, 0, "%i", d->pid);
-    if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%i", d->pid) - v->data;
-    v->valid = 1;
-    v->no_cacheable = 0;
-    v->not_found = 0;
-    return NGX_OK;
-}
-
-static ngx_int_t ngx_pg_error_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    v->not_found = 1;
-    ngx_http_upstream_t *u = r->upstream;
-    if (!u) return NGX_OK;
-    if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
-    ngx_pg_data_t *d = u->peer.data;
-    if (!d->error) return NGX_OK;
-    ngx_pg_key_val_t *elts = d->error->elts;
-    ngx_str_t *name = (ngx_str_t *)data;
-    ngx_uint_t i;
-    for (i = 0; i < d->error->nelts; i++) if (name->len - sizeof("pg_error_") + 1 == elts[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_error_") - 1, elts[i].key.data, elts[i].key.len)) break;
-    if (i == d->error->nelts) return NGX_OK;
-    v->data = elts[i].val.data;
-    v->len = elts[i].val.len;
-    v->valid = 1;
-    v->no_cacheable = 0;
-    v->not_found = 0;
-    return NGX_OK;
-}
-
-static ngx_int_t ngx_pg_option_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    v->not_found = 1;
-    ngx_http_upstream_t *u = r->upstream;
-    if (!u) return NGX_OK;
-    if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
-    ngx_pg_data_t *d = u->peer.data;
-    if (!d->option) return NGX_OK;
-    ngx_pg_key_val_t *elts = d->option->elts;
-    ngx_str_t *name = (ngx_str_t *)data;
-    ngx_uint_t i;
-    for (i = 0; i < d->option->nelts; i++) if (name->len - sizeof("pg_option_") + 1 == elts[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_option_") - 1, elts[i].key.data, elts[i].key.len)) break;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", i == d->option->nelts ? "true" : "false");
-    if (i == d->option->nelts) return NGX_OK;
-    v->data = elts[i].val.data;
-    v->len = elts[i].val.len;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
@@ -1272,24 +1272,6 @@ static ngx_int_t ngx_pg_result_typlen_get_handler(ngx_http_request_t *r, ngx_htt
 }
 
 static const ngx_http_variable_t ngx_pg_variables[] = {
-  { .name = ngx_string("pg_result_atttypmod_"),
-    .set_handler = NULL,
-    .get_handler = ngx_pg_result_atttypmod_get_handler,
-    .data = 0,
-    .flags = NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX,
-    .index = 0 },
-  { .name = ngx_string("pg_result_columnid_"),
-    .set_handler = NULL,
-    .get_handler = ngx_pg_result_columnid_get_handler,
-    .data = 0,
-    .flags = NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX,
-    .index = 0 },
-  { .name = ngx_string("pg_result_format_"),
-    .set_handler = NULL,
-    .get_handler = ngx_pg_result_format_get_handler,
-    .data = 0,
-    .flags = NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX,
-    .index = 0 },
   { .name = ngx_string("pg_connection_pid"),
     .set_handler = NULL,
     .get_handler = ngx_pg_connection_pid_get_handler,
@@ -1305,6 +1287,24 @@ static const ngx_http_variable_t ngx_pg_variables[] = {
   { .name = ngx_string("pg_option_"),
     .set_handler = NULL,
     .get_handler = ngx_pg_option_get_handler,
+    .data = 0,
+    .flags = NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX,
+    .index = 0 },
+  { .name = ngx_string("pg_result_atttypmod_"),
+    .set_handler = NULL,
+    .get_handler = ngx_pg_result_atttypmod_get_handler,
+    .data = 0,
+    .flags = NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX,
+    .index = 0 },
+  { .name = ngx_string("pg_result_columnid_"),
+    .set_handler = NULL,
+    .get_handler = ngx_pg_result_columnid_get_handler,
+    .data = 0,
+    .flags = NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX,
+    .index = 0 },
+  { .name = ngx_string("pg_result_format_"),
+    .set_handler = NULL,
+    .get_handler = ngx_pg_result_format_get_handler,
     .data = 0,
     .flags = NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX,
     .index = 0 },
