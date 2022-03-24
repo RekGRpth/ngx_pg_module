@@ -1398,13 +1398,13 @@ static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_chain_t **co
     return NGX_CONF_OK;
 }
 
-static char *ngx_pg_connect_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+static char *ngx_pg_con_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->connect) return "duplicate";
     return ngx_pg_connect(cf, cmd, &plcf->connect);
 }
 
-static char *ngx_pg_connect_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+static char *ngx_pg_con_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_srv_conf_t *pscf = conf;
     if (pscf->connect) return "duplicate";
     ngx_http_upstream_srv_conf_t *uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
@@ -1570,15 +1570,15 @@ static ngx_command_t ngx_pg_commands[] = {
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
     .offset = offsetof(ngx_pg_loc_conf_t, arg),
     .post = NULL },
-  { .name = ngx_string("pg_connect"),
+  { .name = ngx_string("pg_con"),
     .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE,
-    .set = ngx_pg_connect_loc_conf,
+    .set = ngx_pg_con_loc_conf,
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
     .offset = 0,
     .post = NULL },
-  { .name = ngx_string("pg_connect"),
+  { .name = ngx_string("pg_con"),
     .type = NGX_HTTP_UPS_CONF|NGX_CONF_1MORE,
-    .set = ngx_pg_connect_ups_conf,
+    .set = ngx_pg_con_ups_conf,
     .conf = NGX_HTTP_SRV_CONF_OFFSET,
     .offset = 0,
     .post = NULL },

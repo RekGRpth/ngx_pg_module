@@ -16,15 +16,15 @@ pg_arg NULL 25; # query argument is NULL and type of TEXTOID
 pg_arg $arg; # query argument is taken from $arg variable and auto type
 pg_arg $arg 25; # query argument is taken from $arg variable and type of TEXTOID
 ```
-pg_connect
+pg_con
 -------------
-* Syntax: **pg_connect** *option=value* [ ... ]
+* Syntax: **pg_con** *option=value* [ ... ]
 * Default: --
 * Context: location, if in location, upstream
 
 Sets connection option(s) (no nginx variables allowed):
 ```nginx
-pg_connect user=user database=database application_name=application_name; # set user, database and application_name
+pg_con user=user database=database application_name=application_name; # set user, database and application_name
 ```
 pg_pass
 -------------
