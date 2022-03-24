@@ -60,6 +60,7 @@ typedef struct {
 typedef struct {
     ngx_str_t name;
     uint16_t columnid;
+    uint16_t typlen;
     uint32_t tableid;
     uint32_t typid;
 } ngx_pg_field_t;
@@ -383,7 +384,18 @@ static ngx_int_t ngx_pg_parser_typid(ngx_pg_save_t *s, const void *ptr) {
     }
     return NGX_OK;
 }
-static ngx_int_t ngx_pg_parser_typlen(ngx_pg_save_t *s, const void *ptr) { ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", *(uint16_t *)ptr); return NGX_OK; }
+static ngx_int_t ngx_pg_parser_typlen(ngx_pg_save_t *s, const void *ptr) {
+    uint16_t typlen = *(uint16_t *)ptr;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", typlen);
+    ngx_http_request_t *r = s->request;
+    if (r) {
+        ngx_http_upstream_t *u = r->upstream;
+        ngx_pg_data_t *d = u->peer.data;
+        ngx_pg_field_t *elts = d->field->elts;
+        elts[d->field->nelts - 2].typlen = typlen;
+    }
+    return NGX_OK;
+}
 static ngx_int_t ngx_pg_parser_unknown(ngx_pg_save_t *s, size_t len, const u_char *str) { for (u_char *p = str; p < str + len; p++) ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%i:%c", *p, *p); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
 static ngx_int_t ngx_pg_parser_value(ngx_pg_save_t *s, size_t len, const u_char *str) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
@@ -1077,6 +1089,28 @@ static ngx_int_t ngx_pg_result_typid_get_handler(ngx_http_request_t *r, ngx_http
     return NGX_OK;
 }
 
+static ngx_int_t ngx_pg_result_typlen_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    v->not_found = 1;
+    ngx_http_upstream_t *u = r->upstream;
+    if (!u) return NGX_OK;
+    if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
+    ngx_pg_data_t *d = u->peer.data;
+    ngx_str_t *name = (ngx_str_t *)data;
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_result_typlen_") - 1, name->len - sizeof("pg_result_typlen_") + 1);
+    if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
+    ngx_uint_t i = n;
+    if (!d->field || i >= d->field->nelts) return NGX_OK;
+    ngx_pg_field_t *elts = d->field->elts;
+    v->len = snprintf(NULL, 0, "%i", elts[i].typlen);
+    if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
+    v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].typlen) - v->data;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+    return NGX_OK;
+}
+
 static const ngx_http_variable_t ngx_pg_variables[] = {
   { .name = ngx_string("pg_result_columnid_"),
     .set_handler = NULL,
@@ -1123,6 +1157,12 @@ static const ngx_http_variable_t ngx_pg_variables[] = {
   { .name = ngx_string("pg_result_typid_"),
     .set_handler = NULL,
     .get_handler = ngx_pg_result_typid_get_handler,
+    .data = 0,
+    .flags = NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX,
+    .index = 0 },
+  { .name = ngx_string("pg_result_typlen_"),
+    .set_handler = NULL,
+    .get_handler = ngx_pg_result_typlen_get_handler,
     .data = 0,
     .flags = NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX,
     .index = 0 },
