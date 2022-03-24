@@ -957,11 +957,19 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
     return NGX_OK;
 }
 
+static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "%s", __func__);
+    ngx_uint_t i = 0; for (u_char *c = buf->pos; c < buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%i:%i:%c", i++, *c, *c);
+    p->upstream_done = 1;
+    return NGX_OK;
+}
+
 static ngx_int_t ngx_pg_input_filter_init(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     u->keepalive = !u->headers_in.connection_close;
     u->length = 0;
+    u->pipe->length = 0;
     return NGX_OK;
 }
 
@@ -987,11 +995,14 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     u->process_header = ngx_pg_process_header;
     u->reinit_request = ngx_pg_reinit_request;
     r->state = 0;
-//    u->buffering = u->conf->buffering;
+    u->buffering = u->conf->buffering;
+    if (!(u->pipe = ngx_pcalloc(r->pool, sizeof(*u->pipe)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_HTTP_INTERNAL_SERVER_ERROR; }
+    u->pipe->input_ctx = r;
+    u->pipe->input_filter = ngx_pg_pipe_input_filter;
     u->input_filter_init = (ngx_int_t (*)(void *data))ngx_pg_input_filter_init;
     u->input_filter = (ngx_int_t (*)(void *data, ssize_t bytes))ngx_pg_input_filter;
     u->input_filter_ctx = r;
-//    if (!u->conf->request_buffering && u->conf->pass_request_body && !r->headers_in.chunked) r->request_body_no_buffering = 1;
+    if (!u->conf->request_buffering && u->conf->pass_request_body && !r->headers_in.chunked) r->request_body_no_buffering = 1;
     if ((rc = ngx_http_read_client_request_body(r, ngx_http_upstream_init)) >= NGX_HTTP_SPECIAL_RESPONSE) return rc;
     return NGX_DONE;
 }
@@ -1006,6 +1017,7 @@ static void *ngx_pg_create_loc_conf(ngx_conf_t *cf) {
     ngx_pg_loc_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
     if (!conf) return NULL;
     conf->upstream.buffer_size = NGX_CONF_UNSET_SIZE;
+    conf->upstream.buffering = NGX_CONF_UNSET;
     conf->upstream.busy_buffers_size_conf = NGX_CONF_UNSET_SIZE;
     conf->upstream.connect_timeout = NGX_CONF_UNSET_MSEC;
     conf->upstream.ignore_client_abort = NGX_CONF_UNSET;
@@ -1014,6 +1026,7 @@ static void *ngx_pg_create_loc_conf(ngx_conf_t *cf) {
     conf->upstream.next_upstream_tries = NGX_CONF_UNSET_UINT;
     conf->upstream.pass_request_body = NGX_CONF_UNSET;
     conf->upstream.read_timeout = NGX_CONF_UNSET_MSEC;
+    conf->upstream.request_buffering = NGX_CONF_UNSET;
     conf->upstream.send_timeout = NGX_CONF_UNSET_MSEC;
     conf->upstream.socket_keepalive = NGX_CONF_UNSET;
     ngx_str_set(&conf->upstream.module, "pg");
@@ -1033,8 +1046,10 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     ngx_conf_merge_size_value(conf->upstream.buffer_size, prev->upstream.buffer_size, (size_t)ngx_pagesize);
     ngx_conf_merge_size_value(conf->upstream.busy_buffers_size_conf, prev->upstream.busy_buffers_size_conf, NGX_CONF_UNSET_SIZE);
     ngx_conf_merge_uint_value(conf->upstream.next_upstream_tries, prev->upstream.next_upstream_tries, 0);
+    ngx_conf_merge_value(conf->upstream.buffering, prev->upstream.buffering, 1);
     ngx_conf_merge_value(conf->upstream.ignore_client_abort, prev->upstream.ignore_client_abort, 0);
     ngx_conf_merge_value(conf->upstream.intercept_errors, prev->upstream.intercept_errors, 0);
+    ngx_conf_merge_value(conf->upstream.request_buffering, prev->upstream.request_buffering, 1);
     ngx_conf_merge_value(conf->upstream.pass_request_body, prev->upstream.pass_request_body, 0);
     ngx_conf_merge_value(conf->upstream.socket_keepalive, prev->upstream.socket_keepalive, 0);
     if (conf->upstream.bufs.num < 2) return "there must be at least 2 \"pg_buffers\"";
@@ -1512,6 +1527,21 @@ static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     return NGX_CONF_OK;
 }
 
+static ngx_conf_bitmask_t ngx_pg_next_upstream_masks[] = {
+  { ngx_string("error"), NGX_HTTP_UPSTREAM_FT_ERROR },
+  { ngx_string("http_403"), NGX_HTTP_UPSTREAM_FT_HTTP_403 },
+  { ngx_string("http_404"), NGX_HTTP_UPSTREAM_FT_HTTP_404 },
+  { ngx_string("http_429"), NGX_HTTP_UPSTREAM_FT_HTTP_429 },
+  { ngx_string("http_500"), NGX_HTTP_UPSTREAM_FT_HTTP_500 },
+  { ngx_string("http_503"), NGX_HTTP_UPSTREAM_FT_HTTP_503 },
+  { ngx_string("invalid_header"), NGX_HTTP_UPSTREAM_FT_INVALID_HEADER },
+  { ngx_string("non_idempotent"), NGX_HTTP_UPSTREAM_FT_NON_IDEMPOTENT },
+  { ngx_string("off"), NGX_HTTP_UPSTREAM_FT_OFF },
+  { ngx_string("timeout"), NGX_HTTP_UPSTREAM_FT_TIMEOUT },
+  { ngx_string("updating"), NGX_HTTP_UPSTREAM_FT_UPDATING },
+  { ngx_null_string, 0 }
+};
+
 static ngx_command_t ngx_pg_commands[] = {
   { ngx_string("pg_arg"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_arg_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_con"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_con_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
@@ -1520,6 +1550,7 @@ static ngx_command_t ngx_pg_commands[] = {
   { ngx_string("pg_pas"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_pas_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_sql"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_sql_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_upstream_connect_timeout"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_conf_set_msec_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.connect_timeout), NULL },
+  { ngx_string("pg_upstream_next_upstream"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_1MORE, ngx_conf_set_bitmask_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.next_upstream), &ngx_pg_next_upstream_masks },
   { ngx_string("pg_upstream_pass_request_body"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG, ngx_conf_set_flag_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.pass_request_body), NULL },
     ngx_null_command
 };
