@@ -71,7 +71,6 @@ typedef struct {
 typedef struct ngx_pg_data_t {
     ngx_array_t *error;
     ngx_array_t *field;
-    ngx_array_t *option;
     ngx_http_request_t *request;
     ngx_peer_connection_t peer;
     ngx_pg_save_t *save;
@@ -79,7 +78,6 @@ typedef struct ngx_pg_data_t {
     ngx_str_t fields;
     ngx_uint_t ready;
     uint16_t nfields;
-    uint32_t pid;
 } ngx_pg_data_t;
 
 static ngx_int_t ngx_pg_add_response(ngx_pg_data_t *d, size_t len, const u_char *str) {
@@ -400,8 +398,6 @@ static ngx_int_t ngx_pg_parser_pid(ngx_pg_save_t *s, const void *ptr) {
     uint32_t pid = *(uint32_t *)ptr;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", pid);
     s->pid = pid;
-    ngx_pg_data_t *d = s->data;
-    if (d) d->pid = pid;
     return s->rc;
 }
 
@@ -755,8 +751,6 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         }
         d->ready++;
     }
-    d->option = s->option;
-    d->pid = s->pid;
     d->ready++;
     s->data = d;
     if (plcf->query) {
@@ -840,7 +834,6 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "pscf = %p", pscf);
     if (!pscf) return;
     ngx_pg_save_t *s = d->save;
-    d->save = NULL;
     s->data = NULL;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "s = %p", s);
     ngx_connection_t *c = s->connection;
@@ -1048,9 +1041,10 @@ static ngx_int_t ngx_pg_con_pid_get_handler(ngx_http_request_t *r, ngx_http_vari
     if (!u) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
-    v->len = snprintf(NULL, 0, "%i", d->pid);
+    ngx_pg_save_t *s = d->save;
+    v->len = snprintf(NULL, 0, "%i", s->pid);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%i", d->pid) - v->data;
+    v->len = ngx_snprintf(v->data, v->len, "%i", s->pid) - v->data;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
@@ -1085,13 +1079,14 @@ static ngx_int_t ngx_pg_opt_get_handler(ngx_http_request_t *r, ngx_http_variable
     if (!u) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
-    if (!d->option) return NGX_OK;
-    ngx_pg_key_val_t *elts = d->option->elts;
+    ngx_pg_save_t *s = d->save;
+    if (!s->option) return NGX_OK;
+    ngx_pg_key_val_t *elts = s->option->elts;
     ngx_str_t *name = (ngx_str_t *)data;
     ngx_uint_t i;
-    for (i = 0; i < d->option->nelts; i++) if (name->len - sizeof("pg_opt_") + 1 == elts[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_opt_") - 1, elts[i].key.data, elts[i].key.len)) break;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", i == d->option->nelts ? "true" : "false");
-    if (i == d->option->nelts) return NGX_OK;
+    for (i = 0; i < s->option->nelts; i++) if (name->len - sizeof("pg_opt_") + 1 == elts[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_opt_") - 1, elts[i].key.data, elts[i].key.len)) break;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", i == s->option->nelts ? "true" : "false");
+    if (i == s->option->nelts) return NGX_OK;
     v->data = elts[i].val.data;
     v->len = elts[i].val.len;
     v->valid = 1;
