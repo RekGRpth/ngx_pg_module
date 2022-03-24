@@ -42,7 +42,7 @@ pg_log
 * Default: error_log logs/error.log error;
 * Context: upstream
 
-Configures logging:
+Configures logging (used when keepalive):
 ```nginx
 upstream pg {
     pg_log /var/log/nginx/pg.err info;
