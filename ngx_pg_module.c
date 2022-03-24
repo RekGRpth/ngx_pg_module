@@ -141,6 +141,7 @@ static ngx_int_t ngx_pg_parser_byte(ngx_pg_save_t *s, size_t len, const u_char *
     ngx_str_t *strstr = &tupelts[tup->str->nelts - 1];
     (void)strncat((char *)strstr->data, (char *)str, len);
     strstr->len = ngx_strlen(strstr->data);
+    ngx_log_debug3(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i,%i:%V", d->tup->nelts - 1, tup->str->nelts - 1, strstr);
     return s->rc;
 }
 
