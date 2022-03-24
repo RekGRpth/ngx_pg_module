@@ -968,9 +968,11 @@ static ngx_int_t ngx_pg_input_filter_init(ngx_http_request_t *r) {
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_tup_t *elts = d->tup->elts;
     for (ngx_uint_t i = 0; i < d->tup->nelts; i++) {
+        if (i && ngx_pg_add_response(r, (ngx_str_t)ngx_string("\n")) != NGX_OK) return NGX_ERROR;
         ngx_str_t *str = elts[i].str->elts;
         for (ngx_uint_t j = 0; j < elts[i].str->nelts; j++) {
             ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i,%i:%V", i, j, &str[j]);
+            if (j && ngx_pg_add_response(r, (ngx_str_t)ngx_string("\t")) != NGX_OK) return NGX_ERROR;
             if (ngx_pg_add_response(r, str[j]) != NGX_OK) return NGX_ERROR;
         }
     }
