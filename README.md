@@ -140,3 +140,11 @@ Result nfields:
 ```nginx
 add_header nfields $pg_res_nfields always;
 ```
+$pg_res_atttypmod_
+-------------
+* Syntax: $pg_res_atttypmod_*number*
+
+Result atttypmod of *number* field:
+```nginx
+add_header atttypmod_0 $pg_res_atttypmod_0 always;
+```
