@@ -152,6 +152,14 @@ Result nfields:
 ```nginx
 add_header nfields $pg_res_nfields always;
 ```
+$pg_res_command
+-------------
+* Syntax: $pg_res_command
+
+Result command:
+```nginx
+add_header command $pg_res_command always;
+```
 $pg_res_atttypmod_
 -------------
 * Syntax: $pg_res_atttypmod_*number*
