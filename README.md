@@ -146,27 +146,27 @@ add_header timezone $pg_opt_timezone always;
 ```
 $pg_res_atttypmod_
 -------------
-* Syntax: $pg_res_atttypmod_*number*
+* Syntax: $pg_res_atttypmod_*col*
 
-Result atttypmod of *number* field:
+Result atttypmod of *col* field:
 ```nginx
 add_header atttypmod_0 $pg_res_atttypmod_0 always;
 add_header atttypmod_1 $pg_res_atttypmod_1 always;
 ```
 $pg_res_format_
 -------------
-* Syntax: $pg_res_format_*number*
+* Syntax: $pg_res_format_*col*
 
-Result format of *number* field:
+Result format of *col* field:
 ```nginx
 add_header format_0 $pg_res_format_0 always;
 add_header format_1 $pg_res_format_1 always;
 ```
 $pg_res_columnid_
 -------------
-* Syntax: $pg_res_columnid_*number*
+* Syntax: $pg_res_columnid_*col*
 
-Result columnid of *number* field:
+Result columnid of *col* field:
 ```nginx
 add_header columnid_0 $pg_res_columnid_0 always;
 add_header columnid_1 $pg_res_columnid_1 always;
@@ -181,9 +181,9 @@ add_header command $pg_res_command always;
 ```
 $pg_res_name_
 -------------
-* Syntax: $pg_res_name_*number*
+* Syntax: $pg_res_name_*col*
 
-Result name of *number* field:
+Result name of *col* field:
 ```nginx
 add_header name_0 $pg_res_name_0 always;
 add_header name_1 $pg_res_name_1 always;
@@ -198,28 +198,39 @@ add_header nfields $pg_res_nfields always;
 ```
 $pg_res_tableid_
 -------------
-* Syntax: $pg_res_tableid_*number*
+* Syntax: $pg_res_tableid_*col*
 
-Result tableid of *number* field:
+Result tableid of *col* field:
 ```nginx
 add_header tableid_0 $pg_res_tableid_0 always;
 add_header tableid_1 $pg_res_tableid_1 always;
 ```
 $pg_res_typid_
 -------------
-* Syntax: $pg_res_typid_*number*
+* Syntax: $pg_res_typid_*col*
 
-Result typid of *number* field:
+Result typid of *col* field:
 ```nginx
 add_header typid_0 $pg_res_typid_0 always;
 add_header typid_1 $pg_res_typid_1 always;
 ```
 $pg_res_typlen_
 -------------
-* Syntax: $pg_res_typlen_*number*
+* Syntax: $pg_res_typlen_*col*
 
-Result typlen of *number* field:
+Result typlen of *col* field:
 ```nginx
 add_header typlen_0 $pg_res_typlen_0 always;
 add_header typlen_1 $pg_res_typlen_1 always;
+```
+$pg_tup_
+-------------
+* Syntax: $pg_tup_*row*_*col*
+
+Result of *row* and *col* tup:
+```nginx
+add_header tup_0_0 $pg_tup_0_0 always;
+add_header tup_0_1 $pg_tup_0_1 always;
+add_header tup_1_0 $pg_tup_1_0 always;
+add_header tup_1_1 $pg_tup_1_1 always;
 ```

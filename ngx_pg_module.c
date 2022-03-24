@@ -1326,6 +1326,36 @@ static ngx_int_t ngx_pg_res_typlen_get_handler(ngx_http_request_t *r, ngx_http_v
     return NGX_OK;
 }
 
+static ngx_int_t ngx_pg_tup_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    v->not_found = 1;
+    ngx_http_upstream_t *u = r->upstream;
+    if (!u) return NGX_OK;
+    if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
+    ngx_pg_data_t *d = u->peer.data;
+    ngx_str_t *name = (ngx_str_t *)data;
+    u_char *c = ngx_strlchr(name->data + sizeof("pg_tup_") - 1, name->data + name->len, '_');
+    if (!c) return NGX_OK;
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%*s", c - name->data - sizeof("pg_tup_") + 1, name->data + sizeof("pg_tup_") - 1);
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_tup_") - 1, c - name->data - sizeof("pg_tup_") + 1);
+    if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
+    ngx_uint_t i = n;
+    if (!d->tup || i >= d->tup->nelts) return NGX_OK;
+    ngx_pg_tup_t *elts = d->tup->elts;
+    ngx_pg_tup_t *tup = &elts[i];
+    ngx_int_t m = ngx_atoi(c + 1, name->data + name->len - c - 1);
+    if (m == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
+    ngx_uint_t j = m;
+    if (!tup->str || j >= tup->str->nelts) return NGX_OK;
+    ngx_str_t *str = tup->str->elts;
+    v->len = str[j].len;
+    v->data = str[j].data;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+    return NGX_OK;
+}
+
 static const ngx_http_variable_t ngx_pg_variables[] = {
   { ngx_string("pg_con_pid"), NULL, ngx_pg_con_pid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
   { ngx_string("pg_err_"), NULL, ngx_pg_err_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
@@ -1339,6 +1369,7 @@ static const ngx_http_variable_t ngx_pg_variables[] = {
   { ngx_string("pg_res_tableid_"), NULL, ngx_pg_res_tableid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_res_typid_"), NULL, ngx_pg_res_typid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_res_typlen_"), NULL, ngx_pg_res_typlen_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_tup_"), NULL, ngx_pg_tup_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
     ngx_http_null_variable
 };
 
