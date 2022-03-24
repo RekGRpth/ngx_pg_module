@@ -959,9 +959,6 @@ static ngx_int_t ngx_pg_add_response(ngx_http_request_t *r, ngx_str_t str) {
     b->pos = str.data;
     b->tag = u->output.tag;
     b->temporary = 1;
-    for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%c", *p, *p);
-    if (u->headers_in.content_length_n < 0) u->headers_in.content_length_n = 0;
-    u->headers_in.content_length_n += str.len;
     return NGX_OK;
 }
 
