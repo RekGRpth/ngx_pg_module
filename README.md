@@ -64,10 +64,19 @@ pg_sql
 
 Sets SQL query (no nginx variables allowed):
 ```nginx
-pg_sql "select 1"; # simple query
-pg_sql "select 1/0"; # simple query with error
-pg_sql "select now()"; # simple query
-pg_sql "select $1, $2"; # extended query with 2 arguments, which must be defined abowe
+location = /pg {
+    pg_sql "select now()"; # simple query
+}
+# or
+location = /pg {
+    pg_sql "select 1/0"; # simple query with error
+}
+# or
+location = /pg {
+    pg_arg NULL 25; # first query argument is NULL and type of TEXTOID
+    pg_arg $arg; # second query argument is taken from $arg variable and auto type
+    pg_sql "select $1, $2::text"; # extended query with 2 arguments
+}
 ```
 # Embedded Variables
 $pg_error_
