@@ -503,7 +503,7 @@ static ngx_int_t ngx_pg_parser_tup(ngx_pg_save_t *s, const void *ptr) {
     if (!d) return s->rc;
     ngx_http_request_t *r = d->request;
     ngx_pg_tup_t *tup;
-    if (!(d->tup = ngx_array_create(r->pool, 1, sizeof(*tup)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
+    if (!d->tup && !(d->tup = ngx_array_create(r->pool, 1, sizeof(*tup)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
     if (!(tup = ngx_array_push(d->tup))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
     ngx_memzero(tup, sizeof(*tup));
     return s->rc;
