@@ -14,7 +14,6 @@ typedef struct {
     pg_parser_cb parse;
     pg_parser_cb ready;
     pg_parser_cb secret;
-    pg_parser_cb tup;
     pg_parser_len_str_cb byte;
     pg_parser_len_str_cb column;
     pg_parser_len_str_cb command;
@@ -53,6 +52,7 @@ typedef struct {
     pg_parser_ptr_cb pid;
     pg_parser_ptr_cb status;
     pg_parser_ptr_cb tableid;
+    pg_parser_ptr_cb tup;
     pg_parser_ptr_cb typid;
     pg_parser_ptr_cb typlen;
 } pg_parser_settings_t;

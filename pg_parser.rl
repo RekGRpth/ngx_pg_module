@@ -72,7 +72,7 @@ typedef struct pg_parser_t {
     action str { if (!str) str = p; if (str) parser->str = cs; }
     action tableid { if (settings->tableid && settings->tableid(parser->data, &parser->uint32)) fbreak; }
     action table { if (str && settings->table && settings->table(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action tup { if (settings->tup && settings->tup(parser->data)) fbreak; }
+    action tup { if (settings->tup && settings->tup(parser->data, &parser->uint32)) fbreak; }
     action typid { if (settings->typid && settings->typid(parser->data, &parser->uint32)) fbreak; }
     action typlen { if (settings->typlen && settings->typlen(parser->data, &parser->uint16)) fbreak; }
     action uint16 { if (!parser->uint8) { parser->uint8 = 2; parser->uint16 = 0; } parser->uint16 |= *p << ((2 << 2) * --parser->uint8); }
@@ -136,7 +136,7 @@ typedef struct pg_parser_t {
     |"2" any{4} @bind
     |"3" any{4} @close
     |"C" any{4} @complete command
-    |"D" any{4} @tup ntups tup*
+    |"D" uint32 @tup ntups tup*
     |"E" uint32 @error error*
     |"K" any{4} @secret pid key
     |"R" any{4} @auth method
