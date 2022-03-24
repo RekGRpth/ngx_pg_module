@@ -36,6 +36,18 @@ location = /pg {
     pg_con user=user database=database application_name=application_name; # set user, database and application_name
 }
 ```
+pg_log
+-------------
+* Syntax: **pg_log** *file* [ *level* ]
+* Default: error_log logs/error.log error;
+* Context: upstream
+
+Configures logging:
+```nginx
+upstream pg {
+    pg_log /var/log/nginx/pg.err info;
+}
+```
 pg_pas
 -------------
 * Syntax: **pg_pas** *host:port* | *$upstream*
