@@ -50,7 +50,6 @@ typedef struct {
     ngx_pg_state_t state;
     ngx_pool_t *pool;
     ngx_uint_t rc;
-    ngx_uint_t ready;
     pg_parser_t *parser;
     uint32_t pid;
     struct {
@@ -80,6 +79,7 @@ typedef struct ngx_pg_data_t {
     ngx_pg_srv_conf_t *conf;
     ngx_pool_t *pool;
     ngx_str_t fields;
+    ngx_uint_t ready;
     uint16_t nfields;
     uint32_t pid;
 } ngx_pg_data_t;
@@ -285,11 +285,17 @@ static ngx_int_t ngx_pg_parser_hint(ngx_pg_save_t *s, size_t len, const u_char *
 
 static ngx_int_t ngx_pg_parser_idle(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); s->state = ngx_pg_state_idle;
+    s->state = ngx_pg_state_idle;
+    ngx_pg_data_t *d = s->data;
+    if (d && d->ready) d->ready--;
     return s->rc;
 }
 
 static ngx_int_t ngx_pg_parser_inerror(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__); s->state = ngx_pg_state_inerror;
+    s->state = ngx_pg_state_inerror;
+    ngx_pg_data_t *d = s->data;
+    if (d && d->ready) d->ready--;
     return s->rc;
 }
 
@@ -303,6 +309,8 @@ static ngx_int_t ngx_pg_parser_internal(ngx_pg_save_t *s, size_t len, const u_ch
 static ngx_int_t ngx_pg_parser_intrans(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     s->state = ngx_pg_state_intrans;
+    ngx_pg_data_t *d = s->data;
+    if (d && d->ready) d->ready--;
     return s->rc;
 }
 
@@ -413,7 +421,6 @@ static ngx_int_t ngx_pg_parser_query(ngx_pg_save_t *s, size_t len, const u_char 
 
 static ngx_int_t ngx_pg_parser_ready(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    s->ready++;
     return s->rc;
 }
 
@@ -746,10 +753,12 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             b->pos = b->start;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
+        d->ready++;
     }
     d->option = s->option;
     d->pid = s->pid;
     d->pool = s->pool;
+    d->ready++;
     s->data = d;
     s->pool->log = pc->log;
     if (plcf->query) {
@@ -930,7 +939,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     if (s->rc == NGX_OK) {
         char buf[1];
         ngx_connection_t *c = s->connection;
-        s->rc = s->ready <= 1 || s->state == ngx_pg_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
+        s->rc = d->ready || s->state == ngx_pg_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
     }
     if (b->pos == b->last) b->pos = b->last = b->start;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
