@@ -959,8 +959,15 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
 
 static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "%s", __func__);
-    ngx_uint_t i = 0; for (u_char *c = buf->pos; c < buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%i:%i:%c", i++, *c, *c);
-    p->upstream_done = 1;
+    ngx_http_request_t *r = p->input_ctx;
+    ngx_http_upstream_t *u = r->upstream;
+    for (ngx_chain_t *cl = u->out_bufs; cl; cl = cl->next) {
+        ngx_chain_t *pcl;
+        if (!(pcl = ngx_chain_get_free_buf(p->pool, &p->free))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
+        pcl->buf = cl->buf;
+        if (p->in) *p->last_in = pcl; else p->in = pcl;
+        p->last_in = &pcl->next;
+    }
     return NGX_OK;
 }
 
