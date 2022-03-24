@@ -144,22 +144,6 @@ add_header session_authorization $pg_opt_session_authorization always;
 add_header standard_conforming_strings $pg_opt_standard_conforming_strings always;
 add_header timezone $pg_opt_timezone always;
 ```
-$pg_res_nfields
--------------
-* Syntax: $pg_res_nfields
-
-Result nfields:
-```nginx
-add_header nfields $pg_res_nfields always;
-```
-$pg_res_command
--------------
-* Syntax: $pg_res_command
-
-Result command:
-```nginx
-add_header command $pg_res_command always;
-```
 $pg_res_atttypmod_
 -------------
 * Syntax: $pg_res_atttypmod_*number*
@@ -168,15 +152,6 @@ Result atttypmod of *number* field:
 ```nginx
 add_header atttypmod_0 $pg_res_atttypmod_0 always;
 add_header atttypmod_1 $pg_res_atttypmod_1 always;
-```
-$pg_res_columnid_
--------------
-* Syntax: $pg_res_columnid_*number*
-
-Result columnid of *number* field:
-```nginx
-add_header columnid_0 $pg_res_columnid_0 always;
-add_header columnid_1 $pg_res_columnid_1 always;
 ```
 $pg_res_format_
 -------------
@@ -187,6 +162,23 @@ Result format of *number* field:
 add_header format_0 $pg_res_format_0 always;
 add_header format_1 $pg_res_format_1 always;
 ```
+$pg_res_columnid_
+-------------
+* Syntax: $pg_res_columnid_*number*
+
+Result columnid of *number* field:
+```nginx
+add_header columnid_0 $pg_res_columnid_0 always;
+add_header columnid_1 $pg_res_columnid_1 always;
+```
+$pg_res_command
+-------------
+* Syntax: $pg_res_command
+
+Result command:
+```nginx
+add_header command $pg_res_command always;
+```
 $pg_res_name_
 -------------
 * Syntax: $pg_res_name_*number*
@@ -195,6 +187,14 @@ Result name of *number* field:
 ```nginx
 add_header name_0 $pg_res_name_0 always;
 add_header name_1 $pg_res_name_1 always;
+```
+$pg_res_nfields
+-------------
+* Syntax: $pg_res_nfields
+
+Result nfields:
+```nginx
+add_header nfields $pg_res_nfields always;
 ```
 $pg_res_tableid_
 -------------
