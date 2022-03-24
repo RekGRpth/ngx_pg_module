@@ -1043,7 +1043,7 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     return NGX_CONF_OK;
 }
 
-static ngx_int_t ngx_pg_connection_pid_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_con_pid_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
@@ -1272,9 +1272,9 @@ static ngx_int_t ngx_pg_res_typlen_get_handler(ngx_http_request_t *r, ngx_http_v
 }
 
 static const ngx_http_variable_t ngx_pg_variables[] = {
-  { .name = ngx_string("pg_connection_pid"),
+  { .name = ngx_string("pg_con_pid"),
     .set_handler = NULL,
-    .get_handler = ngx_pg_connection_pid_get_handler,
+    .get_handler = ngx_pg_con_pid_get_handler,
     .data = 0,
     .flags = NGX_HTTP_VAR_CHANGEABLE,
     .index = 0 },
