@@ -12,10 +12,10 @@ pg_arg
 Sets query argument (nginx variables allowed) and type (no nginx variables allowed), can be several:
 ```nginx
 location = /pg {
-    pg_arg NULL; # query argument is NULL and auto type
-    pg_arg NULL 25; # query argument is NULL and type of TEXTOID
-    pg_arg $arg; # query argument is taken from $arg variable and auto type
-    pg_arg $arg 25; # query argument is taken from $arg variable and type of TEXTOID
+    pg_arg NULL; # first query argument is NULL and auto type
+    pg_arg NULL 25; # second query argument is NULL and type of TEXTOID
+    pg_arg $arg; # third query argument is taken from $arg variable and auto type
+    pg_arg $arg 25; # fourth query argument is taken from $arg variable and type of TEXTOID
 }
 ```
 pg_con
@@ -26,7 +26,15 @@ pg_con
 
 Sets connection option(s) (no nginx variables allowed):
 ```nginx
-pg_con user=user database=database application_name=application_name; # set user, database and application_name
+upstream pg {
+    keepalive 8; # may use nginx keepalive module
+    pg_con user=user database=database application_name=application_name; # set user, database and application_name
+    server postgres:5432; # add server with host postgres and port 5432
+}
+# or
+location = /pg {
+    pg_con user=user database=database application_name=application_name; # set user, database and application_name
+}
 ```
 pg_pas
 -------------
