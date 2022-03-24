@@ -1528,7 +1528,7 @@ static ngx_chain_t *ngx_pg_sync(ngx_pool_t *p) {
     return sync;
 }
 
-static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+static char *ngx_pg_sql_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->query || plcf->parse) return "duplicate";
     ngx_str_t *elts = cf->args->elts;
@@ -1606,9 +1606,9 @@ static ngx_command_t ngx_pg_commands[] = {
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
     .offset = offsetof(ngx_pg_loc_conf_t, upstream.pass_request_body),
     .post = NULL },
-  { .name = ngx_string("pg_query"),
+  { .name = ngx_string("pg_sql"),
     .type = NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1,
-    .set = ngx_pg_query_loc_conf,
+    .set = ngx_pg_sql_loc_conf,
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
     .offset = 0,
     .post = NULL },

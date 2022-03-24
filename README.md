@@ -38,18 +38,18 @@ pg_pass postgres:5432; # PostgreSQL host is postgres and port is 5432
 pg_pass postgres; # upstream is postgres
 pg_pass $postgres; # upstream is taken from $postgres variable
 ```
-pg_query
+pg_sql
 -------------
-* Syntax: **pg_query** *sql*
+* Syntax: **pg_sql** *sql*
 * Default: --
 * Context: location, if in location
 
 Sets SQL query (no nginx variables allowed):
 ```nginx
-pg_query "select 1"; # simple query
-pg_query "select 1/0"; # simple query with error
-pg_query "select now()"; # simple query
-pg_query "select $1, $2"; # extended query with 2 arguments, which must be defined abowe
+pg_sql "select 1"; # simple query
+pg_sql "select 1/0"; # simple query with error
+pg_sql "select now()"; # simple query
+pg_sql "select $1, $2"; # extended query with 2 arguments, which must be defined abowe
 ```
 # Embedded Variables
 $pg_error_
