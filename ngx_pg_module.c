@@ -380,9 +380,9 @@ static ngx_int_t ngx_pg_parser_ntups(ngx_pg_save_t *s, const void *ptr) {
     d->ntups = ntups;
     if (!ntups) return s->rc;
     ngx_http_request_t *r = d->request;
-    if (!d->tup->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); return NGX_ERROR; }
-    ngx_pg_tup_t *elts = d->tup->elts;
-    ngx_pg_tup_t *tup = &elts[d->tup->nelts - 1];
+    ngx_pg_tup_t *tup;
+    if (!(tup = ngx_array_push(d->tup))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
+    ngx_memzero(tup, sizeof(*tup));
     ngx_str_t *str;
     if (!(tup->str = ngx_array_create(r->pool, ntups, sizeof(*str)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
@@ -505,8 +505,6 @@ static ngx_int_t ngx_pg_parser_tup(ngx_pg_save_t *s, const void *ptr) {
     ngx_http_request_t *r = d->request;
     ngx_pg_tup_t *tup;
     if (!d->tup && !(d->tup = ngx_array_create(r->pool, 1, sizeof(*tup)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
-    if (!(tup = ngx_array_push(d->tup))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
-    ngx_memzero(tup, sizeof(*tup));
     return s->rc;
 }
 
