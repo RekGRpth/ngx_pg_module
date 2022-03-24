@@ -957,8 +957,7 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_input_filter_init(void *data) {
-    ngx_http_request_t *r = data;
+static ngx_int_t ngx_pg_input_filter_init(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     u->keepalive = !u->headers_in.connection_close;
@@ -966,23 +965,9 @@ static ngx_int_t ngx_pg_input_filter_init(void *data) {
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_input_filter(void *data, ssize_t bytes) {
-    ngx_http_request_t *r = data;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+static ngx_int_t ngx_pg_input_filter(ngx_http_request_t *r, ssize_t bytes) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "bytes = %i", bytes);
-    ngx_http_upstream_t *u = r->upstream;
-    if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
-    ngx_pg_data_t *d = u->peer.data;
-    ngx_pg_save_t *s = d->save;
-    ngx_buf_t *b = &u->buffer;
-    u_char *last = b->last + bytes;
-    s->rc = NGX_OK;
-    while (b->last < last && s->rc == NGX_OK) b->last += pg_parser_execute(s->parser, b->last, last);
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
-    u->length = last - b->last;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "length = %i", u->length);
-//    if (!(u->length -= bytes)) u->keepalive = !u->headers_in.connection_close;
-    return s->rc;
+    return NGX_OK;
 }
 
 static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
@@ -1003,8 +988,8 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     u->reinit_request = ngx_pg_reinit_request;
     r->state = 0;
 //    u->buffering = u->conf->buffering;
-    u->input_filter_init = ngx_pg_input_filter_init;
-    u->input_filter = ngx_pg_input_filter;
+    u->input_filter_init = (ngx_int_t (*)(void *data))ngx_pg_input_filter_init;
+    u->input_filter = (ngx_int_t (*)(void *data, ssize_t bytes))ngx_pg_input_filter;
     u->input_filter_ctx = r;
 //    if (!u->conf->request_buffering && u->conf->pass_request_body && !r->headers_in.chunked) r->request_body_no_buffering = 1;
     if ((rc = ngx_http_read_client_request_body(r, ngx_http_upstream_init)) >= NGX_HTTP_SPECIAL_RESPONSE) return rc;
