@@ -81,7 +81,7 @@ typedef struct pg_parser_t {
 #    action unknown { if (settings->unknown && settings->unknown(parser->data, pe - p, p)) fbreak; }
     action value { if (str && settings->value && settings->value(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
 
-    byte = any $str @nbytescheck;
+    byte = any $str;
     char = any - 0;
     str = char* $str 0;
     uint16 = any{2} $uint16;
@@ -109,7 +109,7 @@ typedef struct pg_parser_t {
     |"W" str @context
     );
 
-    row = uint32 @nbytes byte @nrowscheck;
+    row = uint32 @nbytes (byte @nbytescheck)* @nrowscheck;
 
     main :=
     ("1" any{4} @parse
