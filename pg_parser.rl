@@ -21,6 +21,7 @@ typedef struct pg_parser_t {
     action bind { if (settings->bind && settings->bind(parser->data)) fbreak; }
     action byte { if (--parser->int4 >= 0) fgoto str; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
     action close { if (settings->close && settings->close(parser->data)) fbreak; }
+    action colend { if (--parser->n <= 0) fnext main; }
     action col { if (settings->col && settings->col(parser->data, &parser->int4)) fbreak; }
     action columnid { if (settings->columnid && settings->columnid(parser->data, &parser->int2)) fbreak; }
     action column { if (str && settings->column && settings->column(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -37,6 +38,8 @@ typedef struct pg_parser_t {
     action hint { if (str && settings->hint && settings->hint(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action idle { if (settings->idle && settings->idle(parser->data)) fbreak; }
     action inerror { if (settings->inerror && settings->inerror(parser->data)) fbreak; }
+    action int2 { if (!parser->i) { parser->i = 2; parser->int2 = 0; } parser->int2 |= *p << ((2 << 2) * --parser->i); }
+    action int4 { if (!parser->i) { parser->i = 4; parser->int4 = 0; } parser->int4 |= *p << ((2 << 2) * --parser->i); }
     action internal { if (str && settings->internal && settings->internal(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action intrans { if (settings->intrans && settings->intrans(parser->data)) fbreak; }
     action key { if (settings->key && settings->key(parser->data, &parser->int4)) fbreak; }
@@ -46,10 +49,8 @@ typedef struct pg_parser_t {
     action mod { if (settings->mod && settings->mod(parser->data, &parser->int4)) fbreak; }
     action name { if (str && settings->name && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action nbytes { if (settings->nbytes && settings->nbytes(parser->data, &parser->int4)) fbreak; if (parser->int4 == (int32_t)-1) { if (--parser->n <= 0) fnext main; else fnext row; } }
-    action ncolscheck { if (--parser->n <= 0) fnext main; }
     action ncols { parser->n = parser->int2; if (settings->ncols && settings->ncols(parser->data, &parser->n)) fbreak; }
     action nonlocalized { if (str && settings->nonlocalized && settings->nonlocalized(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nrowscheck { if (--parser->n <= 0) fnext main; }
     action nrows { parser->n = parser->int2; if (settings->nrows && settings->nrows(parser->data, &parser->n)) fbreak; }
     action oid { if (settings->oid && settings->oid(parser->data, &parser->int4)) fbreak; }
     action oidlen { if (settings->oidlen && settings->oidlen(parser->data, &parser->int2)) fbreak; }
@@ -59,6 +60,7 @@ typedef struct pg_parser_t {
     action primary { if (str && settings->primary && settings->primary(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action query { if (str && settings->query && settings->query(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action ready { if (settings->ready && settings->ready(parser->data)) fbreak; }
+    action rowend { if (--parser->n <= 0) fnext main; }
     action row { if (settings->row && settings->row(parser->data, &parser->int4)) fbreak; }
     action schema { if (str && settings->schema && settings->schema(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action secret { if (settings->secret && settings->secret(parser->data)) fbreak; }
@@ -69,8 +71,6 @@ typedef struct pg_parser_t {
     action str { if (!str) str = p; if (str) parser->str = cs; }
     action tableid { if (settings->tableid && settings->tableid(parser->data, &parser->int4)) fbreak; }
     action table { if (str && settings->table && settings->table(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action int2 { if (!parser->i) { parser->i = 2; parser->int2 = 0; } parser->int2 |= *p << ((2 << 2) * --parser->i); }
-    action int4 { if (!parser->i) { parser->i = 4; parser->int4 = 0; } parser->int4 |= *p << ((2 << 2) * --parser->i); }
     action value { if (str && settings->value && settings->value(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
 
     any2 = any{2};
@@ -109,12 +109,12 @@ typedef struct pg_parser_t {
     |50 any4 @bind
     |51 any4 @close
     |67 int4 @complete str0 @command
-    |68 int4 @row int2 @nrows (row @nrowscheck)*
+    |68 int4 @row int2 @nrows (row @rowend)*
     |69 int4 @error error* 0
     |75 any4 @secret int4 @pid int4 @key
     |82 any4 @auth int4 @method
     |83 int4 @status str0 @option str0 @value
-    |84 int4 @col int2 @ncols (col @ncolscheck)*
+    |84 int4 @col int2 @ncols (col @colend)*
     |90 any4 @ready (69 @inerror | 73 @idle | 84 @intrans)
     ) $all %main;
 
