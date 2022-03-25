@@ -40,8 +40,8 @@ typedef struct pg_parser_t {
     action hint { if (str && settings->hint && settings->hint(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action idle { if (settings->idle && settings->idle(parser->data)) fbreak; }
     action inerror { if (settings->inerror && settings->inerror(parser->data)) fbreak; }
-    action int2 { if (!parser->i) { parser->i = 2; parser->int2 = 0; } parser->int2 |= *p << ((2 << 2) * --parser->i); }
-    action int4 { if (!parser->i) { parser->i = 4; parser->int4 = 0; } parser->int4 |= *p << ((2 << 2) * --parser->i); }
+    action int2 { if (!parser->i) { parser->i = 2; parser->int2 = 0; } parser->int2 |= (uint8_t)*p << ((2 << 2) * --parser->i); }
+    action int4 { if (!parser->i) { parser->i = 4; parser->int4 = 0; } parser->int4 |= (uint8_t)*p << ((2 << 2) * --parser->i); }
     action internal { if (str && settings->internal && settings->internal(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action intrans { if (settings->intrans && settings->intrans(parser->data)) fbreak; }
     action key { if (settings->key && settings->key(parser->data, &parser->int4)) fbreak; }
