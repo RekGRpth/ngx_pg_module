@@ -235,7 +235,6 @@ static ngx_int_t ngx_pg_parser_error(ngx_pg_save_t *s, const void *ptr) {
 
 static ngx_int_t ngx_pg_parser_fatal(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
     return s->rc;
 }
 
@@ -956,6 +955,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     }
     if (b->pos == b->last) b->pos = b->last = b->start;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
+    if (s->rc == NGX_OK && d->error->nelts) s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
     if (s->rc == NGX_OK) {
         ngx_pg_tup_t *elts = d->tup->elts;
         u->headers_in.content_length_n = 0;
