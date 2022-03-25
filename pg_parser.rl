@@ -53,10 +53,10 @@ typedef struct pg_parser_t {
     action name { if (str && settings->name && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action nbytescheck { if (parser->nbytes == (uint32_t)-1) fnext row; if (parser->nbytes--) fgoto byte; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
     action nbytes { parser->nbytes = parser->uint32; if (settings->nbytes && settings->nbytes(parser->data, &parser->nbytes)) fbreak; }
-    action ncolscheck { if (!--parser->ncols) fnext main; }
+    action ncolscheck { if (!parser->ncols || !--parser->ncols) fnext main; }
     action ncols { parser->ncols = parser->uint16; if (settings->ncols && settings->ncols(parser->data, &parser->ncols)) fbreak; }
     action nonlocalized { if (str && settings->nonlocalized && settings->nonlocalized(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nrowscheck { if (!--parser->nrows) fnext main; }
+    action nrowscheck { if (!parser->nrows || !--parser->nrows) fnext main; }
     action nrows { parser->nrows = parser->uint16; if (settings->nrows && settings->nrows(parser->data, &parser->nrows)) fbreak; }
     action oid { if (settings->oid && settings->oid(parser->data, &parser->uint32)) fbreak; }
     action oidlen { if (settings->oidlen && settings->oidlen(parser->data, &parser->uint16)) fbreak; }
