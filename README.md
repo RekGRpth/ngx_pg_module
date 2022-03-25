@@ -223,14 +223,14 @@ Result typlen of *col*:
 add_header typlen_0 $pg_res_typlen_0 always;
 add_header typlen_1 $pg_res_typlen_1 always;
 ```
-$pg_tup_
+$pg_row_
 -------------
-* Syntax: $pg_tup_*row*_*col*
+* Syntax: $pg_row_*row*_*col*
 
-Result of *row* and *col* tup:
+Result of *row* and *col*:
 ```nginx
-add_header tup_0_0 $pg_tup_0_0 always;
-add_header tup_0_1 $pg_tup_0_1 always;
-add_header tup_1_0 $pg_tup_1_0 always;
-add_header tup_1_1 $pg_tup_1_1 always;
+add_header row_0_0 $pg_row_0_0 always;
+add_header row_0_1 $pg_row_0_1 always;
+add_header row_1_0 $pg_row_1_0 always;
+add_header row_1_1 $pg_row_1_1 always;
 ```

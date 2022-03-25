@@ -48,11 +48,11 @@ typedef struct {
     pg_parser_ptr_cb method;
     pg_parser_ptr_cb nbytes;
     pg_parser_ptr_cb ncols;
-    pg_parser_ptr_cb ntups;
+    pg_parser_ptr_cb nrows;
     pg_parser_ptr_cb pid;
+    pg_parser_ptr_cb row;
     pg_parser_ptr_cb status;
     pg_parser_ptr_cb tableid;
-    pg_parser_ptr_cb tup;
     pg_parser_ptr_cb typid;
     pg_parser_ptr_cb typlen;
 } pg_parser_settings_t;

@@ -11,7 +11,7 @@ typedef struct pg_parser_t {
     int cs;
     int str;
     uint16_t ncols;
-    uint16_t ntups;
+    uint16_t nrows;
     uint16_t uint16;
     uint32_t nbytes;
     uint32_t uint32;
@@ -50,19 +50,20 @@ typedef struct pg_parser_t {
     action line { if (str && settings->line && settings->line(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action method { if (settings->method && settings->method(parser->data, &parser->uint32)) fbreak; }
     action name { if (str && settings->name && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nbytescheck { if (parser->nbytes == (uint32_t)-1) fnext tup; if (parser->nbytes--) fgoto byte; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext tup; }
+    action nbytescheck { if (parser->nbytes == (uint32_t)-1) fnext row; if (parser->nbytes--) fgoto byte; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
     action nbytes { parser->nbytes = parser->uint32; if (settings->nbytes && settings->nbytes(parser->data, &parser->nbytes)) fbreak; }
     action ncolscheck { if (!--parser->ncols) fnext main; }
     action ncols { parser->ncols = parser->uint16; if (settings->ncols && settings->ncols(parser->data, &parser->ncols)) fbreak; }
     action nonlocalized { if (str && settings->nonlocalized && settings->nonlocalized(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action ntupscheck { if (!--parser->ntups) fnext main; }
-    action ntups { parser->ntups = parser->uint16; if (settings->ntups && settings->ntups(parser->data, &parser->ntups)) fbreak; }
+    action nrowscheck { if (!--parser->nrows) fnext main; }
+    action nrows { parser->nrows = parser->uint16; if (settings->nrows && settings->nrows(parser->data, &parser->nrows)) fbreak; }
     action option { if (str && settings->option && settings->option(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action parse { if (settings->parse && settings->parse(parser->data)) fbreak; }
     action pid { if (settings->pid && settings->pid(parser->data, &parser->uint32)) fbreak; }
     action primary { if (str && settings->primary && settings->primary(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action query { if (str && settings->query && settings->query(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action ready { if (settings->ready && settings->ready(parser->data)) fbreak; }
+    action row { if (settings->row && settings->row(parser->data, &parser->uint32)) fbreak; }
     action schema { if (str && settings->schema && settings->schema(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action secret { if (settings->secret && settings->secret(parser->data)) fbreak; }
     action severity { if (str && settings->severity && settings->severity(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -72,7 +73,6 @@ typedef struct pg_parser_t {
     action str { if (!str) str = p; if (str) parser->str = cs; }
     action tableid { if (settings->tableid && settings->tableid(parser->data, &parser->uint32)) fbreak; }
     action table { if (str && settings->table && settings->table(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action tup { if (settings->tup && settings->tup(parser->data, &parser->uint32)) fbreak; }
     action typid { if (settings->typid && settings->typid(parser->data, &parser->uint32)) fbreak; }
     action typlen { if (settings->typlen && settings->typlen(parser->data, &parser->uint16)) fbreak; }
     action uint16 { if (!parser->uint8) { parser->uint8 = 2; parser->uint16 = 0; } parser->uint16 |= *p << ((2 << 2) * --parser->uint8); }
@@ -98,7 +98,7 @@ typedef struct pg_parser_t {
     name = str @name;
     nbytes = uint32 @nbytes;
     ncols = uint16 @ncols;
-    ntups = uint16 @ntups;
+    nrows = uint16 @nrows;
     option = str @option;
     pid = uint32 @pid;
     tableid = uint32 @tableid;
@@ -127,16 +127,17 @@ typedef struct pg_parser_t {
     |"V" str @nonlocalized
     |"W" str @context
     ) $!unknown;
+
     col = name tableid columnid typid typlen atttypmod format @ncolscheck;
     ready = idle | inerror | intrans;
-    tup = nbytes byte @ntupscheck;
+    row = nbytes byte @nrowscheck;
 
     main :=
     ("1" any{4} @parse
     |"2" any{4} @bind
     |"3" any{4} @close
     |"C" uint32 @complete command
-    |"D" uint32 @tup ntups tup*
+    |"D" uint32 @row nrows row*
     |"E" uint32 @error error*
     |"K" any{4} @secret pid key
     |"R" any{4} @auth method
