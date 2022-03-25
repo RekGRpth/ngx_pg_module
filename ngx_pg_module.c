@@ -935,6 +935,7 @@ static ngx_int_t ngx_pg_add_response(ngx_http_request_t *r, ngx_str_t str) {
     b->pos = str.data;
     b->tag = u->output.tag;
     b->temporary = 1;
+    u->headers_in.content_length_n += str.len;
     return NGX_OK;
 }
 
@@ -959,6 +960,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     if (s->rc == NGX_OK) {
         ngx_pg_tup_t *elts = d->tup->elts;
+        u->headers_in.content_length_n = 0;
         for (ngx_uint_t i = 0; i < d->tup->nelts; i++) {
             if (i && ngx_pg_add_response(r, (ngx_str_t)ngx_string("\n")) != NGX_OK) return NGX_ERROR;
             ngx_str_t *str = elts[i].str->elts;
