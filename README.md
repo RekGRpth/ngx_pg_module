@@ -144,14 +144,14 @@ add_header session_authorization $pg_opt_session_authorization always;
 add_header standard_conforming_strings $pg_opt_standard_conforming_strings always;
 add_header timezone $pg_opt_timezone always;
 ```
-$pg_col_atttypmod_
+$pg_col_mod_
 -------------
-* Syntax: $pg_col_atttypmod_*col*
+* Syntax: $pg_col_mod_*col*
 
-Result atttypmod of *col*:
+Result mod of *col*:
 ```nginx
-add_header atttypmod_0 $pg_col_atttypmod_0 always;
-add_header atttypmod_1 $pg_col_atttypmod_1 always;
+add_header mod_0 $pg_col_mod_0 always;
+add_header mod_1 $pg_col_mod_1 always;
 ```
 $pg_col_format_
 -------------

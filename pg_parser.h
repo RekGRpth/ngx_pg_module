@@ -38,7 +38,6 @@ typedef struct {
     pg_parser_len_str_cb unknown;
     pg_parser_len_str_cb value;
     pg_parser_ptr_cb all;
-    pg_parser_ptr_cb atttypmod;
     pg_parser_ptr_cb col;
     pg_parser_ptr_cb columnid;
     pg_parser_ptr_cb complete;
@@ -46,6 +45,7 @@ typedef struct {
     pg_parser_ptr_cb format;
     pg_parser_ptr_cb key;
     pg_parser_ptr_cb method;
+    pg_parser_ptr_cb mod;
     pg_parser_ptr_cb nbytes;
     pg_parser_ptr_cb ncols;
     pg_parser_ptr_cb nrows;
