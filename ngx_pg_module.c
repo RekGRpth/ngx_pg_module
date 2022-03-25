@@ -957,16 +957,18 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     if (s->rc == NGX_OK && d->error && d->error->nelts) s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
     if (s->rc == NGX_OK) {
-        ngx_pg_row_t *elts = d->row->elts;
         u->headers_in.content_length_n = 0;
         u->headers_in.status_n = NGX_HTTP_OK;
-        for (ngx_uint_t i = 0; i < d->row->nelts; i++) {
-            if (i && ngx_pg_add_response(r, sizeof("\n") - 1, (u_char *)"\n") != NGX_OK) return NGX_ERROR;
-            ngx_str_t *str = elts[i].str->elts;
-            for (ngx_uint_t j = 0; j < elts[i].str->nelts; j++) {
-                ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i,%i:%V", i, j, &str[j]);
-                if (j && ngx_pg_add_response(r, sizeof("\t") - 1, (u_char *)"\t") != NGX_OK) return NGX_ERROR;
-                if (ngx_pg_add_response(r, str[j].len, str[j].data) != NGX_OK) return NGX_ERROR;
+        if (d->row) {
+            ngx_pg_row_t *elts = d->row->elts;
+            for (ngx_uint_t i = 0; i < d->row->nelts; i++) {
+                if (i && ngx_pg_add_response(r, sizeof("\n") - 1, (u_char *)"\n") != NGX_OK) return NGX_ERROR;
+                ngx_str_t *str = elts[i].str->elts;
+                for (ngx_uint_t j = 0; j < elts[i].str->nelts; j++) {
+                    ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i,%i:%V", i, j, &str[j]);
+                    if (j && ngx_pg_add_response(r, sizeof("\t") - 1, (u_char *)"\t") != NGX_OK) return NGX_ERROR;
+                    if (ngx_pg_add_response(r, str[j].len, str[j].data) != NGX_OK) return NGX_ERROR;
+                }
             }
         }
         u->keepalive = !u->headers_in.connection_close;
