@@ -86,24 +86,24 @@ typedef struct pg_parser_t {
 
     error =
     (0 @fatal
-    |"c" str0 @column
-    |"C" str0 @sqlstate
-    |"d" str0 @datatype
-    |"D" str0 @detail
-    |"F" str0 @file
-    |"H" str0 @hint
-    |"L" str0 @line
-    |"M" str0 @primary
-    |"n" str0 @constraint
-    |"p" str0 @internal
-    |"P" str0 @statement
-    |"q" str0 @query
-    |"R" str0 @function
-    |"s" str0 @schema
-    |"S" str0 @severity
-    |"t" str0 @table
-    |"V" str0 @nonlocalized
-    |"W" str0 @context
+    |67 str0 @sqlstate
+    |68 str0 @detail
+    |70 str0 @file
+    |72 str0 @hint
+    |76 str0 @line
+    |77 str0 @primary
+    |80 str0 @statement
+    |82 str0 @function
+    |83 str0 @severity
+    |86 str0 @nonlocalized
+    |87 str0 @context
+    |99 str0 @column
+    |100 str0 @datatype
+    |110 str0 @constraint
+    |112 str0 @internal
+    |113 str0 @query
+    |115 str0 @schema
+    |116 str0 @table
     ) $!unknown;
 
     col = str0 @name int4 @tableid int2 @columnid int4 @oid int2 @oidlen int4 @mod int2 @format;
@@ -120,8 +120,8 @@ typedef struct pg_parser_t {
     |82 any4 @auth int4 @method
     |83 int4 @status str0 @option str0 @value
     |84 int4 @col int2 @ncols (col @ncolscheck)*
-    |90 any4 @ready (73 @idle | 69 @inerror | 84 @intrans)
-    ) $all $!unknown %main;
+    |90 any4 @ready (69 @inerror | 73 @idle | 84 @intrans)
+    ) $all %main;
 
     write data;
 }%%
