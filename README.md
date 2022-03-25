@@ -171,13 +171,13 @@ Result columnid of *col*:
 add_header columnid_0 $pg_col_columnid_0 always;
 add_header columnid_1 $pg_col_columnid_1 always;
 ```
-$pg_col_command
+$pg_cmd
 -------------
-* Syntax: $pg_col_command
+* Syntax: $pg_cmd
 
 Result command:
 ```nginx
-add_header command $pg_col_command always;
+add_header command $pg_cmd always;
 ```
 $pg_col_name_
 -------------
