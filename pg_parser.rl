@@ -10,7 +10,7 @@ typedef struct pg_parser_t {
     const void *data;
     int cs;
     int str;
-    uint16_t nfields;
+    uint16_t ncols;
     uint16_t ntups;
     uint16_t uint16;
     uint32_t nbytes;
@@ -27,6 +27,7 @@ typedef struct pg_parser_t {
     action auth { if (settings->auth && settings->auth(parser->data)) fbreak; }
     action bind { if (settings->bind && settings->bind(parser->data)) fbreak; }
     action close { if (settings->close && settings->close(parser->data)) fbreak; }
+    action col { if (settings->col && settings->col(parser->data, &parser->uint32)) fbreak; }
     action columnid { if (settings->columnid && settings->columnid(parser->data, &parser->uint16)) fbreak; }
     action column { if (str && settings->column && settings->column(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action command { if (str && settings->command && settings->command(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -37,7 +38,6 @@ typedef struct pg_parser_t {
     action detail { if (str && settings->detail && settings->detail(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action error { if (settings->error && settings->error(parser->data, &parser->uint32)) fbreak; }
     action fatal { if (settings->fatal && settings->fatal(parser->data)) fbreak; }
-    action field { if (settings->field && settings->field(parser->data, &parser->uint32)) fbreak; }
     action file { if (str && settings->file && settings->file(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action format { if (settings->format && settings->format(parser->data, &parser->uint16)) fbreak; }
     action function { if (str && settings->function && settings->function(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -52,8 +52,8 @@ typedef struct pg_parser_t {
     action name { if (str && settings->name && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action nbytescheck { if (parser->nbytes == (uint32_t)-1) fnext tup; if (parser->nbytes--) fgoto byte; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext tup; }
     action nbytes { parser->nbytes = parser->uint32; if (settings->nbytes && settings->nbytes(parser->data, &parser->nbytes)) fbreak; }
-    action nfieldscheck { if (!--parser->nfields) fnext main; }
-    action nfields { parser->nfields = parser->uint16; if (settings->nfields && settings->nfields(parser->data, &parser->nfields)) fbreak; }
+    action ncolscheck { if (!--parser->ncols) fnext main; }
+    action ncols { parser->ncols = parser->uint16; if (settings->ncols && settings->ncols(parser->data, &parser->ncols)) fbreak; }
     action nonlocalized { if (str && settings->nonlocalized && settings->nonlocalized(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action ntupscheck { if (!--parser->ntups) fnext main; }
     action ntups { parser->ntups = parser->uint16; if (settings->ntups && settings->ntups(parser->data, &parser->ntups)) fbreak; }
@@ -97,14 +97,14 @@ typedef struct pg_parser_t {
     method = uint32 @method;
     name = str @name;
     nbytes = uint32 @nbytes;
-    nfields = uint16 @nfields;
+    ncols = uint16 @ncols;
     ntups = uint16 @ntups;
-    pid = uint32 @pid;
     option = str @option;
-    value = str @value;
+    pid = uint32 @pid;
     tableid = uint32 @tableid;
     typid = uint32 @typid;
     typlen = uint16 @typlen;
+    value = str @value;
 
     error =
     (0 @fatal
@@ -127,7 +127,7 @@ typedef struct pg_parser_t {
     |"V" str @nonlocalized
     |"W" str @context
     ) $!unknown;
-    field = name tableid columnid typid typlen atttypmod format @nfieldscheck;
+    col = name tableid columnid typid typlen atttypmod format @ncolscheck;
     ready = idle | inerror | intrans;
     tup = nbytes byte @ntupscheck;
 
@@ -141,7 +141,7 @@ typedef struct pg_parser_t {
     |"K" any{4} @secret pid key
     |"R" any{4} @auth method
     |"S" uint32 @status option value
-    |"T" uint32 @field nfields field*
+    |"T" uint32 @col ncols col*
     |"Z" any{4} @ready ready
     )** $all $!unknown;
 

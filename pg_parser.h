@@ -39,15 +39,15 @@ typedef struct {
     pg_parser_len_str_cb value;
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb atttypmod;
+    pg_parser_ptr_cb col;
     pg_parser_ptr_cb columnid;
     pg_parser_ptr_cb complete;
     pg_parser_ptr_cb error;
-    pg_parser_ptr_cb field;
     pg_parser_ptr_cb format;
     pg_parser_ptr_cb key;
     pg_parser_ptr_cb method;
     pg_parser_ptr_cb nbytes;
-    pg_parser_ptr_cb nfields;
+    pg_parser_ptr_cb ncols;
     pg_parser_ptr_cb ntups;
     pg_parser_ptr_cb pid;
     pg_parser_ptr_cb status;
