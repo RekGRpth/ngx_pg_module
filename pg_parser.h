@@ -1,6 +1,6 @@
 typedef intptr_t (*pg_parser_cb) (void *data);
 typedef intptr_t (*pg_parser_ptr_cb) (void *data, const void *ptr);
-typedef intptr_t (*pg_parser_len_str_cb) (void *data, size_t len, const uint8_t *str);
+typedef intptr_t (*pg_parser_len_str_cb) (void *data, size_t len, const char *str);
 
 typedef struct {
     pg_parser_cb auth;
@@ -59,9 +59,8 @@ typedef struct {
 
 typedef struct pg_parser_t pg_parser_t;
 
-inline static uint8_t *pg_write_int16(uint8_t *p, int16_t n) { for (uint8_t i = 2; i; *p++ = n >> (2 << 2) * --i); return p; }
-inline static uint8_t *pg_write_int32(uint8_t *p, int32_t n) { for (uint8_t i = 4; i; *p++ = n >> (2 << 2) * --i); return p; }
-inline static uint8_t *pg_write_uint8(uint8_t *p, uint8_t n) { *p++ = n; return p; }
-size_t pg_parser_execute(pg_parser_t *parser, const uint8_t *p, const uint8_t *pe);
+inline char *pg_write_int16(char *p, int16_t n) { for (int8_t i = 2; i; *p++ = n >> (2 << 2) * --i); return p; }
+inline char *pg_write_int32(char *p, int32_t n) { for (int8_t i = 4; i; *p++ = n >> (2 << 2) * --i); return p; }
+size_t pg_parser_execute(pg_parser_t *parser, const char *p, const char *pe);
 size_t pg_parser_size(void);
 void pg_parser_init(pg_parser_t *parser, const pg_parser_settings_t *settings, const void *data);

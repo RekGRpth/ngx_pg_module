@@ -20,7 +20,6 @@ typedef struct pg_parser_t {
 
 %%{
     machine pg_parser;
-    alphtype unsigned char;
 
     action all { if (settings->all && settings->all(parser->data, p)) fbreak; }
     action auth { if (settings->auth && settings->auth(parser->data)) fbreak; }
@@ -130,11 +129,11 @@ typedef struct pg_parser_t {
     write data;
 }%%
 
-size_t pg_parser_execute(pg_parser_t *parser, const uint8_t *p, const uint8_t *pe) {
+size_t pg_parser_execute(pg_parser_t *parser, const char *p, const char *pe) {
     const pg_parser_settings_t *settings = parser->settings;
-    const uint8_t *b = p;
-    const uint8_t *eof = NULL;
-    const uint8_t *str = parser->cs == parser->str ? p : NULL;
+    const char *b = p;
+    const char *eof = NULL;
+    const char *str = parser->cs == parser->str ? p : NULL;
     int cs = parser->cs;
     %% write exec;
     parser->cs = cs;
