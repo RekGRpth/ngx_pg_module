@@ -59,8 +59,8 @@ typedef struct {
 
 typedef struct pg_parser_t pg_parser_t;
 
-inline static uint8_t *pg_write_uint16(uint8_t *p, uint16_t n) { for (uint8_t i = 2; i; *p++ = n >> (2 << 2) * --i); return p; }
-inline static uint8_t *pg_write_uint32(uint8_t *p, uint32_t n) { for (uint8_t i = 4; i; *p++ = n >> (2 << 2) * --i); return p; }
+inline static uint8_t *pg_write_int16(uint8_t *p, int16_t n) { for (uint8_t i = 2; i; *p++ = n >> (2 << 2) * --i); return p; }
+inline static uint8_t *pg_write_int32(uint8_t *p, int32_t n) { for (uint8_t i = 4; i; *p++ = n >> (2 << 2) * --i); return p; }
 inline static uint8_t *pg_write_uint8(uint8_t *p, uint8_t n) { *p++ = n; return p; }
 size_t pg_parser_execute(pg_parser_t *parser, const uint8_t *p, const uint8_t *pe);
 size_t pg_parser_size(void);
