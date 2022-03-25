@@ -126,7 +126,7 @@ typedef struct pg_parser_t {
 size_t pg_parser_execute(pg_parser_t *parser, const char *p, const char *pe) {
     const pg_parser_settings_t *settings = parser->settings;
     const char *b = p;
-    const char *eof = NULL;
+    const char *eof = pe;
     const char *str = parser->cs == parser->str ? p : NULL;
     int cs = parser->cs;
     %% write exec;
