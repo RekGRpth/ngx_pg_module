@@ -31,7 +31,6 @@ typedef struct pg_parser_t {
     action datatype { if (str && settings->datatype && settings->datatype(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action detail { if (str && settings->detail && settings->detail(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action error { if (settings->error && settings->error(parser->data, &parser->int4)) fbreak; }
-    action fatal { if (settings->fatal && settings->fatal(parser->data)) fbreak; }
     action file { if (str && settings->file && settings->file(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action format { if (settings->format && settings->format(parser->data, &parser->int2)) fbreak; }
     action function { if (str && settings->function && settings->function(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -82,8 +81,7 @@ typedef struct pg_parser_t {
     int4 = any4 $int4;
 
     error =
-    (0 @fatal
-    |67 str0 @sqlstate
+    (67 str0 @sqlstate
     |68 str0 @detail
     |70 str0 @file
     |72 str0 @hint
@@ -112,7 +110,7 @@ typedef struct pg_parser_t {
     |51 any4 @close
     |67 int4 @complete str0 @command
     |68 int4 @row int2 @nrows (row @nrowscheck)*
-    |69 int4 @error error*
+    |69 int4 @error error* 0
     |75 any4 @secret int4 @pid int4 @key
     |82 any4 @auth int4 @method
     |83 int4 @status str0 @option str0 @value

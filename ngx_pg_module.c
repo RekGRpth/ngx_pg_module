@@ -235,11 +235,6 @@ static int ngx_pg_parser_error(ngx_pg_save_t *s, const void *ptr) {
     return s->rc;
 }
 
-static int ngx_pg_parser_fatal(ngx_pg_save_t *s) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    return s->rc;
-}
-
 static int ngx_pg_parser_col(ngx_pg_save_t *s, const void *ptr) {
     int32_t len;
     if (!(len = *(int32_t *)ptr)) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
@@ -568,7 +563,6 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .datatype = (pg_parser_len_str_cb)ngx_pg_parser_datatype,
     .detail = (pg_parser_len_str_cb)ngx_pg_parser_detail,
     .error = (pg_parser_ptr_cb)ngx_pg_parser_error,
-    .fatal = (pg_parser_cb)ngx_pg_parser_fatal,
     .file = (pg_parser_len_str_cb)ngx_pg_parser_file,
     .format = (pg_parser_ptr_cb)ngx_pg_parser_format,
     .function = (pg_parser_len_str_cb)ngx_pg_parser_function,
