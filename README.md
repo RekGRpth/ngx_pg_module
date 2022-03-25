@@ -214,14 +214,14 @@ Result oid of *col*:
 add_header oid_0 $pg_col_oid_0 always;
 add_header oid_1 $pg_col_oid_1 always;
 ```
-$pg_col_typlen_
+$pg_col_oidlen_
 -------------
-* Syntax: $pg_col_typlen_*col*
+* Syntax: $pg_col_oidlen_*col*
 
-Result typlen of *col*:
+Result oidlen of *col*:
 ```nginx
-add_header typlen_0 $pg_col_typlen_0 always;
-add_header typlen_1 $pg_col_typlen_1 always;
+add_header oidlen_0 $pg_col_oidlen_0 always;
+add_header oidlen_1 $pg_col_oidlen_1 always;
 ```
 $pg_row_
 -------------
