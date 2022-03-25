@@ -1,6 +1,3 @@
-#include <stddef.h>
-#include <stdint.h>
-
 #include "pg_parser.h"
 
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
