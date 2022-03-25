@@ -159,11 +159,11 @@ static int ngx_pg_parser_byte(ngx_pg_save_t *s, size_t len, const u_char *str) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (!d->row->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_ERROR; return s->rc; }
     ngx_pg_row_t *elts = d->row->elts;
+    if (!d->row->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_pg_row_t *row = &elts[d->row->nelts - 1];
-    if (!row->str->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_ERROR; return s->rc; }
     ngx_str_t *rowelts = row->str->elts;
+    if (!row->str->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_str_t *strstr = &rowelts[row->str->nelts - 1];
     ngx_memcpy(strstr->data + strstr->len, str, len);
     strstr->len += len;
@@ -372,14 +372,14 @@ static int ngx_pg_parser_nbytes(ngx_pg_save_t *s, const void *ptr) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", nbytes);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (!d->row->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_ERROR; return s->rc; }
-    ngx_http_request_t *r = d->request;
     ngx_pg_row_t *elts = d->row->elts;
+    if (!d->row->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_pg_row_t *row = &elts[d->row->nelts - 1];
     ngx_str_t *str;
     if (!(str = ngx_array_push(row->str))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
     ngx_memzero(str, sizeof(*str));
     if (nbytes == (int32_t)-1) return s->rc;
+    ngx_http_request_t *r = d->request;
     if (!(str->data = ngx_pnalloc(r->pool, nbytes))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
