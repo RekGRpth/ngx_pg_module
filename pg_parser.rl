@@ -52,7 +52,7 @@ typedef struct pg_parser_t {
     action method { if (settings->method && settings->method(parser->data, &parser->uint32)) fbreak; }
     action mod { if (settings->mod && settings->mod(parser->data, &parser->uint32)) fbreak; }
     action name { if (str && settings->name && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nbytes { parser->nbytes = parser->uint32; if (settings->nbytes && settings->nbytes(parser->data, &parser->nbytes)) fbreak; if (parser->nbytes == (uint32_t)-1) { if (!--parser->nrows) fnext main; fnext row; } }
+    action nbytes { parser->nbytes = parser->uint32; if (settings->nbytes && settings->nbytes(parser->data, &parser->nbytes)) fbreak; if (parser->nbytes == (uint32_t)-1) { if (!--parser->nrows) fnext main; else fnext row; } }
     action ncolscheck { if (!--parser->ncols) fnext main; }
     action ncols { parser->ncols = parser->uint16; if (settings->ncols && settings->ncols(parser->data, &parser->ncols)) fbreak; }
     action nonlocalized { if (str && settings->nonlocalized && settings->nonlocalized(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
