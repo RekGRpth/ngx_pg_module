@@ -246,8 +246,6 @@ static ngx_int_t ngx_pg_parser_field(ngx_pg_save_t *s, const void *ptr) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_http_request_t *r = d->request;
-    ngx_http_upstream_t *u = r->upstream;
-    u->headers_in.status_n = NGX_HTTP_OK;
     if (!(d->fields.data = ngx_pnalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
@@ -961,6 +959,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     if (s->rc == NGX_OK) {
         ngx_pg_tup_t *elts = d->tup->elts;
         u->headers_in.content_length_n = 0;
+        u->headers_in.status_n = NGX_HTTP_OK;
         for (ngx_uint_t i = 0; i < d->tup->nelts; i++) {
             if (i && ngx_pg_add_response(r, (ngx_str_t)ngx_string("\n")) != NGX_OK) return NGX_ERROR;
             ngx_str_t *str = elts[i].str->elts;
