@@ -32,6 +32,7 @@ typedef struct pg_parser_t {
     action context { if (str && settings->context && settings->context(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action datatype { if (str && settings->datatype && settings->datatype(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action detail { if (str && settings->detail && settings->detail(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
+    action errbeg { if (settings->errbeg && settings->errbeg(parser->data)) fbreak; }
     action error { if (settings->error && settings->error(parser->data, &parser->int4)) fbreak; }
     action file { if (str && settings->file && settings->file(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action format { if (settings->format && settings->format(parser->data, &parser->int2)) fbreak; }
@@ -112,7 +113,7 @@ typedef struct pg_parser_t {
     |51 any4 @close
     |67 int4 @complete str0 @command
     |68 int4 @row int2 @nrows (row >rowbeg @rowend)*
-    |69 int4 @error error* 0
+    |69 int4 @error (error >errbeg)* 0
     |75 any4 @secret int4 @pid int4 @key
     |82 any4 @auth int4 @method
     |83 int4 @status str0 @option str0 @value

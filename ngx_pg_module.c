@@ -132,6 +132,11 @@ static int ngx_pg_parser_colbeg(ngx_pg_save_t *s) {
     return s->rc;
 }
 
+static int ngx_pg_parser_errbeg(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return s->rc;
+}
+
 static int ngx_pg_parser_rowbeg(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     return s->rc;
@@ -573,6 +578,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .context = (pg_parser_len_str_cb)ngx_pg_parser_context,
     .datatype = (pg_parser_len_str_cb)ngx_pg_parser_datatype,
     .detail = (pg_parser_len_str_cb)ngx_pg_parser_detail,
+    .errbeg = (pg_parser_cb)ngx_pg_parser_errbeg,
     .error = (pg_parser_ptr_cb)ngx_pg_parser_error,
     .file = (pg_parser_len_str_cb)ngx_pg_parser_file,
     .format = (pg_parser_ptr_cb)ngx_pg_parser_format,
