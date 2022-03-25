@@ -88,7 +88,6 @@ typedef struct pg_parser_t {
     uint32 = any{4} $uint32;
 
     columnid = uint16 @columnid;
-    command = str @command;
     format = uint16 @format;
     idle = "I" @idle;
     inerror = "E" @inerror;
@@ -136,7 +135,7 @@ typedef struct pg_parser_t {
     ("1" any{4} @parse
     |"2" any{4} @bind
     |"3" any{4} @close
-    |"C" uint32 @complete command
+    |"C" uint32 @complete str @command
     |"D" uint32 @row nrows row*
     |"E" uint32 @error error*
     |"K" any{4} @secret pid key
