@@ -65,7 +65,7 @@ typedef struct {
     uint16_t typlen;
     uint32_t atttypmod;
     uint32_t tableid;
-    uint32_t typid;
+    uint32_t oid;
 } ngx_pg_col_t;
 
 typedef struct {
@@ -517,13 +517,13 @@ static ngx_int_t ngx_pg_parser_row(ngx_pg_save_t *s, const void *ptr) {
     return s->rc;
 }
 
-static ngx_int_t ngx_pg_parser_typid(ngx_pg_save_t *s, const void *ptr) {
-    uint32_t typid = *(uint32_t *)ptr;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", typid);
+static ngx_int_t ngx_pg_parser_oid(ngx_pg_save_t *s, const void *ptr) {
+    uint32_t oid = *(uint32_t *)ptr;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", oid);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_col_t *elts = d->col->elts;
-    elts[d->col->nelts - 2].typid = typid;
+    elts[d->col->nelts - 2].oid = oid;
     return s->rc;
 }
 
@@ -605,7 +605,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .tableid = (pg_parser_ptr_cb)ngx_pg_parser_tableid,
     .table = (pg_parser_len_str_cb)ngx_pg_parser_table,
     .row = (pg_parser_ptr_cb)ngx_pg_parser_row,
-    .typid = (pg_parser_ptr_cb)ngx_pg_parser_typid,
+    .oid = (pg_parser_ptr_cb)ngx_pg_parser_oid,
     .typlen = (pg_parser_ptr_cb)ngx_pg_parser_typlen,
     .unknown = (pg_parser_len_str_cb)ngx_pg_parser_unknown,
     .value = (pg_parser_len_str_cb)ngx_pg_parser_value,
@@ -1282,7 +1282,7 @@ static ngx_int_t ngx_pg_col_tableid_get_handler(ngx_http_request_t *r, ngx_http_
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_col_typid_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_col_oid_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
@@ -1290,14 +1290,14 @@ static ngx_int_t ngx_pg_col_typid_get_handler(ngx_http_request_t *r, ngx_http_va
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_col_typid_") - 1, name->len - sizeof("pg_col_typid_") + 1);
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_col_oid_") - 1, name->len - sizeof("pg_col_oid_") + 1);
     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t i = n;
     if (!d->col || i >= d->col->nelts) return NGX_OK;
     ngx_pg_col_t *elts = d->col->elts;
-    v->len = snprintf(NULL, 0, "%i", elts[i].typid);
+    v->len = snprintf(NULL, 0, "%i", elts[i].oid);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].typid) - v->data;
+    v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].oid) - v->data;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
@@ -1364,7 +1364,7 @@ static const ngx_http_variable_t ngx_pg_variables[] = {
   { ngx_string("pg_col_name_"), NULL, ngx_pg_col_name_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_ncols"), NULL, ngx_pg_ncols_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
   { ngx_string("pg_col_tableid_"), NULL, ngx_pg_col_tableid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
-  { ngx_string("pg_col_typid_"), NULL, ngx_pg_col_typid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_col_oid_"), NULL, ngx_pg_col_oid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_col_typlen_"), NULL, ngx_pg_col_typlen_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_pid"), NULL, ngx_pg_pid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
   { ngx_string("pg_err_"), NULL, ngx_pg_err_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },

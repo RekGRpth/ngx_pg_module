@@ -205,14 +205,14 @@ Result tableid of *col*:
 add_header tableid_0 $pg_col_tableid_0 always;
 add_header tableid_1 $pg_col_tableid_1 always;
 ```
-$pg_col_typid_
+$pg_col_oid_
 -------------
-* Syntax: $pg_col_typid_*col*
+* Syntax: $pg_col_oid_*col*
 
-Result typid of *col*:
+Result oid of *col*:
 ```nginx
-add_header typid_0 $pg_col_typid_0 always;
-add_header typid_1 $pg_col_typid_1 always;
+add_header oid_0 $pg_col_oid_0 always;
+add_header oid_1 $pg_col_oid_1 always;
 ```
 $pg_col_typlen_
 -------------

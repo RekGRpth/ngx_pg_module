@@ -57,6 +57,7 @@ typedef struct pg_parser_t {
     action nonlocalized { if (str && settings->nonlocalized && settings->nonlocalized(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action nrowscheck { if (!--parser->nrows) fnext main; }
     action nrows { parser->nrows = parser->uint16; if (settings->nrows && settings->nrows(parser->data, &parser->nrows)) fbreak; }
+    action oid { if (settings->oid && settings->oid(parser->data, &parser->uint32)) fbreak; }
     action option { if (str && settings->option && settings->option(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action parse { if (settings->parse && settings->parse(parser->data)) fbreak; }
     action pid { if (settings->pid && settings->pid(parser->data, &parser->uint32)) fbreak; }
@@ -73,7 +74,6 @@ typedef struct pg_parser_t {
     action str { if (!str) str = p; if (str) parser->str = cs; }
     action tableid { if (settings->tableid && settings->tableid(parser->data, &parser->uint32)) fbreak; }
     action table { if (str && settings->table && settings->table(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action typid { if (settings->typid && settings->typid(parser->data, &parser->uint32)) fbreak; }
     action typlen { if (settings->typlen && settings->typlen(parser->data, &parser->uint16)) fbreak; }
     action uint16 { if (!parser->uint8) { parser->uint8 = 2; parser->uint16 = 0; } parser->uint16 |= *p << ((2 << 2) * --parser->uint8); }
     action uint32 { if (!parser->uint8) { parser->uint8 = 4; parser->uint32 = 0; } parser->uint32 |= *p << ((2 << 2) * --parser->uint8); }
@@ -99,10 +99,10 @@ typedef struct pg_parser_t {
     nbytes = uint32 @nbytes;
     ncols = uint16 @ncols;
     nrows = uint16 @nrows;
+    oid = uint32 @oid;
     option = str @option;
     pid = uint32 @pid;
     tableid = uint32 @tableid;
-    typid = uint32 @typid;
     typlen = uint16 @typlen;
     value = str @value;
 
@@ -128,7 +128,7 @@ typedef struct pg_parser_t {
     |"W" str @context
     ) $!unknown;
 
-    col = name tableid columnid typid typlen atttypmod format @ncolscheck;
+    col = name tableid columnid oid typlen atttypmod format @ncolscheck;
     ready = idle | inerror | intrans;
     row = nbytes byte @nrowscheck;
 
