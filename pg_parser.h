@@ -9,11 +9,13 @@ typedef struct {
     pg_parser_cb auth;
     pg_parser_cb bind;
     pg_parser_cb close;
+    pg_parser_cb colbeg;
     pg_parser_cb idle;
     pg_parser_cb inerror;
     pg_parser_cb intrans;
     pg_parser_cb parse;
     pg_parser_cb ready;
+    pg_parser_cb rowbeg;
     pg_parser_cb secret;
     pg_parser_len_str_cb byte;
     pg_parser_len_str_cb column;
