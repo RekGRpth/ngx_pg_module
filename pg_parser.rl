@@ -22,7 +22,7 @@ typedef struct pg_parser_t {
     machine pg_parser;
     alphtype unsigned char;
 
-#    action all { if (settings->all && settings->all(parser->data, p)) fbreak; }
+    action all { if (settings->all && settings->all(parser->data, p)) fbreak; }
     action auth { if (settings->auth && settings->auth(parser->data)) fbreak; }
     action bind { if (settings->bind && settings->bind(parser->data)) fbreak; }
     action byte { if (parser->nbytes--) fgoto str; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
@@ -52,11 +52,11 @@ typedef struct pg_parser_t {
     action method { if (settings->method && settings->method(parser->data, &parser->uint32)) fbreak; }
     action mod { if (settings->mod && settings->mod(parser->data, &parser->uint32)) fbreak; }
     action name { if (str && settings->name && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nbytes { parser->nbytes = parser->uint32; if (settings->nbytes && settings->nbytes(parser->data, &parser->nbytes)) fbreak; if (parser->nbytes == (uint32_t)-1) fnext row; }
-    action ncolscheck { if (!parser->ncols || !--parser->ncols) fnext main; }
+    action nbytes { parser->nbytes = parser->uint32; if (settings->nbytes && settings->nbytes(parser->data, &parser->nbytes)) fbreak; if (parser->nbytes == (uint32_t)-1) { if (!--parser->nrows) fnext main; fnext row; } }
+    action ncolscheck { if (!--parser->ncols) fnext main; }
     action ncols { parser->ncols = parser->uint16; if (settings->ncols && settings->ncols(parser->data, &parser->ncols)) fbreak; }
     action nonlocalized { if (str && settings->nonlocalized && settings->nonlocalized(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nrowscheck { if (!parser->nrows || !--parser->nrows) fnext main; }
+    action nrowscheck { if (!--parser->nrows) fnext main; }
     action nrows { parser->nrows = parser->uint16; if (settings->nrows && settings->nrows(parser->data, &parser->nrows)) fbreak; }
     action oid { if (settings->oid && settings->oid(parser->data, &parser->uint32)) fbreak; }
     action oidlen { if (settings->oidlen && settings->oidlen(parser->data, &parser->uint16)) fbreak; }
@@ -78,7 +78,7 @@ typedef struct pg_parser_t {
     action table { if (str && settings->table && settings->table(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action uint16 { if (!parser->uint8) { parser->uint8 = 2; parser->uint16 = 0; } parser->uint16 |= *p << ((2 << 2) * --parser->uint8); }
     action uint32 { if (!parser->uint8) { parser->uint8 = 4; parser->uint32 = 0; } parser->uint32 |= *p << ((2 << 2) * --parser->uint8); }
-#    action unknown { if (settings->unknown && settings->unknown(parser->data, pe - p, p)) fbreak; }
+    action unknown { if (settings->unknown && settings->unknown(parser->data, pe - p, p)) fbreak; }
     action value { if (str && settings->value && settings->value(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
 
     any2 = any{2};
@@ -110,7 +110,7 @@ typedef struct pg_parser_t {
     |"t" str0 @table
     |"V" str0 @nonlocalized
     |"W" str0 @context
-    );
+    ) $!unknown;
 
     col = str0 @name uint32 @tableid uint16 @columnid uint32 @oid uint16 @oidlen uint32 @mod uint16 @format;
     row = uint32 @nbytes str @byte;
@@ -127,7 +127,7 @@ typedef struct pg_parser_t {
     |"S" uint32 @status str0 @option str0 @value
     |"T" uint32 @col uint16 @ncols (col @ncolscheck)*
     |"Z" any4 @ready ("I" @idle | "E" @inerror | "T" @intrans)
-    ) %main;
+    ) $all %main;
 
     write data;
 }%%

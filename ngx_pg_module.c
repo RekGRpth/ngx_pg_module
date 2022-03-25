@@ -967,7 +967,11 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
                 for (ngx_uint_t j = 0; j < elts[i].str->nelts; j++) {
                     ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i,%i:%V", i, j, &str[j]);
                     if (j && ngx_pg_add_response(r, sizeof("\t") - 1, (u_char *)"\t") != NGX_OK) return NGX_ERROR;
-                    if (ngx_pg_add_response(r, str[j].len, str[j].data) != NGX_OK) return NGX_ERROR;
+                    if (!str[j].data) {
+                        if (ngx_pg_add_response(r, sizeof("\\N") - 1, (u_char *)"\\N") != NGX_OK) return NGX_ERROR;
+                    } else {
+                        if (ngx_pg_add_response(r, str[j].len, str[j].data) != NGX_OK) return NGX_ERROR;
+                    }
                 }
             }
         }
