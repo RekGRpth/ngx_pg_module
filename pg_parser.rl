@@ -6,8 +6,7 @@ typedef struct pg_parser_t {
     const pg_parser_settings_t *settings;
     const void *data;
     int16_t int2;
-    int16_t ncols;
-    int16_t nrows;
+    int16_t n;
     int32_t int4;
     int8_t i;
     int cs;
@@ -47,12 +46,12 @@ typedef struct pg_parser_t {
     action method { if (settings->method && settings->method(parser->data, &parser->int4)) fbreak; }
     action mod { if (settings->mod && settings->mod(parser->data, &parser->int4)) fbreak; }
     action name { if (str && settings->name && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nbytes { if (settings->nbytes && settings->nbytes(parser->data, &parser->int4)) fbreak; if (parser->int4 == (int32_t)-1) { if (--parser->nrows <= 0) fnext main; else fnext row; } }
-    action ncolscheck { if (--parser->ncols <= 0) fnext main; }
-    action ncols { parser->ncols = parser->int2; if (settings->ncols && settings->ncols(parser->data, &parser->ncols)) fbreak; }
+    action nbytes { if (settings->nbytes && settings->nbytes(parser->data, &parser->int4)) fbreak; if (parser->int4 == (int32_t)-1) { if (--parser->n <= 0) fnext main; else fnext row; } }
+    action ncolscheck { if (--parser->n <= 0) fnext main; }
+    action ncols { parser->n = parser->int2; if (settings->ncols && settings->ncols(parser->data, &parser->n)) fbreak; }
     action nonlocalized { if (str && settings->nonlocalized && settings->nonlocalized(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nrowscheck { if (--parser->nrows <= 0) fnext main; }
-    action nrows { parser->nrows = parser->int2; if (settings->nrows && settings->nrows(parser->data, &parser->nrows)) fbreak; }
+    action nrowscheck { if (--parser->n <= 0) fnext main; }
+    action nrows { parser->n = parser->int2; if (settings->nrows && settings->nrows(parser->data, &parser->n)) fbreak; }
     action oid { if (settings->oid && settings->oid(parser->data, &parser->int4)) fbreak; }
     action oidlen { if (settings->oidlen && settings->oidlen(parser->data, &parser->int2)) fbreak; }
     action option { if (str && settings->option && settings->option(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
