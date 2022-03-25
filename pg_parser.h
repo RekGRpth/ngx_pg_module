@@ -1,9 +1,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef intptr_t (*pg_parser_cb) (void *data);
-typedef intptr_t (*pg_parser_ptr_cb) (void *data, const void *ptr);
-typedef intptr_t (*pg_parser_len_str_cb) (void *data, size_t len, const char *str);
+typedef int (*pg_parser_cb) (void *data);
+typedef int (*pg_parser_ptr_cb) (void *data, const void *ptr);
+typedef int (*pg_parser_len_str_cb) (void *data, size_t len, const char *str);
 
 typedef struct {
     pg_parser_cb auth;
