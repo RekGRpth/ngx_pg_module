@@ -21,7 +21,7 @@ typedef struct pg_parser_t {
     action all { if (settings->all && settings->all(parser->data, p)) fbreak; }
     action auth { if (settings->auth && settings->auth(parser->data)) fbreak; }
     action bind { if (settings->bind && settings->bind(parser->data)) fbreak; }
-    action byte { if (parser->nbytes--) fgoto str; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
+    action byte { if (--parser->nbytes >= 0) fgoto str; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
     action close { if (settings->close && settings->close(parser->data)) fbreak; }
     action col { if (settings->col && settings->col(parser->data, &parser->int32)) fbreak; }
     action columnid { if (settings->columnid && settings->columnid(parser->data, &parser->int16)) fbreak; }
@@ -48,11 +48,11 @@ typedef struct pg_parser_t {
     action method { if (settings->method && settings->method(parser->data, &parser->int32)) fbreak; }
     action mod { if (settings->mod && settings->mod(parser->data, &parser->int32)) fbreak; }
     action name { if (str && settings->name && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nbytes { parser->nbytes = parser->int32; if (settings->nbytes && settings->nbytes(parser->data, &parser->nbytes)) fbreak; if (parser->nbytes == (int32_t)-1) { if (!--parser->nrows) fnext main; else fnext row; } }
-    action ncolscheck { if (!--parser->ncols) fnext main; }
+    action nbytes { parser->nbytes = parser->int32; if (settings->nbytes && settings->nbytes(parser->data, &parser->nbytes)) fbreak; if (parser->nbytes == (int32_t)-1) { if (--parser->nrows <= 0) fnext main; else fnext row; } }
+    action ncolscheck { if (--parser->ncols <= 0) fnext main; }
     action ncols { parser->ncols = parser->int16; if (settings->ncols && settings->ncols(parser->data, &parser->ncols)) fbreak; }
     action nonlocalized { if (str && settings->nonlocalized && settings->nonlocalized(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nrowscheck { if (!--parser->nrows) fnext main; }
+    action nrowscheck { if (--parser->nrows <= 0) fnext main; }
     action nrows { parser->nrows = parser->int16; if (settings->nrows && settings->nrows(parser->data, &parser->nrows)) fbreak; }
     action oid { if (settings->oid && settings->oid(parser->data, &parser->int32)) fbreak; }
     action oidlen { if (settings->oidlen && settings->oidlen(parser->data, &parser->int16)) fbreak; }
