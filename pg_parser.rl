@@ -86,45 +86,45 @@ typedef struct pg_parser_t {
     byte = any $str;
     null2 = 255{2};
     null4 = 255{4};
-    str = (any - 0)* $str 0;
+    str0 = (any - 0)* $str 0;
     uint16 = any2 $uint16;
     uint32 = any4 $uint32;
 
     error =
     (0 @fatal
-    |"c" str @column
-    |"C" str @sqlstate
-    |"d" str @datatype
-    |"D" str @detail
-    |"F" str @file
-    |"H" str @hint
-    |"L" str @line
-    |"M" str @primary
-    |"n" str @constraint
-    |"p" str @internal
-    |"P" str @statement
-    |"q" str @query
-    |"R" str @function
-    |"s" str @schema
-    |"S" str @severity
-    |"t" str @table
-    |"V" str @nonlocalized
-    |"W" str @context
+    |"c" str0 @column
+    |"C" str0 @sqlstate
+    |"d" str0 @datatype
+    |"D" str0 @detail
+    |"F" str0 @file
+    |"H" str0 @hint
+    |"L" str0 @line
+    |"M" str0 @primary
+    |"n" str0 @constraint
+    |"p" str0 @internal
+    |"P" str0 @statement
+    |"q" str0 @query
+    |"R" str0 @function
+    |"s" str0 @schema
+    |"S" str0 @severity
+    |"t" str0 @table
+    |"V" str0 @nonlocalized
+    |"W" str0 @context
     );
 
-    col = str @name uint32 @tableid uint16 @columnid uint32 @oid uint16 @oidlen uint32 @mod uint16 @format;
+    col = str0 @name uint32 @tableid uint16 @columnid uint32 @oid uint16 @oidlen uint32 @mod uint16 @format;
     row = uint32 @nbytes byte @byte;
 
     main :=
     ("1" any4 @parse
     |"2" any4 @bind
     |"3" any4 @close
-    |"C" uint32 @complete str @command
+    |"C" uint32 @complete str0 @command
     |"D" uint32 @row uint16 @nrows (row @nrowscheck)*
     |"E" uint32 @error error*
     |"K" any4 @secret uint32 @pid uint32 @key
     |"R" any4 @auth uint32 @method
-    |"S" uint32 @status str @option str @value
+    |"S" uint32 @status str0 @option str0 @value
     |"T" uint32 @col uint16 @ncols (col @ncolscheck)*
     |"Z" any4 @ready ("I" @idle | "E" @inerror | "T" @intrans)
     ) %main;
