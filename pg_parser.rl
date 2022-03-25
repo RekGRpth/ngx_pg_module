@@ -72,7 +72,6 @@ typedef struct pg_parser_t {
     action table { if (str && settings->table && settings->table(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action int2 { if (!parser->i) { parser->i = 2; parser->int2 = 0; } parser->int2 |= *p << ((2 << 2) * --parser->i); }
     action int4 { if (!parser->i) { parser->i = 4; parser->int4 = 0; } parser->int4 |= *p << ((2 << 2) * --parser->i); }
-    action unknown { if (settings->unknown && settings->unknown(parser->data, pe - p, p)) fbreak; }
     action value { if (str && settings->value && settings->value(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
 
     any2 = any{2};
@@ -102,7 +101,7 @@ typedef struct pg_parser_t {
     |113 str0 @query
     |115 str0 @schema
     |116 str0 @table
-    ) $!unknown;
+    );
 
     col = str0 @name int4 @tableid int2 @columnid int4 @oid int2 @oidlen int4 @mod int2 @format;
     row = int4 @nbytes str @byte;

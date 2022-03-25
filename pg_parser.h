@@ -38,7 +38,6 @@ typedef struct {
     pg_parser_len_str_cb sqlstate;
     pg_parser_len_str_cb statement;
     pg_parser_len_str_cb table;
-    pg_parser_len_str_cb unknown;
     pg_parser_len_str_cb value;
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb col;
