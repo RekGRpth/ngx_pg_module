@@ -969,8 +969,6 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
             }
         }
         u->keepalive = !u->headers_in.connection_close;
-//        u->length = 0;
-//        u->pipe->length = 0;
     }
     return s->rc;
 }
@@ -982,30 +980,12 @@ static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
 
 static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "%s", __func__);
-    /*ngx_http_request_t *r = p->input_ctx;
-    ngx_http_upstream_t *u = r->upstream;
-    for (ngx_chain_t *cl = u->out_bufs; cl; cl = cl->next) {
-        if (p->in) *p->last_in = cl; else p->in = cl;
-        p->last_in = &cl->next;
-    }*/
     return NGX_OK;
 }
 
 static ngx_int_t ngx_pg_input_filter_init(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
-    /*ngx_pg_data_t *d = u->peer.data;
-    ngx_pg_tup_t *elts = d->tup->elts;
-    for (ngx_uint_t i = 0; i < d->tup->nelts; i++) {
-        if (i && ngx_pg_add_response(r, (ngx_str_t)ngx_string("\n")) != NGX_OK) return NGX_ERROR;
-        ngx_str_t *str = elts[i].str->elts;
-        for (ngx_uint_t j = 0; j < elts[i].str->nelts; j++) {
-            ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i,%i:%V", i, j, &str[j]);
-            if (j && ngx_pg_add_response(r, (ngx_str_t)ngx_string("\t")) != NGX_OK) return NGX_ERROR;
-            if (ngx_pg_add_response(r, str[j]) != NGX_OK) return NGX_ERROR;
-        }
-    }
-    u->keepalive = !u->headers_in.connection_close;*/
     u->length = 0;
     u->pipe->length = 0;
     return NGX_OK;
