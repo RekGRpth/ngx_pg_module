@@ -87,11 +87,6 @@ typedef struct pg_parser_t {
     uint16 = any{2} $uint16;
     uint32 = any{4} $uint32;
 
-    key = uint32 @key;
-    method = uint32 @method;
-    mod = uint32 @mod;
-    name = str @name;
-    nbytes = uint32 @nbytes;
     ncols = uint16 @ncols;
     nrows = uint16 @nrows;
     oidlen = uint16 @oidlen;
@@ -123,8 +118,8 @@ typedef struct pg_parser_t {
     |"W" str @context
     );
 
-    col = name tableid uint16 @columnid oid oidlen mod uint16 @format @ncolscheck;
-    row = nbytes byte @nrowscheck;
+    col = str @name tableid uint16 @columnid oid oidlen uint32 @mod uint16 @format @ncolscheck;
+    row = uint32 @nbytes byte @nrowscheck;
 
     main :=
     ("1" any{4} @parse
@@ -133,8 +128,8 @@ typedef struct pg_parser_t {
     |"C" uint32 @complete str @command
     |"D" uint32 @row nrows row*
     |"E" uint32 @error error*
-    |"K" any{4} @secret pid key
-    |"R" any{4} @auth method
+    |"K" any{4} @secret pid uint32 @key
+    |"R" any{4} @auth uint32 @method
     |"S" uint32 @status option value
     |"T" uint32 @col ncols col*
     |"Z" any{4} @ready ("I" @idle | "E" @inerror | "T" @intrans)
