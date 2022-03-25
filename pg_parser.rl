@@ -81,11 +81,13 @@ typedef struct pg_parser_t {
 #    action unknown { if (settings->unknown && settings->unknown(parser->data, pe - p, p)) fbreak; }
     action value { if (str && settings->value && settings->value(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
 
+    any2 = any{2};
+    any4 = any{4};
     byte = any $str;
     char = any - 0;
     str = char* $str 0;
-    uint16 = any{2} $uint16;
-    uint32 = any{4} $uint32;
+    uint16 = any2 $uint16;
+    uint32 = any4 $uint32;
 
     error =
     (0 @fatal
@@ -112,17 +114,17 @@ typedef struct pg_parser_t {
     row = uint32 @nbytes (byte @nbytescheck)* @nrowscheck;
 
     main :=
-    ("1" any{4} @parse
-    |"2" any{4} @bind
-    |"3" any{4} @close
+    ("1" any4 @parse
+    |"2" any4 @bind
+    |"3" any4 @close
     |"C" uint32 @complete str @command
     |"D" uint32 @row uint16 @nrows row*
     |"E" uint32 @error error*
-    |"K" any{4} @secret uint32 @pid uint32 @key
-    |"R" any{4} @auth uint32 @method
+    |"K" any4 @secret uint32 @pid uint32 @key
+    |"R" any4 @auth uint32 @method
     |"S" uint32 @status str @option str @value
     |"T" uint32 @col uint16 @ncols (str @name uint32 @tableid uint16 @columnid uint32 @oid uint16 @oidlen uint32 @mod uint16 @format @ncolscheck)*
-    |"Z" any{4} @ready ("I" @idle | "E" @inerror | "T" @intrans)
+    |"Z" any4 @ready ("I" @idle | "E" @inerror | "T" @intrans)
     ) %main;
 
     write data;
