@@ -121,7 +121,7 @@ typedef struct pg_parser_t {
     |83 int4 @status str0 @option str0 @value
     |84 int4 @col int2 @ncols (col @ncolscheck)*
     |90 any4 @ready (73 @idle | 69 @inerror | 84 @intrans)
-    ) $all %main;
+    ) $all $!unknown %main;
 
     write data;
 }%%
