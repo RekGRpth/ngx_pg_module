@@ -16,7 +16,6 @@ typedef struct {
     pg_parser_cb intrans;
     pg_parser_cb parse;
     pg_parser_cb ready;
-    pg_parser_cb rowbeg;
     pg_parser_cb secret;
     pg_parser_len_str_cb byte;
     pg_parser_len_str_cb column;

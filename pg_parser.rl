@@ -62,7 +62,6 @@ typedef struct pg_parser_t {
     action primary { if (str && settings->primary && settings->primary(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action query { if (str && settings->query && settings->query(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action ready { if (settings->ready && settings->ready(parser->data)) fbreak; }
-    action rowbeg { if (settings->rowbeg && settings->rowbeg(parser->data)) fbreak; }
     action rowend { if (--parser->n <= 0) fnext main; }
     action row { if (settings->row && settings->row(parser->data, &parser->int4)) fbreak; }
     action schema { if (str && settings->schema && settings->schema(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -112,7 +111,7 @@ typedef struct pg_parser_t {
     |50 any4 @bind
     |51 any4 @close
     |67 int4 @complete str0 @command
-    |68 int4 @row int2 @nrows (row >rowbeg @rowend)*
+    |68 int4 @row int2 @nrows (row @rowend)*
     |69 int4 @error (error >errbeg)* 0
     |75 any4 @secret int4 @pid int4 @key
     |82 any4 @auth int4 @method
