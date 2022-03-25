@@ -22,7 +22,7 @@ typedef struct pg_parser_t {
     machine pg_parser;
     alphtype unsigned char;
 
-    action all { if (settings->all && settings->all(parser->data, p)) fbreak; }
+#    action all { if (settings->all && settings->all(parser->data, p)) fbreak; }
     action auth { if (settings->auth && settings->auth(parser->data)) fbreak; }
     action bind { if (settings->bind && settings->bind(parser->data)) fbreak; }
     action close { if (settings->close && settings->close(parser->data)) fbreak; }
@@ -47,6 +47,7 @@ typedef struct pg_parser_t {
     action intrans { if (settings->intrans && settings->intrans(parser->data)) fbreak; }
     action key { if (settings->key && settings->key(parser->data, &parser->uint32)) fbreak; }
     action line { if (str && settings->line && settings->line(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
+    action main { fnext main; }
     action method { if (settings->method && settings->method(parser->data, &parser->uint32)) fbreak; }
     action mod { if (settings->mod && settings->mod(parser->data, &parser->uint32)) fbreak; }
     action name { if (str && settings->name && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -77,7 +78,7 @@ typedef struct pg_parser_t {
     action table { if (str && settings->table && settings->table(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action uint16 { if (!parser->uint8) { parser->uint8 = 2; parser->uint16 = 0; } parser->uint16 |= *p << ((2 << 2) * --parser->uint8); }
     action uint32 { if (!parser->uint8) { parser->uint8 = 4; parser->uint32 = 0; } parser->uint32 |= *p << ((2 << 2) * --parser->uint8); }
-    action unknown { if (settings->unknown && settings->unknown(parser->data, pe - p, p)) fbreak; }
+#    action unknown { if (settings->unknown && settings->unknown(parser->data, pe - p, p)) fbreak; }
     action value { if (str && settings->value && settings->value(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
 
     byte = any $str @nbytescheck;
@@ -126,7 +127,7 @@ typedef struct pg_parser_t {
     |"t" str @table
     |"V" str @nonlocalized
     |"W" str @context
-    ) $!unknown;
+    );
 
     col = name tableid columnid oid oidlen mod format @ncolscheck;
     ready = idle | inerror | intrans;
@@ -144,7 +145,7 @@ typedef struct pg_parser_t {
     |"S" uint32 @status option value
     |"T" uint32 @col ncols col*
     |"Z" any{4} @ready ready
-    )** $all $!unknown;
+    ) %main;
 
     write data;
 }%%
