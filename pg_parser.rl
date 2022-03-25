@@ -9,7 +9,6 @@ typedef struct pg_parser_t {
     int16_t ncols;
     int16_t nrows;
     int32_t int4;
-    int32_t nbytes;
     int8_t i;
     int cs;
     int str;
@@ -21,7 +20,7 @@ typedef struct pg_parser_t {
     action all { if (settings->all && settings->all(parser->data, p)) fbreak; }
     action auth { if (settings->auth && settings->auth(parser->data)) fbreak; }
     action bind { if (settings->bind && settings->bind(parser->data)) fbreak; }
-    action byte { if (--parser->nbytes >= 0) fgoto str; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
+    action byte { if (--parser->int4 >= 0) fgoto str; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
     action close { if (settings->close && settings->close(parser->data)) fbreak; }
     action col { if (settings->col && settings->col(parser->data, &parser->int4)) fbreak; }
     action columnid { if (settings->columnid && settings->columnid(parser->data, &parser->int2)) fbreak; }
@@ -48,7 +47,7 @@ typedef struct pg_parser_t {
     action method { if (settings->method && settings->method(parser->data, &parser->int4)) fbreak; }
     action mod { if (settings->mod && settings->mod(parser->data, &parser->int4)) fbreak; }
     action name { if (str && settings->name && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nbytes { parser->nbytes = parser->int4; if (settings->nbytes && settings->nbytes(parser->data, &parser->nbytes)) fbreak; if (parser->nbytes == (int32_t)-1) { if (--parser->nrows <= 0) fnext main; else fnext row; } }
+    action nbytes { if (settings->nbytes && settings->nbytes(parser->data, &parser->int4)) fbreak; if (parser->int4 == (int32_t)-1) { if (--parser->nrows <= 0) fnext main; else fnext row; } }
     action ncolscheck { if (--parser->ncols <= 0) fnext main; }
     action ncols { parser->ncols = parser->int2; if (settings->ncols && settings->ncols(parser->data, &parser->ncols)) fbreak; }
     action nonlocalized { if (str && settings->nonlocalized && settings->nonlocalized(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
