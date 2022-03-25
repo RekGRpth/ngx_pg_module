@@ -188,13 +188,13 @@ Result name of *col*:
 add_header name_0 $pg_col_name_0 always;
 add_header name_1 $pg_col_name_1 always;
 ```
-$pg_col_ncols
+$pg_ncols
 -------------
-* Syntax: $pg_col_ncols
+* Syntax: $pg_ncols
 
 Result ncols:
 ```nginx
-add_header ncols $pg_col_ncols always;
+add_header ncols $pg_ncols always;
 ```
 $pg_col_tableid_
 -------------
