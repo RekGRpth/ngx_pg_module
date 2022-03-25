@@ -118,7 +118,8 @@ static int ngx_pg_parser_mod(ngx_pg_save_t *s, const void *ptr) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_col_t *elts = d->col->elts;
-    elts[d->col->nelts - 2].mod = mod;
+    ngx_pg_col_t *col = &elts[d->col->nelts - 1];
+    col->mod = mod;
     return s->rc;
 }
 
@@ -129,6 +130,11 @@ static int ngx_pg_parser_auth(ngx_pg_save_t *s) {
 
 static int ngx_pg_parser_colbeg(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    ngx_pg_data_t *d = s->data;
+    if (!d) return s->rc;
+    ngx_pg_col_t *col;
+    if (!(col = ngx_array_push(d->col))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
+    ngx_memzero(col, sizeof(*col));
     return s->rc;
 }
 
@@ -174,7 +180,8 @@ static int ngx_pg_parser_columnid(ngx_pg_save_t *s, const void *ptr) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_col_t *elts = d->col->elts;
-    elts[d->col->nelts - 2].columnid = columnid;
+    ngx_pg_col_t *col = &elts[d->col->nelts - 1];
+    col->columnid = columnid;
     return s->rc;
 }
 
@@ -274,7 +281,8 @@ static int ngx_pg_parser_format(ngx_pg_save_t *s, const void *ptr) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_col_t *elts = d->col->elts;
-    elts[d->col->nelts - 2].format = format;
+    ngx_pg_col_t *col = &elts[d->col->nelts - 1];
+    col->format = format;
     return s->rc;
 }
 
@@ -345,11 +353,12 @@ static int ngx_pg_parser_name(ngx_pg_save_t *s, size_t len, const u_char *str) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (!d->col->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_pg_col_t *elts = d->col->elts;
     ngx_pg_col_t *col = &elts[d->col->nelts - 1];
+    if (!col->name.data) col->name.data = d->cols.data + d->cols.len + 1;
     ngx_memcpy(col->name.data + col->name.len, str, len);
     col->name.len += len;
+    d->cols.len += len;
     return s->rc;
 }
 
@@ -380,9 +389,6 @@ static int ngx_pg_parser_ncols(ngx_pg_save_t *s, const void *ptr) {
     ngx_http_request_t *r = d->request;
     ngx_pg_col_t *col;
     if (!(d->col = ngx_array_create(r->pool, ncols, sizeof(*col)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
-    if (!(col = ngx_array_push(d->col))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
-    ngx_memzero(col, sizeof(*col));
-    col->name.data = d->cols.data;
     return s->rc;
 }
 
@@ -501,11 +507,8 @@ static int ngx_pg_parser_tableid(ngx_pg_save_t *s, const void *ptr) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", tableid);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_col_t *col;
     ngx_pg_col_t *elts = d->col->elts;
-    if (!(col = ngx_array_push(d->col))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
-    ngx_memzero(col, sizeof(*col));
-    col->name.data = elts[d->col->nelts - 2].name.data + elts[d->col->nelts - 2].name.len + 1;
+    ngx_pg_col_t *col = &elts[d->col->nelts - 1];
     col->tableid = tableid;
     return s->rc;
 }
@@ -535,7 +538,8 @@ static int ngx_pg_parser_oid(ngx_pg_save_t *s, const void *ptr) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_col_t *elts = d->col->elts;
-    elts[d->col->nelts - 2].oid = oid;
+    ngx_pg_col_t *col = &elts[d->col->nelts - 1];
+    col->oid = oid;
     return s->rc;
 }
 
@@ -545,7 +549,8 @@ static int ngx_pg_parser_oidlen(ngx_pg_save_t *s, const void *ptr) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_col_t *elts = d->col->elts;
-    elts[d->col->nelts - 2].oidlen = oidlen;
+    ngx_pg_col_t *col = &elts[d->col->nelts - 1];
+    col->oidlen = oidlen;
     return s->rc;
 }
 
