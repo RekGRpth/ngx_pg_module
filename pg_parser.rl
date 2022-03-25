@@ -25,6 +25,7 @@ typedef struct pg_parser_t {
 #    action all { if (settings->all && settings->all(parser->data, p)) fbreak; }
     action auth { if (settings->auth && settings->auth(parser->data)) fbreak; }
     action bind { if (settings->bind && settings->bind(parser->data)) fbreak; }
+    action byte { if (parser->nbytes == (uint32_t)-1) fnext row; if (parser->nbytes--) fgoto byte; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
     action close { if (settings->close && settings->close(parser->data)) fbreak; }
     action col { if (settings->col && settings->col(parser->data, &parser->uint32)) fbreak; }
     action columnid { if (settings->columnid && settings->columnid(parser->data, &parser->uint16)) fbreak; }
@@ -51,7 +52,6 @@ typedef struct pg_parser_t {
     action method { if (settings->method && settings->method(parser->data, &parser->uint32)) fbreak; }
     action mod { if (settings->mod && settings->mod(parser->data, &parser->uint32)) fbreak; }
     action name { if (str && settings->name && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nbytescheck { if (parser->nbytes == (uint32_t)-1) fnext row; if (parser->nbytes--) fgoto byte; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
     action nbytes { parser->nbytes = parser->uint32; if (settings->nbytes && settings->nbytes(parser->data, &parser->nbytes)) fbreak; }
     action ncolscheck { if (!parser->ncols || !--parser->ncols) fnext main; }
     action ncols { parser->ncols = parser->uint16; if (settings->ncols && settings->ncols(parser->data, &parser->ncols)) fbreak; }
@@ -113,7 +113,7 @@ typedef struct pg_parser_t {
     );
 
     col = str @name uint32 @tableid uint16 @columnid uint32 @oid uint16 @oidlen uint32 @mod uint16 @format;
-    row = uint32 @nbytes byte @nbytescheck;
+    row = uint32 @nbytes byte @byte;
 
     main :=
     ("1" any4 @parse
