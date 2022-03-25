@@ -25,7 +25,7 @@ typedef struct pg_parser_t {
 #    action all { if (settings->all && settings->all(parser->data, p)) fbreak; }
     action auth { if (settings->auth && settings->auth(parser->data)) fbreak; }
     action bind { if (settings->bind && settings->bind(parser->data)) fbreak; }
-    action byte { if (parser->nbytes == (uint32_t)-1) fnext row; if (parser->nbytes--) fgoto byte; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
+    action byte { if (parser->nbytes == (uint32_t)-1) fnext row; if (parser->nbytes--) fgoto str; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
     action close { if (settings->close && settings->close(parser->data)) fbreak; }
     action col { if (settings->col && settings->col(parser->data, &parser->uint32)) fbreak; }
     action columnid { if (settings->columnid && settings->columnid(parser->data, &parser->uint16)) fbreak; }
@@ -83,10 +83,10 @@ typedef struct pg_parser_t {
 
     any2 = any{2};
     any4 = any{4};
-    byte = any $str;
     null2 = 255{2};
     null4 = 255{4};
     str0 = (any - 0)* $str 0;
+    str = any $str;
     uint16 = any2 $uint16;
     uint32 = any4 $uint32;
 
@@ -113,7 +113,7 @@ typedef struct pg_parser_t {
     );
 
     col = str0 @name uint32 @tableid uint16 @columnid uint32 @oid uint16 @oidlen uint32 @mod uint16 @format;
-    row = uint32 @nbytes byte @byte;
+    row = uint32 @nbytes str @byte;
 
     main :=
     ("1" any4 @parse
