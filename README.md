@@ -144,84 +144,84 @@ add_header session_authorization $pg_opt_session_authorization always;
 add_header standard_conforming_strings $pg_opt_standard_conforming_strings always;
 add_header timezone $pg_opt_timezone always;
 ```
-$pg_res_atttypmod_
+$pg_col_atttypmod_
 -------------
-* Syntax: $pg_res_atttypmod_*col*
+* Syntax: $pg_col_atttypmod_*col*
 
 Result atttypmod of *col*:
 ```nginx
-add_header atttypmod_0 $pg_res_atttypmod_0 always;
-add_header atttypmod_1 $pg_res_atttypmod_1 always;
+add_header atttypmod_0 $pg_col_atttypmod_0 always;
+add_header atttypmod_1 $pg_col_atttypmod_1 always;
 ```
-$pg_res_format_
+$pg_col_format_
 -------------
-* Syntax: $pg_res_format_*col*
+* Syntax: $pg_col_format_*col*
 
 Result format of *col*:
 ```nginx
-add_header format_0 $pg_res_format_0 always;
-add_header format_1 $pg_res_format_1 always;
+add_header format_0 $pg_col_format_0 always;
+add_header format_1 $pg_col_format_1 always;
 ```
-$pg_res_columnid_
+$pg_col_columnid_
 -------------
-* Syntax: $pg_res_columnid_*col*
+* Syntax: $pg_col_columnid_*col*
 
 Result columnid of *col*:
 ```nginx
-add_header columnid_0 $pg_res_columnid_0 always;
-add_header columnid_1 $pg_res_columnid_1 always;
+add_header columnid_0 $pg_col_columnid_0 always;
+add_header columnid_1 $pg_col_columnid_1 always;
 ```
-$pg_res_command
+$pg_col_command
 -------------
-* Syntax: $pg_res_command
+* Syntax: $pg_col_command
 
 Result command:
 ```nginx
-add_header command $pg_res_command always;
+add_header command $pg_col_command always;
 ```
-$pg_res_name_
+$pg_col_name_
 -------------
-* Syntax: $pg_res_name_*col*
+* Syntax: $pg_col_name_*col*
 
 Result name of *col*:
 ```nginx
-add_header name_0 $pg_res_name_0 always;
-add_header name_1 $pg_res_name_1 always;
+add_header name_0 $pg_col_name_0 always;
+add_header name_1 $pg_col_name_1 always;
 ```
-$pg_res_ncols
+$pg_col_ncols
 -------------
-* Syntax: $pg_res_ncols
+* Syntax: $pg_col_ncols
 
 Result ncols:
 ```nginx
-add_header ncols $pg_res_ncols always;
+add_header ncols $pg_col_ncols always;
 ```
-$pg_res_tableid_
+$pg_col_tableid_
 -------------
-* Syntax: $pg_res_tableid_*col*
+* Syntax: $pg_col_tableid_*col*
 
 Result tableid of *col*:
 ```nginx
-add_header tableid_0 $pg_res_tableid_0 always;
-add_header tableid_1 $pg_res_tableid_1 always;
+add_header tableid_0 $pg_col_tableid_0 always;
+add_header tableid_1 $pg_col_tableid_1 always;
 ```
-$pg_res_typid_
+$pg_col_typid_
 -------------
-* Syntax: $pg_res_typid_*col*
+* Syntax: $pg_col_typid_*col*
 
 Result typid of *col*:
 ```nginx
-add_header typid_0 $pg_res_typid_0 always;
-add_header typid_1 $pg_res_typid_1 always;
+add_header typid_0 $pg_col_typid_0 always;
+add_header typid_1 $pg_col_typid_1 always;
 ```
-$pg_res_typlen_
+$pg_col_typlen_
 -------------
-* Syntax: $pg_res_typlen_*col*
+* Syntax: $pg_col_typlen_*col*
 
 Result typlen of *col*:
 ```nginx
-add_header typlen_0 $pg_res_typlen_0 always;
-add_header typlen_1 $pg_res_typlen_1 always;
+add_header typlen_0 $pg_col_typlen_0 always;
+add_header typlen_1 $pg_col_typlen_1 always;
 ```
 $pg_row_
 -------------
