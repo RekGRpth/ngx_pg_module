@@ -91,13 +91,13 @@ location = /pg {
 }
 ```
 # Embedded Variables
-$pg_con_pid
+$pg_pid
 -------------
-* Syntax: $pg_con_pid
+* Syntax: $pg_pid
 
 Backend pid:
 ```nginx
-add_header pid $pg_con_pid always;
+add_header pid $pg_pid always;
 ```
 $pg_err_
 -------------
