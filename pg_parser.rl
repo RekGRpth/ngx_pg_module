@@ -113,7 +113,7 @@ typedef struct pg_parser_t {
     );
 
     col = str @name uint32 @tableid uint16 @columnid uint32 @oid uint16 @oidlen uint32 @mod uint16 @format;
-    row = uint32 @nbytes (byte @nbytescheck)* @nrowscheck;
+    row = uint32 @nbytes byte @nbytescheck @nrowscheck;
 
     main :=
     ("1" any4 @parse
