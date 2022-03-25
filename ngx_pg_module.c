@@ -538,7 +538,7 @@ static ngx_int_t ngx_pg_parser_oidlen(ngx_pg_save_t *s, const void *ptr) {
 }
 
 static ngx_int_t ngx_pg_parser_unknown(ngx_pg_save_t *s, size_t len, const u_char *str) {
-    for (u_char *p = str; p < str + len; p++) ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%i:%c", *p, *p);
+    ngx_uint_t i = 0; for (u_char *p = str; p < str + len; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
     return s->rc;
 }
