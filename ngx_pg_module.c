@@ -43,6 +43,7 @@ typedef struct {
 typedef struct ngx_pg_data_t ngx_pg_data_t;
 
 typedef struct {
+    int32_t pid;
     ngx_array_t *option;
     ngx_buf_t buffer;
     ngx_connection_t *connection;
@@ -50,7 +51,6 @@ typedef struct {
     ngx_pg_state_t state;
     ngx_uint_t rc;
     pg_parser_t *parser;
-    int32_t pid;
     struct {
         ngx_event_handler_pt read_handler;
         ngx_event_handler_pt write_handler;
@@ -59,13 +59,13 @@ typedef struct {
 } ngx_pg_save_t;
 
 typedef struct {
-    ngx_str_t name;
     int16_t columnid;
     int16_t format;
     int16_t oidlen;
     int32_t mod;
     int32_t oid;
     int32_t tableid;
+    ngx_str_t name;
 } ngx_pg_col_t;
 
 typedef struct {
@@ -73,6 +73,8 @@ typedef struct {
 } ngx_pg_row_t;
 
 typedef struct ngx_pg_data_t {
+    int16_t ncols;
+    int16_t nrows;
     ngx_array_t *col;
     ngx_array_t *error;
     ngx_array_t *row;
@@ -83,8 +85,6 @@ typedef struct ngx_pg_data_t {
     ngx_str_t cols;
     ngx_str_t command;
     ngx_uint_t ready;
-    int16_t ncols;
-    int16_t nrows;
 } ngx_pg_data_t;
 
 inline static u_char *pg_write_int(u_char *p, int m, int n) { for (; m; *p++ = n >> (2 << 2) * --m); return p; }
