@@ -613,12 +613,12 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .value = (pg_parser_len_str_cb)ngx_pg_parser_value,
 };
 
-static ngx_chain_t *ngx_pg_write_char(ngx_pool_t *p, int32_t *len, uint8_t uint8) {
+static ngx_chain_t *ngx_pg_write_char(ngx_pool_t *p, int32_t *len, u_char c) {
     ngx_chain_t *cl;
     if (!(cl = ngx_alloc_chain_link(p))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_alloc_chain_link"); return NULL; }
-    if (!(cl->buf = ngx_create_temp_buf(p, sizeof(uint8)))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_create_temp_buf"); return NULL; }
-    *cl->buf->last++ = uint8;
-    if (len) *len += sizeof(uint8);
+    if (!(cl->buf = ngx_create_temp_buf(p, sizeof(c)))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_create_temp_buf"); return NULL; }
+    *cl->buf->last++ = c;
+    if (len) *len += sizeof(c);
     return cl;
 }
 
