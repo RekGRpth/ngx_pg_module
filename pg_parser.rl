@@ -115,7 +115,7 @@ typedef struct pg_parser_t {
     | 69 int4 @error (error >errbeg)* 0
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
-    | 83 int4 @status str0 @option str0 @value
+    | 83 int4 @status str0 @option @/option str0 @value @/value
     | 84 int4 @col int2 @ncols (col >colbeg @colend)*
     | 90 any4 @ready (69 @inerror | 73 @idle | 84 @intrans)
     ) $all %main;
