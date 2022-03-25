@@ -83,8 +83,6 @@ typedef struct pg_parser_t {
 
     any2 = any{2};
     any4 = any{4};
-    null2 = 255{2};
-    null4 = 255{4};
     str0 = (any - 0)* $str 0;
     str = any $str;
     uint16 = any2 $uint16;
