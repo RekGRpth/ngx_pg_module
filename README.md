@@ -144,32 +144,32 @@ add_header session_authorization $pg_opt_session_authorization always;
 add_header standard_conforming_strings $pg_opt_standard_conforming_strings always;
 add_header timezone $pg_opt_timezone always;
 ```
-$pg_col_mod_
+$pg_mod_
 -------------
-* Syntax: $pg_col_mod_*col*
+* Syntax: $pg_mod_*col*
 
 Result mod of *col*:
 ```nginx
-add_header mod_0 $pg_col_mod_0 always;
-add_header mod_1 $pg_col_mod_1 always;
+add_header mod_0 $pg_mod_0 always;
+add_header mod_1 $pg_mod_1 always;
 ```
-$pg_col_format_
+$pg_format_
 -------------
-* Syntax: $pg_col_format_*col*
+* Syntax: $pg_format_*col*
 
 Result format of *col*:
 ```nginx
-add_header format_0 $pg_col_format_0 always;
-add_header format_1 $pg_col_format_1 always;
+add_header format_0 $pg_format_0 always;
+add_header format_1 $pg_format_1 always;
 ```
-$pg_col_columnid_
+$pg_columnid_
 -------------
-* Syntax: $pg_col_columnid_*col*
+* Syntax: $pg_columnid_*col*
 
 Result columnid of *col*:
 ```nginx
-add_header columnid_0 $pg_col_columnid_0 always;
-add_header columnid_1 $pg_col_columnid_1 always;
+add_header columnid_0 $pg_columnid_0 always;
+add_header columnid_1 $pg_columnid_1 always;
 ```
 $pg_cmd
 -------------
@@ -179,14 +179,14 @@ Result command:
 ```nginx
 add_header command $pg_cmd always;
 ```
-$pg_col_name_
+$pg_name_
 -------------
-* Syntax: $pg_col_name_*col*
+* Syntax: $pg_name_*col*
 
 Result name of *col*:
 ```nginx
-add_header name_0 $pg_col_name_0 always;
-add_header name_1 $pg_col_name_1 always;
+add_header name_0 $pg_name_0 always;
+add_header name_1 $pg_name_1 always;
 ```
 $pg_ncols
 -------------
@@ -196,32 +196,32 @@ Result ncols:
 ```nginx
 add_header ncols $pg_ncols always;
 ```
-$pg_col_tableid_
+$pg_tableid_
 -------------
-* Syntax: $pg_col_tableid_*col*
+* Syntax: $pg_tableid_*col*
 
 Result tableid of *col*:
 ```nginx
-add_header tableid_0 $pg_col_tableid_0 always;
-add_header tableid_1 $pg_col_tableid_1 always;
+add_header tableid_0 $pg_tableid_0 always;
+add_header tableid_1 $pg_tableid_1 always;
 ```
-$pg_col_oid_
+$pg_oid_
 -------------
-* Syntax: $pg_col_oid_*col*
+* Syntax: $pg_oid_*col*
 
 Result oid of *col*:
 ```nginx
-add_header oid_0 $pg_col_oid_0 always;
-add_header oid_1 $pg_col_oid_1 always;
+add_header oid_0 $pg_oid_0 always;
+add_header oid_1 $pg_oid_1 always;
 ```
-$pg_col_oidlen_
+$pg_oidlen_
 -------------
-* Syntax: $pg_col_oidlen_*col*
+* Syntax: $pg_oidlen_*col*
 
 Result oidlen of *col*:
 ```nginx
-add_header oidlen_0 $pg_col_oidlen_0 always;
-add_header oidlen_1 $pg_col_oidlen_1 always;
+add_header oidlen_0 $pg_oidlen_0 always;
+add_header oidlen_1 $pg_oidlen_1 always;
 ```
 $pg_row_
 -------------
