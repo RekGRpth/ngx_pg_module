@@ -110,17 +110,17 @@ typedef struct pg_parser_t {
     row = int4 @nbytes str @byte;
 
     main :=
-    ("1" any4 @parse
-    |"2" any4 @bind
-    |"3" any4 @close
-    |"C" int4 @complete str0 @command
-    |"D" int4 @row int2 @nrows (row @nrowscheck)*
-    |"E" int4 @error error*
-    |"K" any4 @secret int4 @pid int4 @key
-    |"R" any4 @auth int4 @method
-    |"S" int4 @status str0 @option str0 @value
-    |"T" int4 @col int2 @ncols (col @ncolscheck)*
-    |"Z" any4 @ready ("I" @idle | "E" @inerror | "T" @intrans)
+    (49 any4 @parse
+    |50 any4 @bind
+    |51 any4 @close
+    |67 int4 @complete str0 @command
+    |68 int4 @row int2 @nrows (row @nrowscheck)*
+    |69 int4 @error error*
+    |75 any4 @secret int4 @pid int4 @key
+    |82 any4 @auth int4 @method
+    |83 int4 @status str0 @option str0 @value
+    |84 int4 @col int2 @ncols (col @ncolscheck)*
+    |90 any4 @ready (73 @idle | 69 @inerror | 84 @intrans)
     ) $all %main;
 
     write data;
