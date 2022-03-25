@@ -5,14 +5,14 @@
 typedef struct pg_parser_t {
     const pg_parser_settings_t *settings;
     const void *data;
-    int cs;
-    int str;
+    int16_t int16;
     int16_t ncols;
     int16_t nrows;
-    int16_t int16;
-    int32_t nbytes;
     int32_t int32;
-    int8_t int8;
+    int32_t nbytes;
+    int8_t i;
+    int cs;
+    int str;
 } pg_parser_t;
 
 %%{
@@ -72,8 +72,8 @@ typedef struct pg_parser_t {
     action str { if (!str) str = p; if (str) parser->str = cs; }
     action tableid { if (settings->tableid && settings->tableid(parser->data, &parser->int32)) fbreak; }
     action table { if (str && settings->table && settings->table(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action int16 { if (!parser->int8) { parser->int8 = 2; parser->int16 = 0; } parser->int16 |= *p << ((2 << 2) * --parser->int8); }
-    action int32 { if (!parser->int8) { parser->int8 = 4; parser->int32 = 0; } parser->int32 |= *p << ((2 << 2) * --parser->int8); }
+    action int16 { if (!parser->i) { parser->i = 2; parser->int16 = 0; } parser->int16 |= *p << ((2 << 2) * --parser->i); }
+    action int32 { if (!parser->i) { parser->i = 4; parser->int32 = 0; } parser->int32 |= *p << ((2 << 2) * --parser->i); }
     action unknown { if (settings->unknown && settings->unknown(parser->data, pe - p, p)) fbreak; }
     action value { if (str && settings->value && settings->value(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
 
