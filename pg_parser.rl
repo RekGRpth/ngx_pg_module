@@ -87,8 +87,6 @@ typedef struct pg_parser_t {
     uint16 = any{2} $uint16;
     uint32 = any{4} $uint32;
 
-    ncols = uint16 @ncols;
-    nrows = uint16 @nrows;
     oidlen = uint16 @oidlen;
     oid = uint32 @oid;
     option = str @option;
@@ -126,12 +124,12 @@ typedef struct pg_parser_t {
     |"2" any{4} @bind
     |"3" any{4} @close
     |"C" uint32 @complete str @command
-    |"D" uint32 @row nrows row*
+    |"D" uint32 @row uint16 @nrows row*
     |"E" uint32 @error error*
     |"K" any{4} @secret pid uint32 @key
     |"R" any{4} @auth uint32 @method
     |"S" uint32 @status option value
-    |"T" uint32 @col ncols col*
+    |"T" uint32 @col uint16 @ncols col*
     |"Z" any{4} @ready ("I" @idle | "E" @inerror | "T" @intrans)
     ) %main;
 
