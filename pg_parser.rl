@@ -130,7 +130,6 @@ typedef struct pg_parser_t {
     );
 
     col = name tableid columnid oid oidlen mod format @ncolscheck;
-    ready = idle | inerror | intrans;
     row = nbytes byte @nrowscheck;
 
     main :=
@@ -144,7 +143,7 @@ typedef struct pg_parser_t {
     |"R" any{4} @auth method
     |"S" uint32 @status option value
     |"T" uint32 @col ncols col*
-    |"Z" any{4} @ready ready
+    |"Z" any{4} @ready (idle | inerror | intrans)
     ) %main;
 
     write data;
