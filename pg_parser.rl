@@ -50,7 +50,7 @@ typedef struct pg_parser_t {
     action line { if (str && settings->line && settings->line(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action method { if (settings->method && settings->method(parser->data, &parser->uint32)) fbreak; }
     action name { if (str && settings->name && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nbytescheck { if (parser->nbytes--) fgoto byte; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext tup; }
+    action nbytescheck { if (parser->nbytes == (uint32_t)-1) fnext tup; if (parser->nbytes--) fgoto byte; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext tup; }
     action nbytes { parser->nbytes = parser->uint32; if (settings->nbytes && settings->nbytes(parser->data, &parser->nbytes)) fbreak; }
     action nfieldscheck { if (!--parser->nfields) fnext main; }
     action nfields { parser->nfields = parser->uint16; if (settings->nfields && settings->nfields(parser->data, &parser->nfields)) fbreak; }
