@@ -32,6 +32,7 @@ typedef struct {
     pg_parser_len_str_cb name;
     pg_parser_len_str_cb nonlocalized;
     pg_parser_len_str_cb optkey;
+    pg_parser_len_str_cb optval;
     pg_parser_len_str_cb primary;
     pg_parser_len_str_cb query;
     pg_parser_len_str_cb schema;
@@ -39,7 +40,6 @@ typedef struct {
     pg_parser_len_str_cb sqlstate;
     pg_parser_len_str_cb statement;
     pg_parser_len_str_cb table;
-    pg_parser_len_str_cb value;
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb col;
     pg_parser_ptr_cb columnid;

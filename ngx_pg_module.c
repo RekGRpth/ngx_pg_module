@@ -559,7 +559,7 @@ static int ngx_pg_parser_oidlen(ngx_pg_save_t *s, const void *ptr) {
     return s->rc;
 }
 
-static int ngx_pg_parser_value(ngx_pg_save_t *s, size_t len, const u_char *str) {
+static int ngx_pg_parser_optval(ngx_pg_save_t *s, size_t len, const u_char *str) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
     if (!s->option->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
@@ -611,6 +611,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .oid = (pg_parser_ptr_cb)ngx_pg_parser_oid,
     .optkey = (pg_parser_len_str_cb)ngx_pg_parser_optkey,
     .opt = (pg_parser_ptr_cb)ngx_pg_parser_opt,
+    .optval = (pg_parser_len_str_cb)ngx_pg_parser_optval,
     .parse = (pg_parser_cb)ngx_pg_parser_parse,
     .pid = (pg_parser_ptr_cb)ngx_pg_parser_pid,
     .primary = (pg_parser_len_str_cb)ngx_pg_parser_primary,
@@ -624,7 +625,6 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .statement = (pg_parser_len_str_cb)ngx_pg_parser_statement,
     .tableid = (pg_parser_ptr_cb)ngx_pg_parser_tableid,
     .table = (pg_parser_len_str_cb)ngx_pg_parser_table,
-    .value = (pg_parser_len_str_cb)ngx_pg_parser_value,
 };
 
 static ngx_chain_t *ngx_pg_write_char(ngx_pool_t *p, int32_t *len, u_char c) {
