@@ -67,7 +67,7 @@ typedef struct pg_parser_t {
     action query { if (settings->errkey(parser->data, sizeof("query") - 1, "query")) fbreak; }
     action ready { if (settings->ready(parser->data)) fbreak; }
     action row { if (settings->row(parser->data, &parser->int4)) fbreak; }
-    action rowval { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; if (--parser->n <= 0) fnext main; }
+    action rowval { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (--parser->n <= 0) fnext main; else fnext row; }
     action schema { if (settings->errkey(parser->data, sizeof("schema") - 1, "schema")) fbreak; }
     action secret { if (settings->secret(parser->data)) fbreak; }
     action severity { if (settings->errkey(parser->data, sizeof("severity") - 1, "severity")) fbreak; }
