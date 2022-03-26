@@ -96,7 +96,7 @@ typedef struct pg_parser_t {
     | 50 any4 @bind
     | 51 any4 @close
     | 67 int4 @cmd str0 @cmdval @/cmdval
-    | 68 int4 @row int2 @nrows ( row >when rowend )*
+    | 68 int4 @row int2 @nrows ( row >when rowend )+
     | 69 int4 @error ( error str0 @errval @/errval )+ 0
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
