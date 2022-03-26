@@ -25,7 +25,7 @@ typedef struct pg_parser_t {
     action cmd { if (settings->cmd(parser->data, parser->int4)) fbreak; }
     action cmdval { if (str && settings->cmdval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action colbeg { if (settings->colbeg(parser->data)) fbreak; }
-    action colend { parser->ncols-- }
+    action colend { --parser->ncols }
     action col { if (settings->col(parser->data, parser->int4)) fbreak; }
     action columnid { if (settings->column(parser->data, parser->int2)) fbreak; }
     action column { if (settings->errkey(parser->data, sizeof("column") - 1, "column")) fbreak; }
@@ -98,7 +98,7 @@ typedef struct pg_parser_t {
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
     | 83 int4 @opt str0 @optkey @/optkey str0 @optval @/optval
-    | 84 int4 @col int2 @ncols ( col >colbeg >when colend )**
+    | 84 int4 @col int2 @ncols ( col >colbeg %when colend )**
     | 90 any4 @ready ( 69 @inerror | 73 @idle | 84 @intrans )
     )** $all;
 
