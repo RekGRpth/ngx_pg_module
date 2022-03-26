@@ -2,7 +2,8 @@
 #include <stdint.h>
 
 typedef int (*pg_parser_cb) (void *data);
-typedef int (*pg_parser_ptr_cb) (void *data, const void *ptr);
+typedef int (*pg_parser_int2_cb) (void *data, int16_t int2);
+typedef int (*pg_parser_int4_cb) (void *data, int32_t int4);
 typedef int (*pg_parser_len_str_cb) (void *data, size_t len, const char *str);
 
 typedef struct {
@@ -16,6 +17,23 @@ typedef struct {
     pg_parser_cb parse;
     pg_parser_cb ready;
     pg_parser_cb secret;
+    pg_parser_int2_cb column;
+    pg_parser_int2_cb format;
+    pg_parser_int2_cb ncols;
+    pg_parser_int2_cb nrows;
+    pg_parser_int2_cb oidlen;
+    pg_parser_int4_cb cmd;
+    pg_parser_int4_cb col;
+    pg_parser_int4_cb error;
+    pg_parser_int4_cb key;
+    pg_parser_int4_cb method;
+    pg_parser_int4_cb mod;
+    pg_parser_int4_cb nbytes;
+    pg_parser_int4_cb oid;
+    pg_parser_int4_cb opt;
+    pg_parser_int4_cb pid;
+    pg_parser_int4_cb row;
+    pg_parser_int4_cb table;
     pg_parser_len_str_cb all;
     pg_parser_len_str_cb cmdval;
     pg_parser_len_str_cb errkey;
@@ -24,23 +42,6 @@ typedef struct {
     pg_parser_len_str_cb optkey;
     pg_parser_len_str_cb optval;
     pg_parser_len_str_cb rowval;
-    pg_parser_ptr_cb cmd;
-    pg_parser_ptr_cb col;
-    pg_parser_ptr_cb column;
-    pg_parser_ptr_cb error;
-    pg_parser_ptr_cb format;
-    pg_parser_ptr_cb key;
-    pg_parser_ptr_cb method;
-    pg_parser_ptr_cb mod;
-    pg_parser_ptr_cb nbytes;
-    pg_parser_ptr_cb ncols;
-    pg_parser_ptr_cb nrows;
-    pg_parser_ptr_cb oid;
-    pg_parser_ptr_cb oidlen;
-    pg_parser_ptr_cb opt;
-    pg_parser_ptr_cb pid;
-    pg_parser_ptr_cb row;
-    pg_parser_ptr_cb table;
 } pg_parser_settings_t;
 
 typedef struct pg_parser_t pg_parser_t;

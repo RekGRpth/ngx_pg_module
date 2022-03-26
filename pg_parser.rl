@@ -23,21 +23,21 @@ typedef struct pg_parser_t {
     action byte { if (--parser->int4 >= 0) fgoto str; }
 #    action byte { if (--parser->int4 <= 0) fnext row; }
     action close { if (settings->close(parser->data)) fbreak; }
-    action cmd { if (settings->cmd(parser->data, &parser->int4)) fbreak; }
+    action cmd { if (settings->cmd(parser->data, parser->int4)) fbreak; }
     action cmdval { if (str && settings->cmdval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action colbeg { if (settings->colbeg(parser->data)) fbreak; }
     action colend { if (--parser->n <= 0) fnext main; }
-    action col { if (settings->col(parser->data, &parser->int4)) fbreak; }
-    action columnid { if (settings->column(parser->data, &parser->int2)) fbreak; }
+    action col { if (settings->col(parser->data, parser->int4)) fbreak; }
+    action columnid { if (settings->column(parser->data, parser->int2)) fbreak; }
     action column { if (settings->errkey(parser->data, sizeof("column") - 1, "column")) fbreak; }
     action constraint { if (settings->errkey(parser->data, sizeof("constraint") - 1, "constraint")) fbreak; }
     action context { if (settings->errkey(parser->data, sizeof("context") - 1, "context")) fbreak; }
     action datatype { if (settings->errkey(parser->data, sizeof("datatype") - 1, "datatype")) fbreak; }
     action detail { if (settings->errkey(parser->data, sizeof("detail") - 1, "detail")) fbreak; }
-    action error { if (settings->error(parser->data, &parser->int4)) fbreak; }
+    action error { if (settings->error(parser->data, parser->int4)) fbreak; }
     action errval { if (str && settings->errval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action file { if (settings->errkey(parser->data, sizeof("file") - 1, "file")) fbreak; }
-    action format { if (settings->format(parser->data, &parser->int2)) fbreak; }
+    action format { if (settings->format(parser->data, parser->int2)) fbreak; }
     action function { if (settings->errkey(parser->data, sizeof("function") - 1, "function")) fbreak; }
     action hint { if (settings->errkey(parser->data, sizeof("hint") - 1, "hint")) fbreak; }
     action idle { if (settings->idle(parser->data)) fbreak; }
@@ -46,27 +46,27 @@ typedef struct pg_parser_t {
     action int4 { if (!parser->i) { parser->i = 4; parser->int4 = 0; } parser->int4 |= (uint8_t)*p << ((2 << 2) * --parser->i); }
     action internal { if (settings->errkey(parser->data, sizeof("internal") - 1, "internal")) fbreak; }
     action intrans { if (settings->intrans(parser->data)) fbreak; }
-    action key { if (settings->key(parser->data, &parser->int4)) fbreak; }
+    action key { if (settings->key(parser->data, parser->int4)) fbreak; }
     action line { if (settings->errkey(parser->data, sizeof("line") - 1, "line")) fbreak; }
     action main { fnext main; }
-    action method { if (settings->method(parser->data, &parser->int4)) fbreak; }
-    action mod { if (settings->mod(parser->data, &parser->int4)) fbreak; }
+    action method { if (settings->method(parser->data, parser->int4)) fbreak; }
+    action mod { if (settings->mod(parser->data, parser->int4)) fbreak; }
     action name { if (str && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nbytes { if (settings->nbytes(parser->data, &parser->int4)) fbreak; if (parser->int4 == (int32_t)-1) { if (--parser->n <= 0) fnext main; else fnext row; } }
-    action ncols { parser->n = parser->int2; if (settings->ncols(parser->data, &parser->n)) fbreak; }
+    action nbytes { if (settings->nbytes(parser->data, parser->int4)) fbreak; if (parser->int4 == (int32_t)-1) { if (--parser->n <= 0) fnext main; else fnext row; } }
+    action ncols { parser->n = parser->int2; if (settings->ncols(parser->data, parser->n)) fbreak; }
     action nonlocalized { if (settings->errkey(parser->data, sizeof("nonlocalized") - 1, "nonlocalized")) fbreak; }
-    action nrows { parser->n = parser->int2; if (settings->nrows(parser->data, &parser->n)) fbreak; }
-    action oid { if (settings->oid(parser->data, &parser->int4)) fbreak; }
-    action oidlen { if (settings->oidlen(parser->data, &parser->int2)) fbreak; }
-    action opt { if (settings->opt(parser->data, &parser->int4)) fbreak; }
+    action nrows { parser->n = parser->int2; if (settings->nrows(parser->data, parser->n)) fbreak; }
+    action oid { if (settings->oid(parser->data, parser->int4)) fbreak; }
+    action oidlen { if (settings->oidlen(parser->data, parser->int2)) fbreak; }
+    action opt { if (settings->opt(parser->data, parser->int4)) fbreak; }
     action optkey { if (str && settings->optkey(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action optval { if (str && settings->optval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action parse { if (settings->parse(parser->data)) fbreak; }
-    action pid { if (settings->pid(parser->data, &parser->int4)) fbreak; }
+    action pid { if (settings->pid(parser->data, parser->int4)) fbreak; }
     action primary { if (settings->errkey(parser->data, sizeof("primary") - 1, "primary")) fbreak; }
     action query { if (settings->errkey(parser->data, sizeof("query") - 1, "query")) fbreak; }
     action ready { if (settings->ready(parser->data)) fbreak; }
-    action row { if (settings->row(parser->data, &parser->int4)) fbreak; }
+    action row { if (settings->row(parser->data, parser->int4)) fbreak; }
     action rowval { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (--parser->n <= 0) fnext main; else fnext row; }
     action schema { if (settings->errkey(parser->data, sizeof("schema") - 1, "schema")) fbreak; }
     action secret { if (settings->secret(parser->data)) fbreak; }
@@ -74,7 +74,7 @@ typedef struct pg_parser_t {
     action sqlstate { if (settings->errkey(parser->data, sizeof("sqlstate") - 1, "sqlstate")) fbreak; }
     action statement { if (settings->errkey(parser->data, sizeof("statement") - 1, "statement")) fbreak; }
     action str { if (!str) str = p; if (str) parser->str = cs; }
-    action tableid { if (settings->table(parser->data, &parser->int4)) fbreak; }
+    action tableid { if (settings->table(parser->data, parser->int4)) fbreak; }
     action table { if (settings->errkey(parser->data, sizeof("table") - 1, "table")) fbreak; }
 
     any2 = any{2};
