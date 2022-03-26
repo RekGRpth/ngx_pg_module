@@ -47,7 +47,6 @@ typedef struct pg_parser_t {
     action intrans { if (settings->intrans(parser->data)) fbreak; }
     action key { if (settings->key(parser->data, parser->int4)) fbreak; }
     action line { if (settings->errkey(parser->data, sizeof("line") - 1, "line")) fbreak; }
-    action main { fnext main; }
     action method { if (settings->method(parser->data, parser->int4)) fbreak; }
     action mod { if (settings->mod(parser->data, parser->int4)) fbreak; }
     action name { if (str && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -65,15 +64,15 @@ typedef struct pg_parser_t {
     action primary { if (settings->errkey(parser->data, sizeof("primary") - 1, "primary")) fbreak; }
     action query { if (settings->errkey(parser->data, sizeof("query") - 1, "query")) fbreak; }
     action ready { if (settings->ready(parser->data)) fbreak; }
-    action rowend { --parser->nrows >= 0 }
+    action rowend { parser->nrows-- }
     action row { if (settings->row(parser->data, parser->int4)) fbreak; }
-    action rowval { if (parser->nbytes <= 0) { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; } }
+    action rowval { if (!parser->nbytes) { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; } }
     action schema { if (settings->errkey(parser->data, sizeof("schema") - 1, "schema")) fbreak; }
     action secret { if (settings->secret(parser->data)) fbreak; }
     action severity { if (settings->errkey(parser->data, sizeof("severity") - 1, "severity")) fbreak; }
     action sqlstate { if (settings->errkey(parser->data, sizeof("sqlstate") - 1, "sqlstate")) fbreak; }
     action statement { if (settings->errkey(parser->data, sizeof("statement") - 1, "statement")) fbreak; }
-    action strend { --parser->nbytes >= 0 }
+    action strend { parser->nbytes-- }
     action str { if (!str) str = p; if (str) parser->str = cs; }
     action tableid { if (settings->table(parser->data, parser->int4)) fbreak; }
     action table { if (settings->errkey(parser->data, sizeof("table") - 1, "table")) fbreak; }
@@ -101,7 +100,7 @@ typedef struct pg_parser_t {
     | 83 int4 @opt str0 @optkey @/optkey str0 @optval @/optval
     | 84 int4 @col int2 @ncols ( col >colbeg >when colend )+
     | 90 any4 @ready ( 69 @inerror | 73 @idle | 84 @intrans )
-    ) $all %main;
+    )** $all;
 
     write data;
 }%%
