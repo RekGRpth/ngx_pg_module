@@ -6,8 +6,10 @@ typedef struct pg_parser_t {
     const pg_parser_settings_t *settings;
     const void *data;
     int16_t int2;
-    int16_t n;
+    int16_t ncols;
+    int16_t nrows;
     int32_t int4;
+    int32_t nbytes;
     int8_t i;
     int cs;
     int str;
@@ -19,14 +21,14 @@ typedef struct pg_parser_t {
     action all { if (settings->all(parser->data, 0, p)) fbreak; }
     action auth { if (settings->auth(parser->data)) fbreak; }
     action bind { if (settings->bind(parser->data)) fbreak; }
-#    action byte { if (--parser->int4 >= 0) fgoto str; if (str && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
-    action byte { if (--parser->int4 >= 0) fgoto str; }
-#    action byte { if (--parser->int4 <= 0) fnext row; }
+#    action byte { if (--parser->nbytes >= 0) fgoto str; if (str && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
+    action byte { if (--parser->nbytes >= 0) fgoto str; }
+#    action byte { if (--parser->nbytes <= 0) fnext row; }
     action close { if (settings->close(parser->data)) fbreak; }
     action cmd { if (settings->cmd(parser->data, parser->int4)) fbreak; }
     action cmdval { if (str && settings->cmdval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action colbeg { if (settings->colbeg(parser->data)) fbreak; }
-    action colend { if (--parser->n <= 0) fnext main; }
+    action colend { if (--parser->ncols <= 0) fnext main; }
     action col { if (settings->col(parser->data, parser->int4)) fbreak; }
     action columnid { if (settings->column(parser->data, parser->int2)) fbreak; }
     action column { if (settings->errkey(parser->data, sizeof("column") - 1, "column")) fbreak; }
@@ -52,10 +54,10 @@ typedef struct pg_parser_t {
     action method { if (settings->method(parser->data, parser->int4)) fbreak; }
     action mod { if (settings->mod(parser->data, parser->int4)) fbreak; }
     action name { if (str && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nbytes { if (settings->nbytes(parser->data, parser->int4)) fbreak; if (parser->int4 == (int32_t)-1) { if (--parser->n <= 0) fnext main; else fnext row; } }
-    action ncols { parser->n = parser->int2; if (settings->ncols(parser->data, parser->n)) fbreak; }
+    action nbytes { parser->nbytes = parser->int4; if (settings->nbytes(parser->data, parser->nbytes)) fbreak; if (parser->nbytes == (int32_t)-1) { if (--parser->nrows <= 0) fnext main; else fnext row; } }
+    action ncols { parser->ncols = parser->int2; if (settings->ncols(parser->data, parser->ncols)) fbreak; }
     action nonlocalized { if (settings->errkey(parser->data, sizeof("nonlocalized") - 1, "nonlocalized")) fbreak; }
-    action nrows { parser->n = parser->int2; if (settings->nrows(parser->data, parser->n)) fbreak; }
+    action nrows { parser->nrows = parser->int2; if (settings->nrows(parser->data, parser->nrows)) fbreak; }
     action oid { if (settings->oid(parser->data, parser->int4)) fbreak; }
     action oidlen { if (settings->oidlen(parser->data, parser->int2)) fbreak; }
     action opt { if (settings->opt(parser->data, parser->int4)) fbreak; }
@@ -67,7 +69,7 @@ typedef struct pg_parser_t {
     action query { if (settings->errkey(parser->data, sizeof("query") - 1, "query")) fbreak; }
     action ready { if (settings->ready(parser->data)) fbreak; }
     action row { if (settings->row(parser->data, parser->int4)) fbreak; }
-    action rowval { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (--parser->n <= 0) fnext main; else fnext row; }
+    action rowval { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (--parser->nrows <= 0) fnext main; else fnext row; }
     action schema { if (settings->errkey(parser->data, sizeof("schema") - 1, "schema")) fbreak; }
     action secret { if (settings->secret(parser->data)) fbreak; }
     action severity { if (settings->errkey(parser->data, sizeof("severity") - 1, "severity")) fbreak; }
