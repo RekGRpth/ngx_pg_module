@@ -105,24 +105,24 @@ $pg_err_
 
 Error *name* from connection:
 ```nginx
-add_header column $pg_err_column always;
-add_header constraint $pg_err_constraint always;
-add_header context $pg_err_context always;
-add_header datatype $pg_err_datatype always;
-add_header detail $pg_err_detail always;
-add_header file $pg_err_file always;
-add_header function $pg_err_function always;
-add_header hint $pg_err_hint always;
-add_header internal $pg_err_internal always;
-add_header line $pg_err_line always;
-add_header nonlocalized $pg_err_nonlocalized always;
-add_header primary $pg_err_primary always;
-add_header query $pg_err_query always;
-add_header schema $pg_err_schema always;
-add_header severity $pg_err_severity always;
-add_header sqlstate $pg_err_sqlstate always;
-add_header statement $pg_err_statement always;
-add_header table $pg_err_table always;
+add_header err_column $pg_err_column always;
+add_header err_constraint $pg_err_constraint always;
+add_header err_context $pg_err_context always;
+add_header err_datatype $pg_err_datatype always;
+add_header err_detail $pg_err_detail always;
+add_header err_file $pg_err_file always;
+add_header err_function $pg_err_function always;
+add_header err_hint $pg_err_hint always;
+add_header err_internal $pg_err_internal always;
+add_header err_line $pg_err_line always;
+add_header err_nonlocalized $pg_err_nonlocalized always;
+add_header err_primary $pg_err_primary always;
+add_header err_query $pg_err_query always;
+add_header err_schema $pg_err_schema always;
+add_header err_severity $pg_err_severity always;
+add_header err_sqlstate $pg_err_sqlstate always;
+add_header err_statement $pg_err_statement always;
+add_header err_table $pg_err_table always;
 ```
 $pg_opt_
 -------------
@@ -130,19 +130,19 @@ $pg_opt_
 
 Option *name* from connection:
 ```nginx
-add_header application_name $pg_opt_application_name always;
-add_header client_encoding $pg_opt_client_encoding always;
-add_header datestyle $pg_opt_datestyle always;
-add_header default_transaction_read_only $pg_opt_default_transaction_read_only always;
-add_header in_hot_standby $pg_opt_in_hot_standby always;
-add_header integer_datetimes $pg_opt_integer_datetimes always;
-add_header intervalstyle $pg_opt_intervalstyle always;
-add_header is_superuser $pg_opt_is_superuser always;
-add_header server_encoding $pg_opt_server_encoding always;
-add_header server_version $pg_opt_server_version always;
-add_header session_authorization $pg_opt_session_authorization always;
-add_header standard_conforming_strings $pg_opt_standard_conforming_strings always;
-add_header timezone $pg_opt_timezone always;
+add_header opt_application_name $pg_opt_application_name always;
+add_header opt_client_encoding $pg_opt_client_encoding always;
+add_header opt_datestyle $pg_opt_datestyle always;
+add_header opt_default_transaction_read_only $pg_opt_default_transaction_read_only always;
+add_header opt_in_hot_standby $pg_opt_in_hot_standby always;
+add_header opt_integer_datetimes $pg_opt_integer_datetimes always;
+add_header opt_intervalstyle $pg_opt_intervalstyle always;
+add_header opt_is_superuser $pg_opt_is_superuser always;
+add_header opt_server_encoding $pg_opt_server_encoding always;
+add_header opt_server_version $pg_opt_server_version always;
+add_header opt_session_authorization $pg_opt_session_authorization always;
+add_header opt_standard_conforming_strings $pg_opt_standard_conforming_strings always;
+add_header opt_timezone $pg_opt_timezone always;
 ```
 $pg_mod_
 -------------
