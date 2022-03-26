@@ -76,7 +76,7 @@ typedef struct ngx_pg_data_t {
     int16_t ncols;
     int16_t nrows;
     ngx_array_t *col;
-    ngx_array_t *error;
+    ngx_array_t *err;
     ngx_array_t *row;
     ngx_http_request_t *request;
     ngx_peer_connection_t peer;
@@ -128,8 +128,8 @@ static int ngx_pg_parser_errkey(ngx_pg_save_t *s, size_t len, const u_char *str)
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_key_val_t *kv;
-    if (!d->error) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!error"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    if (!(kv = ngx_array_push(d->error))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
+    if (!d->err) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!err"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    if (!(kv = ngx_array_push(d->err))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
     ngx_memzero(kv, sizeof(*kv));
     kv->key.data = str;
     kv->key.len = len;
@@ -178,9 +178,9 @@ static int ngx_pg_parser_errval(ngx_pg_save_t *s, size_t len, const u_char *str)
     ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_key_val_t *elts = d->error->elts;
-    if (!d->error->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_key_val_t *kv = &elts[d->error->nelts - 1];
+    ngx_pg_key_val_t *elts = d->err->elts;
+    if (!d->err->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    ngx_pg_key_val_t *kv = &elts[d->err->nelts - 1];
     if (!kv->val.data) kv->val.data = d->errors.data + d->errors.len;
     ngx_memcpy(kv->val.data + kv->val.len, str, len);
     kv->val.len += len;
@@ -217,7 +217,7 @@ static int ngx_pg_parser_error(ngx_pg_save_t *s, const void *ptr) {
     if (!d) return s->rc;
     ngx_pg_key_val_t *kv;
     ngx_http_request_t *r = d->request;
-    if (!(d->error = ngx_array_create(r->pool, 1, sizeof(*kv)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
+    if (!(d->err = ngx_array_create(r->pool, 1, sizeof(*kv)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
     ngx_http_upstream_t *u = r->upstream;
     u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
     if (!(d->errors.data = ngx_pnalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
@@ -830,7 +830,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     }
     if (b->pos == b->last) b->pos = b->last = b->start;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
-    if (s->rc == NGX_OK && d->error && d->error->nelts) s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
+    if (s->rc == NGX_OK && d->err && d->err->nelts) s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
     if (s->rc == NGX_OK) {
         u->headers_in.content_length_n = 0;
         u->headers_in.status_n = NGX_HTTP_OK;
@@ -986,12 +986,12 @@ static ngx_int_t ngx_pg_err_get_handler(ngx_http_request_t *r, ngx_http_variable
     if (!u) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
-    if (!d->error) return NGX_OK;
-    ngx_pg_key_val_t *elts = d->error->elts;
+    if (!d->err) return NGX_OK;
+    ngx_pg_key_val_t *elts = d->err->elts;
     ngx_str_t *name = (ngx_str_t *)data;
     ngx_uint_t i;
-    for (i = 0; i < d->error->nelts; i++) if (name->len - sizeof("pg_err_") + 1 == elts[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_err_") - 1, elts[i].key.data, elts[i].key.len)) break;
-    if (i == d->error->nelts) return NGX_OK;
+    for (i = 0; i < d->err->nelts; i++) if (name->len - sizeof("pg_err_") + 1 == elts[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_err_") - 1, elts[i].key.data, elts[i].key.len)) break;
+    if (i == d->err->nelts) return NGX_OK;
     v->data = elts[i].val.data;
     v->len = elts[i].val.len;
     v->valid = 1;
