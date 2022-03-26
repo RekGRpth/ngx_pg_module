@@ -16,13 +16,13 @@ typedef struct {
     pg_parser_cb parse;
     pg_parser_cb ready;
     pg_parser_cb secret;
-    pg_parser_len_str_cb byte;
     pg_parser_len_str_cb cmdval;
     pg_parser_len_str_cb errkey;
     pg_parser_len_str_cb errval;
     pg_parser_len_str_cb name;
     pg_parser_len_str_cb optkey;
     pg_parser_len_str_cb optval;
+    pg_parser_len_str_cb rowval;
     pg_parser_ptr_cb all;
     pg_parser_ptr_cb cmd;
     pg_parser_ptr_cb col;

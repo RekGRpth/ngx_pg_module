@@ -141,7 +141,7 @@ static int ngx_pg_parser_bind(ngx_pg_save_t *s) {
     return s->rc;
 }
 
-static int ngx_pg_parser_byte(ngx_pg_save_t *s, size_t len, const u_char *str) {
+static int ngx_pg_parser_rowval(ngx_pg_save_t *s, size_t len, const u_char *str) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -452,7 +452,6 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .all = (pg_parser_ptr_cb)ngx_pg_parser_all,
     .auth = (pg_parser_cb)ngx_pg_parser_auth,
     .bind = (pg_parser_cb)ngx_pg_parser_bind,
-    .byte = (pg_parser_len_str_cb)ngx_pg_parser_byte,
     .close = (pg_parser_cb)ngx_pg_parser_close,
     .cmd = (pg_parser_ptr_cb)ngx_pg_parser_cmd,
     .cmdval = (pg_parser_len_str_cb)ngx_pg_parser_cmdval,
@@ -482,6 +481,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .pid = (pg_parser_ptr_cb)ngx_pg_parser_pid,
     .ready = (pg_parser_cb)ngx_pg_parser_ready,
     .row = (pg_parser_ptr_cb)ngx_pg_parser_row,
+    .rowval = (pg_parser_len_str_cb)ngx_pg_parser_rowval,
     .secret = (pg_parser_cb)ngx_pg_parser_secret,
     .table = (pg_parser_ptr_cb)ngx_pg_parser_table,
 };
