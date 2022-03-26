@@ -205,14 +205,14 @@ Result tbl of *col*:
 add_header tbl_0 $pg_tbl_0 always;
 add_header tbl_1 $pg_tbl_1 always;
 ```
-$pg_oid_
+$pg_col_oid_
 -------------
-* Syntax: $pg_oid_*col*
+* Syntax: $pg_col_oid_*col*
 
 Result oid of *col*:
 ```nginx
-add_header oid_0 $pg_oid_0 always;
-add_header oid_1 $pg_oid_1 always;
+add_header col_oid_0 $pg_col_oid_0 always;
+add_header col_oid_1 $pg_col_oid_1 always;
 ```
 $pg_col_len_
 -------------
