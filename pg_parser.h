@@ -18,8 +18,8 @@ typedef struct {
     pg_parser_cb ready;
     pg_parser_cb secret;
     pg_parser_len_str_cb byte;
+    pg_parser_len_str_cb cmdval;
     pg_parser_len_str_cb column;
-    pg_parser_len_str_cb command;
     pg_parser_len_str_cb constraint;
     pg_parser_len_str_cb context;
     pg_parser_len_str_cb datatype;
@@ -41,9 +41,9 @@ typedef struct {
     pg_parser_len_str_cb statement;
     pg_parser_len_str_cb table;
     pg_parser_ptr_cb all;
+    pg_parser_ptr_cb cmd;
     pg_parser_ptr_cb col;
     pg_parser_ptr_cb columnid;
-    pg_parser_ptr_cb complete;
     pg_parser_ptr_cb error;
     pg_parser_ptr_cb format;
     pg_parser_ptr_cb key;

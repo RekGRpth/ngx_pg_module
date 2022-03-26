@@ -21,13 +21,13 @@ typedef struct pg_parser_t {
     action bind { if (settings->bind && settings->bind(parser->data)) fbreak; }
     action byte { if (--parser->int4 >= 0) fgoto str; if (str && settings->byte && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
     action close { if (settings->close && settings->close(parser->data)) fbreak; }
+    action cmd { if (settings->cmd && settings->cmd(parser->data, &parser->int4)) fbreak; }
+    action cmdval { if (str && settings->cmdval && settings->cmdval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action colbeg { if (settings->colbeg && settings->colbeg(parser->data)) fbreak; }
     action colend { if (--parser->n <= 0) fnext main; }
     action col { if (settings->col && settings->col(parser->data, &parser->int4)) fbreak; }
     action columnid { if (settings->columnid && settings->columnid(parser->data, &parser->int2)) fbreak; }
     action column { if (str && settings->column && settings->column(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action command { if (str && settings->command && settings->command(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action complete { if (settings->complete && settings->complete(parser->data, &parser->int4)) fbreak; }
     action constraint { if (str && settings->constraint && settings->constraint(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action context { if (str && settings->context && settings->context(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action datatype { if (str && settings->datatype && settings->datatype(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -110,7 +110,7 @@ typedef struct pg_parser_t {
     ( 49 any4 @parse
     | 50 any4 @bind
     | 51 any4 @close
-    | 67 int4 @complete str0 @command @/command
+    | 67 int4 @cmd str0 @cmdval @/cmdval
     | 68 int4 @row int2 @nrows (row @rowend)*
     | 69 int4 @error (error >errbeg)* 0
     | 75 any4 @secret int4 @pid int4 @key
