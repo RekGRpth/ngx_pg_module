@@ -50,7 +50,7 @@ typedef struct pg_parser_t {
     action method { if (settings->method(parser->data, parser->int4)) fbreak; }
     action mod { if (settings->mod(parser->data, parser->int4)) fbreak; }
     action name { if (str && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action nbytes { parser->nbytes = parser->int4; if (settings->nbytes(parser->data, parser->nbytes)) fbreak; }
+    action nbytes { parser->nbytes = parser->int4; if (settings->nbytes(parser->data, parser->nbytes)) fbreak; if (parser->nbytes == (int32_t)-1) { if (!--parser->nrows) fnext main; else fnext row; } }
     action ncols { parser->ncols = parser->int2; if (settings->ncols(parser->data, parser->ncols)) fbreak; }
     action nonlocalized { if (settings->errkey(parser->data, sizeof("nonlocalized") - 1, "nonlocalized")) fbreak; }
     action nrows { parser->nrows = parser->int2; if (settings->nrows(parser->data, parser->nrows)) fbreak; }
