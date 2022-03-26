@@ -162,14 +162,14 @@ Result format of *col*:
 add_header format_0 $pg_format_0 always;
 add_header format_1 $pg_format_1 always;
 ```
-$pg_columnid_
+$pg_column_
 -------------
-* Syntax: $pg_columnid_*col*
+* Syntax: $pg_column_*col*
 
-Result columnid of *col*:
+Result column of *col*:
 ```nginx
-add_header columnid_0 $pg_columnid_0 always;
-add_header columnid_1 $pg_columnid_1 always;
+add_header column_0 $pg_column_0 always;
+add_header column_1 $pg_column_1 always;
 ```
 $pg_cmd
 -------------
@@ -196,14 +196,14 @@ Result ncols:
 ```nginx
 add_header ncols $pg_ncols always;
 ```
-$pg_tableid_
+$pg_table_
 -------------
-* Syntax: $pg_tableid_*col*
+* Syntax: $pg_table_*col*
 
-Result tableid of *col*:
+Result table of *col*:
 ```nginx
-add_header tableid_0 $pg_tableid_0 always;
-add_header tableid_1 $pg_tableid_1 always;
+add_header table_0 $pg_table_0 always;
+add_header table_1 $pg_table_1 always;
 ```
 $pg_oid_
 -------------
