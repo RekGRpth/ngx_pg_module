@@ -25,7 +25,7 @@ typedef struct pg_parser_t {
     action cmd { if (settings->cmd(parser->data, parser->int4)) fbreak; }
     action cmdval { if (str && settings->cmdval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action colbeg { if (settings->colbeg(parser->data)) fbreak; }
-    action colend { parser->ncols && parser->ncols-- }
+    action colend { parser->ncols-- }
     action col { if (settings->col(parser->data, parser->int4)) fbreak; }
     action columnid { if (settings->column(parser->data, parser->int2)) fbreak; }
     action column { if (settings->errkey(parser->data, sizeof("column") - 1, "column")) fbreak; }
@@ -64,7 +64,7 @@ typedef struct pg_parser_t {
     action primary { if (settings->errkey(parser->data, sizeof("primary") - 1, "primary")) fbreak; }
     action query { if (settings->errkey(parser->data, sizeof("query") - 1, "query")) fbreak; }
     action ready { if (settings->ready(parser->data)) fbreak; }
-    action rowend { parser->nrows && parser->nrows-- }
+    action rowend { parser->nrows-- }
     action row { if (settings->row(parser->data, parser->int4)) fbreak; }
     action rowval { if (!parser->nbytes) { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; } }
     action schema { if (settings->errkey(parser->data, sizeof("schema") - 1, "schema")) fbreak; }
@@ -72,7 +72,7 @@ typedef struct pg_parser_t {
     action severity { if (settings->errkey(parser->data, sizeof("severity") - 1, "severity")) fbreak; }
     action sqlstate { if (settings->errkey(parser->data, sizeof("sqlstate") - 1, "sqlstate")) fbreak; }
     action statement { if (settings->errkey(parser->data, sizeof("statement") - 1, "statement")) fbreak; }
-    action strend { parser->nbytes && parser->nbytes-- }
+    action strend { parser->nbytes-- }
     action str { if (!str) str = p; if (str) parser->str = cs; }
     action tableid { if (settings->table(parser->data, parser->int4)) fbreak; }
     action table { if (settings->errkey(parser->data, sizeof("table") - 1, "table")) fbreak; }
