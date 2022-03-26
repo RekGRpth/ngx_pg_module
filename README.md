@@ -168,8 +168,8 @@ $pg_column_
 
 Result col of *col*:
 ```nginx
-add_header col_0 $pg_col_0 always;
-add_header col_1 $pg_col_1 always;
+add_header col_col_0 $pg_col_col_0 always;
+add_header col_col_1 $pg_col_col_1 always;
 ```
 $pg_cmd
 -------------
