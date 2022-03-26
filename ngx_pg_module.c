@@ -82,9 +82,9 @@ typedef struct ngx_pg_data_t {
     ngx_peer_connection_t peer;
     ngx_pg_save_t *save;
     ngx_pg_srv_conf_t *conf;
-    ngx_str_t cols;
-    ngx_str_t errors;
     ngx_str_t cmd;
+    ngx_str_t cols;
+    ngx_str_t errs;
     ngx_uint_t ready;
 } ngx_pg_data_t;
 
@@ -181,10 +181,10 @@ static int ngx_pg_parser_errval(ngx_pg_save_t *s, size_t len, const u_char *str)
     ngx_pg_key_val_t *elts = d->err->elts;
     if (!d->err->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_pg_key_val_t *kv = &elts[d->err->nelts - 1];
-    if (!kv->val.data) kv->val.data = d->errors.data + d->errors.len;
+    if (!kv->val.data) kv->val.data = d->errs.data + d->errs.len;
     ngx_memcpy(kv->val.data + kv->val.len, str, len);
     kv->val.len += len;
-    d->errors.len += len;
+    d->errs.len += len;
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V = %V", &kv->key, &kv->val);
     return s->rc;
 }
@@ -220,7 +220,7 @@ static int ngx_pg_parser_error(ngx_pg_save_t *s, const void *ptr) {
     if (!(d->err = ngx_array_create(r->pool, 1, sizeof(*kv)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
     ngx_http_upstream_t *u = r->upstream;
     u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
-    if (!(d->errors.data = ngx_pnalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
+    if (!(d->errs.data = ngx_pnalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
