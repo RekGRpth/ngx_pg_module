@@ -82,28 +82,8 @@ typedef struct pg_parser_t {
     int2 = any2 $int2;
     int4 = any4 $int4;
 
-    error =
-    (  67 @sqlstate
-    |  68 @detail
-    |  70 @file
-    |  72 @hint
-    |  76 @line
-    |  77 @primary
-    |  80 @statement
-    |  82 @function
-    |  83 @severity
-    |  86 @nonlocalized
-    |  87 @context
-    |  99 @column
-    | 100 @datatype
-    | 110 @constraint
-    | 112 @internal
-    | 113 @query
-    | 115 @schema
-    | 116 @table
-    );
-
     col = str0 @name @/name int4 @tableid int2 @columnid int4 @oid int2 @oidlen int4 @mod int2 @format;
+    error = ( 67 @sqlstate | 68 @detail | 70 @file | 72 @hint | 76 @line | 77 @primary | 80 @statement | 82 @function | 83 @severity | 86 @nonlocalized | 87 @context | 99 @column | 100 @datatype | 110 @constraint | 112 @internal | 113 @query | 115 @schema | 116 @table );
     row = int4 @nbytes str @byte @/byte;
 
     main :=
@@ -111,13 +91,13 @@ typedef struct pg_parser_t {
     | 50 any4 @bind
     | 51 any4 @close
     | 67 int4 @cmd str0 @cmdval @/cmdval
-    | 68 int4 @row int2 @nrows (row @rowend)*
-    | 69 int4 @error (error str0 @errval @/errval)* 0
+    | 68 int4 @row int2 @nrows ( row @rowend )*
+    | 69 int4 @error ( error str0 @errval @/errval )* 0
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
     | 83 int4 @opt str0 @optkey @/optkey str0 @optval @/optval
-    | 84 int4 @col int2 @ncols (col >colbeg @colend)*
-    | 90 any4 @ready (69 @inerror | 73 @idle | 84 @intrans)
+    | 84 int4 @col int2 @ncols ( col >colbeg @colend )*
+    | 90 any4 @ready ( 69 @inerror | 73 @idle | 84 @intrans )
     ) $all %main;
 
     write data;
