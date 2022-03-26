@@ -90,8 +90,8 @@ typedef struct ngx_pg_data_t {
 
 inline static u_char *pg_write_int(u_char *p, int m, int n) { for (; m; *p++ = n >> (2 << 2) * --m); return p; }
 
-static int ngx_pg_parser_all(ngx_pg_save_t *s, const void *ptr) {
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i:%c", *(const u_char *)ptr, *(const u_char *)ptr);
+static int ngx_pg_parser_all(ngx_pg_save_t *s, size_t len, const u_char *str) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i:%c", *str, *str);
     return s->rc;
 }
 
@@ -449,7 +449,7 @@ static int ngx_pg_parser_optval(ngx_pg_save_t *s, size_t len, const u_char *str)
 }
 
 static const pg_parser_settings_t ngx_pg_parser_settings = {
-    .all = (pg_parser_ptr_cb)ngx_pg_parser_all,
+    .all = (pg_parser_len_str_cb)ngx_pg_parser_all,
     .auth = (pg_parser_cb)ngx_pg_parser_auth,
     .bind = (pg_parser_cb)ngx_pg_parser_bind,
     .close = (pg_parser_cb)ngx_pg_parser_close,

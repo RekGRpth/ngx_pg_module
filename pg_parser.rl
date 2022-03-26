@@ -16,7 +16,7 @@ typedef struct pg_parser_t {
 %%{
     machine pg_parser;
 
-    action all { if (settings->all(parser->data, p)) fbreak; }
+    action all { if (settings->all(parser->data, 0, p)) fbreak; }
     action auth { if (settings->auth(parser->data)) fbreak; }
     action bind { if (settings->bind(parser->data)) fbreak; }
 #    action byte { if (--parser->int4 >= 0) fgoto str; if (str && settings->byte(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
