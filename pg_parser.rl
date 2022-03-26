@@ -73,7 +73,7 @@ typedef struct pg_parser_t {
     action sqlstate { if (settings->errkey(parser->data, sizeof("sqlstate") - 1, "sqlstate")) fbreak; }
     action statement { if (settings->errkey(parser->data, sizeof("statement") - 1, "statement")) fbreak; }
     action strend { parser->nbytes-- }
-    action str { if (!str) str = p; parser->str = cs; if (str && settings->str(parser->data, p - str, str)) fbreak; }
+    action str { if (!str) str = p; parser->str = cs; }
     action tableid { if (settings->table(parser->data, parser->int4)) fbreak; }
     action table { if (settings->errkey(parser->data, sizeof("table") - 1, "table")) fbreak; }
 

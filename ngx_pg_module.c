@@ -135,11 +135,6 @@ static int ngx_pg_parser_errkey(ngx_pg_save_t *s, size_t len, const u_char *str)
     return s->rc;
 }
 
-static int ngx_pg_parser_str(ngx_pg_save_t *s, size_t len, const u_char *str) {
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
-    return s->rc;
-}
-
 static int ngx_pg_parser_bind(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     return s->rc;
@@ -472,7 +467,6 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .ready = (pg_parser_cb)ngx_pg_parser_ready,
     .row = (pg_parser_int4_cb)ngx_pg_parser_row,
     .rowval = (pg_parser_len_str_cb)ngx_pg_parser_rowval,
-    .str = (pg_parser_len_str_cb)ngx_pg_parser_str,
     .secret = (pg_parser_cb)ngx_pg_parser_secret,
     .table = (pg_parser_int4_cb)ngx_pg_parser_table,
 };
