@@ -25,7 +25,7 @@ typedef struct pg_parser_t {
     action cmd { if (settings->cmd(parser->data, parser->int4)) fbreak; }
     action cmdval { if (str && settings->cmdval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action colbeg { if (settings->colbeg(parser->data)) fbreak; }
-    action colend { parser->ncols && --parser->ncols }
+    action colend { parser->ncols && parser->ncols-- }
     action col { if (settings->col(parser->data, parser->int4)) fbreak; }
     action columnid { if (settings->column(parser->data, parser->int2)) fbreak; }
     action column { if (settings->errkey(parser->data, sizeof("column") - 1, "column")) fbreak; }
@@ -64,7 +64,7 @@ typedef struct pg_parser_t {
     action primary { if (settings->errkey(parser->data, sizeof("primary") - 1, "primary")) fbreak; }
     action query { if (settings->errkey(parser->data, sizeof("query") - 1, "query")) fbreak; }
     action ready { if (settings->ready(parser->data)) fbreak; }
-    action rowend { parser->nrows && --parser->nrows }
+    action rowend { parser->nrows && parser->nrows-- }
     action row { if (settings->row(parser->data, parser->int4)) fbreak; }
     action rowval { if (!parser->nbytes) { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; } }
     action schema { if (settings->errkey(parser->data, sizeof("schema") - 1, "schema")) fbreak; }
@@ -93,12 +93,12 @@ typedef struct pg_parser_t {
     | 50 any4 @bind
     | 51 any4 @close
     | 67 int4 @cmd str0 @cmdval @/cmdval
-    | 68 int4 @row int2 @nrows ( row %when rowend )**
+    | 68 int4 @row int2 @nrows ( row >when rowend )**
     | 69 int4 @error ( error str0 @errval @/errval )** 0
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
     | 83 int4 @opt str0 @optkey @/optkey str0 @optval @/optval
-    | 84 int4 @col int2 @ncols ( col >colbeg %when colend )**
+    | 84 int4 @col int2 @ncols ( col >colbeg >when colend )**
     | 90 any4 @ready ( 69 @inerror | 73 @idle | 84 @intrans )
     )** $all;
 
