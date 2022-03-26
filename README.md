@@ -166,10 +166,10 @@ $pg_column_
 -------------
 * Syntax: $pg_column_*col*
 
-Result column of *col*:
+Result col of *col*:
 ```nginx
-add_header column_0 $pg_column_0 always;
-add_header column_1 $pg_column_1 always;
+add_header col_0 $pg_col_0 always;
+add_header col_1 $pg_col_1 always;
 ```
 $pg_cmd
 -------------
