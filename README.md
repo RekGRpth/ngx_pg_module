@@ -200,10 +200,10 @@ $pg_table_
 -------------
 * Syntax: $pg_table_*col*
 
-Result table of *col*:
+Result tbl of *col*:
 ```nginx
-add_header table_0 $pg_table_0 always;
-add_header table_1 $pg_table_1 always;
+add_header tbl_0 $pg_tbl_0 always;
+add_header tbl_1 $pg_tbl_1 always;
 ```
 $pg_oid_
 -------------

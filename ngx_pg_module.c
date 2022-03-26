@@ -64,7 +64,7 @@ typedef struct {
     int16_t oidlen;
     int32_t mod;
     int32_t oid;
-    int32_t table;
+    int32_t tbl;
     ngx_str_t name;
 } ngx_pg_col_t;
 
@@ -388,14 +388,14 @@ static int ngx_pg_parser_opt(ngx_pg_save_t *s, const void *ptr) {
 }
 
 static int ngx_pg_parser_table(ngx_pg_save_t *s, const void *ptr) {
-    int32_t table = *(int32_t *)ptr;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", table);
+    int32_t tbl = *(int32_t *)ptr;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", tbl);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_col_t *elts = d->col->elts;
     if (!d->col->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_pg_col_t *col = &elts[d->col->nelts - 1];
-    col->table = table;
+    col->tbl = tbl;
     return s->rc;
 }
 
@@ -1154,9 +1154,9 @@ static ngx_int_t ngx_pg_table_get_handler(ngx_http_request_t *r, ngx_http_variab
     ngx_uint_t i = n;
     if (!d->col || i >= d->col->nelts) return NGX_OK;
     ngx_pg_col_t *elts = d->col->elts;
-    v->len = snprintf(NULL, 0, "%i", elts[i].table);
+    v->len = snprintf(NULL, 0, "%i", elts[i].tbl);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].table) - v->data;
+    v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].tbl) - v->data;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
