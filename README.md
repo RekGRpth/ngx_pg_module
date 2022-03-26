@@ -153,14 +153,14 @@ Result mod of *col*:
 add_header mod_0 $pg_mod_0 always;
 add_header mod_1 $pg_mod_1 always;
 ```
-$pg_format_
+$pg_col_fmt_
 -------------
-* Syntax: $pg_format_*col*
+* Syntax: $pg_col_fmt_*col*
 
-Result format of *col*:
+Result col_fmt_ of *col*:
 ```nginx
-add_header format_0 $pg_format_0 always;
-add_header format_1 $pg_format_1 always;
+add_header col_fmt_0 $pg_col_fmt_0 always;
+add_header col_fmt_1 $pg_col_fmt_1 always;
 ```
 $pg_column_
 -------------
