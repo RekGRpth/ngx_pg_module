@@ -31,7 +31,7 @@ typedef struct {
     pg_parser_len_str_cb line;
     pg_parser_len_str_cb name;
     pg_parser_len_str_cb nonlocalized;
-    pg_parser_len_str_cb option;
+    pg_parser_len_str_cb optkey;
     pg_parser_len_str_cb primary;
     pg_parser_len_str_cb query;
     pg_parser_len_str_cb schema;

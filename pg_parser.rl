@@ -57,7 +57,7 @@ typedef struct pg_parser_t {
     action oid { if (settings->oid && settings->oid(parser->data, &parser->int4)) fbreak; }
     action oidlen { if (settings->oidlen && settings->oidlen(parser->data, &parser->int2)) fbreak; }
     action opt { if (settings->opt && settings->opt(parser->data, &parser->int4)) fbreak; }
-    action option { if (str && settings->option && settings->option(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
+    action optkey { if (str && settings->optkey && settings->optkey(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action parse { if (settings->parse && settings->parse(parser->data)) fbreak; }
     action pid { if (settings->pid && settings->pid(parser->data, &parser->int4)) fbreak; }
     action primary { if (str && settings->primary && settings->primary(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -115,7 +115,7 @@ typedef struct pg_parser_t {
     | 69 int4 @error (error >errbeg)* 0
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
-    | 83 int4 @opt str0 @option @/option str0 @value @/value
+    | 83 int4 @opt str0 @optkey @/optkey str0 @value @/value
     | 84 int4 @col int2 @ncols (col >colbeg @colend)*
     | 90 any4 @ready (69 @inerror | 73 @idle | 84 @intrans)
     ) $all %main;
