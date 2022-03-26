@@ -56,6 +56,7 @@ typedef struct pg_parser_t {
     action nrows { parser->n = parser->int2; if (settings->nrows && settings->nrows(parser->data, &parser->n)) fbreak; }
     action oid { if (settings->oid && settings->oid(parser->data, &parser->int4)) fbreak; }
     action oidlen { if (settings->oidlen && settings->oidlen(parser->data, &parser->int2)) fbreak; }
+    action opt { if (settings->opt && settings->opt(parser->data, &parser->int4)) fbreak; }
     action option { if (str && settings->option && settings->option(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action parse { if (settings->parse && settings->parse(parser->data)) fbreak; }
     action pid { if (settings->pid && settings->pid(parser->data, &parser->int4)) fbreak; }
@@ -69,7 +70,6 @@ typedef struct pg_parser_t {
     action severity { if (str && settings->severity && settings->severity(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action sqlstate { if (str && settings->sqlstate && settings->sqlstate(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action statement { if (str && settings->statement && settings->statement(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action status { if (settings->status && settings->status(parser->data, &parser->int4)) fbreak; }
     action str { if (!str) str = p; if (str) parser->str = cs; }
     action tableid { if (settings->tableid && settings->tableid(parser->data, &parser->int4)) fbreak; }
     action table { if (str && settings->table && settings->table(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -115,7 +115,7 @@ typedef struct pg_parser_t {
     | 69 int4 @error (error >errbeg)* 0
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
-    | 83 int4 @status str0 @option @/option str0 @value @/value
+    | 83 int4 @opt str0 @option @/option str0 @value @/value
     | 84 int4 @col int2 @ncols (col >colbeg @colend)*
     | 90 any4 @ready (69 @inerror | 73 @idle | 84 @intrans)
     ) $all %main;

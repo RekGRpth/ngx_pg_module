@@ -54,9 +54,9 @@ typedef struct {
     pg_parser_ptr_cb nrows;
     pg_parser_ptr_cb oid;
     pg_parser_ptr_cb oidlen;
+    pg_parser_ptr_cb opt;
     pg_parser_ptr_cb pid;
     pg_parser_ptr_cb row;
-    pg_parser_ptr_cb status;
     pg_parser_ptr_cb tableid;
 } pg_parser_settings_t;
 
