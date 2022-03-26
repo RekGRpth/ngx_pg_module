@@ -66,9 +66,8 @@ typedef struct pg_parser_t {
     action primary { if (settings->errkey(parser->data, sizeof("primary") - 1, "primary")) fbreak; }
     action query { if (settings->errkey(parser->data, sizeof("query") - 1, "query")) fbreak; }
     action ready { if (settings->ready(parser->data)) fbreak; }
-    action rowend { if (--parser->n <= 0) fnext main; }
     action row { if (settings->row(parser->data, &parser->int4)) fbreak; }
-    action rowval { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; }
+    action rowval { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext row; if (--parser->n <= 0) fnext main; }
     action schema { if (settings->errkey(parser->data, sizeof("schema") - 1, "schema")) fbreak; }
     action secret { if (settings->secret(parser->data)) fbreak; }
     action severity { if (settings->errkey(parser->data, sizeof("severity") - 1, "severity")) fbreak; }
@@ -94,7 +93,7 @@ typedef struct pg_parser_t {
     | 50 any4 @bind
     | 51 any4 @close
     | 67 int4 @cmd str0 @cmdval @/cmdval
-    | 68 int4 @row int2 @nrows ( row @rowend )*
+    | 68 int4 @row int2 @nrows ( row )*
     | 69 int4 @error ( error str0 @errval @/errval )+ 0
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
