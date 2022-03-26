@@ -175,9 +175,9 @@ $pg_cmd
 -------------
 * Syntax: $pg_cmd
 
-Result command:
+Result cmd:
 ```nginx
-add_header command $pg_cmd always;
+add_header cmd $pg_cmd always;
 ```
 $pg_col_name_
 -------------
@@ -196,14 +196,14 @@ Result ncols:
 ```nginx
 add_header ncols $pg_ncols always;
 ```
-$pg_table_
+$pg_col_tbl_
 -------------
-* Syntax: $pg_table_*col*
+* Syntax: $pg_col_tbl_*col*
 
 Result tbl of *col*:
 ```nginx
-add_header tbl_0 $pg_tbl_0 always;
-add_header tbl_1 $pg_tbl_1 always;
+add_header col_tbl_0 $pg_col_tbl_0 always;
+add_header col_tbl_1 $pg_col_tbl_1 always;
 ```
 $pg_col_oid_
 -------------

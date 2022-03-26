@@ -1141,7 +1141,7 @@ static ngx_int_t ngx_pg_col_name_get_handler(ngx_http_request_t *r, ngx_http_var
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_tbl_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_col_tbl_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
@@ -1149,7 +1149,7 @@ static ngx_int_t ngx_pg_tbl_get_handler(ngx_http_request_t *r, ngx_http_variable
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_tbl_") - 1, name->len - sizeof("pg_tbl_") + 1);
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_col_tbl_") - 1, name->len - sizeof("pg_col_tbl_") + 1);
     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t i = n;
     if (!d->col || i >= d->col->nelts) return NGX_OK;
@@ -1240,17 +1240,17 @@ static ngx_int_t ngx_pg_row_get_handler(ngx_http_request_t *r, ngx_http_variable
 static const ngx_http_variable_t ngx_pg_variables[] = {
   { ngx_string("pg_cmd"), NULL, ngx_pg_cmd_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
   { ngx_string("pg_col_col_"), NULL, ngx_pg_col_col_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
-  { ngx_string("pg_err_"), NULL, ngx_pg_err_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_col_fmt_"), NULL, ngx_pg_col_fmt_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_col_len_"), NULL, ngx_pg_col_len_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_col_mod_"), NULL, ngx_pg_col_mod_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_col_name_"), NULL, ngx_pg_col_name_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
-  { ngx_string("pg_ncols"), NULL, ngx_pg_ncols_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
   { ngx_string("pg_col_oid_"), NULL, ngx_pg_col_oid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_col_tbl_"), NULL, ngx_pg_col_tbl_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_err_"), NULL, ngx_pg_err_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_ncols"), NULL, ngx_pg_ncols_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
   { ngx_string("pg_opt_"), NULL, ngx_pg_opt_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_pid"), NULL, ngx_pg_pid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
   { ngx_string("pg_row_"), NULL, ngx_pg_row_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
-  { ngx_string("pg_tbl_"), NULL, ngx_pg_tbl_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
     ngx_http_null_variable
 };
 
