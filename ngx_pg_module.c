@@ -398,7 +398,7 @@ static int ngx_pg_parser_row(ngx_pg_save_t *s, int32_t len) {
     return s->rc;
 }
 
-static int ngx_pg_parser_oid(ngx_pg_save_t *s, int32_t oid) {
+static int ngx_pg_parser_field_oid(ngx_pg_save_t *s, int32_t oid) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", oid);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -455,7 +455,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .ncols = (pg_parser_int2_cb)ngx_pg_parser_ncols,
     .nrows = (pg_parser_int2_cb)ngx_pg_parser_nrows,
     .field_len = (pg_parser_int2_cb)ngx_pg_parser_field_len,
-    .oid = (pg_parser_int4_cb)ngx_pg_parser_oid,
+    .field_oid = (pg_parser_int4_cb)ngx_pg_parser_field_oid,
     .option_key = (pg_parser_len_str_cb)ngx_pg_parser_option_key,
     .option = (pg_parser_int4_cb)ngx_pg_parser_option,
     .option_val = (pg_parser_len_str_cb)ngx_pg_parser_option_val,
