@@ -802,7 +802,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_buf_t *b = &u->buffer;
 //    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     s->rc = NGX_OK;
-    while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_parser_execute(s->parser, (const char *)b->pos, (const char *)b->last);
+    while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_parser_execute(s->parser, b->pos, b->last);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
     if (s->rc == NGX_OK) {

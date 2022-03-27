@@ -4,7 +4,7 @@
 typedef int (*pg_parser_cb) (void *data);
 typedef int (*pg_parser_int2_cb) (void *data, int16_t int2);
 typedef int (*pg_parser_int4_cb) (void *data, int32_t int4);
-typedef int (*pg_parser_len_str_cb) (void *data, size_t len, const char *str);
+typedef int (*pg_parser_len_str_cb) (void *data, size_t len, const unsigned char *str);
 
 typedef struct {
     pg_parser_cb auth;
@@ -46,6 +46,6 @@ typedef struct {
 
 typedef struct pg_parser_t pg_parser_t;
 
-size_t pg_parser_execute(pg_parser_t *parser, const char *p, const char *pe);
+size_t pg_parser_execute(pg_parser_t *parser, const unsigned char *p, const unsigned char *pe);
 size_t pg_parser_size(void);
 void pg_parser_init(pg_parser_t *parser, const pg_parser_settings_t *settings, const void *data);
