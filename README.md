@@ -196,6 +196,14 @@ Result ncols:
 ```nginx
 add_header ncols $pg_ncols always;
 ```
+$pg_nrows
+-------------
+* Syntax: $pg_nrows
+
+Result nrows:
+```nginx
+add_header nrows $pg_nrows always;
+```
 $pg_field_tbl_
 -------------
 * Syntax: $pg_field_tbl_*col*
