@@ -22,12 +22,12 @@ typedef struct pg_parser_t {
     action auth { if (settings->auth(parser->data)) fbreak; }
     action bind { if (settings->bind(parser->data)) fbreak; }
     action close { if (settings->close(parser->data)) fbreak; }
-    action complete { if (settings->complete(parser->data, parser->int4)) fbreak; }
-    action complete_val { if (str && settings->complete_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action colbeg { if (settings->colbeg(parser->data)) fbreak; }
     action colend { --parser->ncols }
     action col { if (settings->col(parser->data, parser->int4)) fbreak; }
     action columnid { if (settings->column(parser->data, parser->int2)) fbreak; }
+    action complete { if (settings->complete(parser->data, parser->int4)) fbreak; }
+    action complete_val { if (str && settings->complete_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action error_column { if (settings->error_key(parser->data, sizeof("column") - 1, "column")) fbreak; }
     action error_constraint { if (settings->error_key(parser->data, sizeof("constraint") - 1, "constraint")) fbreak; }
     action error_context { if (settings->error_key(parser->data, sizeof("context") - 1, "context")) fbreak; }
@@ -49,11 +49,8 @@ typedef struct pg_parser_t {
     action error_table { if (settings->error_key(parser->data, sizeof("table") - 1, "table")) fbreak; }
     action error_val { if (str && settings->error_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action format { if (settings->format(parser->data, parser->int2)) fbreak; }
-    action idle { if (settings->idle(parser->data)) fbreak; }
-    action inerror { if (settings->inerror(parser->data)) fbreak; }
     action int2 { if (!parser->i) { parser->i = 2; parser->int2 = 0; } parser->int2 |= (uint8_t)*p << ((2 << 2) * --parser->i); }
     action int4 { if (!parser->i) { parser->i = 4; parser->int4 = 0; } parser->int4 |= (uint8_t)*p << ((2 << 2) * --parser->i); }
-    action intrans { if (settings->intrans(parser->data)) fbreak; }
     action key { if (settings->key(parser->data, parser->int4)) fbreak; }
     action method { if (settings->method(parser->data, parser->int4)) fbreak; }
     action mod { if (settings->mod(parser->data, parser->int4)) fbreak; }
@@ -68,7 +65,10 @@ typedef struct pg_parser_t {
     action option_val { if (str && settings->option_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action parse { if (settings->parse(parser->data)) fbreak; }
     action pid { if (settings->pid(parser->data, parser->int4)) fbreak; }
+    action ready_idle { if (settings->ready_idle(parser->data)) fbreak; }
     action ready { if (settings->ready(parser->data)) fbreak; }
+    action ready_inerror { if (settings->ready_inerror(parser->data)) fbreak; }
+    action ready_intrans { if (settings->ready_intrans(parser->data)) fbreak; }
     action row { if (settings->row(parser->data, parser->int4)) fbreak; }
     action rowvaleof { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action rowval { if (!parser->nbytes) { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->nrows) fnext main; else fnext row; } }
@@ -117,7 +117,7 @@ typedef struct pg_parser_t {
     | 82 any4 @auth int4 @method
     | 83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
     | 84 int4 @col int2 @ncols ( col >colbeg outwhen colend )**
-    | 90 any4 @ready ( 69 @inerror | 73 @idle | 84 @intrans )
+    | 90 any4 @ready ( 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans )
     )** $all;
 
     write data;
