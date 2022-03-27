@@ -30,7 +30,7 @@ typedef struct {
     pg_parser_int4_cb field_table;
     pg_parser_int4_cb key;
     pg_parser_int4_cb method;
-    pg_parser_int4_cb nbytes;
+    pg_parser_int4_cb row_count;
     pg_parser_int4_cb option;
     pg_parser_int4_cb pid;
     pg_parser_int4_cb row;
