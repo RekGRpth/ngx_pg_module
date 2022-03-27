@@ -24,7 +24,7 @@ typedef struct pg_parser_t {
     action close { if (settings->close(parser->data)) fbreak; }
     action colbeg { if (settings->colbeg(parser->data)) fbreak; }
     action colend { --parser->field_count }
-    action col { if (settings->col(parser->data, parser->int4)) fbreak; }
+    action field { if (settings->field(parser->data, parser->int4)) fbreak; }
     action field_column { if (settings->field_column(parser->data, parser->int2)) fbreak; }
     action complete { if (settings->complete(parser->data, parser->int4)) fbreak; }
     action complete_val { if (str && settings->complete_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -84,7 +84,7 @@ typedef struct pg_parser_t {
     str0 = (any - 0)** $str 0;
     str = any $str;
 
-    col = str0 @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_len int4 @field_mod int2 @field_format;
+    field = str0 @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_len int4 @field_mod int2 @field_format;
     error =
     (  67 @error_sqlstate
     |  68 @error_detail
@@ -116,7 +116,7 @@ typedef struct pg_parser_t {
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
     | 83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
-    | 84 int4 @col int2 @field_count ( col >colbeg outwhen colend )**
+    | 84 int4 @field int2 @field_count ( field >colbeg outwhen colend )**
     | 90 any4 @ready ( 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans )
     )** $all;
 

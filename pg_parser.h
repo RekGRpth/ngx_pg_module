@@ -22,7 +22,7 @@ typedef struct {
     pg_parser_int2_cb field_count;
     pg_parser_int2_cb nrows;
     pg_parser_int2_cb field_len;
-    pg_parser_int4_cb col;
+    pg_parser_int4_cb field;
     pg_parser_int4_cb complete;
     pg_parser_int4_cb error;
     pg_parser_int4_cb key;

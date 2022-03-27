@@ -66,7 +66,7 @@ typedef struct {
     int32_t oid;
     int32_t tbl;
     ngx_str_t name;
-} ngx_pg_col_t;
+} ngx_pg_field_t;
 
 typedef struct {
     ngx_array_t *str;
@@ -75,7 +75,7 @@ typedef struct {
 typedef struct ngx_pg_data_t {
     int16_t field_count;
     int16_t nrows;
-    ngx_array_t *col;
+    ngx_array_t *field;
     ngx_array_t *error;
     ngx_array_t *row;
     ngx_http_request_t *request;
@@ -99,10 +99,10 @@ static int ngx_pg_parser_field_mod(ngx_pg_save_t *s, int32_t mod) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", mod);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_col_t *elts = d->col->elts;
-    if (!d->col->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_col_t *col = &elts[d->col->nelts - 1];
-    col->mod = mod;
+    ngx_pg_field_t *elts = d->field->elts;
+    if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    ngx_pg_field_t *field = &elts[d->field->nelts - 1];
+    field->mod = mod;
     return s->rc;
 }
 
@@ -115,10 +115,10 @@ static int ngx_pg_parser_colbeg(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_col_t *col;
-    if (!d->col) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!col"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    if (!(col = ngx_array_push(d->col))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
-    ngx_memzero(col, sizeof(*col));
+    ngx_pg_field_t *field;
+    if (!d->field) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!field"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    if (!(field = ngx_array_push(d->field))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
+    ngx_memzero(field, sizeof(*field));
     return s->rc;
 }
 
@@ -165,10 +165,10 @@ static int ngx_pg_parser_field_column(ngx_pg_save_t *s, int16_t col) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", col);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_col_t *elts = d->col->elts;
-    if (!d->col->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_col_t *col_ = &elts[d->col->nelts - 1];
-    col_->col = col;
+    ngx_pg_field_t *elts = d->field->elts;
+    if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    ngx_pg_field_t *field = &elts[d->field->nelts - 1];
+    field->col = col;
     return s->rc;
 }
 
@@ -220,7 +220,7 @@ static int ngx_pg_parser_error(ngx_pg_save_t *s, int32_t len) {
     return s->rc;
 }
 
-static int ngx_pg_parser_col(ngx_pg_save_t *s, int32_t len) {
+static int ngx_pg_parser_field(ngx_pg_save_t *s, int32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
     ngx_pg_data_t *d = s->data;
@@ -234,10 +234,10 @@ static int ngx_pg_parser_field_format(ngx_pg_save_t *s, int16_t fmt) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", fmt);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_col_t *elts = d->col->elts;
-    if (!d->col->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_col_t *col = &elts[d->col->nelts - 1];
-    col->fmt = fmt;
+    ngx_pg_field_t *elts = d->field->elts;
+    if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    ngx_pg_field_t *field = &elts[d->field->nelts - 1];
+    field->fmt = fmt;
     return s->rc;
 }
 
@@ -280,12 +280,12 @@ static int ngx_pg_parser_field_name(ngx_pg_save_t *s, size_t len, const u_char *
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_col_t *elts = d->col->elts;
-    if (!d->col->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_col_t *col = &elts[d->col->nelts - 1];
-    if (!col->name.data) col->name.data = d->cols.data + d->cols.len;
-    ngx_memcpy(col->name.data + col->name.len, str, len);
-    col->name.len += len;
+    ngx_pg_field_t *elts = d->field->elts;
+    if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    ngx_pg_field_t *field = &elts[d->field->nelts - 1];
+    if (!field->name.data) field->name.data = d->cols.data + d->cols.len;
+    ngx_memcpy(field->name.data + field->name.len, str, len);
+    field->name.len += len;
     d->cols.len += len;
     return s->rc;
 }
@@ -313,8 +313,8 @@ static int ngx_pg_parser_field_count(ngx_pg_save_t *s, int16_t field_count) {
     d->field_count = field_count;
     if (!field_count) return s->rc;
     ngx_http_request_t *r = d->request;
-    ngx_pg_col_t *col;
-    if (!(d->col = ngx_array_create(r->pool, field_count, sizeof(*col)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
+    ngx_pg_field_t *field;
+    if (!(d->field = ngx_array_create(r->pool, field_count, sizeof(*field)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
@@ -380,10 +380,10 @@ static int ngx_pg_parser_field_table(ngx_pg_save_t *s, int32_t tbl) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", tbl);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_col_t *elts = d->col->elts;
-    if (!d->col->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_col_t *col = &elts[d->col->nelts - 1];
-    col->tbl = tbl;
+    ngx_pg_field_t *elts = d->field->elts;
+    if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    ngx_pg_field_t *field = &elts[d->field->nelts - 1];
+    field->tbl = tbl;
     return s->rc;
 }
 
@@ -402,10 +402,10 @@ static int ngx_pg_parser_field_oid(ngx_pg_save_t *s, int32_t oid) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", oid);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_col_t *elts = d->col->elts;
-    if (!d->col->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_col_t *col = &elts[d->col->nelts - 1];
-    col->oid = oid;
+    ngx_pg_field_t *elts = d->field->elts;
+    if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    ngx_pg_field_t *field = &elts[d->field->nelts - 1];
+    field->oid = oid;
     return s->rc;
 }
 
@@ -413,10 +413,10 @@ static int ngx_pg_parser_field_len(ngx_pg_save_t *s, int16_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_col_t *elts = d->col->elts;
-    if (!d->col->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_col_t *col = &elts[d->col->nelts - 1];
-    col->len = len;
+    ngx_pg_field_t *elts = d->field->elts;
+    if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    ngx_pg_field_t *field = &elts[d->field->nelts - 1];
+    field->len = len;
     return s->rc;
 }
 
@@ -439,7 +439,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .bind = (pg_parser_cb)ngx_pg_parser_bind,
     .close = (pg_parser_cb)ngx_pg_parser_close,
     .colbeg = (pg_parser_cb)ngx_pg_parser_colbeg,
-    .col = (pg_parser_int4_cb)ngx_pg_parser_col,
+    .field = (pg_parser_int4_cb)ngx_pg_parser_field,
     .field_column = (pg_parser_int2_cb)ngx_pg_parser_field_column,
     .complete = (pg_parser_int4_cb)ngx_pg_parser_complete,
     .complete_val = (pg_parser_len_str_cb)ngx_pg_parser_complete_val,
@@ -1008,7 +1008,7 @@ static ngx_int_t ngx_pg_opt_get_handler(ngx_http_request_t *r, ngx_http_variable
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_col_mod_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_field_mod_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
@@ -1016,11 +1016,11 @@ static ngx_int_t ngx_pg_col_mod_get_handler(ngx_http_request_t *r, ngx_http_vari
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_col_mod_") - 1, name->len - sizeof("pg_col_mod_") + 1);
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_mod_") - 1, name->len - sizeof("pg_field_mod_") + 1);
     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t i = n;
-    if (!d->col || i >= d->col->nelts) return NGX_OK;
-    ngx_pg_col_t *elts = d->col->elts;
+    if (!d->field || i >= d->field->nelts) return NGX_OK;
+    ngx_pg_field_t *elts = d->field->elts;
     v->len = snprintf(NULL, 0, "%i", elts[i].mod);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
     v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].mod) - v->data;
@@ -1030,7 +1030,7 @@ static ngx_int_t ngx_pg_col_mod_get_handler(ngx_http_request_t *r, ngx_http_vari
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_col_col_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_field_col_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
@@ -1038,11 +1038,11 @@ static ngx_int_t ngx_pg_col_col_get_handler(ngx_http_request_t *r, ngx_http_vari
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_col_col_") - 1, name->len - sizeof("pg_col_col_") + 1);
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_col_") - 1, name->len - sizeof("pg_field_col_") + 1);
     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t i = n;
-    if (!d->col || i >= d->col->nelts) return NGX_OK;
-    ngx_pg_col_t *elts = d->col->elts;
+    if (!d->field || i >= d->field->nelts) return NGX_OK;
+    ngx_pg_field_t *elts = d->field->elts;
     v->len = snprintf(NULL, 0, "%i", elts[i].col);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
     v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].col) - v->data;
@@ -1067,7 +1067,7 @@ static ngx_int_t ngx_pg_cmd_get_handler(ngx_http_request_t *r, ngx_http_variable
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_col_fmt_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_field_fmt_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
@@ -1075,11 +1075,11 @@ static ngx_int_t ngx_pg_col_fmt_get_handler(ngx_http_request_t *r, ngx_http_vari
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_col_fmt_") - 1, name->len - sizeof("pg_col_fmt_") + 1);
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_fmt_") - 1, name->len - sizeof("pg_field_fmt_") + 1);
     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t i = n;
-    if (!d->col || i >= d->col->nelts) return NGX_OK;
-    ngx_pg_col_t *elts = d->col->elts;
+    if (!d->field || i >= d->field->nelts) return NGX_OK;
+    ngx_pg_field_t *elts = d->field->elts;
     v->len = snprintf(NULL, 0, "%i", elts[i].fmt);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
     v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].fmt) - v->data;
@@ -1105,7 +1105,7 @@ static ngx_int_t ngx_pg_ncols_get_handler(ngx_http_request_t *r, ngx_http_variab
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_col_name_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_field_name_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
@@ -1113,11 +1113,11 @@ static ngx_int_t ngx_pg_col_name_get_handler(ngx_http_request_t *r, ngx_http_var
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_col_name_") - 1, name->len - sizeof("pg_col_name_") + 1);
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_name_") - 1, name->len - sizeof("pg_field_name_") + 1);
     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t i = n;
-    if (!d->col || i >= d->col->nelts) return NGX_OK;
-    ngx_pg_col_t *elts = d->col->elts;
+    if (!d->field || i >= d->field->nelts) return NGX_OK;
+    ngx_pg_field_t *elts = d->field->elts;
     v->data = elts[i].name.data;
     v->len = elts[i].name.len;
     v->valid = 1;
@@ -1126,7 +1126,7 @@ static ngx_int_t ngx_pg_col_name_get_handler(ngx_http_request_t *r, ngx_http_var
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_col_tbl_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_field_tbl_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
@@ -1134,11 +1134,11 @@ static ngx_int_t ngx_pg_col_tbl_get_handler(ngx_http_request_t *r, ngx_http_vari
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_col_tbl_") - 1, name->len - sizeof("pg_col_tbl_") + 1);
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_tbl_") - 1, name->len - sizeof("pg_field_tbl_") + 1);
     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t i = n;
-    if (!d->col || i >= d->col->nelts) return NGX_OK;
-    ngx_pg_col_t *elts = d->col->elts;
+    if (!d->field || i >= d->field->nelts) return NGX_OK;
+    ngx_pg_field_t *elts = d->field->elts;
     v->len = snprintf(NULL, 0, "%i", elts[i].tbl);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
     v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].tbl) - v->data;
@@ -1148,7 +1148,7 @@ static ngx_int_t ngx_pg_col_tbl_get_handler(ngx_http_request_t *r, ngx_http_vari
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_col_oid_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_field_oid_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
@@ -1156,11 +1156,11 @@ static ngx_int_t ngx_pg_col_oid_get_handler(ngx_http_request_t *r, ngx_http_vari
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_col_oid_") - 1, name->len - sizeof("pg_col_oid_") + 1);
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_oid_") - 1, name->len - sizeof("pg_field_oid_") + 1);
     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t i = n;
-    if (!d->col || i >= d->col->nelts) return NGX_OK;
-    ngx_pg_col_t *elts = d->col->elts;
+    if (!d->field || i >= d->field->nelts) return NGX_OK;
+    ngx_pg_field_t *elts = d->field->elts;
     v->len = snprintf(NULL, 0, "%i", elts[i].oid);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
     v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].oid) - v->data;
@@ -1170,7 +1170,7 @@ static ngx_int_t ngx_pg_col_oid_get_handler(ngx_http_request_t *r, ngx_http_vari
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_col_len_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_field_len_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
@@ -1178,11 +1178,11 @@ static ngx_int_t ngx_pg_col_len_get_handler(ngx_http_request_t *r, ngx_http_vari
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_col_len_") - 1, name->len - sizeof("pg_col_len_") + 1);
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_len_") - 1, name->len - sizeof("pg_field_len_") + 1);
     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t i = n;
-    if (!d->col || i >= d->col->nelts) return NGX_OK;
-    ngx_pg_col_t *elts = d->col->elts;
+    if (!d->field || i >= d->field->nelts) return NGX_OK;
+    ngx_pg_field_t *elts = d->field->elts;
     v->len = snprintf(NULL, 0, "%i", elts[i].len);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
     v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].len) - v->data;
@@ -1224,13 +1224,13 @@ static ngx_int_t ngx_pg_row_get_handler(ngx_http_request_t *r, ngx_http_variable
 
 static const ngx_http_variable_t ngx_pg_variables[] = {
   { ngx_string("pg_cmd"), NULL, ngx_pg_cmd_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
-  { ngx_string("pg_col_col_"), NULL, ngx_pg_col_col_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
-  { ngx_string("pg_col_fmt_"), NULL, ngx_pg_col_fmt_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
-  { ngx_string("pg_col_len_"), NULL, ngx_pg_col_len_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
-  { ngx_string("pg_col_mod_"), NULL, ngx_pg_col_mod_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
-  { ngx_string("pg_col_name_"), NULL, ngx_pg_col_name_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
-  { ngx_string("pg_col_oid_"), NULL, ngx_pg_col_oid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
-  { ngx_string("pg_col_tbl_"), NULL, ngx_pg_col_tbl_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_field_col_"), NULL, ngx_pg_field_col_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_field_fmt_"), NULL, ngx_pg_field_fmt_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_field_len_"), NULL, ngx_pg_field_len_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_field_mod_"), NULL, ngx_pg_field_mod_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_field_name_"), NULL, ngx_pg_field_name_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_field_oid_"), NULL, ngx_pg_field_oid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_field_tbl_"), NULL, ngx_pg_field_tbl_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_err_"), NULL, ngx_pg_err_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_ncols"), NULL, ngx_pg_ncols_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
   { ngx_string("pg_opt_"), NULL, ngx_pg_opt_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
