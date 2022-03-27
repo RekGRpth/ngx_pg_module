@@ -56,9 +56,9 @@ typedef struct pg_parser_t {
     action nrows { parser->nrows = parser->int2; if (settings->nrows(parser->data, parser->nrows)) fbreak; }
     action oid { if (settings->oid(parser->data, parser->int4)) fbreak; }
     action oidlen { if (settings->oidlen(parser->data, parser->int2)) fbreak; }
-    action opt { if (settings->opt(parser->data, parser->int4)) fbreak; }
-    action optkey { if (str && settings->optkey(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action optval { if (str && settings->optval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
+    action option { if (settings->option(parser->data, parser->int4)) fbreak; }
+    action option_key { if (str && settings->option_key(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
+    action option_val { if (str && settings->option_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action parse { if (settings->parse(parser->data)) fbreak; }
     action pid { if (settings->pid(parser->data, parser->int4)) fbreak; }
     action primary { if (settings->errkey(parser->data, sizeof("primary") - 1, "primary")) fbreak; }
@@ -97,7 +97,7 @@ typedef struct pg_parser_t {
     | 69 int4 @error ( error str0 @errval @/errval )** 0
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
-    | 83 int4 @opt str0 @optkey @/optkey str0 @optval @/optval
+    | 83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
     | 84 int4 @col int2 @ncols ( col >colbeg outwhen colend )**
     | 90 any4 @ready ( 69 @inerror | 73 @idle | 84 @intrans )
     )** $all;

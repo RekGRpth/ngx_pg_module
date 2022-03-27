@@ -30,7 +30,7 @@ typedef struct {
     pg_parser_int4_cb mod;
     pg_parser_int4_cb nbytes;
     pg_parser_int4_cb oid;
-    pg_parser_int4_cb opt;
+    pg_parser_int4_cb option;
     pg_parser_int4_cb pid;
     pg_parser_int4_cb row;
     pg_parser_int4_cb table;
@@ -39,8 +39,8 @@ typedef struct {
     pg_parser_len_str_cb errkey;
     pg_parser_len_str_cb errval;
     pg_parser_len_str_cb name;
-    pg_parser_len_str_cb optkey;
-    pg_parser_len_str_cb optval;
+    pg_parser_len_str_cb option_key;
+    pg_parser_len_str_cb option_val;
     pg_parser_len_str_cb rowval;
 } pg_parser_settings_t;
 
