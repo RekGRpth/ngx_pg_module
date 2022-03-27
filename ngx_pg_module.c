@@ -109,7 +109,7 @@ static int ngx_pg_parser_auth(ngx_pg_save_t *s) {
     return s->rc;
 }
 
-static int ngx_pg_parser_colbeg(ngx_pg_save_t *s) {
+static int ngx_pg_parser_field_beg(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -434,12 +434,12 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .auth = (pg_parser_cb)ngx_pg_parser_auth,
     .bind = (pg_parser_cb)ngx_pg_parser_bind,
     .close = (pg_parser_cb)ngx_pg_parser_close,
-    .colbeg = (pg_parser_cb)ngx_pg_parser_colbeg,
     .complete = (pg_parser_int4_cb)ngx_pg_parser_complete,
     .complete_val = (pg_parser_len_str_cb)ngx_pg_parser_complete_val,
     .error_key = (pg_parser_len_str_cb)ngx_pg_parser_error_key,
     .error = (pg_parser_int4_cb)ngx_pg_parser_error,
     .error_val = (pg_parser_len_str_cb)ngx_pg_parser_error_val,
+    .field_beg = (pg_parser_cb)ngx_pg_parser_field_beg,
     .field_column = (pg_parser_int2_cb)ngx_pg_parser_field_column,
     .field_count = (pg_parser_int2_cb)ngx_pg_parser_field_count,
     .field_format = (pg_parser_int2_cb)ngx_pg_parser_field_format,

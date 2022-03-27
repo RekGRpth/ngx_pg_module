@@ -22,7 +22,6 @@ typedef struct pg_parser_t {
     action auth { if (settings->auth(parser->data)) fbreak; }
     action bind { if (settings->bind(parser->data)) fbreak; }
     action close { if (settings->close(parser->data)) fbreak; }
-    action colbeg { if (settings->colbeg(parser->data)) fbreak; }
     action complete { if (settings->complete(parser->data, parser->int4)) fbreak; }
     action complete_val { if (str && settings->complete_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action error_column { if (settings->error_key(parser->data, sizeof("column") - 1, "column")) fbreak; }
@@ -45,6 +44,7 @@ typedef struct pg_parser_t {
     action error_statement { if (settings->error_key(parser->data, sizeof("statement") - 1, "statement")) fbreak; }
     action error_table { if (settings->error_key(parser->data, sizeof("table") - 1, "table")) fbreak; }
     action error_val { if (str && settings->error_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
+    action field_beg { if (settings->field_beg(parser->data)) fbreak; }
     action field_column { if (settings->field_column(parser->data, parser->int2)) fbreak; }
     action field_count { parser->field_count = parser->int2; if (settings->field_count(parser->data, parser->field_count)) fbreak; if (!parser->field_count) fnext main; }
     action field_format { if (settings->field_format(parser->data, parser->int2)) fbreak; if (!--parser->field_count) fnext main; }
@@ -103,7 +103,7 @@ typedef struct pg_parser_t {
     | 115 @error_schema
     | 116 @error_table );
 
-    field = str0 @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_len int4 @field_mod int2 @field_format;
+    field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_len int4 @field_mod int2 @field_format;
     row = int4 @row_len ( str outwhen strend )** $rowval $/rowvaleof;
 
     main :=
@@ -116,7 +116,7 @@ typedef struct pg_parser_t {
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
     | 83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
-    | 84 int4 @field int2 @field_count ( field >colbeg )**
+    | 84 int4 @field int2 @field_count ( field )**
     | 90 any4 @ready ( 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans )
     )** $all;
 

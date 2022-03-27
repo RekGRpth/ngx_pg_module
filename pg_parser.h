@@ -10,7 +10,7 @@ typedef struct {
     pg_parser_cb auth;
     pg_parser_cb bind;
     pg_parser_cb close;
-    pg_parser_cb colbeg;
+    pg_parser_cb field_beg;
     pg_parser_cb parse;
     pg_parser_cb ready;
     pg_parser_cb ready_idle;
