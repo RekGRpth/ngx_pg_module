@@ -23,7 +23,6 @@ typedef struct pg_parser_t {
     action bind { if (settings->bind(parser->data)) fbreak; }
     action close { if (settings->close(parser->data)) fbreak; }
     action colbeg { if (settings->colbeg(parser->data)) fbreak; }
-    action colend { --parser->field_count }
     action complete { if (settings->complete(parser->data, parser->int4)) fbreak; }
     action complete_val { if (str && settings->complete_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action error_column { if (settings->error_key(parser->data, sizeof("column") - 1, "column")) fbreak; }
@@ -47,8 +46,8 @@ typedef struct pg_parser_t {
     action error_table { if (settings->error_key(parser->data, sizeof("table") - 1, "table")) fbreak; }
     action error_val { if (str && settings->error_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action field_column { if (settings->field_column(parser->data, parser->int2)) fbreak; }
-    action field_count { parser->field_count = parser->int2; if (settings->field_count(parser->data, parser->field_count)) fbreak; }
-    action field_format { if (settings->field_format(parser->data, parser->int2)) fbreak; }
+    action field_count { parser->field_count = parser->int2; if (settings->field_count(parser->data, parser->field_count)) fbreak; if (!parser->field_count) fnext main; }
+    action field_format { if (settings->field_format(parser->data, parser->int2)) fbreak; if (!--parser->field_count) fnext main; }
     action field { if (settings->field(parser->data, parser->int4)) fbreak; }
     action field_len { if (settings->field_len(parser->data, parser->int2)) fbreak; }
     action field_mod { if (settings->field_mod(parser->data, parser->int4)) fbreak; }
@@ -117,7 +116,7 @@ typedef struct pg_parser_t {
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
     | 83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
-    | 84 int4 @field int2 @field_count ( field >colbeg outwhen colend )**
+    | 84 int4 @field int2 @field_count ( field >colbeg )**
     | 90 any4 @ready ( 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans )
     )** $all;
 
