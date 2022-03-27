@@ -33,7 +33,7 @@ typedef struct {
     pg_parser_int4_cb option;
     pg_parser_int4_cb pid;
     pg_parser_int4_cb row;
-    pg_parser_int4_cb table;
+    pg_parser_int4_cb field_table;
     pg_parser_len_str_cb all;
     pg_parser_len_str_cb complete_val;
     pg_parser_len_str_cb error_key;

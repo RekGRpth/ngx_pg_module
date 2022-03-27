@@ -75,7 +75,7 @@ typedef struct pg_parser_t {
     action secret { if (settings->secret(parser->data)) fbreak; }
     action strend { parser->nbytes-- }
     action str { if (!str) str = p; parser->str = cs; }
-    action tableid { if (settings->table(parser->data, parser->int4)) fbreak; }
+    action field_table { if (settings->field_table(parser->data, parser->int4)) fbreak; }
 
     any2 = any{2};
     any4 = any{4};
@@ -84,7 +84,7 @@ typedef struct pg_parser_t {
     str0 = (any - 0)** $str 0;
     str = any $str;
 
-    col = str0 @field_name @/field_name int4 @tableid int2 @columnid int4 @oid int2 @oidlen int4 @mod int2 @format;
+    col = str0 @field_name @/field_name int4 @field_table int2 @columnid int4 @oid int2 @oidlen int4 @mod int2 @format;
     error =
     (  67 @error_sqlstate
     |  68 @error_detail
