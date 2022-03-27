@@ -4,7 +4,7 @@
 typedef int (*pg_parser_cb) (void *data);
 typedef int (*pg_parser_int2_cb) (void *data, int16_t int2);
 typedef int (*pg_parser_int4_cb) (void *data, int32_t int4);
-typedef int (*pg_parser_len_str_cb) (void *data, size_t len, const unsigned char *str);
+typedef int (*pg_parser_str_cb) (void *data, size_t len, const unsigned char *str);
 
 typedef struct {
     pg_parser_cb auth;
@@ -34,14 +34,14 @@ typedef struct {
     pg_parser_int4_cb pid;
     pg_parser_int4_cb row;
     pg_parser_int4_cb row_len;
-    pg_parser_len_str_cb all;
-    pg_parser_len_str_cb complete_val;
-    pg_parser_len_str_cb error_key;
-    pg_parser_len_str_cb error_val;
-    pg_parser_len_str_cb field_name;
-    pg_parser_len_str_cb option_key;
-    pg_parser_len_str_cb option_val;
-    pg_parser_len_str_cb rowval;
+    pg_parser_str_cb all;
+    pg_parser_str_cb complete_val;
+    pg_parser_str_cb error_key;
+    pg_parser_str_cb error_val;
+    pg_parser_str_cb field_name;
+    pg_parser_str_cb option_key;
+    pg_parser_str_cb option_val;
+    pg_parser_str_cb rowval;
 } pg_parser_settings_t;
 
 typedef struct pg_parser_t pg_parser_t;
