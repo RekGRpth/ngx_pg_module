@@ -82,7 +82,7 @@ typedef struct ngx_pg_data_t {
     ngx_peer_connection_t peer;
     ngx_pg_save_t *save;
     ngx_pg_srv_conf_t *conf;
-    ngx_str_t cmd;
+    ngx_str_t complete;
     ngx_str_t cols;
     ngx_str_t errs;
     ngx_uint_t ready;
@@ -187,22 +187,22 @@ static int ngx_pg_parser_error_val(ngx_pg_save_t *s, size_t len, const u_char *s
     return s->rc;
 }
 
-static int ngx_pg_parser_cmdval(ngx_pg_save_t *s, size_t len, const u_char *str) {
+static int ngx_pg_parser_complete_val(ngx_pg_save_t *s, size_t len, const u_char *str) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_memcpy(d->cmd.data + d->cmd.len, str, len);
-    d->cmd.len += len;
+    ngx_memcpy(d->complete.data + d->complete.len, str, len);
+    d->complete.len += len;
     return s->rc;
 }
 
-static int ngx_pg_parser_cmd(ngx_pg_save_t *s, int32_t len) {
+static int ngx_pg_parser_complete(ngx_pg_save_t *s, int32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_http_request_t *r = d->request;
-    if (!(d->cmd.data = ngx_pnalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
+    if (!(d->complete.data = ngx_pnalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
@@ -438,8 +438,8 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .auth = (pg_parser_cb)ngx_pg_parser_auth,
     .bind = (pg_parser_cb)ngx_pg_parser_bind,
     .close = (pg_parser_cb)ngx_pg_parser_close,
-    .cmd = (pg_parser_int4_cb)ngx_pg_parser_cmd,
-    .cmdval = (pg_parser_len_str_cb)ngx_pg_parser_cmdval,
+    .complete = (pg_parser_int4_cb)ngx_pg_parser_complete,
+    .complete_val = (pg_parser_len_str_cb)ngx_pg_parser_complete_val,
     .colbeg = (pg_parser_cb)ngx_pg_parser_colbeg,
     .col = (pg_parser_int4_cb)ngx_pg_parser_col,
     .column = (pg_parser_int2_cb)ngx_pg_parser_column,
@@ -1059,8 +1059,8 @@ static ngx_int_t ngx_pg_cmd_get_handler(ngx_http_request_t *r, ngx_http_variable
     if (!u) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
-    v->data = d->cmd.data;
-    v->len = d->cmd.len;
+    v->data = d->complete.data;
+    v->len = d->complete.len;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;

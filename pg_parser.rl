@@ -22,8 +22,8 @@ typedef struct pg_parser_t {
     action auth { if (settings->auth(parser->data)) fbreak; }
     action bind { if (settings->bind(parser->data)) fbreak; }
     action close { if (settings->close(parser->data)) fbreak; }
-    action cmd { if (settings->cmd(parser->data, parser->int4)) fbreak; }
-    action cmdval { if (str && settings->cmdval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
+    action complete { if (settings->complete(parser->data, parser->int4)) fbreak; }
+    action complete_val { if (str && settings->complete_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action colbeg { if (settings->colbeg(parser->data)) fbreak; }
     action colend { --parser->ncols }
     action col { if (settings->col(parser->data, parser->int4)) fbreak; }
@@ -110,7 +110,7 @@ typedef struct pg_parser_t {
     ( 49 any4 @parse
     | 50 any4 @bind
     | 51 any4 @close
-    | 67 int4 @cmd str0 @cmdval @/cmdval
+    | 67 int4 @complete str0 @complete_val @/complete_val
     | 68 int4 @row int2 @nrows ( row )**
     | 69 int4 @error ( error str0 @error_val @/error_val )** 0
     | 75 any4 @secret int4 @pid int4 @key
