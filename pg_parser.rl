@@ -5,8 +5,8 @@
 typedef struct pg_parser_t {
     const pg_parser_settings_t *settings;
     const void *data;
-    int16_t int2;
     int16_t field_count;
+    int16_t int2;
     int16_t row_count;
     int32_t int4;
     int32_t row_len;
@@ -67,7 +67,7 @@ typedef struct pg_parser_t {
     action ready { if (settings->ready(parser->data)) fbreak; }
     action ready_inerror { if (settings->ready_inerror(parser->data)) fbreak; }
     action ready_intrans { if (settings->ready_intrans(parser->data)) fbreak; }
-    action row_count { parser->row_count = parser->int2; if (settings->row_count(parser->data, parser->row_count)) fbreak; }
+    action row_count { parser->row_count = parser->int2; if (settings->row_count(parser->data, parser->row_count)) fbreak; if (!parser->row_count) fnext main; }
     action row { if (settings->row(parser->data, parser->int4)) fbreak; }
     action row_len { parser->row_len = parser->int4; if (settings->row_len(parser->data, parser->row_len)) fbreak; if (parser->row_len == (int32_t)-1) { if (!--parser->row_count) fnext main; else fnext row; } }
     action rowvaleof { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -111,7 +111,7 @@ typedef struct pg_parser_t {
     | 50 any4 @bind
     | 51 any4 @close
     | 67 int4 @complete str0 @complete_val @/complete_val
-    | 68 int4 @row int2 @row_count ( row )**
+    | 68 int4 @row int2 @row_count row **
     | 69 int4 @error ( error str0 @error_val @/error_val )** 0
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
