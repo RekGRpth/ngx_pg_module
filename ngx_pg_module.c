@@ -288,8 +288,8 @@ static int ngx_pg_parser_field_name(ngx_pg_save_t *s, size_t len, const u_char *
     return s->rc;
 }
 
-static int ngx_pg_parser_row_count(ngx_pg_save_t *s, int32_t row_count) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", row_count);
+static int ngx_pg_parser_row_len(ngx_pg_save_t *s, int32_t row_len) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", row_len);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_row_t *elts = d->row->elts;
@@ -298,9 +298,9 @@ static int ngx_pg_parser_row_count(ngx_pg_save_t *s, int32_t row_count) {
     ngx_str_t *str;
     if (!(str = ngx_array_push(row->str))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
     ngx_memzero(str, sizeof(*str));
-    if (row_count == (int32_t)-1) return s->rc;
+    if (row_len == (int32_t)-1) return s->rc;
     ngx_http_request_t *r = d->request;
-    if (!(str->data = ngx_pnalloc(r->pool, row_count))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
+    if (!(str->data = ngx_pnalloc(r->pool, row_len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
@@ -451,7 +451,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .field_table = (pg_parser_int4_cb)ngx_pg_parser_field_table,
     .key = (pg_parser_int4_cb)ngx_pg_parser_key,
     .method = (pg_parser_int4_cb)ngx_pg_parser_method,
-    .row_count = (pg_parser_int4_cb)ngx_pg_parser_row_count,
+    .row_len = (pg_parser_int4_cb)ngx_pg_parser_row_len,
     .nrows = (pg_parser_int2_cb)ngx_pg_parser_nrows,
     .option_key = (pg_parser_len_str_cb)ngx_pg_parser_option_key,
     .option = (pg_parser_int4_cb)ngx_pg_parser_option,

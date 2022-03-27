@@ -9,7 +9,7 @@ typedef struct pg_parser_t {
     int16_t field_count;
     int16_t nrows;
     int32_t int4;
-    int32_t row_count;
+    int32_t row_len;
     int8_t i;
     int cs;
     int str;
@@ -59,7 +59,7 @@ typedef struct pg_parser_t {
     action int4 { if (!parser->i) { parser->i = 4; parser->int4 = 0; } parser->int4 |= (uint8_t)*p << ((2 << 2) * --parser->i); }
     action key { if (settings->key(parser->data, parser->int4)) fbreak; }
     action method { if (settings->method(parser->data, parser->int4)) fbreak; }
-    action row_count { parser->row_count = parser->int4; if (settings->row_count(parser->data, parser->row_count)) fbreak; if (parser->row_count == (int32_t)-1) { if (!--parser->nrows) fnext main; else fnext row; } }
+    action row_len { parser->row_len = parser->int4; if (settings->row_len(parser->data, parser->row_len)) fbreak; if (parser->row_len == (int32_t)-1) { if (!--parser->nrows) fnext main; else fnext row; } }
     action nrows { parser->nrows = parser->int2; if (settings->nrows(parser->data, parser->nrows)) fbreak; }
     action option { if (settings->option(parser->data, parser->int4)) fbreak; }
     action option_key { if (str && settings->option_key(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -72,9 +72,9 @@ typedef struct pg_parser_t {
     action ready_intrans { if (settings->ready_intrans(parser->data)) fbreak; }
     action row { if (settings->row(parser->data, parser->int4)) fbreak; }
     action rowvaleof { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action rowval { if (!parser->row_count) { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->nrows) fnext main; else fnext row; } }
+    action rowval { if (!parser->row_len) { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->nrows) fnext main; else fnext row; } }
     action secret { if (settings->secret(parser->data)) fbreak; }
-    action strend { parser->row_count-- }
+    action strend { parser->row_len-- }
     action str { if (!str) str = p; parser->str = cs; }
 
     any2 = any{2};
@@ -105,7 +105,7 @@ typedef struct pg_parser_t {
     | 116 @error_table );
 
     field = str0 @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_len int4 @field_mod int2 @field_format;
-    row = int4 @row_count ( str outwhen strend )** $rowval $/rowvaleof;
+    row = int4 @row_len ( str outwhen strend )** $rowval $/rowvaleof;
 
     main :=
     ( 49 any4 @parse
