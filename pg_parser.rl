@@ -69,7 +69,7 @@ typedef struct pg_parser_t {
     action ready_intrans { if (settings->ready_intrans(parser->data)) fbreak; }
     action row_count { parser->row_count = parser->int2; if (settings->row_count(parser->data, parser->row_count)) fbreak; if (!parser->row_count) fnext main; }
     action row { if (settings->row(parser->data, parser->int4)) fbreak; }
-    action row_len { parser->row_len = parser->int4; if (settings->row_len(parser->data, parser->row_len)) fbreak; if (parser->row_len == (int32_t)-1) { if (!--parser->row_count) fnext main; else fnext row; } }
+    action row_len { parser->row_len = parser->int4; if (settings->row_len(parser->data, parser->row_len)) fbreak; if (!parser->row_len || parser->row_len == (int32_t)-1) { if (!--parser->row_count) fnext main; else fnext row; } }
     action rowvaleof { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action rowval { if (!parser->row_len) { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->row_count) fnext main; else fnext row; } }
     action secret { if (settings->secret(parser->data)) fbreak; }
