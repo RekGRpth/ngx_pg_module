@@ -10,9 +10,9 @@ typedef struct pg_parser_t {
     int16_t row_count;
     int32_t int4;
     int32_t row_len;
-    int8_t i;
     int cs;
     int str;
+    uint8_t i;
 } pg_parser_t;
 
 %%{
