@@ -85,7 +85,25 @@ typedef struct pg_parser_t {
     str = any $str;
 
     col = str0 @name @/name int4 @tableid int2 @columnid int4 @oid int2 @oidlen int4 @mod int2 @format;
-    error = ( 67 @sqlstate | 68 @detail | 70 @file | 72 @hint | 76 @line | 77 @primary | 80 @statement | 82 @function | 83 @severity | 86 @nonlocalized | 87 @context | 99 @column | 100 @datatype | 110 @constraint | 112 @internal | 113 @query | 115 @schema | 116 @table );
+    error =
+    (  67 @sqlstate
+    |  68 @detail
+    |  70 @file
+    |  72 @hint
+    |  76 @line
+    |  77 @primary
+    |  80 @statement
+    |  82 @function
+    |  83 @severity
+    |  86 @nonlocalized
+    |  87 @context
+    |  99 @column
+    | 100 @datatype
+    | 110 @constraint
+    | 112 @internal
+    | 113 @query
+    | 115 @schema
+    | 116 @table );
     row = int4 @nbytes ( str outwhen strend )** $rowval $/rowvaleof;
 
     main :=
