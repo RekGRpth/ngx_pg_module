@@ -28,31 +28,38 @@ typedef struct pg_parser_t {
     action colend { --parser->ncols }
     action col { if (settings->col(parser->data, parser->int4)) fbreak; }
     action columnid { if (settings->column(parser->data, parser->int2)) fbreak; }
-    action column { if (settings->errkey(parser->data, sizeof("column") - 1, "column")) fbreak; }
-    action constraint { if (settings->errkey(parser->data, sizeof("constraint") - 1, "constraint")) fbreak; }
-    action context { if (settings->errkey(parser->data, sizeof("context") - 1, "context")) fbreak; }
-    action datatype { if (settings->errkey(parser->data, sizeof("datatype") - 1, "datatype")) fbreak; }
-    action detail { if (settings->errkey(parser->data, sizeof("detail") - 1, "detail")) fbreak; }
+    action error_column { if (settings->error_key(parser->data, sizeof("column") - 1, "column")) fbreak; }
+    action error_constraint { if (settings->error_key(parser->data, sizeof("constraint") - 1, "constraint")) fbreak; }
+    action error_context { if (settings->error_key(parser->data, sizeof("context") - 1, "context")) fbreak; }
+    action error_datatype { if (settings->error_key(parser->data, sizeof("datatype") - 1, "datatype")) fbreak; }
+    action error_detail { if (settings->error_key(parser->data, sizeof("detail") - 1, "detail")) fbreak; }
+    action error_file { if (settings->error_key(parser->data, sizeof("file") - 1, "file")) fbreak; }
+    action error_function { if (settings->error_key(parser->data, sizeof("function") - 1, "function")) fbreak; }
+    action error_hint { if (settings->error_key(parser->data, sizeof("hint") - 1, "hint")) fbreak; }
     action error { if (settings->error(parser->data, parser->int4)) fbreak; }
-    action errval { if (str && settings->errval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action file { if (settings->errkey(parser->data, sizeof("file") - 1, "file")) fbreak; }
+    action error_internal { if (settings->error_key(parser->data, sizeof("internal") - 1, "internal")) fbreak; }
+    action error_line { if (settings->error_key(parser->data, sizeof("line") - 1, "line")) fbreak; }
+    action error_nonlocalized { if (settings->error_key(parser->data, sizeof("nonlocalized") - 1, "nonlocalized")) fbreak; }
+    action error_primary { if (settings->error_key(parser->data, sizeof("primary") - 1, "primary")) fbreak; }
+    action error_query { if (settings->error_key(parser->data, sizeof("query") - 1, "query")) fbreak; }
+    action error_schema { if (settings->error_key(parser->data, sizeof("schema") - 1, "schema")) fbreak; }
+    action error_severity { if (settings->error_key(parser->data, sizeof("severity") - 1, "severity")) fbreak; }
+    action error_sqlstate { if (settings->error_key(parser->data, sizeof("sqlstate") - 1, "sqlstate")) fbreak; }
+    action error_statement { if (settings->error_key(parser->data, sizeof("statement") - 1, "statement")) fbreak; }
+    action error_table { if (settings->error_key(parser->data, sizeof("table") - 1, "table")) fbreak; }
+    action error_val { if (str && settings->error_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action format { if (settings->format(parser->data, parser->int2)) fbreak; }
-    action function { if (settings->errkey(parser->data, sizeof("function") - 1, "function")) fbreak; }
-    action hint { if (settings->errkey(parser->data, sizeof("hint") - 1, "hint")) fbreak; }
     action idle { if (settings->idle(parser->data)) fbreak; }
     action inerror { if (settings->inerror(parser->data)) fbreak; }
     action int2 { if (!parser->i) { parser->i = 2; parser->int2 = 0; } parser->int2 |= (uint8_t)*p << ((2 << 2) * --parser->i); }
     action int4 { if (!parser->i) { parser->i = 4; parser->int4 = 0; } parser->int4 |= (uint8_t)*p << ((2 << 2) * --parser->i); }
-    action internal { if (settings->errkey(parser->data, sizeof("internal") - 1, "internal")) fbreak; }
     action intrans { if (settings->intrans(parser->data)) fbreak; }
     action key { if (settings->key(parser->data, parser->int4)) fbreak; }
-    action line { if (settings->errkey(parser->data, sizeof("line") - 1, "line")) fbreak; }
     action method { if (settings->method(parser->data, parser->int4)) fbreak; }
     action mod { if (settings->mod(parser->data, parser->int4)) fbreak; }
     action name { if (str && settings->name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action nbytes { parser->nbytes = parser->int4; if (settings->nbytes(parser->data, parser->nbytes)) fbreak; if (parser->nbytes == (int32_t)-1) { if (!--parser->nrows) fnext main; else fnext row; } }
     action ncols { parser->ncols = parser->int2; if (settings->ncols(parser->data, parser->ncols)) fbreak; }
-    action nonlocalized { if (settings->errkey(parser->data, sizeof("nonlocalized") - 1, "nonlocalized")) fbreak; }
     action nrows { parser->nrows = parser->int2; if (settings->nrows(parser->data, parser->nrows)) fbreak; }
     action oid { if (settings->oid(parser->data, parser->int4)) fbreak; }
     action oidlen { if (settings->oidlen(parser->data, parser->int2)) fbreak; }
@@ -61,21 +68,14 @@ typedef struct pg_parser_t {
     action option_val { if (str && settings->option_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action parse { if (settings->parse(parser->data)) fbreak; }
     action pid { if (settings->pid(parser->data, parser->int4)) fbreak; }
-    action primary { if (settings->errkey(parser->data, sizeof("primary") - 1, "primary")) fbreak; }
-    action query { if (settings->errkey(parser->data, sizeof("query") - 1, "query")) fbreak; }
     action ready { if (settings->ready(parser->data)) fbreak; }
     action row { if (settings->row(parser->data, parser->int4)) fbreak; }
-    action rowval { if (!parser->nbytes) { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->nrows) fnext main; else fnext row; } }
     action rowvaleof { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action schema { if (settings->errkey(parser->data, sizeof("schema") - 1, "schema")) fbreak; }
+    action rowval { if (!parser->nbytes) { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->nrows) fnext main; else fnext row; } }
     action secret { if (settings->secret(parser->data)) fbreak; }
-    action severity { if (settings->errkey(parser->data, sizeof("severity") - 1, "severity")) fbreak; }
-    action sqlstate { if (settings->errkey(parser->data, sizeof("sqlstate") - 1, "sqlstate")) fbreak; }
-    action statement { if (settings->errkey(parser->data, sizeof("statement") - 1, "statement")) fbreak; }
     action strend { parser->nbytes-- }
     action str { if (!str) str = p; parser->str = cs; }
     action tableid { if (settings->table(parser->data, parser->int4)) fbreak; }
-    action table { if (settings->errkey(parser->data, sizeof("table") - 1, "table")) fbreak; }
 
     any2 = any{2};
     any4 = any{4};
@@ -86,24 +86,24 @@ typedef struct pg_parser_t {
 
     col = str0 @name @/name int4 @tableid int2 @columnid int4 @oid int2 @oidlen int4 @mod int2 @format;
     error =
-    (  67 @sqlstate
-    |  68 @detail
-    |  70 @file
-    |  72 @hint
-    |  76 @line
-    |  77 @primary
-    |  80 @statement
-    |  82 @function
-    |  83 @severity
-    |  86 @nonlocalized
-    |  87 @context
-    |  99 @column
-    | 100 @datatype
-    | 110 @constraint
-    | 112 @internal
-    | 113 @query
-    | 115 @schema
-    | 116 @table );
+    (  67 @error_sqlstate
+    |  68 @error_detail
+    |  70 @error_file
+    |  72 @error_hint
+    |  76 @error_line
+    |  77 @error_primary
+    |  80 @error_statement
+    |  82 @error_function
+    |  83 @error_severity
+    |  86 @error_nonlocalized
+    |  87 @error_context
+    |  99 @error_column
+    | 100 @error_datatype
+    | 110 @error_constraint
+    | 112 @error_internal
+    | 113 @error_query
+    | 115 @error_schema
+    | 116 @error_table );
     row = int4 @nbytes ( str outwhen strend )** $rowval $/rowvaleof;
 
     main :=
@@ -112,7 +112,7 @@ typedef struct pg_parser_t {
     | 51 any4 @close
     | 67 int4 @cmd str0 @cmdval @/cmdval
     | 68 int4 @row int2 @nrows ( row )**
-    | 69 int4 @error ( error str0 @errval @/errval )** 0
+    | 69 int4 @error ( error str0 @error_val @/error_val )** 0
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
     | 83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val

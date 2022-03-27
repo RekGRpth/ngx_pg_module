@@ -36,8 +36,8 @@ typedef struct {
     pg_parser_int4_cb table;
     pg_parser_len_str_cb all;
     pg_parser_len_str_cb cmdval;
-    pg_parser_len_str_cb errkey;
-    pg_parser_len_str_cb errval;
+    pg_parser_len_str_cb error_key;
+    pg_parser_len_str_cb error_val;
     pg_parser_len_str_cb name;
     pg_parser_len_str_cb option_key;
     pg_parser_len_str_cb option_val;

@@ -122,7 +122,7 @@ static int ngx_pg_parser_colbeg(ngx_pg_save_t *s) {
     return s->rc;
 }
 
-static int ngx_pg_parser_errkey(ngx_pg_save_t *s, size_t len, const u_char *str) {
+static int ngx_pg_parser_error_key(ngx_pg_save_t *s, size_t len, const u_char *str) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, str);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -172,7 +172,7 @@ static int ngx_pg_parser_column(ngx_pg_save_t *s, int16_t col) {
     return s->rc;
 }
 
-static int ngx_pg_parser_errval(ngx_pg_save_t *s, size_t len, const u_char *str) {
+static int ngx_pg_parser_error_val(ngx_pg_save_t *s, size_t len, const u_char *str) {
     ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, str);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -443,9 +443,9 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .colbeg = (pg_parser_cb)ngx_pg_parser_colbeg,
     .col = (pg_parser_int4_cb)ngx_pg_parser_col,
     .column = (pg_parser_int2_cb)ngx_pg_parser_column,
-    .errkey = (pg_parser_len_str_cb)ngx_pg_parser_errkey,
+    .error_key = (pg_parser_len_str_cb)ngx_pg_parser_error_key,
     .error = (pg_parser_int4_cb)ngx_pg_parser_error,
-    .errval = (pg_parser_len_str_cb)ngx_pg_parser_errval,
+    .error_val = (pg_parser_len_str_cb)ngx_pg_parser_error_val,
     .format = (pg_parser_int2_cb)ngx_pg_parser_format,
     .idle = (pg_parser_cb)ngx_pg_parser_idle,
     .inerror = (pg_parser_cb)ngx_pg_parser_inerror,
