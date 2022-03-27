@@ -5,13 +5,13 @@
 typedef struct pg_parser_t {
     const pg_parser_settings_t *settings;
     const void *data;
-    int16_t field_count;
-    int16_t int2;
-    int16_t row_count;
-    int32_t int4;
-    int32_t row_len;
     int cs;
     int str;
+    uint16_t field_count;
+    uint16_t int2;
+    uint16_t row_count;
+    uint32_t int4;
+    uint32_t row_len;
     uint8_t i;
 } pg_parser_t;
 
@@ -70,7 +70,7 @@ typedef struct pg_parser_t {
     action ready_intrans { if (settings->ready_intrans(parser->data)) fbreak; }
     action row_count { parser->row_count = parser->int2; if (settings->row_count(parser->data, parser->row_count)) fbreak; if (!parser->row_count) fnext main; }
     action row { if (settings->row(parser->data, parser->int4)) fbreak; }
-    action row_len { parser->row_len = parser->int4; if (settings->row_len(parser->data, parser->row_len)) fbreak; if (!parser->row_len || parser->row_len == (int32_t)-1) { if (!--parser->row_count) fnext main; else fnext row; } }
+    action row_len { parser->row_len = parser->int4; if (settings->row_len(parser->data, parser->row_len)) fbreak; if (!parser->row_len || parser->row_len == (uint32_t)-1) { if (!--parser->row_count) fnext main; else fnext row; } }
     action rowvaleof { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action rowval { if (!parser->row_len--) { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->row_count) fnext main; else fnext row; } }
     action secret { if (settings->secret(parser->data)) fbreak; }
