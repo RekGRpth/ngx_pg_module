@@ -95,7 +95,7 @@ static int ngx_pg_parser_all(ngx_pg_save_t *s, size_t len, const u_char *str) {
     return s->rc;
 }
 
-static int ngx_pg_parser_mod(ngx_pg_save_t *s, int32_t mod) {
+static int ngx_pg_parser_field_mod(ngx_pg_save_t *s, int32_t mod) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", mod);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -449,7 +449,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .format = (pg_parser_int2_cb)ngx_pg_parser_format,
     .key = (pg_parser_int4_cb)ngx_pg_parser_key,
     .method = (pg_parser_int4_cb)ngx_pg_parser_method,
-    .mod = (pg_parser_int4_cb)ngx_pg_parser_mod,
+    .field_mod = (pg_parser_int4_cb)ngx_pg_parser_field_mod,
     .field_name = (pg_parser_len_str_cb)ngx_pg_parser_field_name,
     .nbytes = (pg_parser_int4_cb)ngx_pg_parser_nbytes,
     .ncols = (pg_parser_int2_cb)ngx_pg_parser_ncols,

@@ -27,7 +27,7 @@ typedef struct {
     pg_parser_int4_cb error;
     pg_parser_int4_cb key;
     pg_parser_int4_cb method;
-    pg_parser_int4_cb mod;
+    pg_parser_int4_cb field_mod;
     pg_parser_int4_cb nbytes;
     pg_parser_int4_cb field_oid;
     pg_parser_int4_cb option;
