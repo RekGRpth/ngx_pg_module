@@ -59,7 +59,7 @@ typedef struct {
 } ngx_pg_save_t;
 
 typedef struct {
-    ngx_str_t name;
+    ngx_str_t val;
     uint16_t col;
     uint16_t fmt;
     uint16_t len;
@@ -281,9 +281,9 @@ static int ngx_pg_parser_field_val(ngx_pg_save_t *s, size_t len, const u_char *s
     ngx_pg_field_t *elts = d->field->elts;
     if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_pg_field_t *field = &elts[d->field->nelts - 1];
-    if (!field->name.data) field->name.data = d->cols.data + d->cols.len;
-    ngx_memcpy(field->name.data + field->name.len, str, len);
-    field->name.len += len;
+    if (!field->val.data) field->val.data = d->cols.data + d->cols.len;
+    ngx_memcpy(field->val.data + field->val.len, str, len);
+    field->val.len += len;
     d->cols.len += len;
     return s->rc;
 }
@@ -1131,8 +1131,8 @@ static ngx_int_t ngx_pg_field_val_get_handler(ngx_http_request_t *r, ngx_http_va
     ngx_uint_t i = n;
     if (!d->field || i >= d->field->nelts) return NGX_OK;
     ngx_pg_field_t *elts = d->field->elts;
-    v->data = elts[i].name.data;
-    v->len = elts[i].name.len;
+    v->data = elts[i].val.data;
+    v->len = elts[i].val.len;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
