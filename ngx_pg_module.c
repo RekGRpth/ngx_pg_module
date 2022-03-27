@@ -299,6 +299,7 @@ static int ngx_pg_parser_row_len(ngx_pg_save_t *s, int32_t row_len) {
     if (!(str = ngx_array_push(row->str))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
     ngx_memzero(str, sizeof(*str));
     if (row_len == (int32_t)-1) return s->rc;
+    if (!row_len) { ngx_str_set(str, ""); return s->rc; }
     ngx_http_request_t *r = d->request;
     if (!(str->data = ngx_pnalloc(r->pool, row_len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
