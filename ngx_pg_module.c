@@ -161,7 +161,7 @@ static int ngx_pg_parser_close(ngx_pg_save_t *s) {
     return s->rc;
 }
 
-static int ngx_pg_parser_column(ngx_pg_save_t *s, int16_t col) {
+static int ngx_pg_parser_field_column(ngx_pg_save_t *s, int16_t col) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", col);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -440,7 +440,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .close = (pg_parser_cb)ngx_pg_parser_close,
     .colbeg = (pg_parser_cb)ngx_pg_parser_colbeg,
     .col = (pg_parser_int4_cb)ngx_pg_parser_col,
-    .column = (pg_parser_int2_cb)ngx_pg_parser_column,
+    .field_column = (pg_parser_int2_cb)ngx_pg_parser_field_column,
     .complete = (pg_parser_int4_cb)ngx_pg_parser_complete,
     .complete_val = (pg_parser_len_str_cb)ngx_pg_parser_complete_val,
     .error_key = (pg_parser_len_str_cb)ngx_pg_parser_error_key,

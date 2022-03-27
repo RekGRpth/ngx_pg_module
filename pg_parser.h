@@ -17,7 +17,7 @@ typedef struct {
     pg_parser_cb ready_inerror;
     pg_parser_cb ready_intrans;
     pg_parser_cb secret;
-    pg_parser_int2_cb column;
+    pg_parser_int2_cb field_column;
     pg_parser_int2_cb format;
     pg_parser_int2_cb ncols;
     pg_parser_int2_cb nrows;

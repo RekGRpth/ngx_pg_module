@@ -25,7 +25,7 @@ typedef struct pg_parser_t {
     action colbeg { if (settings->colbeg(parser->data)) fbreak; }
     action colend { --parser->ncols }
     action col { if (settings->col(parser->data, parser->int4)) fbreak; }
-    action columnid { if (settings->column(parser->data, parser->int2)) fbreak; }
+    action field_column { if (settings->field_column(parser->data, parser->int2)) fbreak; }
     action complete { if (settings->complete(parser->data, parser->int4)) fbreak; }
     action complete_val { if (str && settings->complete_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action error_column { if (settings->error_key(parser->data, sizeof("column") - 1, "column")) fbreak; }
@@ -84,7 +84,7 @@ typedef struct pg_parser_t {
     str0 = (any - 0)** $str 0;
     str = any $str;
 
-    col = str0 @field_name @/field_name int4 @field_table int2 @columnid int4 @oid int2 @oidlen int4 @mod int2 @format;
+    col = str0 @field_name @/field_name int4 @field_table int2 @field_column int4 @oid int2 @oidlen int4 @mod int2 @format;
     error =
     (  67 @error_sqlstate
     |  68 @error_detail
