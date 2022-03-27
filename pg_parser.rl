@@ -59,7 +59,7 @@ typedef struct pg_parser_t {
     action ncols { parser->ncols = parser->int2; if (settings->ncols(parser->data, parser->ncols)) fbreak; }
     action nrows { parser->nrows = parser->int2; if (settings->nrows(parser->data, parser->nrows)) fbreak; }
     action oid { if (settings->oid(parser->data, parser->int4)) fbreak; }
-    action oidlen { if (settings->oidlen(parser->data, parser->int2)) fbreak; }
+    action field_len { if (settings->field_len(parser->data, parser->int2)) fbreak; }
     action option { if (settings->option(parser->data, parser->int4)) fbreak; }
     action option_key { if (str && settings->option_key(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action option_val { if (str && settings->option_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
@@ -84,7 +84,7 @@ typedef struct pg_parser_t {
     str0 = (any - 0)** $str 0;
     str = any $str;
 
-    col = str0 @field_name @/field_name int4 @field_table int2 @field_column int4 @oid int2 @oidlen int4 @mod int2 @format;
+    col = str0 @field_name @/field_name int4 @field_table int2 @field_column int4 @oid int2 @field_len int4 @mod int2 @format;
     error =
     (  67 @error_sqlstate
     |  68 @error_detail
