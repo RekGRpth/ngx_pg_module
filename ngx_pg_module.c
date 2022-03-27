@@ -315,17 +315,17 @@ static int ngx_pg_parser_field_count(ngx_pg_save_t *s, int16_t field_count) {
     return s->rc;
 }
 
-static int ngx_pg_parser_nrows(ngx_pg_save_t *s, int16_t nrows) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", nrows);
+static int ngx_pg_parser_row_count(ngx_pg_save_t *s, int16_t row_count) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", row_count);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (!nrows) return s->rc;
+    if (!row_count) return s->rc;
     ngx_http_request_t *r = d->request;
     ngx_pg_row_t *row;
     if (!(row = ngx_array_push(d->row))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
     ngx_memzero(row, sizeof(*row));
     ngx_str_t *str;
-    if (!(row->str = ngx_array_create(r->pool, nrows, sizeof(*str)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
+    if (!(row->str = ngx_array_create(r->pool, row_count, sizeof(*str)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
@@ -451,8 +451,6 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .field_table = (pg_parser_int4_cb)ngx_pg_parser_field_table,
     .key = (pg_parser_int4_cb)ngx_pg_parser_key,
     .method = (pg_parser_int4_cb)ngx_pg_parser_method,
-    .row_len = (pg_parser_int4_cb)ngx_pg_parser_row_len,
-    .nrows = (pg_parser_int2_cb)ngx_pg_parser_nrows,
     .option_key = (pg_parser_len_str_cb)ngx_pg_parser_option_key,
     .option = (pg_parser_int4_cb)ngx_pg_parser_option,
     .option_val = (pg_parser_len_str_cb)ngx_pg_parser_option_val,
@@ -462,6 +460,8 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .ready_inerror = (pg_parser_cb)ngx_pg_parser_ready_inerror,
     .ready_intrans = (pg_parser_cb)ngx_pg_parser_ready_intrans,
     .ready = (pg_parser_cb)ngx_pg_parser_ready,
+    .row_count = (pg_parser_int2_cb)ngx_pg_parser_row_count,
+    .row_len = (pg_parser_int4_cb)ngx_pg_parser_row_len,
     .row = (pg_parser_int4_cb)ngx_pg_parser_row,
     .rowval = (pg_parser_len_str_cb)ngx_pg_parser_rowval,
     .secret = (pg_parser_cb)ngx_pg_parser_secret,
