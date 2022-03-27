@@ -38,7 +38,7 @@ typedef struct {
     pg_parser_str_cb complete_val;
     pg_parser_str_cb error_key;
     pg_parser_str_cb error_val;
-    pg_parser_str_cb field_name;
+    pg_parser_str_cb field_val;
     pg_parser_str_cb option_key;
     pg_parser_str_cb option_val;
     pg_parser_str_cb row_val;

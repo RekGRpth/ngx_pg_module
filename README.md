@@ -179,14 +179,14 @@ Result cmd:
 ```nginx
 add_header cmd $pg_cmd always;
 ```
-$pg_field_name_
+$pg_field_val_
 -------------
-* Syntax: $pg_field_name_*col*
+* Syntax: $pg_field_val_*col*
 
 Result name of *col*:
 ```nginx
-add_header field_name_0 $pg_field_name_0 always;
-add_header field_name_1 $pg_field_name_1 always;
+add_header field_val_0 $pg_field_val_0 always;
+add_header field_val_1 $pg_field_val_1 always;
 ```
 $pg_ncols
 -------------
