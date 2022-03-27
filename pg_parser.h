@@ -41,7 +41,7 @@ typedef struct {
     pg_parser_str_cb field_name;
     pg_parser_str_cb option_key;
     pg_parser_str_cb option_val;
-    pg_parser_str_cb rowval;
+    pg_parser_str_cb row_val;
 } pg_parser_settings_t;
 
 typedef struct pg_parser_t pg_parser_t;

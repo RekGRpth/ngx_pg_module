@@ -71,8 +71,8 @@ typedef struct pg_parser_t {
     action row_count { parser->row_count = parser->int2; if (settings->row_count(parser->data, parser->row_count)) fbreak; if (!parser->row_count) fnext main; }
     action row { if (settings->row(parser->data, parser->int4)) fbreak; }
     action row_len { parser->row_len = parser->int4; if (settings->row_len(parser->data, parser->row_len)) fbreak; if (!parser->row_len || parser->row_len == (uint32_t)-1) { if (!--parser->row_count) fnext main; else fnext row; } }
-    action rowvaleof { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action rowval { if (!parser->row_len--) { if (str && settings->rowval(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->row_count) fnext main; else fnext row; } }
+    action row_valeof { if (str && settings->row_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
+    action row_val { if (!parser->row_len--) { if (str && settings->row_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->row_count) fnext main; else fnext row; } }
     action secret { if (settings->secret(parser->data)) fbreak; }
     action str { if (!str) str = p; parser->str = cs; }
 
@@ -104,7 +104,7 @@ typedef struct pg_parser_t {
     | 116 @error_table );
 
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_len int4 @field_mod int2 @field_format;
-    row = int4 @row_len str ** $rowval $/rowvaleof;
+    row = int4 @row_len str ** $row_val $/row_valeof;
 
     main :=
     ( 49 any4 @parse
