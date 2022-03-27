@@ -48,7 +48,7 @@ typedef struct pg_parser_t {
     action error_statement { if (settings->error_key(parser->data, sizeof("statement") - 1, "statement")) fbreak; }
     action error_table { if (settings->error_key(parser->data, sizeof("table") - 1, "table")) fbreak; }
     action error_val { if (str && settings->error_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action format { if (settings->format(parser->data, parser->int2)) fbreak; }
+    action field_format { if (settings->field_format(parser->data, parser->int2)) fbreak; }
     action int2 { if (!parser->i) { parser->i = 2; parser->int2 = 0; } parser->int2 |= (uint8_t)*p << ((2 << 2) * --parser->i); }
     action int4 { if (!parser->i) { parser->i = 4; parser->int4 = 0; } parser->int4 |= (uint8_t)*p << ((2 << 2) * --parser->i); }
     action key { if (settings->key(parser->data, parser->int4)) fbreak; }
@@ -84,7 +84,7 @@ typedef struct pg_parser_t {
     str0 = (any - 0)** $str 0;
     str = any $str;
 
-    col = str0 @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_len int4 @field_mod int2 @format;
+    col = str0 @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_len int4 @field_mod int2 @field_format;
     error =
     (  67 @error_sqlstate
     |  68 @error_detail
