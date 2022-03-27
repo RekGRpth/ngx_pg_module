@@ -6,7 +6,7 @@ typedef struct pg_parser_t {
     const pg_parser_settings_t *settings;
     const void *data;
     int16_t int2;
-    int16_t ncols;
+    int16_t field_count;
     int16_t nrows;
     int32_t int4;
     int32_t nbytes;
@@ -23,7 +23,7 @@ typedef struct pg_parser_t {
     action bind { if (settings->bind(parser->data)) fbreak; }
     action close { if (settings->close(parser->data)) fbreak; }
     action colbeg { if (settings->colbeg(parser->data)) fbreak; }
-    action colend { --parser->ncols }
+    action colend { --parser->field_count }
     action col { if (settings->col(parser->data, parser->int4)) fbreak; }
     action field_column { if (settings->field_column(parser->data, parser->int2)) fbreak; }
     action complete { if (settings->complete(parser->data, parser->int4)) fbreak; }
@@ -56,7 +56,7 @@ typedef struct pg_parser_t {
     action field_mod { if (settings->field_mod(parser->data, parser->int4)) fbreak; }
     action field_name { if (str && settings->field_name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action nbytes { parser->nbytes = parser->int4; if (settings->nbytes(parser->data, parser->nbytes)) fbreak; if (parser->nbytes == (int32_t)-1) { if (!--parser->nrows) fnext main; else fnext row; } }
-    action ncols { parser->ncols = parser->int2; if (settings->ncols(parser->data, parser->ncols)) fbreak; }
+    action field_count { parser->field_count = parser->int2; if (settings->field_count(parser->data, parser->field_count)) fbreak; }
     action nrows { parser->nrows = parser->int2; if (settings->nrows(parser->data, parser->nrows)) fbreak; }
     action field_oid { if (settings->field_oid(parser->data, parser->int4)) fbreak; }
     action field_len { if (settings->field_len(parser->data, parser->int2)) fbreak; }
@@ -116,7 +116,7 @@ typedef struct pg_parser_t {
     | 75 any4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
     | 83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
-    | 84 int4 @col int2 @ncols ( col >colbeg outwhen colend )**
+    | 84 int4 @col int2 @field_count ( col >colbeg outwhen colend )**
     | 90 any4 @ready ( 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans )
     )** $all;
 

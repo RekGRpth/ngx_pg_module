@@ -73,7 +73,7 @@ typedef struct {
 } ngx_pg_row_t;
 
 typedef struct ngx_pg_data_t {
-    int16_t ncols;
+    int16_t field_count;
     int16_t nrows;
     ngx_array_t *col;
     ngx_array_t *error;
@@ -306,15 +306,15 @@ static int ngx_pg_parser_nbytes(ngx_pg_save_t *s, int32_t nbytes) {
     return s->rc;
 }
 
-static int ngx_pg_parser_ncols(ngx_pg_save_t *s, int16_t ncols) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", ncols);
+static int ngx_pg_parser_field_count(ngx_pg_save_t *s, int16_t field_count) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", field_count);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    d->ncols = ncols;
-    if (!ncols) return s->rc;
+    d->field_count = field_count;
+    if (!field_count) return s->rc;
     ngx_http_request_t *r = d->request;
     ngx_pg_col_t *col;
-    if (!(d->col = ngx_array_create(r->pool, ncols, sizeof(*col)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
+    if (!(d->col = ngx_array_create(r->pool, field_count, sizeof(*col)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
@@ -452,7 +452,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .field_mod = (pg_parser_int4_cb)ngx_pg_parser_field_mod,
     .field_name = (pg_parser_len_str_cb)ngx_pg_parser_field_name,
     .nbytes = (pg_parser_int4_cb)ngx_pg_parser_nbytes,
-    .ncols = (pg_parser_int2_cb)ngx_pg_parser_ncols,
+    .field_count = (pg_parser_int2_cb)ngx_pg_parser_field_count,
     .nrows = (pg_parser_int2_cb)ngx_pg_parser_nrows,
     .field_len = (pg_parser_int2_cb)ngx_pg_parser_field_len,
     .field_oid = (pg_parser_int4_cb)ngx_pg_parser_field_oid,
@@ -1096,9 +1096,9 @@ static ngx_int_t ngx_pg_ncols_get_handler(ngx_http_request_t *r, ngx_http_variab
     if (!u) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
-    v->len = snprintf(NULL, 0, "%i", d->ncols);
+    v->len = snprintf(NULL, 0, "%i", d->field_count);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%i", d->ncols) - v->data;
+    v->len = ngx_snprintf(v->data, v->len, "%i", d->field_count) - v->data;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
