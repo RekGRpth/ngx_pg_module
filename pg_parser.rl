@@ -84,7 +84,6 @@ typedef struct pg_parser_t {
     str0 = (any - 0)** $str 0;
     str = any $str;
 
-    field = str0 @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_len int4 @field_mod int2 @field_format;
     error =
     (  67 @error_sqlstate
     |  68 @error_detail
@@ -104,6 +103,8 @@ typedef struct pg_parser_t {
     | 113 @error_query
     | 115 @error_schema
     | 116 @error_table );
+
+    field = str0 @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_len int4 @field_mod int2 @field_format;
     row = int4 @nbytes ( str outwhen strend )** $rowval $/rowvaleof;
 
     main :=
