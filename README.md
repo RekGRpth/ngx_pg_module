@@ -204,14 +204,14 @@ Result nvals:
 ```nginx
 add_header nvals $pg_nvals always;
 ```
-$pg_field_tbl_
+$pg_field_table_
 -------------
-* Syntax: $pg_field_tbl_*col*
+* Syntax: $pg_field_table_*col*
 
-Result tbl of *col*:
+Result table of *col*:
 ```nginx
-add_header field_tbl_0 $pg_field_tbl_0 always;
-add_header field_tbl_1 $pg_field_tbl_1 always;
+add_header field_table_0 $pg_field_table_0 always;
+add_header field_table_1 $pg_field_table_1 always;
 ```
 $pg_field_oid_
 -------------
