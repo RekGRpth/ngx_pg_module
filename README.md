@@ -196,13 +196,13 @@ Result nfields:
 ```nginx
 add_header nfields $pg_nfields always;
 ```
-$pg_nvals
+$pg_nvalues
 -------------
-* Syntax: $pg_nvals
+* Syntax: $pg_nvalues
 
-Result nvals:
+Result nvalues:
 ```nginx
-add_header nvals $pg_nvals always;
+add_header nvalues $pg_nvalues always;
 ```
 $pg_field_table_
 -------------
