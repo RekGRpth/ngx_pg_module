@@ -121,7 +121,7 @@ typedef struct pg_parser_t {
     | 83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
     | 84 int4 @field int2 @field_count field **
     | 90 int4 @ready ( 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans )
-    )** $all;
+    ) ** $all;
 
     write data;
 }%%
