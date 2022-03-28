@@ -101,7 +101,8 @@ typedef struct pg_parser_t {
     | 112 @error_internal
     | 113 @error_query
     | 115 @error_schema
-    | 116 @error_table );
+    | 116 @error_table
+    );
 
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
     value = int4 @value_len str ** $value_val $/value_valeof;
