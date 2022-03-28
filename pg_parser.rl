@@ -105,6 +105,7 @@ typedef struct pg_parser_t {
     byte = any @str @value_val @/value_valeof;
     error = error_key str0 @error_val @/error_val;
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
+    ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
     value = int4 @value_len byte **;
 
     main :=
@@ -118,7 +119,7 @@ typedef struct pg_parser_t {
     | 82 int4 @auth int4 @method
     | 83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
     | 84 int4 @field int2 @field_count field **
-    | 90 int4 @ready ( 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans )
+    | 90 int4 @ready ready
     ) ** $all;
 
     write data;
