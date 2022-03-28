@@ -162,14 +162,14 @@ Result field_fmt_ of *col*:
 add_header field_fmt_0 $pg_field_fmt_0 always;
 add_header field_fmt_1 $pg_field_fmt_1 always;
 ```
-$pg_field_col_
+$pg_field_column_
 -------------
-* Syntax: $pg_field_col_*col*
+* Syntax: $pg_field_column_*col*
 
-Result field_col_ of *col*:
+Result field_column_ of *col*:
 ```nginx
-add_header field_col_0 $pg_field_col_0 always;
-add_header field_col_1 $pg_field_col_1 always;
+add_header field_column_0 $pg_field_column_0 always;
+add_header field_column_1 $pg_field_column_1 always;
 ```
 $pg_cmd
 -------------
