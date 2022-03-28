@@ -78,9 +78,10 @@ typedef struct pg_parser_t {
 
     any2 = any{2};
     any4 = any{4};
+    char = any - 0;
     int2 = any2 $int2;
     int4 = any4 $int4;
-    str0 = (any - 0)** $str 0;
+    str0 = char ** $str 0;
     str = any $str;
 
     error_key =
