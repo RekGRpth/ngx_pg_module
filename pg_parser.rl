@@ -65,7 +65,7 @@ typedef struct pg_parser_t {
     action parse { if (settings->parse(parser->data, parser->int4)) fbreak; }
     action pid { if (settings->pid(parser->data, parser->int4)) fbreak; }
     action ready_idle { if (settings->ready_idle(parser->data)) fbreak; }
-    action ready { if (settings->ready(parser->data)) fbreak; }
+    action ready { if (settings->ready(parser->data, parser->int4)) fbreak; }
     action ready_inerror { if (settings->ready_inerror(parser->data)) fbreak; }
     action ready_intrans { if (settings->ready_intrans(parser->data)) fbreak; }
     action row_count { parser->row_count = parser->int2; if (settings->row_count(parser->data, parser->row_count)) fbreak; if (!parser->row_count) fnext main; }
@@ -117,7 +117,7 @@ typedef struct pg_parser_t {
     | 82 int4 @auth int4 @method
     | 83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
     | 84 int4 @field int2 @field_count field **
-    | 90 any4 @ready ( 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans )
+    | 90 int4 @ready ( 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans )
     )** $all;
 
     write data;

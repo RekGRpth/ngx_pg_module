@@ -357,8 +357,9 @@ static int ngx_pg_parser_pid(ngx_pg_save_t *s, uint32_t pid) {
     return s->rc;
 }
 
-static int ngx_pg_parser_ready(ngx_pg_save_t *s) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+static int ngx_pg_parser_ready(ngx_pg_save_t *s, uint32_t len) {
+    if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
     return s->rc;
 }
 
@@ -466,7 +467,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .ready_idle = (pg_parser_cb)ngx_pg_parser_ready_idle,
     .ready_inerror = (pg_parser_cb)ngx_pg_parser_ready_inerror,
     .ready_intrans = (pg_parser_cb)ngx_pg_parser_ready_intrans,
-    .ready = (pg_parser_cb)ngx_pg_parser_ready,
+    .ready = (pg_parser_int4_cb)ngx_pg_parser_ready,
     .row_count = (pg_parser_int2_cb)ngx_pg_parser_row_count,
     .row_len = (pg_parser_int4_cb)ngx_pg_parser_row_len,
     .row = (pg_parser_int4_cb)ngx_pg_parser_row,
