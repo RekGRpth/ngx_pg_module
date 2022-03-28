@@ -231,14 +231,14 @@ Result len of *col*:
 add_header field_length_0 $pg_field_length_0 always;
 add_header field_length_1 $pg_field_length_1 always;
 ```
-$pg_val_
+$pg_value_
 -------------
-* Syntax: $pg_val_*val*_*col*
+* Syntax: $pg_value_*val*_*col*
 
 Result of *val* and *col*:
 ```nginx
-add_header val_0_0 $pg_val_0_0 always;
-add_header val_0_1 $pg_val_0_1 always;
-add_header val_1_0 $pg_val_1_0 always;
-add_header val_1_1 $pg_val_1_1 always;
+add_header value_0_0 $pg_value_0_0 always;
+add_header value_0_1 $pg_value_0_1 always;
+add_header value_1_0 $pg_value_1_0 always;
+add_header value_1_1 $pg_value_1_1 always;
 ```
