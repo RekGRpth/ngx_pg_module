@@ -83,7 +83,7 @@ typedef struct pg_parser_t {
     str0 = (any - 0)** $str 0;
     str = any $str;
 
-    error =
+    error_key =
     (  67 @error_sqlstate
     |  68 @error_detail
     |  70 @error_file
@@ -104,8 +104,10 @@ typedef struct pg_parser_t {
     | 116 @error_table
     );
 
+    byte = str ** $value_val $/value_valeof;
+    error = error_key str0 @error_val @/error_val;
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
-    value = int4 @value_len str ** $value_val $/value_valeof;
+    value = int4 @value_len byte **;
 
     main :=
     ( 49 int4 @parse
@@ -113,7 +115,7 @@ typedef struct pg_parser_t {
     | 51 int4 @close
     | 67 int4 @complete str0 @complete_val @/complete_val
     | 68 int4 @value int2 @value_count value **
-    | 69 int4 @error ( error str0 @error_val @/error_val )** 0
+    | 69 int4 @error error ** 0
     | 75 int4 @secret int4 @pid int4 @key
     | 82 int4 @auth int4 @method
     | 83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
