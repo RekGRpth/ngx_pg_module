@@ -1036,7 +1036,7 @@ static ngx_int_t ngx_pg_field_column_get_handler(ngx_http_request_t *r, ngx_http
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_cmd_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_complete_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
@@ -1223,7 +1223,7 @@ static ngx_int_t ngx_pg_value_get_handler(ngx_http_request_t *r, ngx_http_variab
 }
 
 static const ngx_http_variable_t ngx_pg_variables[] = {
-  { ngx_string("pg_cmd"), NULL, ngx_pg_cmd_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_complete"), NULL, ngx_pg_complete_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
   { ngx_string("pg_error_"), NULL, ngx_pg_error_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_field_column_"), NULL, ngx_pg_field_column_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_field_format_"), NULL, ngx_pg_field_format_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },

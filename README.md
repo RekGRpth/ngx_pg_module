@@ -171,13 +171,13 @@ Result field_column_ of *col*:
 add_header field_column_0 $pg_field_column_0 always;
 add_header field_column_1 $pg_field_column_1 always;
 ```
-$pg_cmd
+$pg_complete
 -------------
-* Syntax: $pg_cmd
+* Syntax: $pg_complete
 
-Result cmd:
+Result complete:
 ```nginx
-add_header cmd $pg_cmd always;
+add_header complete $pg_complete always;
 ```
 $pg_field_name_
 -------------
