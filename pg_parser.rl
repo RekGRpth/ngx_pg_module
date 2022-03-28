@@ -76,11 +76,9 @@ typedef struct pg_parser_t {
     action value_valeof { if (str && settings->value_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action value_val { if (!parser->value_len--) { if (str && settings->value_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->value_count) fnext main; else fnext value; } }
 
-    any2 = any{2};
-    any4 = any{4};
     char = any - 0;
-    int2 = any2 $int2;
-    int4 = any4 $int4;
+    int2 = any{2} $int2;
+    int4 = any{4} $int4;
     str0 = char ** $str 0;
     str = any $str;
 
