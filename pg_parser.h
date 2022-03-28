@@ -7,7 +7,6 @@ typedef int (*pg_parser_int4_cb) (void *data, uint32_t n);
 typedef int (*pg_parser_str_cb) (void *data, size_t len, const unsigned char *str);
 
 typedef struct {
-    pg_parser_cb auth;
     pg_parser_cb field_beg;
     pg_parser_cb ready;
     pg_parser_cb ready_idle;
@@ -18,6 +17,7 @@ typedef struct {
     pg_parser_int2_cb field_format;
     pg_parser_int2_cb field_len;
     pg_parser_int2_cb row_count;
+    pg_parser_int4_cb auth;
     pg_parser_int4_cb bind;
     pg_parser_int4_cb close;
     pg_parser_int4_cb complete;

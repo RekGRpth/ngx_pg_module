@@ -20,7 +20,7 @@ typedef struct pg_parser_t {
     alphtype unsigned char;
 
     action all { if (settings->all(parser->data, 0, p)) fbreak; }
-    action auth { if (settings->auth(parser->data)) fbreak; }
+    action auth { if (settings->auth(parser->data, parser->int4)) fbreak; }
     action bind { if (settings->bind(parser->data, parser->int4)) fbreak; }
     action close { if (settings->close(parser->data, parser->int4)) fbreak; }
     action complete { if (settings->complete(parser->data, parser->int4)) fbreak; }
@@ -114,7 +114,7 @@ typedef struct pg_parser_t {
     | 68 int4 @row int2 @row_count row **
     | 69 int4 @error ( error str0 @error_val @/error_val )** 0
     | 75 int4 @secret int4 @pid int4 @key
-    | 82 any4 @auth int4 @method
+    | 82 int4 @auth int4 @method
     | 83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
     | 84 int4 @field int2 @field_count field **
     | 90 any4 @ready ( 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans )
