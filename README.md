@@ -196,13 +196,13 @@ Result ncols:
 ```nginx
 add_header ncols $pg_ncols always;
 ```
-$pg_nrows
+$pg_nvals
 -------------
-* Syntax: $pg_nrows
+* Syntax: $pg_nvals
 
-Result nrows:
+Result nvals:
 ```nginx
-add_header nrows $pg_nrows always;
+add_header nvals $pg_nvals always;
 ```
 $pg_field_tbl_
 -------------
@@ -231,14 +231,14 @@ Result len of *col*:
 add_header field_len_0 $pg_field_len_0 always;
 add_header field_len_1 $pg_field_len_1 always;
 ```
-$pg_row_
+$pg_val_
 -------------
-* Syntax: $pg_row_*row*_*col*
+* Syntax: $pg_val_*val*_*col*
 
-Result of *row* and *col*:
+Result of *val* and *col*:
 ```nginx
-add_header row_0_0 $pg_row_0_0 always;
-add_header row_0_1 $pg_row_0_1 always;
-add_header row_1_0 $pg_row_1_0 always;
-add_header row_1_1 $pg_row_1_1 always;
+add_header val_0_0 $pg_val_0_0 always;
+add_header val_0_1 $pg_val_0_1 always;
+add_header val_1_0 $pg_val_1_0 always;
+add_header val_1_1 $pg_val_1_1 always;
 ```
