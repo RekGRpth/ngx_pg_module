@@ -73,7 +73,7 @@ typedef struct ngx_pg_data_t {
     ngx_peer_connection_t peer;
     ngx_pg_save_t *save;
     ngx_pg_srv_conf_t *conf;
-    ngx_str_t cols;
+    ngx_str_t fields;
     ngx_str_t complete;
     ngx_str_t errs;
     ngx_uint_t ready;
@@ -221,7 +221,7 @@ static int ngx_pg_parser_field(ngx_pg_save_t *s, uint32_t len) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_http_request_t *r = d->request;
-    if (!(d->cols.data = ngx_pnalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
+    if (!(d->fields.data = ngx_pnalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
@@ -262,10 +262,10 @@ static int ngx_pg_parser_field_val(ngx_pg_save_t *s, size_t len, const u_char *s
     ngx_pg_field_t *elts = d->field->elts;
     if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_pg_field_t *field = &elts[d->field->nelts - 1];
-    if (!field->val.data) field->val.data = d->cols.data + d->cols.len;
+    if (!field->val.data) field->val.data = d->fields.data + d->fields.len;
     ngx_memcpy(field->val.data + field->val.len, str, len);
     field->val.len += len;
-    d->cols.len += len;
+    d->fields.len += len;
     return s->rc;
 }
 
