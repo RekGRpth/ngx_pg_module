@@ -55,7 +55,7 @@ typedef struct {
     ngx_str_t name;
     uint16_t column;
     uint16_t format;
-    uint16_t len;
+    uint16_t length;
     uint32_t mod;
     uint32_t oid;
     uint32_t table;
@@ -390,14 +390,14 @@ static int ngx_pg_parser_field_oid(ngx_pg_save_t *s, uint32_t oid) {
     return s->rc;
 }
 
-static int ngx_pg_parser_field_length(ngx_pg_save_t *s, uint16_t len) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
+static int ngx_pg_parser_field_length(ngx_pg_save_t *s, uint16_t length) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", length);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_field_t *elts = d->field->elts;
     if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_pg_field_t *field = &elts[d->field->nelts - 1];
-    field->len = len;
+    field->length = length;
     return s->rc;
 }
 
@@ -1178,9 +1178,9 @@ static ngx_int_t ngx_pg_field_length_get_handler(ngx_http_request_t *r, ngx_http
     ngx_uint_t i = n;
     if (!d->field || i >= d->field->nelts) return NGX_OK;
     ngx_pg_field_t *elts = d->field->elts;
-    v->len = snprintf(NULL, 0, "%i", elts[i].len);
+    v->len = snprintf(NULL, 0, "%i", elts[i].length);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].len) - v->data;
+    v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].length) - v->data;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
