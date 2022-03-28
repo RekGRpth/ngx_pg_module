@@ -1080,6 +1080,7 @@ static ngx_int_t ngx_pg_nfields_get_handler(ngx_http_request_t *r, ngx_http_vari
     if (!u) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
+    if (!d->field) return NGX_OK;
     v->len = snprintf(NULL, 0, "%li", d->field->nelts);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
     v->len = ngx_snprintf(v->data, v->len, "%li", d->field->nelts) - v->data;
@@ -1096,6 +1097,7 @@ static ngx_int_t ngx_pg_nvalues_get_handler(ngx_http_request_t *r, ngx_http_vari
     if (!u) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
+    if (!d->value) return NGX_OK;
     v->len = snprintf(NULL, 0, "%li", d->value->nelts);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
     v->len = ngx_snprintf(v->data, v->len, "%li", d->value->nelts) - v->data;
