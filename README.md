@@ -188,13 +188,13 @@ Result name of *col*:
 add_header field_name_0 $pg_field_name_0 always;
 add_header field_name_1 $pg_field_name_1 always;
 ```
-$pg_ncols
+$pg_nfields
 -------------
-* Syntax: $pg_ncols
+* Syntax: $pg_nfields
 
-Result ncols:
+Result nfields:
 ```nginx
-add_header ncols $pg_ncols always;
+add_header nfields $pg_nfields always;
 ```
 $pg_nvals
 -------------
