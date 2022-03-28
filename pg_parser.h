@@ -13,7 +13,6 @@ typedef struct {
     pg_parser_cb ready_idle;
     pg_parser_cb ready_inerror;
     pg_parser_cb ready_intrans;
-    pg_parser_cb secret;
     pg_parser_int2_cb field_column;
     pg_parser_int2_cb field_count;
     pg_parser_int2_cb field_format;
@@ -34,6 +33,7 @@ typedef struct {
     pg_parser_int4_cb pid;
     pg_parser_int4_cb row;
     pg_parser_int4_cb row_len;
+    pg_parser_int4_cb secret;
     pg_parser_str_cb all;
     pg_parser_str_cb complete_val;
     pg_parser_str_cb error_key;

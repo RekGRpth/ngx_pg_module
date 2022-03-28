@@ -73,7 +73,7 @@ typedef struct pg_parser_t {
     action row_len { parser->row_len = parser->int4; if (settings->row_len(parser->data, parser->row_len)) fbreak; if (!parser->row_len || parser->row_len == (uint32_t)-1) { if (!--parser->row_count) fnext main; else fnext row; } }
     action row_valeof { if (str && settings->row_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action row_val { if (!parser->row_len--) { if (str && settings->row_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->row_count) fnext main; else fnext row; } }
-    action secret { if (settings->secret(parser->data)) fbreak; }
+    action secret { if (settings->secret(parser->data, parser->int4)) fbreak; }
     action str { if (!str) str = p; parser->str = cs; }
 
     any2 = any{2};
@@ -113,7 +113,7 @@ typedef struct pg_parser_t {
     | 67 int4 @complete str0 @complete_val @/complete_val
     | 68 int4 @row int2 @row_count row **
     | 69 int4 @error ( error str0 @error_val @/error_val )** 0
-    | 75 any4 @secret int4 @pid int4 @key
+    | 75 int4 @secret int4 @pid int4 @key
     | 82 any4 @auth int4 @method
     | 83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
     | 84 int4 @field int2 @field_count field **
