@@ -153,14 +153,14 @@ Result mod of *col*:
 add_header field_mod_0 $pg_field_mod_0 always;
 add_header field_mod_1 $pg_field_mod_1 always;
 ```
-$pg_field_fmt_
+$pg_field_format_
 -------------
-* Syntax: $pg_field_fmt_*col*
+* Syntax: $pg_field_format_*col*
 
-Result field_fmt_ of *col*:
+Result field_format_ of *col*:
 ```nginx
-add_header field_fmt_0 $pg_field_fmt_0 always;
-add_header field_fmt_1 $pg_field_fmt_1 always;
+add_header field_format_0 $pg_field_format_0 always;
+add_header field_format_1 $pg_field_format_1 always;
 ```
 $pg_field_column_
 -------------
