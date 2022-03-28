@@ -286,28 +286,28 @@ static int ngx_pg_parser_value_len(ngx_pg_save_t *s, uint32_t value_len) {
     return s->rc;
 }
 
-static int ngx_pg_parser_field_count(ngx_pg_save_t *s, uint16_t field_count) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", field_count);
+static int ngx_pg_parser_field_count(ngx_pg_save_t *s, uint16_t count) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", count);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (!field_count) return s->rc;
+    if (!count) return s->rc;
     ngx_http_request_t *r = d->request;
     ngx_pg_field_t *field;
-    if (!(d->field = ngx_array_create(r->pool, field_count, sizeof(*field)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
+    if (!(d->field = ngx_array_create(r->pool, count, sizeof(*field)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
-static int ngx_pg_parser_value_count(ngx_pg_save_t *s, uint16_t value_count) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", value_count);
+static int ngx_pg_parser_value_count(ngx_pg_save_t *s, uint16_t count) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", count);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (!value_count) return s->rc;
+    if (!count) return s->rc;
     ngx_http_request_t *r = d->request;
     ngx_pg_value_t *value;
     if (!(value = ngx_array_push(d->value))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
     ngx_memzero(value, sizeof(*value));
     ngx_str_t *str;
-    if (!(value->str = ngx_array_create(r->pool, value_count, sizeof(*str)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
+    if (!(value->str = ngx_array_create(r->pool, count, sizeof(*str)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
