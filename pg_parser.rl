@@ -50,7 +50,7 @@ typedef struct pg_parser_t {
     action field_count { parser->field_count = parser->int2; if (settings->field_count(parser->data, parser->field_count)) fbreak; if (!parser->field_count) fnext main; }
     action field_format { if (settings->field_format(parser->data, parser->int2)) fbreak; if (!--parser->field_count) fnext main; }
     action field { if (settings->field(parser->data, parser->int4)) fbreak; }
-    action field_len { if (settings->field_len(parser->data, parser->int2)) fbreak; }
+    action field_length { if (settings->field_length(parser->data, parser->int2)) fbreak; }
     action field_mod { if (settings->field_mod(parser->data, parser->int4)) fbreak; }
     action field_oid { if (settings->field_oid(parser->data, parser->int4)) fbreak; }
     action field_table { if (settings->field_table(parser->data, parser->int4)) fbreak; }
@@ -103,7 +103,7 @@ typedef struct pg_parser_t {
     | 115 @error_schema
     | 116 @error_table );
 
-    field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_len int4 @field_mod int2 @field_format;
+    field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
     value = int4 @value_len str ** $value_val $/value_valeof;
 
     main :=

@@ -390,7 +390,7 @@ static int ngx_pg_parser_field_oid(ngx_pg_save_t *s, uint32_t oid) {
     return s->rc;
 }
 
-static int ngx_pg_parser_field_len(ngx_pg_save_t *s, uint16_t len) {
+static int ngx_pg_parser_field_length(ngx_pg_save_t *s, uint16_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -428,7 +428,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .field_column = (pg_parser_int2_cb)ngx_pg_parser_field_column,
     .field_count = (pg_parser_int2_cb)ngx_pg_parser_field_count,
     .field_format = (pg_parser_int2_cb)ngx_pg_parser_field_format,
-    .field_len = (pg_parser_int2_cb)ngx_pg_parser_field_len,
+    .field_length = (pg_parser_int2_cb)ngx_pg_parser_field_length,
     .field_mod = (pg_parser_int4_cb)ngx_pg_parser_field_mod,
     .field_oid = (pg_parser_int4_cb)ngx_pg_parser_field_oid,
     .field = (pg_parser_int4_cb)ngx_pg_parser_field,
@@ -1165,7 +1165,7 @@ static ngx_int_t ngx_pg_field_oid_get_handler(ngx_http_request_t *r, ngx_http_va
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_field_len_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_field_length_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
@@ -1173,7 +1173,7 @@ static ngx_int_t ngx_pg_field_len_get_handler(ngx_http_request_t *r, ngx_http_va
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_len_") - 1, name->len - sizeof("pg_field_len_") + 1);
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_length_") - 1, name->len - sizeof("pg_field_length_") + 1);
     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t i = n;
     if (!d->field || i >= d->field->nelts) return NGX_OK;
@@ -1222,7 +1222,7 @@ static const ngx_http_variable_t ngx_pg_variables[] = {
   { ngx_string("pg_err_"), NULL, ngx_pg_err_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_field_column_"), NULL, ngx_pg_field_column_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_field_format_"), NULL, ngx_pg_field_format_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
-  { ngx_string("pg_field_len_"), NULL, ngx_pg_field_len_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_field_length_"), NULL, ngx_pg_field_length_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_field_mod_"), NULL, ngx_pg_field_mod_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_field_oid_"), NULL, ngx_pg_field_oid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_field_table_"), NULL, ngx_pg_field_table_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },

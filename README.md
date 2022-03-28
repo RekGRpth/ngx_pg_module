@@ -222,14 +222,14 @@ Result oid of *col*:
 add_header field_oid_0 $pg_field_oid_0 always;
 add_header field_oid_1 $pg_field_oid_1 always;
 ```
-$pg_field_len_
+$pg_field_length_
 -------------
-* Syntax: $pg_field_len_*col*
+* Syntax: $pg_field_length_*col*
 
 Result len of *col*:
 ```nginx
-add_header field_len_0 $pg_field_len_0 always;
-add_header field_len_1 $pg_field_len_1 always;
+add_header field_length_0 $pg_field_length_0 always;
+add_header field_length_1 $pg_field_length_1 always;
 ```
 $pg_val_
 -------------

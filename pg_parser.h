@@ -18,7 +18,7 @@ typedef struct {
     pg_parser_int2_cb field_column;
     pg_parser_int2_cb field_count;
     pg_parser_int2_cb field_format;
-    pg_parser_int2_cb field_len;
+    pg_parser_int2_cb field_length;
     pg_parser_int2_cb ready_state;
     pg_parser_int2_cb value_count;
     pg_parser_int4_cb auth;
