@@ -269,8 +269,8 @@ static int ngx_pg_parser_field_val(ngx_pg_save_t *s, size_t len, const u_char *s
     return s->rc;
 }
 
-static int ngx_pg_parser_value_len(ngx_pg_save_t *s, uint32_t value_len) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", value_len);
+static int ngx_pg_parser_value_len(ngx_pg_save_t *s, uint32_t len) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_value_t *elts = d->value->elts;
@@ -279,10 +279,10 @@ static int ngx_pg_parser_value_len(ngx_pg_save_t *s, uint32_t value_len) {
     ngx_str_t *str;
     if (!(str = ngx_array_push(value->str))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
     ngx_memzero(str, sizeof(*str));
-    if (value_len == (uint32_t)-1) return s->rc;
-    if (!value_len) { ngx_str_set(str, ""); return s->rc; }
+    if (len == (uint32_t)-1) return s->rc;
+    if (!len) { ngx_str_set(str, ""); return s->rc; }
     ngx_http_request_t *r = d->request;
-    if (!(str->data = ngx_pnalloc(r->pool, value_len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
+    if (!(str->data = ngx_pnalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
