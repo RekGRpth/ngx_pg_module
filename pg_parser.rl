@@ -64,10 +64,10 @@ typedef struct pg_parser_t {
     action option_val { if (str && settings->option_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action parse { if (settings->parse(parser->data, parser->int4)) fbreak; }
     action pid { if (settings->pid(parser->data, parser->int4)) fbreak; }
-    action ready_idle { if (settings->ready_idle(parser->data)) fbreak; }
+    action ready_idle { if (settings->ready_state(parser->data, pg_ready_state_idle)) fbreak; }
     action ready { if (settings->ready(parser->data, parser->int4)) fbreak; }
-    action ready_inerror { if (settings->ready_inerror(parser->data)) fbreak; }
-    action ready_intrans { if (settings->ready_intrans(parser->data)) fbreak; }
+    action ready_inerror { if (settings->ready_state(parser->data, pg_ready_state_inerror)) fbreak; }
+    action ready_intrans { if (settings->ready_state(parser->data, pg_ready_state_intrans)) fbreak; }
     action row_count { parser->row_count = parser->int2; if (settings->row_count(parser->data, parser->row_count)) fbreak; if (!parser->row_count) fnext main; }
     action row { if (settings->row(parser->data, parser->int4)) fbreak; }
     action row_len { parser->row_len = parser->int4; if (settings->row_len(parser->data, parser->row_len)) fbreak; if (!parser->row_len || parser->row_len == (uint32_t)-1) { if (!--parser->row_count) fnext main; else fnext row; } }

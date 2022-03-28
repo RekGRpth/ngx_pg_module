@@ -3,13 +3,6 @@
 
 ngx_module_t ngx_pg_module;
 
-typedef enum {
-    ngx_pg_state_unknown = 0,
-    ngx_pg_state_idle,
-    ngx_pg_state_inerror,
-    ngx_pg_state_intrans,
-} ngx_pg_state_t;
-
 typedef struct {
     ngx_http_complex_value_t complex;
     ngx_uint_t type;
@@ -43,14 +36,14 @@ typedef struct {
 typedef struct ngx_pg_data_t ngx_pg_data_t;
 
 typedef struct {
-    uint32_t pid;
     ngx_array_t *option;
     ngx_buf_t buffer;
     ngx_connection_t *connection;
     ngx_pg_data_t *data;
-    ngx_pg_state_t state;
     ngx_uint_t rc;
     pg_parser_t *parser;
+    pg_ready_state_t state;
+    uint32_t pid;
     struct {
         ngx_event_handler_pt read_handler;
         ngx_event_handler_pt write_handler;
@@ -243,25 +236,9 @@ static int ngx_pg_parser_field_format(ngx_pg_save_t *s, uint16_t fmt) {
     return s->rc;
 }
 
-static int ngx_pg_parser_ready_idle(ngx_pg_save_t *s) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    s->state = ngx_pg_state_idle;
-    ngx_pg_data_t *d = s->data;
-    if (d && d->ready) d->ready--;
-    return s->rc;
-}
-
-static int ngx_pg_parser_ready_inerror(ngx_pg_save_t *s) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    s->state = ngx_pg_state_inerror;
-    ngx_pg_data_t *d = s->data;
-    if (d && d->ready) d->ready--;
-    return s->rc;
-}
-
-static int ngx_pg_parser_ready_intrans(ngx_pg_save_t *s) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    s->state = ngx_pg_state_intrans;
+static int ngx_pg_parser_ready_state(ngx_pg_save_t *s, uint16_t state) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", state);
+    s->state = state;
     ngx_pg_data_t *d = s->data;
     if (d && d->ready) d->ready--;
     return s->rc;
@@ -464,10 +441,8 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .option_val = (pg_parser_str_cb)ngx_pg_parser_option_val,
     .parse = (pg_parser_int4_cb)ngx_pg_parser_parse,
     .pid = (pg_parser_int4_cb)ngx_pg_parser_pid,
-    .ready_idle = (pg_parser_cb)ngx_pg_parser_ready_idle,
-    .ready_inerror = (pg_parser_cb)ngx_pg_parser_ready_inerror,
-    .ready_intrans = (pg_parser_cb)ngx_pg_parser_ready_intrans,
     .ready = (pg_parser_int4_cb)ngx_pg_parser_ready,
+    .ready_state = (pg_parser_int2_cb)ngx_pg_parser_ready_state,
     .row_count = (pg_parser_int2_cb)ngx_pg_parser_row_count,
     .row_len = (pg_parser_int4_cb)ngx_pg_parser_row_len,
     .row = (pg_parser_int4_cb)ngx_pg_parser_row,
@@ -815,7 +790,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     if (s->rc == NGX_OK) {
         char buf[1];
         ngx_connection_t *c = s->connection;
-        s->rc = d->ready || s->state == ngx_pg_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
+        s->rc = d->ready || s->state == pg_ready_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
     }
     if (b->pos == b->last) b->pos = b->last = b->start;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);

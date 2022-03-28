@@ -1,6 +1,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+typedef enum {
+    pg_ready_state_unknown = 0,
+    pg_ready_state_idle,
+    pg_ready_state_inerror,
+    pg_ready_state_intrans,
+} pg_ready_state_t;
+
 typedef int (*pg_parser_cb) (void *data);
 typedef int (*pg_parser_int2_cb) (void *data, uint16_t n);
 typedef int (*pg_parser_int4_cb) (void *data, uint32_t n);
@@ -8,13 +15,11 @@ typedef int (*pg_parser_str_cb) (void *data, size_t len, const unsigned char *st
 
 typedef struct {
     pg_parser_cb field_beg;
-    pg_parser_cb ready_idle;
-    pg_parser_cb ready_inerror;
-    pg_parser_cb ready_intrans;
     pg_parser_int2_cb field_column;
     pg_parser_int2_cb field_count;
     pg_parser_int2_cb field_format;
     pg_parser_int2_cb field_len;
+    pg_parser_int2_cb ready_state;
     pg_parser_int2_cb row_count;
     pg_parser_int4_cb auth;
     pg_parser_int4_cb bind;
