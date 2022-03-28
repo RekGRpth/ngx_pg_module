@@ -62,7 +62,7 @@ typedef struct pg_parser_t {
     action option { if (settings->option(parser->data, parser->int4)) fbreak; }
     action option_key { if (str && settings->option_key(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action option_val { if (str && settings->option_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action parse { if (settings->parse(parser->data)) fbreak; }
+    action parse { if (settings->parse(parser->data, parser->int4)) fbreak; }
     action pid { if (settings->pid(parser->data, parser->int4)) fbreak; }
     action ready_idle { if (settings->ready_idle(parser->data)) fbreak; }
     action ready { if (settings->ready(parser->data)) fbreak; }
@@ -107,7 +107,7 @@ typedef struct pg_parser_t {
     row = int4 @row_len str ** $row_val $/row_valeof;
 
     main :=
-    ( 49 any4 @parse
+    ( 49 int4 @parse
     | 50 any4 @bind
     | 51 any4 @close
     | 67 int4 @complete str0 @complete_val @/complete_val

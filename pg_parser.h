@@ -11,7 +11,6 @@ typedef struct {
     pg_parser_cb bind;
     pg_parser_cb close;
     pg_parser_cb field_beg;
-    pg_parser_cb parse;
     pg_parser_cb ready;
     pg_parser_cb ready_idle;
     pg_parser_cb ready_inerror;
@@ -31,6 +30,7 @@ typedef struct {
     pg_parser_int4_cb key;
     pg_parser_int4_cb method;
     pg_parser_int4_cb option;
+    pg_parser_int4_cb parse;
     pg_parser_int4_cb pid;
     pg_parser_int4_cb row;
     pg_parser_int4_cb row_len;
