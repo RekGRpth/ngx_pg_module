@@ -55,8 +55,8 @@ typedef struct pg_parser_t {
     action field_oid { if (settings->field_oid(parser->data, parser->int4)) fbreak; }
     action field_table { if (settings->field_table(parser->data, parser->int4)) fbreak; }
     action field_val { if (str && settings->field_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action int2 { if (!parser->i) { parser->i = 2; parser->int2 = 0; } parser->int2 |= *p << ((2 << 2) * --parser->i); }
-    action int4 { if (!parser->i) { parser->i = 4; parser->int4 = 0; } parser->int4 |= *p << ((2 << 2) * --parser->i); }
+    action int2 { if (!parser->i) { parser->i = sizeof(parser->int2); parser->int2 = 0; } parser->int2 |= *p << ((2 << 2) * --parser->i); }
+    action int4 { if (!parser->i) { parser->i = sizeof(parser->int4); parser->int4 = 0; } parser->int4 |= *p << ((2 << 2) * --parser->i); }
     action key { if (settings->key(parser->data, parser->int4)) fbreak; }
     action method { if (settings->method(parser->data, parser->int4)) fbreak; }
     action option { if (settings->option(parser->data, parser->int4)) fbreak; }
