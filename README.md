@@ -124,25 +124,25 @@ add_header error_sqlstate $pg_error_sqlstate always;
 add_header error_statement $pg_error_statement always;
 add_header error_table $pg_error_table always;
 ```
-$pg_opt_
+$pg_option_
 -------------
-* Syntax: $pg_opt_*name*
+* Syntax: $pg_option_*name*
 
 Option *name* from connection:
 ```nginx
-add_header opt_application_name $pg_opt_application_name always;
-add_header opt_client_encoding $pg_opt_client_encoding always;
-add_header opt_datestyle $pg_opt_datestyle always;
-add_header opt_default_transaction_read_only $pg_opt_default_transaction_read_only always;
-add_header opt_in_hot_standby $pg_opt_in_hot_standby always;
-add_header opt_integer_datetimes $pg_opt_integer_datetimes always;
-add_header opt_intervalstyle $pg_opt_intervalstyle always;
-add_header opt_is_superuser $pg_opt_is_superuser always;
-add_header opt_server_encoding $pg_opt_server_encoding always;
-add_header opt_server_version $pg_opt_server_version always;
-add_header opt_session_authorization $pg_opt_session_authorization always;
-add_header opt_standard_conforming_strings $pg_opt_standard_conforming_strings always;
-add_header opt_timezone $pg_opt_timezone always;
+add_header option_application_name $pg_option_application_name always;
+add_header option_client_encoding $pg_option_client_encoding always;
+add_header option_datestyle $pg_option_datestyle always;
+add_header option_default_transaction_read_only $pg_option_default_transaction_read_only always;
+add_header option_in_hot_standby $pg_option_in_hot_standby always;
+add_header option_integer_datetimes $pg_option_integer_datetimes always;
+add_header option_intervalstyle $pg_option_intervalstyle always;
+add_header option_is_superuser $pg_option_is_superuser always;
+add_header option_server_encoding $pg_option_server_encoding always;
+add_header option_server_version $pg_option_server_version always;
+add_header option_session_authorization $pg_option_session_authorization always;
+add_header option_standard_conforming_strings $pg_option_standard_conforming_strings always;
+add_header option_timezone $pg_option_timezone always;
 ```
 $pg_field_mod_
 -------------
