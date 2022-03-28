@@ -22,7 +22,7 @@ typedef struct pg_parser_t {
     action all { if (settings->all(parser->data, 0, p)) fbreak; }
     action auth { if (settings->auth(parser->data)) fbreak; }
     action bind { if (settings->bind(parser->data, parser->int4)) fbreak; }
-    action close { if (settings->close(parser->data)) fbreak; }
+    action close { if (settings->close(parser->data, parser->int4)) fbreak; }
     action complete { if (settings->complete(parser->data, parser->int4)) fbreak; }
     action complete_val { if (str && settings->complete_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action error_column { if (settings->error_key(parser->data, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
@@ -109,7 +109,7 @@ typedef struct pg_parser_t {
     main :=
     ( 49 int4 @parse
     | 50 int4 @bind
-    | 51 any4 @close
+    | 51 int4 @close
     | 67 int4 @complete str0 @complete_val @/complete_val
     | 68 int4 @row int2 @row_count row **
     | 69 int4 @error ( error str0 @error_val @/error_val )** 0
