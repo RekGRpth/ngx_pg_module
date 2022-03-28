@@ -80,7 +80,7 @@ typedef struct pg_parser_t {
     int2 = any{2} $int2;
     int4 = any{4} $int4;
     str0 = char ** $str 0;
-    str = any $str;
+    str = any @str;
 
     error_key =
     (  67 @error_sqlstate
