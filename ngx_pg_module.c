@@ -134,8 +134,9 @@ static int ngx_pg_parser_error_key(ngx_pg_save_t *s, size_t len, const u_char *s
     return s->rc;
 }
 
-static int ngx_pg_parser_bind(ngx_pg_save_t *s) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+static int ngx_pg_parser_bind(ngx_pg_save_t *s, uint32_t len) {
+    if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
     return s->rc;
 }
 
@@ -435,7 +436,7 @@ static int ngx_pg_parser_option_val(ngx_pg_save_t *s, size_t len, const u_char *
 static const pg_parser_settings_t ngx_pg_parser_settings = {
     .all = (pg_parser_str_cb)ngx_pg_parser_all,
     .auth = (pg_parser_cb)ngx_pg_parser_auth,
-    .bind = (pg_parser_cb)ngx_pg_parser_bind,
+    .bind = (pg_parser_int4_cb)ngx_pg_parser_bind,
     .close = (pg_parser_cb)ngx_pg_parser_close,
     .complete = (pg_parser_int4_cb)ngx_pg_parser_complete,
     .complete_val = (pg_parser_str_cb)ngx_pg_parser_complete_val,
