@@ -99,30 +99,30 @@ Backend pid:
 ```nginx
 add_header pid $pg_pid always;
 ```
-$pg_err_
+$pg_error_
 -------------
-* Syntax: $pg_err_*name*
+* Syntax: $pg_error_*name*
 
 Error *name* from connection:
 ```nginx
-add_header err_column $pg_err_column always;
-add_header err_constraint $pg_err_constraint always;
-add_header err_context $pg_err_context always;
-add_header err_datatype $pg_err_datatype always;
-add_header err_detail $pg_err_detail always;
-add_header err_file $pg_err_file always;
-add_header err_function $pg_err_function always;
-add_header err_hint $pg_err_hint always;
-add_header err_internal $pg_err_internal always;
-add_header err_line $pg_err_line always;
-add_header err_nonlocalized $pg_err_nonlocalized always;
-add_header err_primary $pg_err_primary always;
-add_header err_query $pg_err_query always;
-add_header err_schema $pg_err_schema always;
-add_header err_severity $pg_err_severity always;
-add_header err_sqlstate $pg_err_sqlstate always;
-add_header err_statement $pg_err_statement always;
-add_header err_table $pg_err_table always;
+add_header error_column $pg_error_column always;
+add_header error_constraint $pg_error_constraint always;
+add_header error_context $pg_error_context always;
+add_header error_datatype $pg_error_datatype always;
+add_header error_detail $pg_error_detail always;
+add_header error_file $pg_error_file always;
+add_header error_function $pg_error_function always;
+add_header error_hint $pg_error_hint always;
+add_header error_internal $pg_error_internal always;
+add_header error_line $pg_error_line always;
+add_header error_nonlocalized $pg_error_nonlocalized always;
+add_header error_primary $pg_error_primary always;
+add_header error_query $pg_error_query always;
+add_header error_schema $pg_error_schema always;
+add_header error_severity $pg_error_severity always;
+add_header error_sqlstate $pg_error_sqlstate always;
+add_header error_statement $pg_error_statement always;
+add_header error_table $pg_error_table always;
 ```
 $pg_opt_
 -------------
