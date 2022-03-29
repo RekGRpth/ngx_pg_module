@@ -407,9 +407,9 @@ static int ngx_pg_parser_field_length(ngx_pg_save_t *s, uint16_t length) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", length);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_field_t *elts = d->field->elts;
     if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_field_t *field = &elts[d->field->nelts - 1];
+    ngx_pg_field_t *field = d->field->elts;
+    field = &field[d->field->nelts - 1];
     field->length = length;
     return s->rc;
 }
