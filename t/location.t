@@ -124,7 +124,7 @@ value-0-1: 345
         pg_con user=postgres database=postgres application_name=location;
         pg_out plain;
         pg_pas postgres:5432;
-        pg_sql "select 12 as ab union select 345";
+        pg_sql "select 12 as ab union select 345 order by 1";
     }
 --- request
 GET /
@@ -164,7 +164,7 @@ value-1-0: 345
         pg_con user=postgres database=postgres application_name=location;
         pg_out plain;
         pg_pas postgres:5432;
-        pg_sql "select 12 as ab, 345 as cde union select 67, 89";
+        pg_sql "select 12 as ab, 345 as cde union select 67, 89 order by 1";
     }
 --- request
 GET /
