@@ -1573,16 +1573,16 @@ static ngx_chain_t *ngx_pg_sync(ngx_pool_t *p) {
 static char *ngx_pg_sql_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->cmd.query || plcf->cmd.parse) return "duplicate";
-    ngx_str_t *elts = cf->args->elts;
+    ngx_str_t *args = cf->args->elts;
     if (!(plcf->cmd.flush = ngx_pg_flush(cf->pool))) return NGX_CONF_ERROR;
     if (plcf->cmd.arg) {
         if (!(plcf->cmd.close = ngx_pg_close(cf->pool))) return NGX_CONF_ERROR;
         if (!(plcf->cmd.describe = ngx_pg_describe(cf->pool))) return NGX_CONF_ERROR;
         if (!(plcf->cmd.execute = ngx_pg_execute(cf->pool))) return NGX_CONF_ERROR;
-        if (!(plcf->cmd.parse = ngx_pg_parse(cf->pool, elts[1].len, elts[1].data, plcf->cmd.arg))) return NGX_CONF_ERROR;
+        if (!(plcf->cmd.parse = ngx_pg_parse(cf->pool, args[1].len, args[1].data, plcf->cmd.arg))) return NGX_CONF_ERROR;
         if (!(plcf->cmd.sync = ngx_pg_sync(cf->pool))) return NGX_CONF_ERROR;
     } else {
-        if (!(plcf->cmd.query = ngx_pg_query(cf->pool, elts[1].len, elts[1].data))) return NGX_CONF_ERROR;
+        if (!(plcf->cmd.query = ngx_pg_query(cf->pool, args[1].len, args[1].data))) return NGX_CONF_ERROR;
     }
     return NGX_CONF_OK;
 }
