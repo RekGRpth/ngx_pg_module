@@ -1000,10 +1000,10 @@ static ngx_int_t ngx_pg_field_mod_get_handler(ngx_http_request_t *r, ngx_http_va
     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t i = n;
     if (!d->field || i >= d->field->nelts) return NGX_OK;
-    ngx_pg_field_t *elts = d->field->elts;
-    v->len = snprintf(NULL, 0, "%i", elts[i].mod);
+    ngx_pg_field_t *field = d->field->elts;
+    v->len = snprintf(NULL, 0, "%i", field[i].mod);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%i", elts[i].mod) - v->data;
+    v->len = ngx_snprintf(v->data, v->len, "%i", field[i].mod) - v->data;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
