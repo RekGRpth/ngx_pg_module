@@ -9,17 +9,19 @@ typedef struct {
 } ngx_pg_arg_t;
 
 typedef struct {
-    ngx_array_t *arg;
-    ngx_chain_t *close;
     ngx_chain_t *connect;
-    ngx_chain_t *describe;
-    ngx_chain_t *execute;
-    ngx_chain_t *flush;
-    ngx_chain_t *parse;
-    ngx_chain_t *query;
-    ngx_chain_t *sync;
     ngx_http_complex_value_t complex;
     ngx_http_upstream_conf_t upstream;
+    struct {
+        ngx_array_t *arg;
+        ngx_chain_t *close;
+        ngx_chain_t *describe;
+        ngx_chain_t *execute;
+        ngx_chain_t *flush;
+        ngx_chain_t *parse;
+        ngx_chain_t *query;
+        ngx_chain_t *sync;
+    } cmd;
 } ngx_pg_loc_conf_t;
 
 typedef struct {
@@ -534,14 +536,14 @@ static ngx_chain_t *ngx_pg_bind(ngx_http_request_t *r) {
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     ngx_pool_t *p = r->pool;
     uint32_t size = 0;
-    ngx_pg_arg_t *elts = plcf->arg->elts;
+    ngx_pg_arg_t *elts = plcf->cmd.arg->elts;
     if (!(cl = bind = ngx_pg_write_char(p, NULL, 'B'))) return NULL;
     if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (u_char *)""))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (u_char *)""))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, plcf->arg->nelts))) return NULL;
-    for (ngx_uint_t i = 0; i < plcf->arg->nelts; i++) {
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, plcf->cmd.arg->nelts))) return NULL;
+    for (ngx_uint_t i = 0; i < plcf->cmd.arg->nelts; i++) {
         if (elts[i].complex.value.data) {
             ngx_str_t value;
             if (ngx_http_complex_value(r, &elts[i].complex, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "ngx_http_complex_value != NGX_OK"); return NULL; }
@@ -604,7 +606,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             b->pos = b->start;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
-        for (ngx_chain_t *cmd = plcf->flush; cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = plcf->cmd.flush; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
             b->pos = b->start;
@@ -614,15 +616,15 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     }
     d->ready++;
     s->data = d;
-    if (plcf->query) {
-        for (ngx_chain_t *cmd = plcf->query; cmd; cmd = cmd->next) {
+    if (plcf->cmd.query) {
+        for (ngx_chain_t *cmd = plcf->cmd.query; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
             b->pos = b->start;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
-    } else if (plcf->parse) {
-        for (ngx_chain_t *cmd = plcf->parse; cmd; cmd = cmd->next) {
+    } else if (plcf->cmd.parse) {
+        for (ngx_chain_t *cmd = plcf->cmd.parse; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
             b->pos = b->start;
@@ -631,32 +633,32 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!(cl = cl->next = ngx_pg_bind(r))) return NGX_ERROR;
         while (cl->next) cl = cl->next;
         if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
-        for (ngx_chain_t *cmd = plcf->describe; cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = plcf->cmd.describe; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
             b->pos = b->start;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
-        for (ngx_chain_t *cmd = plcf->execute; cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = plcf->cmd.execute; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
             b->pos = b->start;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
-        for (ngx_chain_t *cmd = plcf->close; cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = plcf->cmd.close; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
             b->pos = b->start;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
-        for (ngx_chain_t *cmd = plcf->sync; cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = plcf->cmd.sync; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
             b->pos = b->start;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
     } else { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!query && !parse"); return NGX_ERROR; }
-    for (ngx_chain_t *cmd = plcf->flush; cmd; cmd = cmd->next) {
+    for (ngx_chain_t *cmd = plcf->cmd.flush; cmd; cmd = cmd->next) {
         cl->buf = cmd->buf;
         ngx_buf_t *b = cl->buf;
         b->pos = b->start;
@@ -1431,17 +1433,17 @@ static ngx_chain_t *ngx_pg_sync(ngx_pool_t *p) {
 
 static char *ngx_pg_sql_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->query || plcf->parse) return "duplicate";
+    if (plcf->cmd.query || plcf->cmd.parse) return "duplicate";
     ngx_str_t *elts = cf->args->elts;
-    if (!(plcf->flush = ngx_pg_flush(cf->pool))) return NGX_CONF_ERROR;
-    if (plcf->arg) {
-        if (!(plcf->close = ngx_pg_close(cf->pool))) return NGX_CONF_ERROR;
-        if (!(plcf->describe = ngx_pg_describe(cf->pool))) return NGX_CONF_ERROR;
-        if (!(plcf->execute = ngx_pg_execute(cf->pool))) return NGX_CONF_ERROR;
-        if (!(plcf->parse = ngx_pg_parse(cf->pool, elts[1].len, elts[1].data, plcf->arg))) return NGX_CONF_ERROR;
-        if (!(plcf->sync = ngx_pg_sync(cf->pool))) return NGX_CONF_ERROR;
+    if (!(plcf->cmd.flush = ngx_pg_flush(cf->pool))) return NGX_CONF_ERROR;
+    if (plcf->cmd.arg) {
+        if (!(plcf->cmd.close = ngx_pg_close(cf->pool))) return NGX_CONF_ERROR;
+        if (!(plcf->cmd.describe = ngx_pg_describe(cf->pool))) return NGX_CONF_ERROR;
+        if (!(plcf->cmd.execute = ngx_pg_execute(cf->pool))) return NGX_CONF_ERROR;
+        if (!(plcf->cmd.parse = ngx_pg_parse(cf->pool, elts[1].len, elts[1].data, plcf->cmd.arg))) return NGX_CONF_ERROR;
+        if (!(plcf->cmd.sync = ngx_pg_sync(cf->pool))) return NGX_CONF_ERROR;
     } else {
-        if (!(plcf->query = ngx_pg_query(cf->pool, elts[1].len, elts[1].data))) return NGX_CONF_ERROR;
+        if (!(plcf->cmd.query = ngx_pg_query(cf->pool, elts[1].len, elts[1].data))) return NGX_CONF_ERROR;
     }
     return NGX_CONF_OK;
 }
@@ -1449,8 +1451,8 @@ static char *ngx_pg_sql_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     ngx_pg_arg_t *arg;
-    if (!plcf->arg && !(plcf->arg = ngx_array_create(cf->pool, 1, sizeof(*arg)))) return "!ngx_array_create";
-    if (!(arg = ngx_array_push(plcf->arg))) return "!ngx_array_push";
+    if (!plcf->cmd.arg && !(plcf->cmd.arg = ngx_array_create(cf->pool, 1, sizeof(*arg)))) return "!ngx_array_create";
+    if (!(arg = ngx_array_push(plcf->cmd.arg))) return "!ngx_array_push";
     ngx_memzero(arg, sizeof(*arg));
     ngx_str_t *elts = cf->args->elts;
     if (elts[1].len != sizeof("NULL") - 1 || ngx_strncasecmp(elts[1].data, "NULL", sizeof("NULL") - 1)) {
