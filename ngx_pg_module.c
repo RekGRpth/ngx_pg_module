@@ -272,9 +272,9 @@ static int ngx_pg_parser_field_name(ngx_pg_save_t *s, size_t len, const u_char *
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_field_t *elts = d->field->elts;
     if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_field_t *field = &elts[d->field->nelts - 1];
+    ngx_pg_field_t *field = d->field->elts;
+    field = &field[d->field->nelts - 1];
     if (!field->name.data) field->name.data = d->fields.data + d->fields.len;
     ngx_memcpy(field->name.data + field->name.len, data, len);
     field->name.len += len;
