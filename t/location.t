@@ -634,17 +634,17 @@ value-1-0: 345
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
         add_header value-1-1 $pg_value_1_1 always;
-        pg_arg 12 23;
-        pg_arg 345 23;
-        pg_arg 67 23;
-        pg_arg 89 23;
+        pg_arg $arg_a 23;
+        pg_arg $arg_b 23;
+        pg_arg $arg_c 23;
+        pg_arg $arg_d 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out csv;
         pg_pas postgres:5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
     }
 --- request
-GET /
+GET /?a=12&b=345&c=67&d=89
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
