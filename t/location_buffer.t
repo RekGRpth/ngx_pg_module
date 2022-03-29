@@ -114,14 +114,16 @@ error-sqlstate: 22012
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-0-1 $pg_value_0_1 always;
+        pg_arg $arg_a 23;
+        pg_arg $arg_b 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out plain;
         pg_pas postgres:5432;
-        pg_sql "select 12 as ab, 345 as cde";
+        pg_sql "select $1 as ab, $2 as cde";
         pg_upstream_buffer_size 1;
     }
 --- request
-GET /
+GET /?a=12&b=345
 --- error_code: 200
 --- response_headers
 complete: SELECT 1
@@ -173,14 +175,16 @@ value-0-1: 345
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-1-0 $pg_value_1_0 always;
+        pg_arg $arg_a 23;
+        pg_arg $arg_b 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out plain;
         pg_pas postgres:5432;
-        pg_sql "select 12 as ab union select 345 order by 1";
+        pg_sql "select $1 as ab union select $2 order by 1";
         pg_upstream_buffer_size 1;
     }
 --- request
-GET /
+GET /?a=12&b=345
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
@@ -234,14 +238,18 @@ value-1-0: 345
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
         add_header value-1-1 $pg_value_1_1 always;
+        pg_arg $arg_a 23;
+        pg_arg $arg_b 23;
+        pg_arg $arg_c 23;
+        pg_arg $arg_d 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out plain;
         pg_pas postgres:5432;
-        pg_sql "select 12 as ab, 345 as cde union select 67, 89 order by 1";
+        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_upstream_buffer_size 1;
     }
 --- request
-GET /
+GET /?a=12&b=345&c=67&d=89
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
@@ -301,14 +309,18 @@ value-1-1: 89
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
         add_header value-1-1 $pg_value_1_1 always;
+        pg_arg NULL 25;
+        pg_arg $arg_a 23;
+        pg_arg $arg_b;
+        pg_arg $arg_c 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out plain;
         pg_pas postgres:5432;
-        pg_sql "select null::text as ab, 34 as cde union select 'qwe', 89 order by 2";
+        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 2";
         pg_upstream_buffer_size 1;
     }
 --- request
-GET /
+GET /?a=34&b=qwe&c=89
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
@@ -368,14 +380,18 @@ value-1-1: 89
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
         add_header value-1-1 $pg_value_1_1 always;
+        pg_arg $arg_a 23;
+        pg_arg NULL 25;
+        pg_arg $arg_b 23;
+        pg_arg $arg_c;
         pg_con user=postgres database=postgres application_name=location;
         pg_out plain;
         pg_pas postgres:5432;
-        pg_sql "select 34 as ab, null::text as cde union select 89, 'qwe' order by 1";
+        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_upstream_buffer_size 1;
     }
 --- request
-GET /
+GET /?a=34&b=89&c=qwe
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
@@ -435,14 +451,18 @@ value-1-1: qwe
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
         add_header value-1-1 $pg_value_1_1 always;
+        pg_arg $arg_a 23;
+        pg_arg $arg_b;
+        pg_arg $arg_c 23;
+        pg_arg NULL 25;
         pg_con user=postgres database=postgres application_name=location;
         pg_out plain;
         pg_pas postgres:5432;
-        pg_sql "select 34 as ab, 'qwe' as cde union select 89, null::text order by 1";
+        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_upstream_buffer_size 1;
     }
 --- request
-GET /
+GET /?a=34&b=qwe&c=89
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
@@ -500,14 +520,16 @@ value-1-1:
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-0-1 $pg_value_0_1 always;
+        pg_arg $arg_a 23;
+        pg_arg $arg_b 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out csv;
         pg_pas postgres:5432;
-        pg_sql "select 12 as ab, 345 as cde";
+        pg_sql "select $1 as ab, $2 as cde";
         pg_upstream_buffer_size 1;
     }
 --- request
-GET /
+GET /?a=12&b=345
 --- error_code: 200
 --- response_headers
 complete: SELECT 1
@@ -559,14 +581,16 @@ value-0-1: 345
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-1-0 $pg_value_1_0 always;
+        pg_arg $arg_a 23;
+        pg_arg $arg_b 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out csv;
         pg_pas postgres:5432;
-        pg_sql "select 12 as ab union select 345 order by 1";
+        pg_sql "select $1 as ab union select $2 order by 1";
         pg_upstream_buffer_size 1;
     }
 --- request
-GET /
+GET /?a=12&b=345
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
@@ -620,14 +644,18 @@ value-1-0: 345
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
         add_header value-1-1 $pg_value_1_1 always;
+        pg_arg $arg_a 23;
+        pg_arg $arg_b 23;
+        pg_arg $arg_c 23;
+        pg_arg $arg_d 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out csv;
         pg_pas postgres:5432;
-        pg_sql "select 12 as ab, 345 as cde union select 67, 89 order by 1";
+        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_upstream_buffer_size 1;
     }
 --- request
-GET /
+GET /?a=12&b=345&c=67&d=89
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
@@ -687,14 +715,18 @@ value-1-1: 89
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
         add_header value-1-1 $pg_value_1_1 always;
+        pg_arg NULL 25;
+        pg_arg $arg_a 23;
+        pg_arg $arg_b;
+        pg_arg $arg_c 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out csv;
         pg_pas postgres:5432;
-        pg_sql "select null::text as ab, 34 as cde union select 'qwe', 89 order by 2";
+        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 2";
         pg_upstream_buffer_size 1;
     }
 --- request
-GET /
+GET /?a=34&b=qwe&c=89
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
@@ -754,14 +786,18 @@ value-1-1: 89
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
         add_header value-1-1 $pg_value_1_1 always;
+        pg_arg $arg_a 23;
+        pg_arg NULL 25;
+        pg_arg $arg_b 23;
+        pg_arg $arg_c;
         pg_con user=postgres database=postgres application_name=location;
         pg_out csv;
         pg_pas postgres:5432;
-        pg_sql "select 34 as ab, null::text as cde union select 89, 'qwe' order by 1";
+        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_upstream_buffer_size 1;
     }
 --- request
-GET /
+GET /?a=34&b=89&c=qwe
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
@@ -821,14 +857,18 @@ value-1-1: qwe
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
         add_header value-1-1 $pg_value_1_1 always;
+        pg_arg $arg_a 23;
+        pg_arg $arg_b;
+        pg_arg $arg_c 23;
+        pg_arg NULL 25;
         pg_con user=postgres database=postgres application_name=location;
         pg_out csv;
         pg_pas postgres:5432;
-        pg_sql "select 34 as ab, 'qwe' as cde union select 89, null::text order by 1";
+        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_upstream_buffer_size 1;
     }
 --- request
-GET /
+GET /?a=34&b=qwe&c=89
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
