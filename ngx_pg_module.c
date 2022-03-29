@@ -328,8 +328,8 @@ static int ngx_pg_parser_option_key(ngx_pg_save_t *s, size_t len, const u_char *
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     if (!s->option->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_option_t *elts = s->option->elts;
-    ngx_pg_option_t *option = &elts[s->option->nelts - 1];
+    ngx_pg_option_t *option = s->option->elts;
+    option = &option[s->option->nelts - 1];
     ngx_memcpy(option->key.data + option->key.len, data, len);
     option->key.len += len;
     return s->rc;
