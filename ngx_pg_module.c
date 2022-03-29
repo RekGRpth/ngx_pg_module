@@ -26,7 +26,6 @@ typedef struct {
     } cmd;
     struct {
         ngx_flag_t header;
-        ngx_flag_t string;
         ngx_pg_out_handler handler;
         ngx_str_t null;
         u_char delimiter;
@@ -1393,7 +1392,6 @@ static char *ngx_pg_out_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     if (!h[i].name.len) return "format must be \"plain\", \"csv\" or \"value\"";
     plcf->out.handler = h[i].handler;
     plcf->out.header = 1;
-    plcf->out.string = 1;
     if (plcf->out.handler == ngx_pg_out_csv_handler) {
         ngx_str_set(&plcf->out.null, "");
         plcf->out.delimiter = ',';
@@ -1430,12 +1428,6 @@ static char *ngx_pg_out_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
                 for (j = 0; e[j].name.len; j++) if (e[j].name.len == args[i].len - (sizeof("header=") - 1) && !ngx_strncasecmp(e[j].name.data,  &args[i].data[sizeof("header=") - 1], args[i].len - (sizeof("header=") - 1))) break;
                 if (!e[j].name.len) return "\"header\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
                 plcf->out.header = e[j].value;
-                continue;
-            }
-            if (args[i].len > sizeof("string=") - 1 && !ngx_strncasecmp(args[i].data, (u_char *)"string=", sizeof("string=") - 1)) {
-                for (j = 0; e[j].name.len; j++) if (e[j].name.len == args[i].len - (sizeof("string=") - 1) && !ngx_strncasecmp(e[j].name.data,  &args[i].data[sizeof("string=") - 1], args[i].len - (sizeof("string=") - 1))) break;
-                if (!e[j].name.len) return "\"string\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
-                plcf->out.string = e[j].value;
                 continue;
             }
             if (args[i].len >= sizeof("quote=") - 1 && !ngx_strncasecmp(args[i].data, (u_char *)"quote=", sizeof("quote=") - 1)) {
