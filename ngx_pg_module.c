@@ -1205,8 +1205,8 @@ static ngx_int_t ngx_pg_result_get_handler(ngx_http_request_t *r, ngx_http_varia
     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t i = n;
     if (!d->result || i >= d->result->nelts) return NGX_OK;
-    ngx_array_t *elts = d->result->elts;
-    ngx_array_t *result = &elts[i];
+    ngx_array_t *result = d->result->elts;
+    result = &result[i];
     ngx_int_t m = ngx_atoi(c + 1, name->data + name->len - c - 1);
     if (m == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t j = m;
