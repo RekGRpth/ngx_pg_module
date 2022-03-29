@@ -104,9 +104,9 @@ static int ngx_pg_parser_field_mod(ngx_pg_save_t *s, uint32_t mod) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", mod);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_field_t *elts = d->field->elts;
     if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_field_t *field = &elts[d->field->nelts - 1];
+    ngx_pg_field_t *field = d->field->elts;
+    field = &field[d->field->nelts - 1];
     field->mod = mod;
     return s->rc;
 }
@@ -173,9 +173,9 @@ static int ngx_pg_parser_field_column(ngx_pg_save_t *s, uint16_t column) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", column);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_field_t *elts = d->field->elts;
     if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_field_t *field = &elts[d->field->nelts - 1];
+    ngx_pg_field_t *field = d->field->elts;
+    field = &field[d->field->nelts - 1];
     field->column = column;
     return s->rc;
 }
