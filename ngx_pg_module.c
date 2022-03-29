@@ -974,14 +974,14 @@ static ngx_int_t ngx_pg_option_get_handler(ngx_http_request_t *r, ngx_http_varia
     ngx_pg_save_t *s = d->save;
     if (!s) return NGX_OK;
     if (!s->option) return NGX_OK;
-    ngx_pg_option_t *elts = s->option->elts;
+    ngx_pg_option_t *option = s->option->elts;
     ngx_str_t *name = (ngx_str_t *)data;
     ngx_uint_t i;
-    for (i = 0; i < s->option->nelts; i++) if (name->len - sizeof("pg_option_") + 1 == elts[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_option_") - 1, elts[i].key.data, elts[i].key.len)) break;
+    for (i = 0; i < s->option->nelts; i++) if (name->len - sizeof("pg_option_") + 1 == option[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_option_") - 1, option[i].key.data, option[i].key.len)) break;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", i == s->option->nelts ? "true" : "false");
     if (i == s->option->nelts) return NGX_OK;
-    v->data = elts[i].val.data;
-    v->len = elts[i].val.len;
+    v->data = option[i].val.data;
+    v->len = option[i].val.len;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
