@@ -27,6 +27,7 @@ GET /
 --- error_code: 200
 --- response_headers
 complete: SELECT 1
+Content-Length: 1
 Content-Type: text/plain
 field-length-0: 4
 field-mod-0: 42
@@ -92,6 +93,7 @@ GET /
 --- error_code: 200
 --- response_headers
 complete: SELECT 1
+Content-Length: 13
 Content-Type: text/plain
 field-length-0: 4
 field-length-1: 4
@@ -129,6 +131,7 @@ GET /
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
+Content-Length: 9
 Content-Type: text/plain
 field-length-0: 4
 field-mod-0: 42
