@@ -234,3 +234,49 @@ value-1-1: 89
 --- response_body eval
 "ab\x{09}cde\x{0a}\\N\x{09}34\x{0a}qwe\x{09}89"
 --- timeout: 10
+
+=== TEST 7:
+--- main_config
+    load_module /etc/nginx/modules/ngx_pg_module.so;
+--- config
+    location =/ {
+        add_header complete $pg_complete always;
+        add_header field-length-0 $pg_field_length_0 always;
+        add_header field-length-1 $pg_field_length_1 always;
+        add_header field-mod-0 $pg_field_mod_0 always;
+        add_header field-mod-1 $pg_field_mod_1 always;
+        add_header field-name-0 $pg_field_name_0 always;
+        add_header field-name-1 $pg_field_name_1 always;
+        add_header field-oid-0 $pg_field_oid_0 always;
+        add_header field-oid-1 $pg_field_oid_1 always;
+        add_header value-0-0 $pg_value_0_0 always;
+        add_header value-0-1 $pg_value_0_1 always;
+        add_header value-1-0 $pg_value_1_0 always;
+        add_header value-1-1 $pg_value_1_1 always;
+        pg_con user=postgres database=postgres application_name=location;
+        pg_out plain;
+        pg_pas postgres:5432;
+        pg_sql "select 34 as ab, null::text as cde union select 89, 'qwe' order by 1";
+    }
+--- request
+GET /
+--- error_code: 200
+--- response_headers
+complete: SELECT 2
+Content-Length: 19
+Content-Type: text/plain
+field-length-0: 4
+field-length-1: 65535
+field-mod-0: 42
+field-mod-1: 42
+field-name-0: ab
+field-name-1: cde
+field-oid-0: 23
+field-oid-1: 25
+value-0-0: 34
+value-0-1:
+value-1-0: 89
+value-1-1: qwe
+--- response_body eval
+"ab\x{09}cde\x{0a}34\x{09}\\N\x{0a}89\x{09}qwe"
+--- timeout: 10
