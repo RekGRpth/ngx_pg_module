@@ -951,13 +951,13 @@ static ngx_int_t ngx_pg_error_get_handler(ngx_http_request_t *r, ngx_http_variab
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     if (!d->error) return NGX_OK;
-    ngx_pg_error_t *elts = d->error->elts;
+    ngx_pg_error_t *error = d->error->elts;
     ngx_str_t *name = (ngx_str_t *)data;
     ngx_uint_t i;
-    for (i = 0; i < d->error->nelts; i++) if (name->len - sizeof("pg_error_") + 1 == elts[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_error_") - 1, elts[i].key.data, elts[i].key.len)) break;
+    for (i = 0; i < d->error->nelts; i++) if (name->len - sizeof("pg_error_") + 1 == error[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_error_") - 1, error[i].key.data, error[i].key.len)) break;
     if (i == d->error->nelts) return NGX_OK;
-    v->data = elts[i].val.data;
-    v->len = elts[i].val.len;
+    v->data = error[i].val.data;
+    v->len = error[i].val.len;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
