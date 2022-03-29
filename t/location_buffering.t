@@ -104,6 +104,16 @@ error-sqlstate: 22012
         add_header field-name-1 $pg_field_name_1 always;
         add_header field-oid-0 $pg_field_oid_0 always;
         add_header field-oid-1 $pg_field_oid_1 always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-default-transaction-read-only $pg_option_default_transaction_read_only always;
+        add_header option-in-hot-standby $pg_option_in_hot_standby always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-0-1 $pg_value_0_1 always;
         pg_con user=postgres database=postgres application_name=location;
@@ -128,6 +138,16 @@ field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
 field-oid-1: 23
+option-application-name: location
+option-client-encoding: UTF8
+option-default-transaction-read-only: off
+option-in-hot-standby: off
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 value-0-0: 12
 value-0-1: 345
 --- response_body eval
@@ -144,6 +164,16 @@ value-0-1: 345
         add_header field-mod-0 $pg_field_mod_0 always;
         add_header field-name-0 $pg_field_name_0 always;
         add_header field-oid-0 $pg_field_oid_0 always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-default-transaction-read-only $pg_option_default_transaction_read_only always;
+        add_header option-in-hot-standby $pg_option_in_hot_standby always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-1-0 $pg_value_1_0 always;
         pg_con user=postgres database=postgres application_name=location;
@@ -164,6 +194,16 @@ field-length-0: 4
 field-mod-0: 42
 field-name-0: ab
 field-oid-0: 23
+option-application-name: location
+option-client-encoding: UTF8
+option-default-transaction-read-only: off
+option-in-hot-standby: off
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 value-0-0: 12
 value-1-0: 345
 --- response_body eval
@@ -184,6 +224,16 @@ value-1-0: 345
         add_header field-name-1 $pg_field_name_1 always;
         add_header field-oid-0 $pg_field_oid_0 always;
         add_header field-oid-1 $pg_field_oid_1 always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-default-transaction-read-only $pg_option_default_transaction_read_only always;
+        add_header option-in-hot-standby $pg_option_in_hot_standby always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
@@ -210,6 +260,16 @@ field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
 field-oid-1: 23
+option-application-name: location
+option-client-encoding: UTF8
+option-default-transaction-read-only: off
+option-in-hot-standby: off
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 value-0-0: 12
 value-0-1: 345
 value-1-0: 67
@@ -232,6 +292,16 @@ value-1-1: 89
         add_header field-name-1 $pg_field_name_1 always;
         add_header field-oid-0 $pg_field_oid_0 always;
         add_header field-oid-1 $pg_field_oid_1 always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-default-transaction-read-only $pg_option_default_transaction_read_only always;
+        add_header option-in-hot-standby $pg_option_in_hot_standby always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
@@ -258,6 +328,16 @@ field-name-0: ab
 field-name-1: cde
 field-oid-0: 25
 field-oid-1: 23
+option-application-name: location
+option-client-encoding: UTF8
+option-default-transaction-read-only: off
+option-in-hot-standby: off
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 value-0-0:
 value-0-1: 34
 value-1-0: qwe
@@ -280,6 +360,16 @@ value-1-1: 89
         add_header field-name-1 $pg_field_name_1 always;
         add_header field-oid-0 $pg_field_oid_0 always;
         add_header field-oid-1 $pg_field_oid_1 always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-default-transaction-read-only $pg_option_default_transaction_read_only always;
+        add_header option-in-hot-standby $pg_option_in_hot_standby always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
@@ -306,6 +396,16 @@ field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
 field-oid-1: 25
+option-application-name: location
+option-client-encoding: UTF8
+option-default-transaction-read-only: off
+option-in-hot-standby: off
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 value-0-0: 34
 value-0-1:
 value-1-0: 89
@@ -328,6 +428,16 @@ value-1-1: qwe
         add_header field-name-1 $pg_field_name_1 always;
         add_header field-oid-0 $pg_field_oid_0 always;
         add_header field-oid-1 $pg_field_oid_1 always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-default-transaction-read-only $pg_option_default_transaction_read_only always;
+        add_header option-in-hot-standby $pg_option_in_hot_standby always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
@@ -354,6 +464,16 @@ field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
 field-oid-1: 25
+option-application-name: location
+option-client-encoding: UTF8
+option-default-transaction-read-only: off
+option-in-hot-standby: off
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 value-0-0: 34
 value-0-1: qwe
 value-1-0: 89
@@ -376,6 +496,16 @@ value-1-1:
         add_header field-name-1 $pg_field_name_1 always;
         add_header field-oid-0 $pg_field_oid_0 always;
         add_header field-oid-1 $pg_field_oid_1 always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-default-transaction-read-only $pg_option_default_transaction_read_only always;
+        add_header option-in-hot-standby $pg_option_in_hot_standby always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-0-1 $pg_value_0_1 always;
         pg_con user=postgres database=postgres application_name=location;
@@ -400,6 +530,16 @@ field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
 field-oid-1: 23
+option-application-name: location
+option-client-encoding: UTF8
+option-default-transaction-read-only: off
+option-in-hot-standby: off
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 value-0-0: 12
 value-0-1: 345
 --- response_body eval
@@ -416,6 +556,16 @@ value-0-1: 345
         add_header field-mod-0 $pg_field_mod_0 always;
         add_header field-name-0 $pg_field_name_0 always;
         add_header field-oid-0 $pg_field_oid_0 always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-default-transaction-read-only $pg_option_default_transaction_read_only always;
+        add_header option-in-hot-standby $pg_option_in_hot_standby always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-1-0 $pg_value_1_0 always;
         pg_con user=postgres database=postgres application_name=location;
@@ -436,6 +586,16 @@ field-length-0: 4
 field-mod-0: 42
 field-name-0: ab
 field-oid-0: 23
+option-application-name: location
+option-client-encoding: UTF8
+option-default-transaction-read-only: off
+option-in-hot-standby: off
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 value-0-0: 12
 value-1-0: 345
 --- response_body eval
@@ -456,6 +616,16 @@ value-1-0: 345
         add_header field-name-1 $pg_field_name_1 always;
         add_header field-oid-0 $pg_field_oid_0 always;
         add_header field-oid-1 $pg_field_oid_1 always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-default-transaction-read-only $pg_option_default_transaction_read_only always;
+        add_header option-in-hot-standby $pg_option_in_hot_standby always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
@@ -482,6 +652,16 @@ field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
 field-oid-1: 23
+option-application-name: location
+option-client-encoding: UTF8
+option-default-transaction-read-only: off
+option-in-hot-standby: off
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 value-0-0: 12
 value-0-1: 345
 value-1-0: 67
@@ -504,6 +684,16 @@ value-1-1: 89
         add_header field-name-1 $pg_field_name_1 always;
         add_header field-oid-0 $pg_field_oid_0 always;
         add_header field-oid-1 $pg_field_oid_1 always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-default-transaction-read-only $pg_option_default_transaction_read_only always;
+        add_header option-in-hot-standby $pg_option_in_hot_standby always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
@@ -530,6 +720,16 @@ field-name-0: ab
 field-name-1: cde
 field-oid-0: 25
 field-oid-1: 23
+option-application-name: location
+option-client-encoding: UTF8
+option-default-transaction-read-only: off
+option-in-hot-standby: off
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 value-0-0:
 value-0-1: 34
 value-1-0: qwe
@@ -552,6 +752,16 @@ value-1-1: 89
         add_header field-name-1 $pg_field_name_1 always;
         add_header field-oid-0 $pg_field_oid_0 always;
         add_header field-oid-1 $pg_field_oid_1 always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-default-transaction-read-only $pg_option_default_transaction_read_only always;
+        add_header option-in-hot-standby $pg_option_in_hot_standby always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
@@ -578,6 +788,16 @@ field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
 field-oid-1: 25
+option-application-name: location
+option-client-encoding: UTF8
+option-default-transaction-read-only: off
+option-in-hot-standby: off
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 value-0-0: 34
 value-0-1:
 value-1-0: 89
@@ -600,6 +820,16 @@ value-1-1: qwe
         add_header field-name-1 $pg_field_name_1 always;
         add_header field-oid-0 $pg_field_oid_0 always;
         add_header field-oid-1 $pg_field_oid_1 always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-default-transaction-read-only $pg_option_default_transaction_read_only always;
+        add_header option-in-hot-standby $pg_option_in_hot_standby always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-0-1 $pg_value_0_1 always;
         add_header value-1-0 $pg_value_1_0 always;
@@ -626,6 +856,16 @@ field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
 field-oid-1: 25
+option-application-name: location
+option-client-encoding: UTF8
+option-default-transaction-read-only: off
+option-in-hot-standby: off
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 value-0-0: 34
 value-0-1: qwe
 value-1-0: 89
