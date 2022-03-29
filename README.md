@@ -48,6 +48,26 @@ upstream pg {
     pg_log /var/log/nginx/pg.err info;
 }
 ```
+pg_out
+-------------
+* Syntax: **pg_out** *csv* | *plain* | *value*
+* Default: --
+* Context: location, if in location
+
+Configures output:
+```nginx
+location = /pg {
+    pg_out csv;
+}
+# or
+location = /pg {
+    pg_out plain;
+}
+# or
+location = /pg {
+    pg_out value;
+}
+```
 pg_pas
 -------------
 * Syntax: **pg_pas** *host:port* | *$upstream*
