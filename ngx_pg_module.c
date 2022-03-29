@@ -1336,7 +1336,7 @@ static ngx_int_t ngx_pg_out_csv_plain_handler(ngx_http_request_t *r, size_t len,
         for (ngx_uint_t j = 0; j < elts[i].str->nelts; j++) {
             if (j) if (ngx_pg_add_response(r, sizeof(plcf->out.delimiter), &plcf->out.delimiter) != NGX_OK) return NGX_ERROR;
             if (!str[j].data) {
-                if (ngx_pg_add_response(r, plcf->out.null.len, plcf->out.null.data) != NGX_OK) return NGX_ERROR;
+                if (plcf->out.null.len) if (ngx_pg_add_response(r, plcf->out.null.len, plcf->out.null.data) != NGX_OK) return NGX_ERROR;
             } else {
                 if (plcf->out.quote) if (ngx_pg_add_response(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
                 if (plcf->out.quote && plcf->out.escape) for (ngx_uint_t k = 0; k < str[j].len; k++) {
