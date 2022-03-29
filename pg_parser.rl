@@ -9,9 +9,9 @@ typedef struct pg_parser_t {
     int str;
     uint16_t field_count;
     uint16_t int2;
-    uint16_t value_count;
+    uint16_t result_count;
     uint32_t int4;
-    uint32_t value_len;
+    uint32_t result_len;
     uint8_t i;
 } pg_parser_t;
 
@@ -52,9 +52,9 @@ typedef struct pg_parser_t {
     action field { if (settings->field(parser->data, parser->int4)) fbreak; }
     action field_length { if (settings->field_length(parser->data, parser->int2)) fbreak; }
     action field_mod { if (settings->field_mod(parser->data, parser->int4)) fbreak; }
+    action field_name { if (str && settings->field_name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action field_oid { if (settings->field_oid(parser->data, parser->int4)) fbreak; }
     action field_table { if (settings->field_table(parser->data, parser->int4)) fbreak; }
-    action field_name { if (str && settings->field_name(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action int2 { if (!parser->i) { parser->i = sizeof(parser->int2); parser->int2 = 0; } parser->int2 |= *p << ((2 << 2) * --parser->i); }
     action int4 { if (!parser->i) { parser->i = sizeof(parser->int4); parser->int4 = 0; } parser->int4 |= *p << ((2 << 2) * --parser->i); }
     action key { if (settings->key(parser->data, parser->int4)) fbreak; }
@@ -68,13 +68,13 @@ typedef struct pg_parser_t {
     action ready { if (settings->ready(parser->data, parser->int4)) fbreak; }
     action ready_inerror { if (settings->ready_state(parser->data, pg_ready_state_inerror)) fbreak; }
     action ready_intrans { if (settings->ready_state(parser->data, pg_ready_state_intrans)) fbreak; }
+    action result_count { parser->result_count = parser->int2; if (settings->result_count(parser->data, parser->result_count)) fbreak; if (!parser->result_count) fnext main; }
+    action result { if (settings->result(parser->data, parser->int4)) fbreak; }
+    action result_len { parser->result_len = parser->int4; if (settings->result_len(parser->data, parser->result_len)) fbreak; if (!parser->result_len || parser->result_len == (uint32_t)-1) { if (!--parser->result_count) fnext main; else fnext result; } }
+    action result_valeof { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
+    action result_val { if (!parser->result_len--) { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->result_count) fnext main; else fnext result; } }
     action secret { if (settings->secret(parser->data, parser->int4)) fbreak; }
     action str { if (!str) str = p; parser->str = cs; }
-    action value_count { parser->value_count = parser->int2; if (settings->value_count(parser->data, parser->value_count)) fbreak; if (!parser->value_count) fnext main; }
-    action value { if (settings->value(parser->data, parser->int4)) fbreak; }
-    action value_len { parser->value_len = parser->int4; if (settings->value_len(parser->data, parser->value_len)) fbreak; if (!parser->value_len || parser->value_len == (uint32_t)-1) { if (!--parser->value_count) fnext main; else fnext value; } }
-    action value_valeof { if (str && settings->value_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action value_val { if (!parser->value_len--) { if (str && settings->value_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->value_count) fnext main; else fnext value; } }
 
     char = any - 0;
     int2 = any{2} $int2;
@@ -102,18 +102,18 @@ typedef struct pg_parser_t {
     | 116 @error_table
     );
 
-    byte = any @str @value_val @/value_valeof;
+    byte = any @str @result_val @/result_valeof;
     error = error_key str0 @error_val @/error_val;
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
-    value = int4 @value_len byte **;
+    result = int4 @result_len byte **;
 
     main :=
     ( 49 int4 @parse
     | 50 int4 @bind
     | 51 int4 @close
     | 67 int4 @complete str0 @complete_val @/complete_val
-    | 68 int4 @value int2 @value_count value **
+    | 68 int4 @result int2 @result_count result **
     | 69 int4 @error error ** 0
     | 75 int4 @secret int4 @pid int4 @key
     | 82 int4 @auth int4 @method

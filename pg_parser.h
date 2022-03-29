@@ -20,7 +20,7 @@ typedef struct {
     pg_parser_int2_cb field_format;
     pg_parser_int2_cb field_length;
     pg_parser_int2_cb ready_state;
-    pg_parser_int2_cb value_count;
+    pg_parser_int2_cb result_count;
     pg_parser_int4_cb auth;
     pg_parser_int4_cb bind;
     pg_parser_int4_cb close;
@@ -36,9 +36,9 @@ typedef struct {
     pg_parser_int4_cb parse;
     pg_parser_int4_cb pid;
     pg_parser_int4_cb ready;
+    pg_parser_int4_cb result;
+    pg_parser_int4_cb result_len;
     pg_parser_int4_cb secret;
-    pg_parser_int4_cb value;
-    pg_parser_int4_cb value_len;
     pg_parser_str_cb all;
     pg_parser_str_cb complete_val;
     pg_parser_str_cb error_key;
@@ -46,7 +46,7 @@ typedef struct {
     pg_parser_str_cb field_name;
     pg_parser_str_cb option_key;
     pg_parser_str_cb option_val;
-    pg_parser_str_cb value_val;
+    pg_parser_str_cb result_val;
 } pg_parser_settings_t;
 
 typedef struct pg_parser_t pg_parser_t;

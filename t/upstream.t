@@ -31,7 +31,7 @@ __DATA__
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header value-0-0 $pg_value_0_0 always;
+        add_header result-0-0 $pg_result_0_0 always;
         pg_out value;
         pg_pas pg;
         pg_sql "select 1";
@@ -57,7 +57,7 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-value-0-0: 1
+result-0-0: 1
 --- response_body chomp
 1
 --- timeout: 60
@@ -123,8 +123,8 @@ error-sqlstate: 22012
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header value-0-0 $pg_value_0_0 always;
-        add_header value-0-1 $pg_value_0_1 always;
+        add_header result-0-0 $pg_result_0_0 always;
+        add_header result-0-1 $pg_result_0_1 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
         pg_out plain;
@@ -156,8 +156,8 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-value-0-0: 12
-value-0-1: 345
+result-0-0: 12
+result-0-1: 345
 --- response_body eval
 "ab\x{09}cde\x{0a}12\x{09}345"
 --- timeout: 60
@@ -187,8 +187,8 @@ value-0-1: 345
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header value-0-0 $pg_value_0_0 always;
-        add_header value-1-0 $pg_value_1_0 always;
+        add_header result-0-0 $pg_result_0_0 always;
+        add_header result-1-0 $pg_result_1_0 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
         pg_out plain;
@@ -216,8 +216,8 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-value-0-0: 12
-value-1-0: 345
+result-0-0: 12
+result-1-0: 345
 --- response_body eval
 "ab\x{0a}12\x{0a}345"
 --- timeout: 60
@@ -251,10 +251,10 @@ value-1-0: 345
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header value-0-0 $pg_value_0_0 always;
-        add_header value-0-1 $pg_value_0_1 always;
-        add_header value-1-0 $pg_value_1_0 always;
-        add_header value-1-1 $pg_value_1_1 always;
+        add_header result-0-0 $pg_result_0_0 always;
+        add_header result-0-1 $pg_result_0_1 always;
+        add_header result-1-0 $pg_result_1_0 always;
+        add_header result-1-1 $pg_result_1_1 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
         pg_arg $arg_c 23;
@@ -288,10 +288,10 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-value-0-0: 12
-value-0-1: 345
-value-1-0: 67
-value-1-1: 89
+result-0-0: 12
+result-0-1: 345
+result-1-0: 67
+result-1-1: 89
 --- response_body eval
 "ab\x{09}cde\x{0a}12\x{09}345\x{0a}67\x{09}89"
 --- timeout: 60
@@ -325,10 +325,10 @@ value-1-1: 89
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header value-0-0 $pg_value_0_0 always;
-        add_header value-0-1 $pg_value_0_1 always;
-        add_header value-1-0 $pg_value_1_0 always;
-        add_header value-1-1 $pg_value_1_1 always;
+        add_header result-0-0 $pg_result_0_0 always;
+        add_header result-0-1 $pg_result_0_1 always;
+        add_header result-1-0 $pg_result_1_0 always;
+        add_header result-1-1 $pg_result_1_1 always;
         pg_arg NULL 25;
         pg_arg $arg_a 23;
         pg_arg $arg_b;
@@ -362,10 +362,10 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-value-0-0:
-value-0-1: 34
-value-1-0: qwe
-value-1-1: 89
+result-0-0:
+result-0-1: 34
+result-1-0: qwe
+result-1-1: 89
 --- response_body eval
 "ab\x{09}cde\x{0a}\\N\x{09}34\x{0a}qwe\x{09}89"
 --- timeout: 60
@@ -399,10 +399,10 @@ value-1-1: 89
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header value-0-0 $pg_value_0_0 always;
-        add_header value-0-1 $pg_value_0_1 always;
-        add_header value-1-0 $pg_value_1_0 always;
-        add_header value-1-1 $pg_value_1_1 always;
+        add_header result-0-0 $pg_result_0_0 always;
+        add_header result-0-1 $pg_result_0_1 always;
+        add_header result-1-0 $pg_result_1_0 always;
+        add_header result-1-1 $pg_result_1_1 always;
         pg_arg $arg_a 23;
         pg_arg NULL 25;
         pg_arg $arg_b 23;
@@ -436,10 +436,10 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-value-0-0: 34
-value-0-1:
-value-1-0: 89
-value-1-1: qwe
+result-0-0: 34
+result-0-1:
+result-1-0: 89
+result-1-1: qwe
 --- response_body eval
 "ab\x{09}cde\x{0a}34\x{09}\\N\x{0a}89\x{09}qwe"
 --- timeout: 60
@@ -473,10 +473,10 @@ value-1-1: qwe
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header value-0-0 $pg_value_0_0 always;
-        add_header value-0-1 $pg_value_0_1 always;
-        add_header value-1-0 $pg_value_1_0 always;
-        add_header value-1-1 $pg_value_1_1 always;
+        add_header result-0-0 $pg_result_0_0 always;
+        add_header result-0-1 $pg_result_0_1 always;
+        add_header result-1-0 $pg_result_1_0 always;
+        add_header result-1-1 $pg_result_1_1 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b;
         pg_arg $arg_c 23;
@@ -510,10 +510,10 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-value-0-0: 34
-value-0-1: qwe
-value-1-0: 89
-value-1-1:
+result-0-0: 34
+result-0-1: qwe
+result-1-0: 89
+result-1-1:
 --- response_body eval
 "ab\x{09}cde\x{0a}34\x{09}qwe\x{0a}89\x{09}\\N"
 --- timeout: 60
@@ -547,8 +547,8 @@ value-1-1:
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header value-0-0 $pg_value_0_0 always;
-        add_header value-0-1 $pg_value_0_1 always;
+        add_header result-0-0 $pg_result_0_0 always;
+        add_header result-0-1 $pg_result_0_1 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
         pg_out csv;
@@ -580,8 +580,8 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-value-0-0: 12
-value-0-1: 345
+result-0-0: 12
+result-0-1: 345
 --- response_body eval
 "\"ab\",\"cde\"\x{0a}\"12\",\"345\""
 --- timeout: 60
@@ -611,8 +611,8 @@ value-0-1: 345
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header value-0-0 $pg_value_0_0 always;
-        add_header value-1-0 $pg_value_1_0 always;
+        add_header result-0-0 $pg_result_0_0 always;
+        add_header result-1-0 $pg_result_1_0 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
         pg_out csv;
@@ -640,8 +640,8 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-value-0-0: 12
-value-1-0: 345
+result-0-0: 12
+result-1-0: 345
 --- response_body eval
 "\"ab\"\x{0a}\"12\"\x{0a}\"345\""
 --- timeout: 60
@@ -675,10 +675,10 @@ value-1-0: 345
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header value-0-0 $pg_value_0_0 always;
-        add_header value-0-1 $pg_value_0_1 always;
-        add_header value-1-0 $pg_value_1_0 always;
-        add_header value-1-1 $pg_value_1_1 always;
+        add_header result-0-0 $pg_result_0_0 always;
+        add_header result-0-1 $pg_result_0_1 always;
+        add_header result-1-0 $pg_result_1_0 always;
+        add_header result-1-1 $pg_result_1_1 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
         pg_arg $arg_c 23;
@@ -712,10 +712,10 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-value-0-0: 12
-value-0-1: 345
-value-1-0: 67
-value-1-1: 89
+result-0-0: 12
+result-0-1: 345
+result-1-0: 67
+result-1-1: 89
 --- response_body eval
 "\"ab\",\"cde\"\x{0a}\"12\",\"345\"\x{0a}\"67\",\"89\""
 --- timeout: 60
@@ -749,10 +749,10 @@ value-1-1: 89
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header value-0-0 $pg_value_0_0 always;
-        add_header value-0-1 $pg_value_0_1 always;
-        add_header value-1-0 $pg_value_1_0 always;
-        add_header value-1-1 $pg_value_1_1 always;
+        add_header result-0-0 $pg_result_0_0 always;
+        add_header result-0-1 $pg_result_0_1 always;
+        add_header result-1-0 $pg_result_1_0 always;
+        add_header result-1-1 $pg_result_1_1 always;
         pg_arg NULL 25;
         pg_arg $arg_a 23;
         pg_arg $arg_b;
@@ -786,10 +786,10 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-value-0-0:
-value-0-1: 34
-value-1-0: qwe
-value-1-1: 89
+result-0-0:
+result-0-1: 34
+result-1-0: qwe
+result-1-1: 89
 --- response_body eval
 "\"ab\",\"cde\"\x{0a},\"34\"\x{0a}\"qwe\",\"89\""
 --- timeout: 60
@@ -823,10 +823,10 @@ value-1-1: 89
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header value-0-0 $pg_value_0_0 always;
-        add_header value-0-1 $pg_value_0_1 always;
-        add_header value-1-0 $pg_value_1_0 always;
-        add_header value-1-1 $pg_value_1_1 always;
+        add_header result-0-0 $pg_result_0_0 always;
+        add_header result-0-1 $pg_result_0_1 always;
+        add_header result-1-0 $pg_result_1_0 always;
+        add_header result-1-1 $pg_result_1_1 always;
         pg_arg $arg_a 23;
         pg_arg NULL 25;
         pg_arg $arg_b 23;
@@ -860,10 +860,10 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-value-0-0: 34
-value-0-1:
-value-1-0: 89
-value-1-1: qwe
+result-0-0: 34
+result-0-1:
+result-1-0: 89
+result-1-1: qwe
 --- response_body eval
 "\"ab\",\"cde\"\x{0a}\"34\",\x{0a}\"89\",\"qwe\""
 --- timeout: 60
@@ -897,10 +897,10 @@ value-1-1: qwe
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header value-0-0 $pg_value_0_0 always;
-        add_header value-0-1 $pg_value_0_1 always;
-        add_header value-1-0 $pg_value_1_0 always;
-        add_header value-1-1 $pg_value_1_1 always;
+        add_header result-0-0 $pg_result_0_0 always;
+        add_header result-0-1 $pg_result_0_1 always;
+        add_header result-1-0 $pg_result_1_0 always;
+        add_header result-1-1 $pg_result_1_1 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b;
         pg_arg $arg_c 23;
@@ -934,10 +934,10 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-value-0-0: 34
-value-0-1: qwe
-value-1-0: 89
-value-1-1:
+result-0-0: 34
+result-0-1: qwe
+result-1-0: 89
+result-1-1:
 --- response_body eval
 "\"ab\",\"cde\"\x{0a}\"34\",\"qwe\"\x{0a}\"89\","
 --- timeout: 60
