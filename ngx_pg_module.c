@@ -1501,8 +1501,8 @@ static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, size_t len, const u_char *data, 
     if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (u_char *)""))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arg->nelts))) return NULL;
-    ngx_pg_arg_t *elts = arg->elts;
-    for (ngx_uint_t i = 0; i < arg->nelts; i++) if (!(cl = cl->next = ngx_pg_write_int4(p, &size, elts[i].type))) return NULL;
+    ngx_pg_arg_t *args = arg->elts;
+    for (ngx_uint_t i = 0; i < arg->nelts; i++) if (!(cl = cl->next = ngx_pg_write_int4(p, &size, args[i].type))) return NULL;
     cl_size->buf->last = pg_write_int4(cl_size->buf->last, size);
     cl->next = NULL;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = parse; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
