@@ -156,10 +156,10 @@ static int ngx_pg_parser_result_val(ngx_pg_save_t *s, size_t len, const u_char *
     ngx_array_t *result = &elts[d->result->nelts - 1];
     ngx_str_t *resultelts = result->elts;
     if (!result->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_str_t *strstr = &resultelts[result->nelts - 1];
-    ngx_memcpy(strstr->data + strstr->len, data, len);
-    strstr->len += len;
-    ngx_log_debug3(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i,%i:%V", d->result->nelts - 1, result->nelts - 1, strstr);
+    ngx_str_t *str = &resultelts[result->nelts - 1];
+    ngx_memcpy(str->data + str->len, data, len);
+    str->len += len;
+    ngx_log_debug3(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i,%i:%V", d->result->nelts - 1, result->nelts - 1, str);
     return s->rc;
 }
 
