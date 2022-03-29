@@ -16,6 +16,16 @@ __DATA__
         add_header field-mod-0 $pg_field_mod_0 always;
         add_header field-name-0 $pg_field_name_0 always;
         add_header field-oid-0 $pg_field_oid_0 always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-default-transaction-read-only $pg_option_default_transaction_read_only always;
+        add_header option-in-hot-standby $pg_option_in_hot_standby always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         pg_con user=postgres database=postgres application_name=location;
         pg_out value;
@@ -35,6 +45,16 @@ field-length-0: 4
 field-mod-0: 42
 field-name-0: ?column?
 field-oid-0: 23
+option-application-name: location
+option-client-encoding: UTF8
+option-default-transaction-read-only: off
+option-in-hot-standby: off
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 value-0-0: 1
 --- response_body chomp
 1
@@ -52,7 +72,6 @@ value-0-0: 1
         add_header error-severity $pg_error_severity always;
         add_header error-sqlstate $pg_error_sqlstate always;
         pg_con user=postgres database=postgres application_name=location;
-        pg_out value;
         pg_pas postgres:5432;
         pg_sql "select 1/0";
         pg_upstream_buffering off;
