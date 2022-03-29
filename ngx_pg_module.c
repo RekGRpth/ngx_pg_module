@@ -1593,13 +1593,13 @@ static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     if (!plcf->cmd.arg && !(plcf->cmd.arg = ngx_array_create(cf->pool, 1, sizeof(*arg)))) return "!ngx_array_create";
     if (!(arg = ngx_array_push(plcf->cmd.arg))) return "!ngx_array_push";
     ngx_memzero(arg, sizeof(*arg));
-    ngx_str_t *elts = cf->args->elts;
-    if (elts[1].len != sizeof("NULL") - 1 || ngx_strncasecmp(elts[1].data, "NULL", sizeof("NULL") - 1)) {
-        ngx_http_compile_complex_value_t ccv = {cf, &elts[1], &arg->complex, 0, 0, 0};
+    ngx_str_t *args = cf->args->elts;
+    if (args[1].len != sizeof("NULL") - 1 || ngx_strncasecmp(args[1].data, "NULL", sizeof("NULL") - 1)) {
+        ngx_http_compile_complex_value_t ccv = {cf, &args[1], &arg->complex, 0, 0, 0};
         if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     }
     if (cf->args->nelts <= 2) return NGX_CONF_OK;
-    ngx_int_t n = ngx_atoi(elts[2].data, elts[2].len);
+    ngx_int_t n = ngx_atoi(args[2].data, args[2].len);
     if (n == NGX_ERROR) return "ngx_atoi == NGX_ERROR";
     arg->type = n;
     return NGX_CONF_OK;
