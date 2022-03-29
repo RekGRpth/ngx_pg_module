@@ -151,12 +151,12 @@ static int ngx_pg_parser_result_val(ngx_pg_save_t *s, size_t len, const u_char *
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_array_t *elts = d->result->elts;
     if (!d->result->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_array_t *result = &elts[d->result->nelts - 1];
-    ngx_str_t *resultelts = result->elts;
+    ngx_array_t *result = d->result->elts;
+    result = &result[d->result->nelts - 1];
     if (!result->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_str_t *str = &resultelts[result->nelts - 1];
+    ngx_str_t *str = result->elts;
+    str = &str[result->nelts - 1];
     ngx_memcpy(str->data + str->len, data, len);
     str->len += len;
     ngx_log_debug3(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i,%i:%V", d->result->nelts - 1, result->nelts - 1, str);
