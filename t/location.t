@@ -106,3 +106,36 @@ value-0-1: 345
 --- response_body eval
 "ab\x{09}cde\x{0a}12\x{09}345"
 --- timeout: 10
+
+=== TEST 4:
+--- main_config
+    load_module /etc/nginx/modules/ngx_pg_module.so;
+--- config
+    location =/ {
+        add_header complete $pg_complete always;
+        add_header field-length-0 $pg_field_length_0 always;
+        add_header field-mod-0 $pg_field_mod_0 always;
+        add_header field-name-0 $pg_field_name_0 always;
+        add_header field-oid-0 $pg_field_oid_0 always;
+        add_header value-0-0 $pg_value_0_0 always;
+        add_header value-1-0 $pg_value_1_0 always;
+        pg_con user=postgres database=postgres application_name=location;
+        pg_out plain;
+        pg_pas postgres:5432;
+        pg_sql "select 12 as ab union select 345";
+    }
+--- request
+GET /
+--- error_code: 200
+--- response_headers
+complete: SELECT 2
+Content-Type: text/plain
+field-length-0: 4
+field-mod-0: 42
+field-name-0: ab
+field-oid-0: 23
+value-0-0: 12
+value-1-0: 345
+--- response_body eval
+"ab\x{0a}12\x{0a}345"
+--- timeout: 10
