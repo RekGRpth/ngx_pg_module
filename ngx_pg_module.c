@@ -1364,10 +1364,10 @@ static ngx_int_t ngx_pg_out_value_handler(ngx_http_request_t *r) {
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     if (!d->result) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!result"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
-    ngx_array_t *elts = d->result->elts;
     if (d->result->nelts != 1) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "nresults != 1"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
-    ngx_str_t *str = elts[0].elts;
-    if (elts[0].nelts != 1) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "nfields != 1"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
+    ngx_array_t *result = d->result->elts;
+    if (result[0].nelts != 1) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "nfields != 1"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
+    ngx_str_t *str = result[0].elts;
     if (ngx_pg_add_response(r, str[0].len, str[0].data) != NGX_OK) return NGX_ERROR;
     return NGX_OK;
 }
