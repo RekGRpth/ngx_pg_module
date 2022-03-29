@@ -1326,12 +1326,12 @@ static ngx_int_t ngx_pg_out_csv_plain_handler(ngx_http_request_t *r, size_t len,
     }
     if (!d->result) return NGX_OK;
     if (!d->result->nelts) return NGX_OK;
-    ngx_array_t *elts = d->result->elts;
+    ngx_array_t *result = d->result->elts;
     for (ngx_uint_t i = 0; i < d->result->nelts; i++) {
         if (i || plcf->out.header) if (ngx_pg_add_response(r, sizeof("\n") - 1, (const u_char *)"\n") != NGX_OK) return NGX_ERROR;
-        if (!elts[i].nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!nfields"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
-        ngx_str_t *str = elts[i].elts;
-        for (ngx_uint_t j = 0; j < elts[i].nelts; j++) {
+        if (!result[i].nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!nfields"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
+        ngx_str_t *str = result[i].elts;
+        for (ngx_uint_t j = 0; j < result[i].nelts; j++) {
             if (j) if (ngx_pg_add_response(r, sizeof(plcf->out.delimiter), &plcf->out.delimiter) != NGX_OK) return NGX_ERROR;
             if (!str[j].data) {
                 if (plcf->out.null.len) if (ngx_pg_add_response(r, plcf->out.null.len, plcf->out.null.data) != NGX_OK) return NGX_ERROR;
