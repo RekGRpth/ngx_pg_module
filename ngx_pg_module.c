@@ -286,9 +286,9 @@ static int ngx_pg_parser_result_len(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_array_t *elts = d->result->elts;
     if (!d->result->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_array_t *result = &elts[d->result->nelts - 1];
+    ngx_array_t *result = d->result->elts;
+    result = &result[d->result->nelts - 1];
     ngx_str_t *str;
     if (!(str = ngx_array_push(result))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
     ngx_memzero(str, sizeof(*str));
