@@ -38,7 +38,7 @@ field-oid-0: 23
 value-0-0: 1
 --- response_body chomp
 1
---- timeout: 10
+--- timeout: 60
 
 === TEST 2:
 --- main_config
@@ -69,7 +69,7 @@ error-nonlocalized: ERROR
 error-primary: division by zero
 error-severity: ERROR
 error-sqlstate: 22012
---- timeout: 10
+--- timeout: 60
 
 === TEST 3:
 --- main_config
@@ -113,7 +113,7 @@ value-0-0: 12
 value-0-1: 345
 --- response_body eval
 "ab\x{09}cde\x{0a}12\x{09}345"
---- timeout: 10
+--- timeout: 60
 
 === TEST 4:
 --- main_config
@@ -149,7 +149,7 @@ value-0-0: 12
 value-1-0: 345
 --- response_body eval
 "ab\x{0a}12\x{0a}345"
---- timeout: 10
+--- timeout: 60
 
 === TEST 5:
 --- main_config
@@ -197,7 +197,7 @@ value-1-0: 67
 value-1-1: 89
 --- response_body eval
 "ab\x{09}cde\x{0a}12\x{09}345\x{0a}67\x{09}89"
---- timeout: 10
+--- timeout: 60
 
 === TEST 6:
 --- main_config
@@ -245,7 +245,7 @@ value-1-0: qwe
 value-1-1: 89
 --- response_body eval
 "ab\x{09}cde\x{0a}\\N\x{09}34\x{0a}qwe\x{09}89"
---- timeout: 10
+--- timeout: 60
 
 === TEST 7:
 --- main_config
@@ -293,7 +293,7 @@ value-1-0: 89
 value-1-1: qwe
 --- response_body eval
 "ab\x{09}cde\x{0a}34\x{09}\\N\x{0a}89\x{09}qwe"
---- timeout: 10
+--- timeout: 60
 
 === TEST 8:
 --- main_config
@@ -341,7 +341,7 @@ value-1-0: 89
 value-1-1:
 --- response_body eval
 "ab\x{09}cde\x{0a}34\x{09}qwe\x{0a}89\x{09}\\N"
---- timeout: 10
+--- timeout: 60
 
 === TEST 9:
 --- main_config
@@ -385,7 +385,7 @@ value-0-0: 12
 value-0-1: 345
 --- response_body eval
 "\"ab\",\"cde\"\x{0a}\"12\",\"345\""
---- timeout: 10
+--- timeout: 60
 
 === TEST 10:
 --- main_config
@@ -421,7 +421,7 @@ value-0-0: 12
 value-1-0: 345
 --- response_body eval
 "\"ab\"\x{0a}\"12\"\x{0a}\"345\""
---- timeout: 10
+--- timeout: 60
 
 === TEST 11:
 --- main_config
@@ -469,7 +469,7 @@ value-1-0: 67
 value-1-1: 89
 --- response_body eval
 "\"ab\",\"cde\"\x{0a}\"12\",\"345\"\x{0a}\"67\",\"89\""
---- timeout: 10
+--- timeout: 60
 
 === TEST 12:
 --- main_config
@@ -517,7 +517,7 @@ value-1-0: qwe
 value-1-1: 89
 --- response_body eval
 "\"ab\",\"cde\"\x{0a},\"34\"\x{0a}\"qwe\",\"89\""
---- timeout: 10
+--- timeout: 60
 
 === TEST 13:
 --- main_config
@@ -565,7 +565,7 @@ value-1-0: 89
 value-1-1: qwe
 --- response_body eval
 "\"ab\",\"cde\"\x{0a}\"34\",\x{0a}\"89\",\"qwe\""
---- timeout: 10
+--- timeout: 60
 
 === TEST 14:
 --- main_config
@@ -613,4 +613,4 @@ value-1-0: 89
 value-1-1:
 --- response_body eval
 "\"ab\",\"cde\"\x{0a}\"34\",\"qwe\"\x{0a}\"89\","
---- timeout: 10
+--- timeout: 60

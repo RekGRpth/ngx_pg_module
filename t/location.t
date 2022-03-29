@@ -16,6 +16,16 @@ __DATA__
         add_header field-mod-0 $pg_field_mod_0 always;
         add_header field-name-0 $pg_field_name_0 always;
         add_header field-oid-0 $pg_field_oid_0 always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-default-transaction-read-only $pg_option_default_transaction_read_only always;
+        add_header option-in-hot-standby $pg_option_in_hot_standby always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         pg_con user=postgres database=postgres application_name=location;
         pg_out value;
@@ -33,10 +43,20 @@ field-length-0: 4
 field-mod-0: 42
 field-name-0: ?column?
 field-oid-0: 23
+option-application-name: location
+option-client-encoding: UTF8
+option-default-transaction-read-only: off
+option-in-hot-standby: off
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 value-0-0: 1
 --- response_body chomp
 1
---- timeout: 10
+--- timeout: 60
 
 === TEST 2:
 --- main_config
@@ -50,7 +70,6 @@ value-0-0: 1
         add_header error-severity $pg_error_severity always;
         add_header error-sqlstate $pg_error_sqlstate always;
         pg_con user=postgres database=postgres application_name=location;
-        pg_out value;
         pg_pas postgres:5432;
         pg_sql "select 1/0";
     }
@@ -65,7 +84,7 @@ error-nonlocalized: ERROR
 error-primary: division by zero
 error-severity: ERROR
 error-sqlstate: 22012
---- timeout: 10
+--- timeout: 60
 
 === TEST 3:
 --- main_config
@@ -107,7 +126,7 @@ value-0-0: 12
 value-0-1: 345
 --- response_body eval
 "ab\x{09}cde\x{0a}12\x{09}345"
---- timeout: 10
+--- timeout: 60
 
 === TEST 4:
 --- main_config
@@ -141,7 +160,7 @@ value-0-0: 12
 value-1-0: 345
 --- response_body eval
 "ab\x{0a}12\x{0a}345"
---- timeout: 10
+--- timeout: 60
 
 === TEST 5:
 --- main_config
@@ -187,7 +206,7 @@ value-1-0: 67
 value-1-1: 89
 --- response_body eval
 "ab\x{09}cde\x{0a}12\x{09}345\x{0a}67\x{09}89"
---- timeout: 10
+--- timeout: 60
 
 === TEST 6:
 --- main_config
@@ -233,7 +252,7 @@ value-1-0: qwe
 value-1-1: 89
 --- response_body eval
 "ab\x{09}cde\x{0a}\\N\x{09}34\x{0a}qwe\x{09}89"
---- timeout: 10
+--- timeout: 60
 
 === TEST 7:
 --- main_config
@@ -279,7 +298,7 @@ value-1-0: 89
 value-1-1: qwe
 --- response_body eval
 "ab\x{09}cde\x{0a}34\x{09}\\N\x{0a}89\x{09}qwe"
---- timeout: 10
+--- timeout: 60
 
 === TEST 8:
 --- main_config
@@ -325,7 +344,7 @@ value-1-0: 89
 value-1-1:
 --- response_body eval
 "ab\x{09}cde\x{0a}34\x{09}qwe\x{0a}89\x{09}\\N"
---- timeout: 10
+--- timeout: 60
 
 === TEST 9:
 --- main_config
@@ -367,7 +386,7 @@ value-0-0: 12
 value-0-1: 345
 --- response_body eval
 "\"ab\",\"cde\"\x{0a}\"12\",\"345\""
---- timeout: 10
+--- timeout: 60
 
 === TEST 10:
 --- main_config
@@ -401,7 +420,7 @@ value-0-0: 12
 value-1-0: 345
 --- response_body eval
 "\"ab\"\x{0a}\"12\"\x{0a}\"345\""
---- timeout: 10
+--- timeout: 60
 
 === TEST 11:
 --- main_config
@@ -447,7 +466,7 @@ value-1-0: 67
 value-1-1: 89
 --- response_body eval
 "\"ab\",\"cde\"\x{0a}\"12\",\"345\"\x{0a}\"67\",\"89\""
---- timeout: 10
+--- timeout: 60
 
 === TEST 12:
 --- main_config
@@ -493,7 +512,7 @@ value-1-0: qwe
 value-1-1: 89
 --- response_body eval
 "\"ab\",\"cde\"\x{0a},\"34\"\x{0a}\"qwe\",\"89\""
---- timeout: 10
+--- timeout: 60
 
 === TEST 13:
 --- main_config
@@ -539,7 +558,7 @@ value-1-0: 89
 value-1-1: qwe
 --- response_body eval
 "\"ab\",\"cde\"\x{0a}\"34\",\x{0a}\"89\",\"qwe\""
---- timeout: 10
+--- timeout: 60
 
 === TEST 14:
 --- main_config
@@ -585,4 +604,4 @@ value-1-0: 89
 value-1-1:
 --- response_body eval
 "\"ab\",\"cde\"\x{0a}\"34\",\"qwe\"\x{0a}\"89\","
---- timeout: 10
+--- timeout: 60
