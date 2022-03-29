@@ -184,9 +184,9 @@ static int ngx_pg_parser_error_val(ngx_pg_save_t *s, size_t len, const u_char *d
     ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, data);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_error_t *elts = d->error->elts;
     if (!d->error->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_error_t *error = &elts[d->error->nelts - 1];
+    ngx_pg_error_t *error = d->error->elts;
+    error = &error[d->error->nelts - 1];
     if (!error->val.data) error->val.data = d->errors.data + d->errors.len;
     ngx_memcpy(error->val.data + error->val.len, data, len);
     error->val.len += len;
