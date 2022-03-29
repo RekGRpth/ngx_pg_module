@@ -8,10 +8,10 @@ typedef enum {
     pg_ready_state_intrans,
 } pg_ready_state_t;
 
-typedef int (*pg_parser_cb) (void *data);
-typedef int (*pg_parser_int2_cb) (void *data, uint16_t n);
-typedef int (*pg_parser_int4_cb) (void *data, uint32_t n);
-typedef int (*pg_parser_str_cb) (void *data, size_t len, const unsigned char *str);
+typedef int (*pg_parser_cb) (void *parser_data);
+typedef int (*pg_parser_int2_cb) (void *parser_data, uint16_t n);
+typedef int (*pg_parser_int4_cb) (void *parser_data, uint32_t n);
+typedef int (*pg_parser_str_cb) (void *parser_data, size_t len, const unsigned char *data);
 
 typedef struct {
     pg_parser_cb field_beg;
