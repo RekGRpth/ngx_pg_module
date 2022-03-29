@@ -512,15 +512,15 @@ value-1-1:
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header value-0-0 $pg_value_0_0 always;
         add_header value-0-1 $pg_value_0_1 always;
-        pg_arg 12 23;
-        pg_arg 345 23;
+        pg_arg $arg_a 23;
+        pg_arg $arg_b 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out csv;
         pg_pas postgres:5432;
         pg_sql "select $1 as ab, $2 as cde";
     }
 --- request
-GET /
+GET /?a=12&b=345
 --- error_code: 200
 --- response_headers
 complete: SELECT 1
