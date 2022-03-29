@@ -1286,8 +1286,8 @@ static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_chain_t **co
     uint32_t size = 0;
     if (!(cl = cl_size = *connect = ngx_pg_alloc_size(cf->pool, &size))) return NGX_CONF_ERROR;
     if (!(cl = cl->next = ngx_pg_write_int4(cf->pool, &size, 0x00030000))) return NGX_CONF_ERROR;
-    ngx_str_t *elts = cf->args->elts;
-    for (ngx_uint_t i = 1; i < cf->args->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(cf->pool, &size, elts[i].len, elts[i].data))) return NGX_CONF_ERROR;
+    ngx_str_t *args = cf->args->elts;
+    for (ngx_uint_t i = 1; i < cf->args->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(cf->pool, &size, args[i].len, args[i].data))) return NGX_CONF_ERROR;
     if (!(cl = cl->next = ngx_pg_write_char(cf->pool, &size, 0))) return NGX_CONF_ERROR;
     cl_size->buf->last = pg_write_int4(cl_size->buf->last, size);
     cl->next = NULL;
