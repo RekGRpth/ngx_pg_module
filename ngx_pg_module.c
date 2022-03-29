@@ -1319,7 +1319,9 @@ static ngx_int_t ngx_pg_out_csv_plain_handler(ngx_http_request_t *r, size_t len,
         ngx_pg_field_t *elts = d->field->elts;
         for (ngx_uint_t i = 0; i < d->field->nelts; i++) {
             if (i) if (ngx_pg_add_response(r, sizeof(plcf->out.delimiter), &plcf->out.delimiter) != NGX_OK) return NGX_ERROR;
+            if (plcf->out.quote) if (ngx_pg_add_response(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
             if (ngx_pg_add_response(r, elts[i].name.len, elts[i].name.data) != NGX_OK) return NGX_ERROR;
+            if (plcf->out.quote) if (ngx_pg_add_response(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
         }
     }
     if (!d->value) return NGX_OK;
@@ -1334,7 +1336,9 @@ static ngx_int_t ngx_pg_out_csv_plain_handler(ngx_http_request_t *r, size_t len,
             if (!str[j].data) {
                 if (ngx_pg_add_response(r, plcf->out.null.len, plcf->out.null.data) != NGX_OK) return NGX_ERROR;
             } else {
+                if (plcf->out.quote) if (ngx_pg_add_response(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
                 if (ngx_pg_add_response(r, str[j].len, str[j].data) != NGX_OK) return NGX_ERROR;
+                if (plcf->out.quote) if (ngx_pg_add_response(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
             }
         }
     }
