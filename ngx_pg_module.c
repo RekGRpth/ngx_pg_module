@@ -707,6 +707,7 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "pscf = %p", pscf);
     if (!pscf) return;
     ngx_pg_save_t *s = d->save;
+    d->save = NULL;
     s->data = NULL;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "s = %p", s);
     ngx_connection_t *c = s->connection;
@@ -975,6 +976,7 @@ static ngx_int_t ngx_pg_option_get_handler(ngx_http_request_t *r, ngx_http_varia
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
+    if (!s) return NGX_OK;
     if (!s->option) return NGX_OK;
     ngx_pg_option_t *elts = s->option->elts;
     ngx_str_t *name = (ngx_str_t *)data;
