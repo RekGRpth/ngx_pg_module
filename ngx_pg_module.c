@@ -1313,14 +1313,14 @@ static ngx_int_t ngx_pg_out_csv_plain_handler(ngx_http_request_t *r, size_t len,
     if (plcf->out.header) {
         if (!d->field) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!field"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
         if (!d->field->nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!nfields"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
-        ngx_pg_field_t *elts = d->field->elts;
+        ngx_pg_field_t *field = d->field->elts;
         for (ngx_uint_t i = 0; i < d->field->nelts; i++) {
             if (i) if (ngx_pg_add_response(r, sizeof(plcf->out.delimiter), &plcf->out.delimiter) != NGX_OK) return NGX_ERROR;
             if (plcf->out.quote) if (ngx_pg_add_response(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
-            if (plcf->out.quote && plcf->out.escape) for (ngx_uint_t k = 0; k < elts[i].name.len; k++) {
-                if (elts[i].name.data[k] == plcf->out.quote) if (ngx_pg_add_response(r, sizeof(plcf->out.escape), &plcf->out.escape) != NGX_OK) return NGX_ERROR;
-                if (ngx_pg_add_response(r, sizeof(elts[i].name.data[k]), &elts[i].name.data[k]) != NGX_OK) return NGX_ERROR;
-            } else if (ngx_pg_add_response(r, elts[i].name.len, elts[i].name.data) != NGX_OK) return NGX_ERROR;
+            if (plcf->out.quote && plcf->out.escape) for (ngx_uint_t k = 0; k < field[i].name.len; k++) {
+                if (field[i].name.data[k] == plcf->out.quote) if (ngx_pg_add_response(r, sizeof(plcf->out.escape), &plcf->out.escape) != NGX_OK) return NGX_ERROR;
+                if (ngx_pg_add_response(r, sizeof(field[i].name.data[k]), &field[i].name.data[k]) != NGX_OK) return NGX_ERROR;
+            } else if (ngx_pg_add_response(r, field[i].name.len, field[i].name.data) != NGX_OK) return NGX_ERROR;
             if (plcf->out.quote) if (ngx_pg_add_response(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
         }
     }
