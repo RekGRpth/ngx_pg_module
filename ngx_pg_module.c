@@ -587,9 +587,8 @@ static ngx_chain_t *ngx_pg_parse(ngx_http_request_t *r) {
     return parse;
 }
 
-static ngx_chain_t *ngx_pg_describe(ngx_http_request_t *r) {
+static ngx_chain_t *ngx_pg_describe(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *describe;
-    ngx_pool_t *p = r->pool;
     uint32_t size = 0;
     if (!(cl = describe = ngx_pg_write_char(p, NULL, 'D'))) return NULL;
     if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
@@ -601,9 +600,8 @@ static ngx_chain_t *ngx_pg_describe(ngx_http_request_t *r) {
     return describe;
 }
 
-static ngx_chain_t *ngx_pg_execute(ngx_http_request_t *r) {
+static ngx_chain_t *ngx_pg_execute(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *execute;
-    ngx_pool_t *p = r->pool;
     uint32_t size = 0;
     if (!(cl = execute = ngx_pg_write_char(p, NULL, 'E'))) return NULL;
     if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
@@ -615,9 +613,8 @@ static ngx_chain_t *ngx_pg_execute(ngx_http_request_t *r) {
     return execute;
 }
 
-static ngx_chain_t *ngx_pg_flush(ngx_http_request_t *r) {
+static ngx_chain_t *ngx_pg_flush(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *flush;
-    ngx_pool_t *p = r->pool;
     uint32_t size = 0;
     if (!(cl = flush = ngx_pg_write_char(p, NULL, 'H'))) return NULL;
     if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
@@ -627,9 +624,8 @@ static ngx_chain_t *ngx_pg_flush(ngx_http_request_t *r) {
     return flush;
 }
 
-static ngx_chain_t *ngx_pg_close(ngx_http_request_t *r) {
+static ngx_chain_t *ngx_pg_close(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *close;
-    ngx_pool_t *p = r->pool;
     uint32_t size = 0;
     if (!(cl = close = ngx_pg_write_char(p, NULL, 'C'))) return NULL;
     if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
@@ -641,9 +637,8 @@ static ngx_chain_t *ngx_pg_close(ngx_http_request_t *r) {
     return close;
 }
 
-static ngx_chain_t *ngx_pg_sync(ngx_http_request_t *r) {
+static ngx_chain_t *ngx_pg_sync(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *sync;
-    ngx_pool_t *p = r->pool;
     uint32_t size = 0;
     if (!(cl = sync = ngx_pg_write_char(p, NULL, 'S'))) return NULL;
     if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
@@ -769,7 +764,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             b->pos = b->start;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
-        for (ngx_chain_t *cmd = ngx_pg_flush(r); cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = ngx_pg_flush(r->pool); cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
@@ -791,19 +786,19 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             cl->buf = cmd->buf;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
-        for (ngx_chain_t *cmd = ngx_pg_describe(r); cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = ngx_pg_describe(r->pool); cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
-        for (ngx_chain_t *cmd = ngx_pg_execute(r); cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = ngx_pg_execute(r->pool); cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
-        for (ngx_chain_t *cmd = ngx_pg_close(r); cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = ngx_pg_close(r->pool); cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
-        for (ngx_chain_t *cmd = ngx_pg_sync(r); cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = ngx_pg_sync(r->pool); cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
@@ -813,7 +808,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
     }
-    for (ngx_chain_t *cmd = ngx_pg_flush(r); cmd; cmd = cmd->next) {
+    for (ngx_chain_t *cmd = ngx_pg_flush(r->pool); cmd; cmd = cmd->next) {
         cl->buf = cmd->buf;
         if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
     }
