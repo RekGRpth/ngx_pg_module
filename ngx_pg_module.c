@@ -23,7 +23,7 @@ typedef struct {
     ngx_http_complex_value_t cache_key;
 #endif
     struct {
-        ngx_array_t *arg;
+        ngx_array_t *argument;
         ngx_http_complex_value_t *function;
         ngx_str_t sql;
     } cmd;
@@ -779,11 +779,11 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     d->ready++;
     s->data = d;
     ngx_array_t arg = {0};
-    if (plcf->cmd.arg) {
+    if (plcf->cmd.argument) {
         ngx_pg_value_t *value;
-        if (ngx_array_init(&arg, r->pool, plcf->cmd.arg->nelts, sizeof(*value)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
-        ngx_pg_arg_t *args = plcf->cmd.arg->elts;
-        for (ngx_uint_t i = 0; i < plcf->cmd.arg->nelts; i++) {
+        if (ngx_array_init(&arg, r->pool, plcf->cmd.argument->nelts, sizeof(*value)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
+        ngx_pg_arg_t *args = plcf->cmd.argument->elts;
+        for (ngx_uint_t i = 0; i < plcf->cmd.argument->nelts; i++) {
             if (!(value = ngx_array_push(&arg))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_array_push"); return NGX_ERROR; }
             ngx_memzero(value, sizeof(*value));
             if (args[i].type.value.data) {
@@ -801,11 +801,11 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (ngx_http_complex_value(r, plcf->cmd.function, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
         ngx_int_t oid = ngx_atoi(value.data, value.len);
         if (oid == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
-        for (ngx_chain_t *cmd = ngx_pg_function(r->pool, oid, plcf->cmd.arg ? &arg : NULL); cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = ngx_pg_function(r->pool, oid, plcf->cmd.argument ? &arg : NULL); cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
-    } else if (plcf->cmd.arg) {
+    } else if (plcf->cmd.argument) {
         for (ngx_chain_t *cmd = ngx_pg_parse(r->pool, plcf->cmd.sql.len, plcf->cmd.sql.data, &arg); cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
@@ -1710,8 +1710,8 @@ static char *ngx_pg_pas_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     ngx_pg_arg_t *arg;
-    if (!plcf->cmd.arg && !(plcf->cmd.arg = ngx_array_create(cf->pool, 1, sizeof(*arg)))) return "!ngx_array_create";
-    if (!(arg = ngx_array_push(plcf->cmd.arg))) return "!ngx_array_push";
+    if (!plcf->cmd.argument && !(plcf->cmd.argument = ngx_array_create(cf->pool, 1, sizeof(*arg)))) return "!ngx_array_create";
+    if (!(arg = ngx_array_push(plcf->cmd.argument))) return "!ngx_array_push";
     ngx_memzero(arg, sizeof(*arg));
     ngx_str_t *str = cf->args->elts;
     if (str[1].len != sizeof("NULL") - 1 || ngx_strncasecmp(str[1].data, "NULL", sizeof("NULL") - 1)) {
