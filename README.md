@@ -12,10 +12,10 @@ pg_arg
 Sets query argument (nginx variables allowed) and type (nginx variables allowed), can be several:
 ```nginx
 location =/ {
-    pg_arg NULL; # first query argument is NULL and auto type
-    pg_arg NULL 25; # second query argument is NULL and type of TEXTOID
-    pg_arg $arg; # third query argument is taken from $arg variable and auto type
-    pg_arg $arg 25; # fourth query argument is taken from $arg variable and type of TEXTOID
+    pg_arg $argument $type; # argument is taken from $argument variable and type is taken from $type variable
+    pg_arg $argument; # argument is taken from $argument variable and type is auto detect
+    pg_arg NULL $type; # argument is NULL and type is taken from $type variable
+    pg_arg NULL; # argument is NULL and type is auto detect
 }
 ```
 pg_con
