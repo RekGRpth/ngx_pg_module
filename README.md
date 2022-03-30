@@ -228,27 +228,27 @@ add_header option_timezone $pg_option_timezone;
 ```
 $pg_field_mod_
 -------------
-* Syntax: $pg_field_mod_*col*
+* Syntax: $pg_field_mod_*column*
 
-Result mod of *col*:
+Field mod of *column*:
 ```nginx
 add_header field_mod_0 $pg_field_mod_0;
 add_header field_mod_1 $pg_field_mod_1;
 ```
 $pg_field_format_
 -------------
-* Syntax: $pg_field_format_*col*
+* Syntax: $pg_field_format_*column*
 
-Result field_format_ of *col*:
+Field format of *column*:
 ```nginx
 add_header field_format_0 $pg_field_format_0;
 add_header field_format_1 $pg_field_format_1;
 ```
 $pg_field_column_
 -------------
-* Syntax: $pg_field_column_*col*
+* Syntax: $pg_field_column_*column*
 
-Result field_column_ of *col*:
+Field column of *column*:
 ```nginx
 add_header field_column_0 $pg_field_column_0;
 add_header field_column_1 $pg_field_column_1;
@@ -257,15 +257,15 @@ $pg_complete
 -------------
 * Syntax: $pg_complete
 
-Result complete:
+Complete command:
 ```nginx
 add_header complete $pg_complete;
 ```
 $pg_field_name_
 -------------
-* Syntax: $pg_field_name_*col*
+* Syntax: $pg_field_name_*column*
 
-Result name of *col*:
+Field name of *column*:
 ```nginx
 add_header field_name_0 $pg_field_name_0;
 add_header field_name_1 $pg_field_name_1;
@@ -274,7 +274,7 @@ $pg_nfields
 -------------
 * Syntax: $pg_nfields
 
-Result nfields:
+Field count:
 ```nginx
 add_header nfields $pg_nfields;
 ```
@@ -282,42 +282,42 @@ $pg_nresults
 -------------
 * Syntax: $pg_nresults
 
-Result nresults:
+Result count:
 ```nginx
 add_header nresults $pg_nresults;
 ```
 $pg_field_table_
 -------------
-* Syntax: $pg_field_table_*col*
+* Syntax: $pg_field_table_*column*
 
-Result table of *col*:
+Field table of *column*:
 ```nginx
 add_header field_table_0 $pg_field_table_0;
 add_header field_table_1 $pg_field_table_1;
 ```
 $pg_field_oid_
 -------------
-* Syntax: $pg_field_oid_*col*
+* Syntax: $pg_field_oid_*column*
 
-Result oid of *col*:
+Field oid of *column*:
 ```nginx
 add_header field_oid_0 $pg_field_oid_0;
 add_header field_oid_1 $pg_field_oid_1;
 ```
 $pg_field_length_
 -------------
-* Syntax: $pg_field_length_*col*
+* Syntax: $pg_field_length_*column*
 
-Result len of *col*:
+Field length of *column*:
 ```nginx
 add_header field_length_0 $pg_field_length_0;
 add_header field_length_1 $pg_field_length_1;
 ```
 $pg_result_
 -------------
-* Syntax: $pg_result_*val*_*col*
+* Syntax: $pg_result_*row*_*column*
 
-Result of *val* and *col*:
+Result of *row* and *column*:
 ```nginx
 add_header result_0_0 $pg_result_0_0;
 add_header result_0_1 $pg_result_0_1;
