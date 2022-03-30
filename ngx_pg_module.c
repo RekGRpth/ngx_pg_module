@@ -1687,7 +1687,7 @@ static char *ngx_pg_pas_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
         return NGX_CONF_OK;
     }
     ngx_url_t url = {0};
-    if (!plcf->connect) url.no_resolve = 1;
+    if (plcf->connect == NGX_CONF_UNSET_PTR) url.no_resolve = 1;
     url.url = args[1];
     if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &url, 0))) return NGX_CONF_ERROR;
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
