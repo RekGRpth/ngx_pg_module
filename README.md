@@ -5,7 +5,7 @@ it uses ragel-based PostgreSQL connection parser with zero-alloc and zero-copy
 
 pg_arg
 -------------
-* Syntax: **pg_arg** *$arg* | NULL [ *type* ]
+* Syntax: **pg_arg** NULL | *$arg* [ *type* ]
 * Default: --
 * Context: location, if in location
 
