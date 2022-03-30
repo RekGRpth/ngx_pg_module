@@ -699,11 +699,14 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
             b->pos = b->start;
-            if (cmd->next && !(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+            if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
-        if (!(cl = cl->next = ngx_pg_bind(r))) return NGX_ERROR;
-        while (cl->next) cl = cl->next;
-        if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        for (ngx_chain_t *cmd = ngx_pg_bind(r); cmd; cmd = cmd->next) {
+            cl->buf = cmd->buf;
+            ngx_buf_t *b = cl->buf;
+            b->pos = b->start;
+            if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        }
         for (ngx_chain_t *cmd = plcf->cmd.describe; cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
             ngx_buf_t *b = cl->buf;
@@ -729,8 +732,12 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
     } else if (plcf->cmd.complex) {
-        if (!(cl = cl->next = ngx_pg_function(r))) return NGX_ERROR;
-        while (cl->next) cl = cl->next;
+        for (ngx_chain_t *cmd = ngx_pg_function(r); cmd; cmd = cmd->next) {
+            cl->buf = cmd->buf;
+            ngx_buf_t *b = cl->buf;
+            b->pos = b->start;
+            if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
+        }
     } else { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!query && !parse && !function"); return NGX_ERROR; }
     for (ngx_chain_t *cmd = plcf->cmd.flush; cmd; cmd = cmd->next) {
         cl->buf = cmd->buf;
