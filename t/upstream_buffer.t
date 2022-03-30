@@ -11,7 +11,9 @@ __DATA__
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_con user=postgres database=postgres application_name=upstream;
+        pg_con application_name=upstream;
+        pg_con database=postgres;
+        pg_con user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -68,7 +70,9 @@ result-0-0: 1
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_con user=postgres database=postgres application_name=upstream;
+        pg_con application_name=upstream;
+        pg_con database=postgres;
+        pg_con user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -101,7 +105,9 @@ error-sqlstate: 22012
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_con user=postgres database=postgres application_name=upstream;
+        pg_con application_name=upstream;
+        pg_con database=postgres;
+        pg_con user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -170,7 +176,9 @@ result-0-1: 345
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_con user=postgres database=postgres application_name=upstream;
+        pg_con application_name=upstream;
+        pg_con database=postgres;
+        pg_con user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -231,7 +239,9 @@ result-1-0: 345
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_con user=postgres database=postgres application_name=upstream;
+        pg_con application_name=upstream;
+        pg_con database=postgres;
+        pg_con user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -306,7 +316,9 @@ result-1-1: 89
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_con user=postgres database=postgres application_name=upstream;
+        pg_con application_name=upstream;
+        pg_con database=postgres;
+        pg_con user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -381,7 +393,9 @@ result-1-1: 89
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_con user=postgres database=postgres application_name=upstream;
+        pg_con application_name=upstream;
+        pg_con database=postgres;
+        pg_con user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -456,7 +470,9 @@ result-1-1: qwe
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_con user=postgres database=postgres application_name=upstream;
+        pg_con application_name=upstream;
+        pg_con database=postgres;
+        pg_con user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -531,7 +547,9 @@ result-1-1:
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_con user=postgres database=postgres application_name=upstream;
+        pg_con application_name=upstream;
+        pg_con database=postgres;
+        pg_con user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -600,7 +618,9 @@ result-0-1: 345
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_con user=postgres database=postgres application_name=upstream;
+        pg_con application_name=upstream;
+        pg_con database=postgres;
+        pg_con user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -661,7 +681,9 @@ result-1-0: 345
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_con user=postgres database=postgres application_name=upstream;
+        pg_con application_name=upstream;
+        pg_con database=postgres;
+        pg_con user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -736,7 +758,9 @@ result-1-1: 89
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_con user=postgres database=postgres application_name=upstream;
+        pg_con application_name=upstream;
+        pg_con database=postgres;
+        pg_con user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -811,7 +835,9 @@ result-1-1: 89
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_con user=postgres database=postgres application_name=upstream;
+        pg_con application_name=upstream;
+        pg_con database=postgres;
+        pg_con user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -886,7 +912,9 @@ result-1-1: qwe
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_con user=postgres database=postgres application_name=upstream;
+        pg_con application_name=upstream;
+        pg_con database=postgres;
+        pg_con user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
