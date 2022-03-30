@@ -78,7 +78,7 @@ pg_fun
 * Default: --
 * Context: location, if in location
 
-Sets function oid (nginx variables allowed) (with using (evaluate)[https://github.com/RekGRpth/ngx_http_evaluate_module]):
+Sets function oid (nginx variables allowed) (with using [evaluate](https://github.com/RekGRpth/ngx_http_evaluate_module)):
 ```nginx
 location =/function {
     pg_arg $arg_name;
