@@ -125,6 +125,12 @@ static int ngx_pg_parser_auth(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
+static int ngx_pg_parser_function(ngx_pg_save_t *s, uint32_t len) {
+    if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
+    return s->rc;
+}
+
 static int ngx_pg_parser_field_beg(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     ngx_pg_data_t *d = s->data;
@@ -455,6 +461,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .field_oid = (pg_parser_int4_cb)ngx_pg_parser_field_oid,
     .field = (pg_parser_int4_cb)ngx_pg_parser_field,
     .field_table = (pg_parser_int4_cb)ngx_pg_parser_field_table,
+    .function = (pg_parser_int4_cb)ngx_pg_parser_function,
     .key = (pg_parser_int4_cb)ngx_pg_parser_key,
     .method = (pg_parser_int4_cb)ngx_pg_parser_method,
     .option_key = (pg_parser_str_cb)ngx_pg_parser_option_key,
@@ -845,7 +852,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     ngx_buf_t *b = &u->buffer;
-//    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
+    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%i:%i:%c", i++, *p, *p);
     if (r->cached) {
         r->cache->body_start += r->cache->header_start;
         u->headers_in.content_length_n = b->last - b->pos;
