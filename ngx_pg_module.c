@@ -128,6 +128,15 @@ static int ngx_pg_parser_auth(ngx_pg_save_t *s, uint32_t len) {
 static int ngx_pg_parser_function(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
+    ngx_pg_data_t *d = s->data;
+    if (!d) return s->rc;
+    ngx_http_request_t *r = d->request;
+    ngx_array_t *result;
+    if (!d->result && !(d->result = ngx_array_create(r->pool, 1, sizeof(*result)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
+    if (!(result = ngx_array_push(d->result))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
+    ngx_memzero(result, sizeof(*result));
+    ngx_str_t *str;
+    if (ngx_array_init(result, r->pool, 1, sizeof(*str)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_array_init != NGX_OK"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
