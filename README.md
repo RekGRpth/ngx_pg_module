@@ -11,7 +11,7 @@ pg_arg
 
 Sets query argument (nginx variables allowed) and type (no nginx variables allowed), can be several:
 ```nginx
-location = /pg {
+location =/ {
     pg_arg NULL; # first query argument is NULL and auto type
     pg_arg NULL 25; # second query argument is NULL and type of TEXTOID
     pg_arg $arg; # third query argument is taken from $arg variable and auto type
@@ -34,7 +34,7 @@ upstream pg {
     server postgres:5432; # add server with host postgres and port 5432
 }
 # or
-location = /pg {
+location =/ {
     pg_con application_name=application_name; # set application_name
     pg_con database=database; # set database
     pg_con user=user; # set user
@@ -60,15 +60,15 @@ pg_out
 
 Configures output:
 ```nginx
-location = /pg {
+location =/ {
     pg_out csv;
 }
 # or
-location = /pg {
+location =/ {
     pg_out plain;
 }
 # or
-location = /pg {
+location =/ {
     pg_out value;
 }
 ```
@@ -80,15 +80,15 @@ pg_pas
 
 Sets PostgreSQL host and port or upstream (nginx variables allowed):
 ```nginx
-location = /pg {
+location =/ {
     pg_pas postgres:5432; # PostgreSQL host is postgres and port is 5432
 }
 # or
-location = /pg {
+location =/ {
     pg_pas postgres; # upstream is postgres
 }
 # or
-location = /pg {
+location =/ {
     pg_pas $postgres; # upstream is taken from $postgres variable
 }
 ```
@@ -100,15 +100,15 @@ pg_sql
 
 Sets SQL query (no nginx variables allowed):
 ```nginx
-location = /pg {
+location =/ {
     pg_sql "select now()"; # simple query
 }
 # or
-location = /pg {
+location =/ {
     pg_sql "select 1/0"; # simple query with error
 }
 # or
-location = /pg {
+location =/ {
     pg_arg NULL 25; # first query argument is NULL and type of TEXTOID
     pg_arg $arg; # second query argument is taken from $arg variable and auto type
     pg_sql "select $1, $2::text"; # extended query with 2 arguments
