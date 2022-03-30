@@ -51,7 +51,7 @@ location =/ {
     pg_con application_name=application_name; # set application_name
     pg_con database=database; # set database
     pg_con user=user; # set user
-    server unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
+    pg_pas unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
 }
 ```
 In upstream also may use nginx keepalive module:
@@ -90,7 +90,7 @@ pg_out
 * Default: --
 * Context: location, if in location
 
-Configures output:
+Configures output type (no nginx variables allowed):
 ```nginx
 location =/ {
     pg_out csv;
