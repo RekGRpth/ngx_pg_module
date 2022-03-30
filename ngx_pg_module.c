@@ -570,13 +570,13 @@ static ngx_chain_t *ngx_pg_write_opt(ngx_pool_t *p, uint32_t *size, size_t len, 
     return cl;
 }
 
-static ngx_chain_t *ngx_pg_connect(ngx_pool_t *p, ngx_array_t *arg) {
+static ngx_chain_t *ngx_pg_connect(ngx_pool_t *p, ngx_array_t *argument) {
     ngx_chain_t *cl, *cl_size, *connect;
     uint32_t size = 0;
     if (!(cl = cl_size = connect = ngx_pg_alloc_size(p, &size))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 0x00030000))) return NULL;
-    ngx_str_t *str = arg->elts;
-    for (ngx_uint_t i = 0; i < arg->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(p, &size, str[i].len, str[i].data))) return NULL;
+    ngx_str_t *str = argument->elts;
+    for (ngx_uint_t i = 0; i < argument->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(p, &size, str[i].len, str[i].data))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_char(p, &size, 0))) return NULL;
     cl_size->buf->last = pg_write_int4(cl_size->buf->last, size);
     cl->next = NULL;
@@ -596,16 +596,16 @@ static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, size_t len, const u_char *data) 
     return query;
 }
 
-static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, size_t len, const u_char *data, ngx_array_t *arg) {
+static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, size_t len, const u_char *data, ngx_array_t *argument) {
     ngx_chain_t *cl, *cl_size, *parse;
     uint32_t size = 0;
     if (!(cl = parse = ngx_pg_write_char(p, NULL, 'P'))) return NULL;
     if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (u_char *)""))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arg->nelts))) return NULL;
-    ngx_pg_value_t *value = arg->elts;
-    for (ngx_uint_t i = 0; i < arg->nelts; i++) if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].type))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, argument->nelts))) return NULL;
+    ngx_pg_value_t *value = argument->elts;
+    for (ngx_uint_t i = 0; i < argument->nelts; i++) if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].type))) return NULL;
     cl_size->buf->last = pg_write_int4(cl_size->buf->last, size);
     cl->next = NULL;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = parse; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%i:%i:%c", i++, *c, *c);
@@ -673,7 +673,7 @@ static ngx_chain_t *ngx_pg_sync(ngx_pool_t *p) {
     return sync;
 }
 
-static ngx_chain_t *ngx_pg_bind(ngx_pool_t *p, ngx_array_t *arg) {
+static ngx_chain_t *ngx_pg_bind(ngx_pool_t *p, ngx_array_t *argument) {
     ngx_chain_t *cl, *cl_size, *bind;
     uint32_t size = 0;
     if (!(cl = bind = ngx_pg_write_char(p, NULL, 'B'))) return NULL;
@@ -681,9 +681,9 @@ static ngx_chain_t *ngx_pg_bind(ngx_pool_t *p, ngx_array_t *arg) {
     if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (u_char *)""))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (u_char *)""))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
-    ngx_pg_value_t *value = arg->elts;
-    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arg->nelts))) return NULL;
-    for (ngx_uint_t i = 0; i < arg->nelts; i++) {
+    ngx_pg_value_t *value = argument->elts;
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, argument->nelts))) return NULL;
+    for (ngx_uint_t i = 0; i < argument->nelts; i++) {
         if (value[i].argument.data) {
             if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].argument.len))) return NULL;
             if (!(cl = cl->next = ngx_pg_write_byte(p, &size, value[i].argument.len, value[i].argument.data))) return NULL;
@@ -698,7 +698,7 @@ static ngx_chain_t *ngx_pg_bind(ngx_pool_t *p, ngx_array_t *arg) {
     return bind;
 }
 
-static ngx_chain_t *ngx_pg_function(ngx_pool_t *p, uint32_t oid, ngx_array_t *arg) {
+static ngx_chain_t *ngx_pg_function(ngx_pool_t *p, uint32_t oid, ngx_array_t *argument) {
     ngx_chain_t *cl, *cl_size, *function;
     uint32_t size = 0;
     if (!(cl = function = ngx_pg_write_char(p, NULL, 'F'))) return NULL;
@@ -706,10 +706,10 @@ static ngx_chain_t *ngx_pg_function(ngx_pool_t *p, uint32_t oid, ngx_array_t *ar
     if (!(cl = cl->next = ngx_pg_write_int4(p, &size, oid))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 1))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
-    if (arg) {
-        ngx_pg_value_t *value = arg->elts;
-        if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arg->nelts))) return NULL;
-        for (ngx_uint_t i = 0; i < arg->nelts; i++) {
+    if (argument) {
+        ngx_pg_value_t *value = argument->elts;
+        if (!(cl = cl->next = ngx_pg_write_int2(p, &size, argument->nelts))) return NULL;
+        for (ngx_uint_t i = 0; i < argument->nelts; i++) {
             if (value[i].argument.data) {
                 if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].argument.len))) return NULL;
                 if (!(cl = cl->next = ngx_pg_write_byte(p, &size, value[i].argument.len, value[i].argument.data))) return NULL;
