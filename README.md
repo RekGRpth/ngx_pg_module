@@ -20,7 +20,7 @@ location =/ {
 ```
 pg_con
 -------------
-* Syntax: **pg_con** *name=value*
+* Syntax: **pg_con** *name*=*value*
 * Default: --
 * Context: location, if in location, upstream
 
@@ -93,27 +93,31 @@ pg_out
 Configures output type (no nginx variables allowed):
 ```nginx
 location =/ {
-    pg_out csv;
+    pg_out csv; # set csv output
 }
 # or
 location =/ {
-    pg_out plain;
+    pg_out plain; # set plain output
 }
 # or
 location =/ {
-    pg_out value;
+    pg_out value; # set value output (only one row and one col in result allowed)
 }
 ```
 pg_pas
 -------------
-* Syntax: **pg_pas** *host:port* | *$upstream*
+* Syntax: **pg_pas** *host*:*port* | unix://*socket* | *$upstream*
 * Default: --
 * Context: location, if in location
 
-Sets PostgreSQL host and port or upstream (nginx variables allowed):
+Sets host (no nginx variables allowed) and port (no nginx variables allowed) or unix socket (no nginx variables allowed) or upstream (nginx variables allowed):
 ```nginx
 location =/ {
-    pg_pas postgres:5432; # PostgreSQL host is postgres and port is 5432
+    pg_pas postgres:5432; # host is postgres and port is 5432
+}
+# or
+location =/ {
+    pg_pas unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
 }
 # or
 location =/ {
