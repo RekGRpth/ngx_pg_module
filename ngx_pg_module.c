@@ -590,7 +590,7 @@ static ngx_chain_t *ngx_pg_function(ngx_http_request_t *r) {
     if (!(cl = function = ngx_pg_write_char(p, NULL, 'F'))) return NULL;
     if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int4(p, &size, oid))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 1))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
     if (plcf->cmd.arg) {
         ngx_pg_arg_t *arg = plcf->cmd.arg->elts;
