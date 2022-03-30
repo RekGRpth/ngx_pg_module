@@ -1750,10 +1750,10 @@ static char *ngx_pg_cache(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 static char *ngx_pg_cache_key(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->cache_key.value.data) return "is duplicate";
-    ngx_str_t *value = cf->args->elts;
+    ngx_str_t *str = cf->args->elts;
     ngx_http_compile_complex_value_t ccv = {0};
     ccv.cf = cf;
-    ccv.value = &value[1];
+    ccv.value = &str[1];
     ccv.complex_value = &plcf->cache_key;
     if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     return NGX_CONF_OK;
