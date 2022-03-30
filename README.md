@@ -179,7 +179,7 @@ $pg_pid
 
 Backend pid:
 ```nginx
-add_header pid $pg_pid always;
+add_header pid $pg_pid;
 ```
 $pg_error_
 -------------
@@ -187,24 +187,24 @@ $pg_error_
 
 Error *name* from connection:
 ```nginx
-add_header error_column $pg_error_column always;
-add_header error_constraint $pg_error_constraint always;
-add_header error_context $pg_error_context always;
-add_header error_datatype $pg_error_datatype always;
-add_header error_detail $pg_error_detail always;
-add_header error_file $pg_error_file always;
-add_header error_function $pg_error_function always;
-add_header error_hint $pg_error_hint always;
-add_header error_internal $pg_error_internal always;
-add_header error_line $pg_error_line always;
-add_header error_nonlocalized $pg_error_nonlocalized always;
-add_header error_primary $pg_error_primary always;
-add_header error_query $pg_error_query always;
-add_header error_schema $pg_error_schema always;
-add_header error_severity $pg_error_severity always;
-add_header error_sqlstate $pg_error_sqlstate always;
-add_header error_statement $pg_error_statement always;
-add_header error_table $pg_error_table always;
+add_header error_column $pg_error_column;
+add_header error_constraint $pg_error_constraint;
+add_header error_context $pg_error_context;
+add_header error_datatype $pg_error_datatype;
+add_header error_detail $pg_error_detail;
+add_header error_file $pg_error_file;
+add_header error_function $pg_error_function;
+add_header error_hint $pg_error_hint;
+add_header error_internal $pg_error_internal;
+add_header error_line $pg_error_line;
+add_header error_nonlocalized $pg_error_nonlocalized;
+add_header error_primary $pg_error_primary;
+add_header error_query $pg_error_query;
+add_header error_schema $pg_error_schema;
+add_header error_severity $pg_error_severity;
+add_header error_sqlstate $pg_error_sqlstate;
+add_header error_statement $pg_error_statement;
+add_header error_table $pg_error_table;
 ```
 $pg_option_
 -------------
@@ -212,19 +212,19 @@ $pg_option_
 
 Option *name* from connection:
 ```nginx
-add_header option_application_name $pg_option_application_name always;
-add_header option_client_encoding $pg_option_client_encoding always;
-add_header option_datestyle $pg_option_datestyle always;
-add_header option_default_transaction_read_only $pg_option_default_transaction_read_only always;
-add_header option_in_hot_standby $pg_option_in_hot_standby always;
-add_header option_integer_datetimes $pg_option_integer_datetimes always;
-add_header option_intervalstyle $pg_option_intervalstyle always;
-add_header option_is_superuser $pg_option_is_superuser always;
-add_header option_server_encoding $pg_option_server_encoding always;
-add_header option_server_version $pg_option_server_version always;
-add_header option_session_authorization $pg_option_session_authorization always;
-add_header option_standard_conforming_strings $pg_option_standard_conforming_strings always;
-add_header option_timezone $pg_option_timezone always;
+add_header option_application_name $pg_option_application_name;
+add_header option_client_encoding $pg_option_client_encoding;
+add_header option_datestyle $pg_option_datestyle;
+add_header option_default_transaction_read_only $pg_option_default_transaction_read_only;
+add_header option_in_hot_standby $pg_option_in_hot_standby;
+add_header option_integer_datetimes $pg_option_integer_datetimes;
+add_header option_intervalstyle $pg_option_intervalstyle;
+add_header option_is_superuser $pg_option_is_superuser;
+add_header option_server_encoding $pg_option_server_encoding;
+add_header option_server_version $pg_option_server_version;
+add_header option_session_authorization $pg_option_session_authorization;
+add_header option_standard_conforming_strings $pg_option_standard_conforming_strings;
+add_header option_timezone $pg_option_timezone;
 ```
 $pg_field_mod_
 -------------
@@ -232,8 +232,8 @@ $pg_field_mod_
 
 Result mod of *col*:
 ```nginx
-add_header field_mod_0 $pg_field_mod_0 always;
-add_header field_mod_1 $pg_field_mod_1 always;
+add_header field_mod_0 $pg_field_mod_0;
+add_header field_mod_1 $pg_field_mod_1;
 ```
 $pg_field_format_
 -------------
@@ -241,8 +241,8 @@ $pg_field_format_
 
 Result field_format_ of *col*:
 ```nginx
-add_header field_format_0 $pg_field_format_0 always;
-add_header field_format_1 $pg_field_format_1 always;
+add_header field_format_0 $pg_field_format_0;
+add_header field_format_1 $pg_field_format_1;
 ```
 $pg_field_column_
 -------------
@@ -250,8 +250,8 @@ $pg_field_column_
 
 Result field_column_ of *col*:
 ```nginx
-add_header field_column_0 $pg_field_column_0 always;
-add_header field_column_1 $pg_field_column_1 always;
+add_header field_column_0 $pg_field_column_0;
+add_header field_column_1 $pg_field_column_1;
 ```
 $pg_complete
 -------------
@@ -259,7 +259,7 @@ $pg_complete
 
 Result complete:
 ```nginx
-add_header complete $pg_complete always;
+add_header complete $pg_complete;
 ```
 $pg_field_name_
 -------------
@@ -267,8 +267,8 @@ $pg_field_name_
 
 Result name of *col*:
 ```nginx
-add_header field_name_0 $pg_field_name_0 always;
-add_header field_name_1 $pg_field_name_1 always;
+add_header field_name_0 $pg_field_name_0;
+add_header field_name_1 $pg_field_name_1;
 ```
 $pg_nfields
 -------------
@@ -276,7 +276,7 @@ $pg_nfields
 
 Result nfields:
 ```nginx
-add_header nfields $pg_nfields always;
+add_header nfields $pg_nfields;
 ```
 $pg_nresults
 -------------
@@ -284,7 +284,7 @@ $pg_nresults
 
 Result nresults:
 ```nginx
-add_header nresults $pg_nresults always;
+add_header nresults $pg_nresults;
 ```
 $pg_field_table_
 -------------
@@ -292,8 +292,8 @@ $pg_field_table_
 
 Result table of *col*:
 ```nginx
-add_header field_table_0 $pg_field_table_0 always;
-add_header field_table_1 $pg_field_table_1 always;
+add_header field_table_0 $pg_field_table_0;
+add_header field_table_1 $pg_field_table_1;
 ```
 $pg_field_oid_
 -------------
@@ -301,8 +301,8 @@ $pg_field_oid_
 
 Result oid of *col*:
 ```nginx
-add_header field_oid_0 $pg_field_oid_0 always;
-add_header field_oid_1 $pg_field_oid_1 always;
+add_header field_oid_0 $pg_field_oid_0;
+add_header field_oid_1 $pg_field_oid_1;
 ```
 $pg_field_length_
 -------------
@@ -310,8 +310,8 @@ $pg_field_length_
 
 Result len of *col*:
 ```nginx
-add_header field_length_0 $pg_field_length_0 always;
-add_header field_length_1 $pg_field_length_1 always;
+add_header field_length_0 $pg_field_length_0;
+add_header field_length_1 $pg_field_length_1;
 ```
 $pg_result_
 -------------
@@ -319,8 +319,8 @@ $pg_result_
 
 Result of *val* and *col*:
 ```nginx
-add_header result_0_0 $pg_result_0_0 always;
-add_header result_0_1 $pg_result_0_1 always;
-add_header result_1_0 $pg_result_1_0 always;
-add_header result_1_1 $pg_result_1_1 always;
+add_header result_0_0 $pg_result_0_0;
+add_header result_0_1 $pg_result_0_1;
+add_header result_1_0 $pg_result_1_0;
+add_header result_1_1 $pg_result_1_1;
 ```
