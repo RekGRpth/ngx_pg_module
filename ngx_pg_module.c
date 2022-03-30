@@ -26,6 +26,7 @@ typedef struct {
         ngx_chain_t *parse;
         ngx_chain_t *query;
         ngx_chain_t *sync;
+        ngx_http_complex_value_t *complex;
     } cmd;
     struct {
         ngx_flag_t header;
@@ -549,28 +550,69 @@ static ngx_chain_t *ngx_pg_bind(ngx_http_request_t *r) {
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     ngx_pool_t *p = r->pool;
     uint32_t size = 0;
-    ngx_pg_arg_t *arg = plcf->cmd.arg->elts;
     if (!(cl = bind = ngx_pg_write_char(p, NULL, 'B'))) return NULL;
     if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (u_char *)""))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (u_char *)""))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, plcf->cmd.arg->nelts))) return NULL;
-    for (ngx_uint_t i = 0; i < plcf->cmd.arg->nelts; i++) {
-        if (arg[i].complex.value.data) {
-            ngx_str_t value;
-            if (ngx_http_complex_value(r, &arg[i].complex, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "ngx_http_complex_value != NGX_OK"); return NULL; }
-            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value.len))) return NULL;
-            if (!(cl = cl->next = ngx_pg_write_byte(p, &size, value.len, value.data))) return NULL;
-        } else {
-            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, -1))) return NULL;
+    if (plcf->cmd.arg) {
+        ngx_pg_arg_t *arg = plcf->cmd.arg->elts;
+        if (!(cl = cl->next = ngx_pg_write_int2(p, &size, plcf->cmd.arg->nelts))) return NULL;
+        for (ngx_uint_t i = 0; i < plcf->cmd.arg->nelts; i++) {
+            if (arg[i].complex.value.data) {
+                ngx_str_t value;
+                if (ngx_http_complex_value(r, &arg[i].complex, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "ngx_http_complex_value != NGX_OK"); return NULL; }
+                if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value.len))) return NULL;
+                if (!(cl = cl->next = ngx_pg_write_byte(p, &size, value.len, value.data))) return NULL;
+            } else {
+                if (!(cl = cl->next = ngx_pg_write_int4(p, &size, -1))) return NULL;
+            }
         }
+    } else {
+        if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
     }
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
     cl_size->buf->last = pg_write_int4(cl_size->buf->last, size);
     cl->next = NULL;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = bind; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%i:%i:%c", i++, *c, *c);
     return bind;
+}
+
+static ngx_chain_t *ngx_pg_function(ngx_http_request_t *r) {
+    ngx_chain_t *cl, *cl_size, *function;
+    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
+    ngx_pool_t *p = r->pool;
+    ngx_str_t value;
+    uint32_t size = 0;
+    if (ngx_http_complex_value(r, plcf->cmd.complex, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "ngx_http_complex_value != NGX_OK"); return NULL; }
+    ngx_int_t oid = ngx_atoi(value.data, value.len);
+    if (oid == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "ngx_atoi == NGX_ERROR"); return NULL; }
+    if (!(cl = function = ngx_pg_write_char(p, NULL, 'F'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, oid))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
+    if (plcf->cmd.arg) {
+        ngx_pg_arg_t *arg = plcf->cmd.arg->elts;
+        if (!(cl = cl->next = ngx_pg_write_int2(p, &size, plcf->cmd.arg->nelts))) return NULL;
+        for (ngx_uint_t i = 0; i < plcf->cmd.arg->nelts; i++) {
+            if (arg[i].complex.value.data) {
+                ngx_str_t value;
+                if (ngx_http_complex_value(r, &arg[i].complex, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "ngx_http_complex_value != NGX_OK"); return NULL; }
+                if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value.len))) return NULL;
+                if (!(cl = cl->next = ngx_pg_write_byte(p, &size, value.len, value.data))) return NULL;
+            } else {
+                if (!(cl = cl->next = ngx_pg_write_int4(p, &size, -1))) return NULL;
+            }
+        }
+    } else {
+        if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
+    }
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
+    cl_size->buf->last = pg_write_int4(cl_size->buf->last, size);
+    cl->next = NULL;
+    ngx_uint_t i = 0; for (ngx_chain_t *cl = function; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%i:%i:%c", i++, *c, *c);
+    return function;
 }
 
 static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
@@ -670,7 +712,10 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             b->pos = b->start;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
-    } else { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!query && !parse"); return NGX_ERROR; }
+    } else if (plcf->cmd.complex) {
+        if (!(cl = cl->next = ngx_pg_function(r))) return NGX_ERROR;
+        while (cl->next) cl = cl->next;
+    } else { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!query && !parse && !function"); return NGX_ERROR; }
     for (ngx_chain_t *cmd = plcf->cmd.flush; cmd; cmd = cmd->next) {
         cl->buf = cmd->buf;
         ngx_buf_t *b = cl->buf;
@@ -1750,6 +1795,7 @@ static ngx_command_t ngx_pg_commands[] = {
   { ngx_string("pg_arg"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_arg_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_con"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_con_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_con"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_con_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
+  { ngx_string("pg_fun"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_http_set_complex_value_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, cmd.complex), NULL },
   { ngx_string("pg_log"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_log_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_out"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_out_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_pas"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_pas_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
