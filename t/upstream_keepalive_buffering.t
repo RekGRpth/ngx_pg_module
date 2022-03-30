@@ -14,7 +14,7 @@ __DATA__
     upstream pg {
         keepalive 1;
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -73,7 +73,7 @@ result-0-0: 1
     upstream pg {
         keepalive 1;
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -108,7 +108,7 @@ error-sqlstate: 22012
     upstream pg {
         keepalive 1;
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -179,7 +179,7 @@ result-0-1: 345
     upstream pg {
         keepalive 1;
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -242,7 +242,7 @@ result-1-0: 345
     upstream pg {
         keepalive 1;
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -319,7 +319,7 @@ result-1-1: 89
     upstream pg {
         keepalive 1;
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -396,7 +396,7 @@ result-1-1: 89
     upstream pg {
         keepalive 1;
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -473,7 +473,7 @@ result-1-1: qwe
     upstream pg {
         keepalive 1;
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -550,7 +550,7 @@ result-1-1:
     upstream pg {
         keepalive 1;
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -621,7 +621,7 @@ result-0-1: 345
     upstream pg {
         keepalive 1;
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -684,7 +684,7 @@ result-1-0: 345
     upstream pg {
         keepalive 1;
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -761,7 +761,7 @@ result-1-1: 89
     upstream pg {
         keepalive 1;
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -838,7 +838,7 @@ result-1-1: 89
     upstream pg {
         keepalive 1;
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -915,7 +915,7 @@ result-1-1: qwe
     upstream pg {
         keepalive 1;
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {

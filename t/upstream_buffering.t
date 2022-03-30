@@ -12,7 +12,7 @@ __DATA__
 --- http_config
     upstream pg {
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -70,7 +70,7 @@ result-0-0: 1
 --- http_config
     upstream pg {
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -104,7 +104,7 @@ error-sqlstate: 22012
 --- http_config
     upstream pg {
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -174,7 +174,7 @@ result-0-1: 345
 --- http_config
     upstream pg {
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -236,7 +236,7 @@ result-1-0: 345
 --- http_config
     upstream pg {
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -312,7 +312,7 @@ result-1-1: 89
 --- http_config
     upstream pg {
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -388,7 +388,7 @@ result-1-1: 89
 --- http_config
     upstream pg {
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -464,7 +464,7 @@ result-1-1: qwe
 --- http_config
     upstream pg {
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -540,7 +540,7 @@ result-1-1:
 --- http_config
     upstream pg {
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -610,7 +610,7 @@ result-0-1: 345
 --- http_config
     upstream pg {
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -672,7 +672,7 @@ result-1-0: 345
 --- http_config
     upstream pg {
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -748,7 +748,7 @@ result-1-1: 89
 --- http_config
     upstream pg {
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -824,7 +824,7 @@ result-1-1: 89
 --- http_config
     upstream pg {
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {
@@ -900,7 +900,7 @@ result-1-1: qwe
 --- http_config
     upstream pg {
         pg_con user=postgres database=postgres application_name=upstream;
-        server postgres:5432;
+        server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
     location =/ {

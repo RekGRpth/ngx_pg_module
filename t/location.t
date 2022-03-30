@@ -29,7 +29,7 @@ __DATA__
         add_header result-0-0 $pg_result_0_0 always;
         pg_con user=postgres database=postgres application_name=location;
         pg_out value;
-        pg_pas postgres:5432;
+        pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select 1";
     }
 --- request
@@ -70,7 +70,7 @@ result-0-0: 1
         add_header error-severity $pg_error_severity always;
         add_header error-sqlstate $pg_error_sqlstate always;
         pg_con user=postgres database=postgres application_name=location;
-        pg_pas postgres:5432;
+        pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select 1/0";
     }
 --- request
@@ -116,7 +116,7 @@ error-sqlstate: 22012
         pg_arg $arg_b 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out plain;
-        pg_pas postgres:5432;
+        pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde";
     }
 --- request
@@ -176,7 +176,7 @@ result-0-1: 345
         pg_arg $arg_b 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out plain;
-        pg_pas postgres:5432;
+        pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab union select $2 order by 1";
     }
 --- request
@@ -240,7 +240,7 @@ result-1-0: 345
         pg_arg $arg_d 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out plain;
-        pg_pas postgres:5432;
+        pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
     }
 --- request
@@ -310,7 +310,7 @@ result-1-1: 89
         pg_arg $arg_c 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out plain;
-        pg_pas postgres:5432;
+        pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 2";
     }
 --- request
@@ -380,7 +380,7 @@ result-1-1: 89
         pg_arg $arg_c;
         pg_con user=postgres database=postgres application_name=location;
         pg_out plain;
-        pg_pas postgres:5432;
+        pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
     }
 --- request
@@ -450,7 +450,7 @@ result-1-1: qwe
         pg_arg NULL 25;
         pg_con user=postgres database=postgres application_name=location;
         pg_out plain;
-        pg_pas postgres:5432;
+        pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
     }
 --- request
@@ -516,7 +516,7 @@ result-1-1:
         pg_arg $arg_b 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out csv;
-        pg_pas postgres:5432;
+        pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde";
     }
 --- request
@@ -576,7 +576,7 @@ result-0-1: 345
         pg_arg $arg_b 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out csv;
-        pg_pas postgres:5432;
+        pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab union select $2 order by 1";
     }
 --- request
@@ -640,7 +640,7 @@ result-1-0: 345
         pg_arg $arg_d 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out csv;
-        pg_pas postgres:5432;
+        pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
     }
 --- request
@@ -710,7 +710,7 @@ result-1-1: 89
         pg_arg $arg_c 23;
         pg_con user=postgres database=postgres application_name=location;
         pg_out csv;
-        pg_pas postgres:5432;
+        pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 2";
     }
 --- request
@@ -780,7 +780,7 @@ result-1-1: 89
         pg_arg $arg_c;
         pg_con user=postgres database=postgres application_name=location;
         pg_out csv;
-        pg_pas postgres:5432;
+        pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
     }
 --- request
@@ -850,7 +850,7 @@ result-1-1: qwe
         pg_arg NULL 25;
         pg_con user=postgres database=postgres application_name=location;
         pg_out csv;
-        pg_pas postgres:5432;
+        pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
     }
 --- request
