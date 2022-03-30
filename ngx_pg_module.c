@@ -11,7 +11,7 @@ typedef struct {
 typedef ngx_int_t (*ngx_pg_out_handler) (ngx_http_request_t *r);
 
 typedef struct {
-    ngx_chain_t *connect;
+    ngx_array_t *connect;
     ngx_http_complex_value_t complex;
     ngx_http_upstream_conf_t upstream;
 #if (NGX_HTTP_CACHE)
@@ -37,7 +37,7 @@ typedef struct {
 } ngx_pg_main_conf_t;
 
 typedef struct {
-    ngx_chain_t *connect;
+    ngx_array_t *connect;
     ngx_http_upstream_peer_t peer;
     ngx_log_t *log;
 } ngx_pg_srv_conf_t;
@@ -555,6 +555,30 @@ static ngx_chain_t *ngx_pg_write_int4(ngx_pool_t *p, uint32_t *size, uint32_t n)
     return cl;
 }
 
+static ngx_chain_t *ngx_pg_write_opt(ngx_pool_t *p, uint32_t *size, size_t len, const u_char *data) {
+    ngx_chain_t *cl;
+    if (!(cl = ngx_alloc_chain_link(p))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_alloc_chain_link"); return NULL; }
+    if (!(cl->buf = ngx_create_temp_buf(p, len + sizeof(u_char)))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_create_temp_buf"); return NULL; }
+    for (ngx_uint_t i = 0; i < len; i++) *cl->buf->last++ = data[i] == '=' ? 0 : data[i];
+    *cl->buf->last++ = 0;
+    if (size) *size += len + sizeof(u_char);
+    return cl;
+}
+
+static ngx_chain_t *ngx_pg_connect(ngx_pool_t *p, ngx_array_t *arg) {
+    ngx_chain_t *cl, *cl_size, *connect;
+    uint32_t size = 0;
+    if (!(cl = cl_size = connect = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 0x00030000))) return NULL;
+    ngx_str_t *args = arg->elts;
+    for (ngx_uint_t i = 0; i < arg->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(p, &size, args[i].len, args[i].data))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_char(p, &size, 0))) return NULL;
+    cl_size->buf->last = pg_write_int4(cl_size->buf->last, size);
+    cl->next = NULL;
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = *connect; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
+    return connect;
+}
+
 static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, size_t len, const u_char *data) {
     ngx_chain_t *cl, *cl_size, *query;
     uint32_t size = 0;
@@ -737,11 +761,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!(s->parser = ngx_pcalloc(c->pool, pg_parser_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         pg_parser_init(s->parser, &ngx_pg_parser_settings, s);
         s->connection = c;
-        ngx_chain_t *connect = pscf ? pscf->connect : plcf->connect;
-        for (ngx_chain_t *cmd = connect; cmd; cmd = cmd->next) {
+        for (ngx_chain_t *cmd = ngx_pg_connect(r->pool, pscf ? pscf->connect : plcf->connect); cmd; cmd = cmd->next) {
             cl->buf = cmd->buf;
-            ngx_buf_t *b = cl->buf;
-            b->pos = b->start;
             if (!(cl = cl->next = ngx_alloc_chain_link(r->pool))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_alloc_chain_link"); return NGX_ERROR; }
         }
         for (ngx_chain_t *cmd = ngx_pg_flush(r->pool); cmd; cmd = cmd->next) {
@@ -1038,12 +1059,14 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
 static void *ngx_pg_create_srv_conf(ngx_conf_t *cf) {
     ngx_pg_srv_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
     if (!conf) return NULL;
+    conf->connect = NGX_CONF_UNSET_PTR;
     return conf;
 }
 
 static void *ngx_pg_create_loc_conf(ngx_conf_t *cf) {
     ngx_pg_loc_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
     if (!conf) return NULL;
+    conf->connect = NGX_CONF_UNSET_PTR;
     conf->upstream.buffer_size = NGX_CONF_UNSET_SIZE;
     conf->upstream.buffering = NGX_CONF_UNSET;
     conf->upstream.busy_buffers_size_conf = NGX_CONF_UNSET_SIZE;
@@ -1491,36 +1514,6 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
     return NGX_OK;
 }
 
-static ngx_chain_t *ngx_pg_write_opt(ngx_pool_t *p, uint32_t *size, size_t len, const u_char *data) {
-    ngx_chain_t *cl;
-    if (!(cl = ngx_alloc_chain_link(p))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_alloc_chain_link"); return NULL; }
-    if (!(cl->buf = ngx_create_temp_buf(p, len + sizeof(u_char)))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_create_temp_buf"); return NULL; }
-    for (ngx_uint_t i = 0; i < len; i++) *cl->buf->last++ = data[i] == '=' ? 0 : data[i];
-    *cl->buf->last++ = 0;
-    if (size) *size += len + sizeof(u_char);
-    return cl;
-}
-
-static char *ngx_pg_connect(ngx_conf_t *cf, ngx_command_t *cmd, ngx_chain_t **connect) {
-    ngx_chain_t *cl, *cl_size;
-    uint32_t size = 0;
-    if (!(cl = cl_size = *connect = ngx_pg_alloc_size(cf->pool, &size))) return NGX_CONF_ERROR;
-    if (!(cl = cl->next = ngx_pg_write_int4(cf->pool, &size, 0x00030000))) return NGX_CONF_ERROR;
-    ngx_str_t *args = cf->args->elts;
-    for (ngx_uint_t i = 1; i < cf->args->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(cf->pool, &size, args[i].len, args[i].data))) return NGX_CONF_ERROR;
-    if (!(cl = cl->next = ngx_pg_write_char(cf->pool, &size, 0))) return NGX_CONF_ERROR;
-    cl_size->buf->last = pg_write_int4(cl_size->buf->last, size);
-    cl->next = NULL;
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = *connect; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%i:%i:%c", i++, *p, *p);
-    return NGX_CONF_OK;
-}
-
-static char *ngx_pg_con_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->connect) return "duplicate";
-    return ngx_pg_connect(cf, cmd, &plcf->connect);
-}
-
 static ngx_int_t ngx_pg_out_csv_plain_handler(ngx_http_request_t *r, size_t len, const u_char *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     r->headers_out.content_type.data = data;
@@ -1668,11 +1661,12 @@ static char *ngx_pg_out_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 static char *ngx_pg_con_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_srv_conf_t *pscf = conf;
-    if (pscf->connect) return "duplicate";
     ngx_http_upstream_srv_conf_t *uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
-    pscf->peer.init_upstream = uscf->peer.init_upstream ? uscf->peer.init_upstream : ngx_http_upstream_init_round_robin;
-    uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
-    return ngx_pg_connect(cf, cmd, &pscf->connect);
+    if (uscf->peer.init_upstream != ngx_pg_peer_init_upstream) {
+        pscf->peer.init_upstream = uscf->peer.init_upstream ? uscf->peer.init_upstream : ngx_http_upstream_init_round_robin;
+        uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
+    }
+    return ngx_conf_set_str_array_slot(cf, cmd, conf);
 }
 
 static char *ngx_pg_log_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
@@ -1772,8 +1766,8 @@ static ngx_conf_bitmask_t ngx_pg_next_upstream_masks[] = {
 
 static ngx_command_t ngx_pg_commands[] = {
   { ngx_string("pg_arg"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_arg_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
-  { ngx_string("pg_con"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_con_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
-  { ngx_string("pg_con"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_con_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
+  { ngx_string("pg_con"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_conf_set_str_array_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, connect), NULL },
+  { ngx_string("pg_con"), NGX_HTTP_UPS_CONF|NGX_CONF_TAKE1, ngx_pg_con_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, offsetof(ngx_pg_srv_conf_t, connect), NULL },
   { ngx_string("pg_fun"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_http_set_complex_value_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, cmd.complex), NULL },
   { ngx_string("pg_log"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_log_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_out"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_out_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
