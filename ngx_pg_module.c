@@ -1692,15 +1692,15 @@ static char *ngx_pg_pas_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     ngx_http_core_loc_conf_t *clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
     clcf->handler = ngx_pg_handler;
     if (clcf->name.data[clcf->name.len - 1] == '/') clcf->auto_redirect = 1;
-    ngx_str_t *args = cf->args->elts;
-    if (ngx_http_script_variables_count(&args[1])) {
-        ngx_http_compile_complex_value_t ccv = {cf, &args[1], &plcf->complex, 0, 0, 0};
+    ngx_str_t *str = cf->args->elts;
+    if (ngx_http_script_variables_count(&str[1])) {
+        ngx_http_compile_complex_value_t ccv = {cf, &str[1], &plcf->complex, 0, 0, 0};
         if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
         return NGX_CONF_OK;
     }
     ngx_url_t url = {0};
     if (plcf->connect == NGX_CONF_UNSET_PTR) url.no_resolve = 1;
-    url.url = args[1];
+    url.url = str[1];
     if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &url, 0))) return NGX_CONF_ERROR;
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
     uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
@@ -1713,13 +1713,13 @@ static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     if (!plcf->cmd.arg && !(plcf->cmd.arg = ngx_array_create(cf->pool, 1, sizeof(*arg)))) return "!ngx_array_create";
     if (!(arg = ngx_array_push(plcf->cmd.arg))) return "!ngx_array_push";
     ngx_memzero(arg, sizeof(*arg));
-    ngx_str_t *args = cf->args->elts;
-    if (args[1].len != sizeof("NULL") - 1 || ngx_strncasecmp(args[1].data, "NULL", sizeof("NULL") - 1)) {
-        ngx_http_compile_complex_value_t ccv = {cf, &args[1], &arg->argument, 0, 0, 0};
+    ngx_str_t *str = cf->args->elts;
+    if (str[1].len != sizeof("NULL") - 1 || ngx_strncasecmp(str[1].data, "NULL", sizeof("NULL") - 1)) {
+        ngx_http_compile_complex_value_t ccv = {cf, &str[1], &arg->argument, 0, 0, 0};
         if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     }
     if (cf->args->nelts <= 2) return NGX_CONF_OK;
-    ngx_http_compile_complex_value_t ccv = {cf, &args[2], &arg->type, 0, 0, 0};
+    ngx_http_compile_complex_value_t ccv = {cf, &str[2], &arg->type, 0, 0, 0};
     if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     return NGX_CONF_OK;
 }
