@@ -5,11 +5,11 @@ it uses ragel-based PostgreSQL connection parser with zero-alloc and zero-copy
 
 pg_arg
 -------------
-* Syntax: **pg_arg** NULL | *$arg* [ *type* ]
+* Syntax: **pg_arg** NULL | *$arg* [ *$type* ]
 * Default: --
 * Context: location, if in location
 
-Sets query argument (nginx variables allowed) and type (no nginx variables allowed), can be several:
+Sets query argument (nginx variables allowed) and type (nginx variables allowed), can be several:
 ```nginx
 location =/ {
     pg_arg NULL; # first query argument is NULL and auto type
