@@ -4,7 +4,7 @@
 ngx_module_t ngx_pg_module;
 
 typedef struct {
-    ngx_http_complex_value_t complex;
+    ngx_http_complex_value_t value;
     ngx_uint_t type;
 } ngx_pg_arg_t;
 
@@ -781,7 +781,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         for (ngx_uint_t i = 0; i < plcf->cmd.arg->nelts; i++) {
             if (!(value = ngx_array_push(&arg))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_array_push"); return NGX_ERROR; }
             ngx_memzero(value, sizeof(*value));
-            if (args[i].complex.value.data) if (ngx_http_complex_value(r, &args[i].complex, value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
+            if (args[i].value.value.data) if (ngx_http_complex_value(r, &args[i].value, value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
         }
     }
     if (plcf->cmd.function) {
@@ -1703,7 +1703,7 @@ static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     ngx_memzero(arg, sizeof(*arg));
     ngx_str_t *args = cf->args->elts;
     if (args[1].len != sizeof("NULL") - 1 || ngx_strncasecmp(args[1].data, "NULL", sizeof("NULL") - 1)) {
-        ngx_http_compile_complex_value_t ccv = {cf, &args[1], &arg->complex, 0, 0, 0};
+        ngx_http_compile_complex_value_t ccv = {cf, &args[1], &arg->value, 0, 0, 0};
         if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     }
     if (cf->args->nelts <= 2) return NGX_CONF_OK;
