@@ -4,12 +4,12 @@
 ngx_module_t ngx_pg_module;
 
 typedef struct {
+    ngx_http_complex_value_t argument;
     ngx_http_complex_value_t type;
-    ngx_http_complex_value_t value;
 } ngx_pg_arg_t;
 
 typedef struct {
-    ngx_str_t value;
+    ngx_str_t argument;
     ngx_uint_t type;
 } ngx_pg_value_t;
 
@@ -684,9 +684,9 @@ static ngx_chain_t *ngx_pg_bind(ngx_pool_t *p, ngx_array_t *arg) {
     ngx_pg_value_t *value = arg->elts;
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arg->nelts))) return NULL;
     for (ngx_uint_t i = 0; i < arg->nelts; i++) {
-        if (value[i].value.data) {
-            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].value.len))) return NULL;
-            if (!(cl = cl->next = ngx_pg_write_byte(p, &size, value[i].value.len, value[i].value.data))) return NULL;
+        if (value[i].argument.data) {
+            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].argument.len))) return NULL;
+            if (!(cl = cl->next = ngx_pg_write_byte(p, &size, value[i].argument.len, value[i].argument.data))) return NULL;
         } else {
             if (!(cl = cl->next = ngx_pg_write_int4(p, &size, -1))) return NULL;
         }
@@ -710,9 +710,9 @@ static ngx_chain_t *ngx_pg_function(ngx_pool_t *p, uint32_t oid, ngx_array_t *ar
         ngx_pg_value_t *value = arg->elts;
         if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arg->nelts))) return NULL;
         for (ngx_uint_t i = 0; i < arg->nelts; i++) {
-            if (value[i].value.data) {
-                if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].value.len))) return NULL;
-                if (!(cl = cl->next = ngx_pg_write_byte(p, &size, value[i].value.len, value[i].value.data))) return NULL;
+            if (value[i].argument.data) {
+                if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].argument.len))) return NULL;
+                if (!(cl = cl->next = ngx_pg_write_byte(p, &size, value[i].argument.len, value[i].argument.data))) return NULL;
             } else {
                 if (!(cl = cl->next = ngx_pg_write_int4(p, &size, -1))) return NULL;
             }
@@ -793,7 +793,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
                 if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
                 value->type = n;
             }
-            if (args[i].value.value.data) if (ngx_http_complex_value(r, &args[i].value, &value->value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
+            if (args[i].argument.value.data) if (ngx_http_complex_value(r, &args[i].argument, &value->argument) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
         }
     }
     if (plcf->cmd.function) {
@@ -1715,7 +1715,7 @@ static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     ngx_memzero(arg, sizeof(*arg));
     ngx_str_t *args = cf->args->elts;
     if (args[1].len != sizeof("NULL") - 1 || ngx_strncasecmp(args[1].data, "NULL", sizeof("NULL") - 1)) {
-        ngx_http_compile_complex_value_t ccv = {cf, &args[1], &arg->value, 0, 0, 0};
+        ngx_http_compile_complex_value_t ccv = {cf, &args[1], &arg->argument, 0, 0, 0};
         if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     }
     if (cf->args->nelts <= 2) return NGX_CONF_OK;
