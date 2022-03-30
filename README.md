@@ -20,20 +20,24 @@ location = /pg {
 ```
 pg_con
 -------------
-* Syntax: **pg_con** *option=value* [ ... ]
+* Syntax: **pg_con** *option=value*
 * Default: --
 * Context: location, if in location, upstream
 
-Sets connection option(s) (no nginx variables allowed):
+Sets connection option(s) (no nginx variables allowed), can be several:
 ```nginx
 upstream pg {
     keepalive 8; # may use nginx keepalive module
-    pg_con user=user database=database application_name=application_name; # set user, database and application_name
+    pg_con application_name=application_name; # set application_name
+    pg_con database=database; # set database
+    pg_con user=user; # set user
     server postgres:5432; # add server with host postgres and port 5432
 }
 # or
 location = /pg {
-    pg_con user=user database=database application_name=application_name; # set user, database and application_name
+    pg_con application_name=application_name; # set application_name
+    pg_con database=database; # set database
+    pg_con user=user; # set user
 }
 ```
 pg_log
