@@ -1728,14 +1728,14 @@ static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 static char *ngx_pg_cache(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->upstream.cache != NGX_CONF_UNSET) return "is duplicate";
-    ngx_str_t *value = cf->args->elts;
-    if (ngx_strcmp(value[1].data, "off") == 0) { plcf->upstream.cache = 0; return NGX_CONF_OK; }
+    ngx_str_t *str = cf->args->elts;
+    if (ngx_strcmp(str[1].data, "off") == 0) { plcf->upstream.cache = 0; return NGX_CONF_OK; }
     if (plcf->upstream.store > 0) return "is incompatible with \"pg_store\"";
     plcf->upstream.cache = 1;
     ngx_http_compile_complex_value_t ccv = {0};
     ngx_http_complex_value_t cv = {0};
     ccv.cf = cf;
-    ccv.value = &value[1];
+    ccv.value = &str[1];
     ccv.complex_value = &cv;
     if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     if (cv.lengths) {
@@ -1743,7 +1743,7 @@ static char *ngx_pg_cache(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
         *plcf->upstream.cache_value = cv;
         return NGX_CONF_OK;
     }
-    if (!(plcf->upstream.cache_zone = ngx_shared_memory_add(cf, &value[1], 0, &ngx_pg_module))) return "!ngx_shared_memory_add";
+    if (!(plcf->upstream.cache_zone = ngx_shared_memory_add(cf, &str[1], 0, &ngx_pg_module))) return "!ngx_shared_memory_add";
     return NGX_CONF_OK;
 }
 
