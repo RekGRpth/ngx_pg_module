@@ -1168,18 +1168,15 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     return NGX_CONF_OK;
 }
 
-static ngx_int_t ngx_pg_pid_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_complete_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
     if (!u) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
     ngx_pg_data_t *d = u->peer.data;
-    ngx_pg_save_t *s = d->save;
-    if (!s) return NGX_OK;
-    v->len = snprintf(NULL, 0, "%i", s->pid);
-    if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%i", s->pid) - v->data;
+    v->data = d->complete.data;
+    v->len = d->complete.len;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
@@ -1207,31 +1204,7 @@ static ngx_int_t ngx_pg_error_get_handler(ngx_http_request_t *r, ngx_http_variab
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_option_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    v->not_found = 1;
-    ngx_http_upstream_t *u = r->upstream;
-    if (!u) return NGX_OK;
-    if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
-    ngx_pg_data_t *d = u->peer.data;
-    ngx_pg_save_t *s = d->save;
-    if (!s) return NGX_OK;
-    if (!s->options) return NGX_OK;
-    ngx_pg_option_t *option = s->options->elts;
-    ngx_str_t *name = (ngx_str_t *)data;
-    ngx_uint_t i;
-    for (i = 0; i < s->options->nelts; i++) if (name->len - sizeof("pg_option_") + 1 == option[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_option_") - 1, option[i].key.data, option[i].key.len)) break;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", i == s->options->nelts ? "true" : "false");
-    if (i == s->options->nelts) return NGX_OK;
-    v->data = option[i].val.data;
-    v->len = option[i].val.len;
-    v->valid = 1;
-    v->no_cacheable = 0;
-    v->not_found = 0;
-    return NGX_OK;
-}
-
-static ngx_int_t ngx_pg_field_mod_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_field_format_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
@@ -1239,14 +1212,14 @@ static ngx_int_t ngx_pg_field_mod_get_handler(ngx_http_request_t *r, ngx_http_va
     if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
     ngx_pg_data_t *d = u->peer.data;
     ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_mod_") - 1, name->len - sizeof("pg_field_mod_") + 1);
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_format_") - 1, name->len - sizeof("pg_field_format_") + 1);
     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t i = n;
     if (!d->fields || i >= d->fields->nelts) return NGX_OK;
     ngx_pg_field_t *field = d->fields->elts;
-    v->len = snprintf(NULL, 0, "%i", field[i].mod);
+    v->len = snprintf(NULL, 0, "%i", field[i].format);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%i", field[i].mod) - v->data;
+    v->len = ngx_snprintf(v->data, v->len, "%i", field[i].format) - v->data;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
@@ -1275,22 +1248,7 @@ static ngx_int_t ngx_pg_field_column_get_handler(ngx_http_request_t *r, ngx_http
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_complete_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    v->not_found = 1;
-    ngx_http_upstream_t *u = r->upstream;
-    if (!u) return NGX_OK;
-    if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
-    ngx_pg_data_t *d = u->peer.data;
-    v->data = d->complete.data;
-    v->len = d->complete.len;
-    v->valid = 1;
-    v->no_cacheable = 0;
-    v->not_found = 0;
-    return NGX_OK;
-}
-
-static ngx_int_t ngx_pg_field_format_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_field_length_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
@@ -1298,14 +1256,101 @@ static ngx_int_t ngx_pg_field_format_get_handler(ngx_http_request_t *r, ngx_http
     if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
     ngx_pg_data_t *d = u->peer.data;
     ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_format_") - 1, name->len - sizeof("pg_field_format_") + 1);
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_length_") - 1, name->len - sizeof("pg_field_length_") + 1);
     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
     ngx_uint_t i = n;
     if (!d->fields || i >= d->fields->nelts) return NGX_OK;
     ngx_pg_field_t *field = d->fields->elts;
-    v->len = snprintf(NULL, 0, "%i", field[i].format);
+    v->len = snprintf(NULL, 0, "%i", field[i].length);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%i", field[i].format) - v->data;
+    v->len = ngx_snprintf(v->data, v->len, "%i", field[i].length) - v->data;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+    return NGX_OK;
+}
+
+static ngx_int_t ngx_pg_field_mod_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    v->not_found = 1;
+    ngx_http_upstream_t *u = r->upstream;
+    if (!u) return NGX_OK;
+    if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
+    ngx_pg_data_t *d = u->peer.data;
+    ngx_str_t *name = (ngx_str_t *)data;
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_mod_") - 1, name->len - sizeof("pg_field_mod_") + 1);
+    if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
+    ngx_uint_t i = n;
+    if (!d->fields || i >= d->fields->nelts) return NGX_OK;
+    ngx_pg_field_t *field = d->fields->elts;
+    v->len = snprintf(NULL, 0, "%i", field[i].mod);
+    if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
+    v->len = ngx_snprintf(v->data, v->len, "%i", field[i].mod) - v->data;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+    return NGX_OK;
+}
+
+static ngx_int_t ngx_pg_field_name_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    v->not_found = 1;
+    ngx_http_upstream_t *u = r->upstream;
+    if (!u) return NGX_OK;
+    if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
+    ngx_pg_data_t *d = u->peer.data;
+    ngx_str_t *name = (ngx_str_t *)data;
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_name_") - 1, name->len - sizeof("pg_field_name_") + 1);
+    if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
+    ngx_uint_t i = n;
+    if (!d->fields || i >= d->fields->nelts) return NGX_OK;
+    ngx_pg_field_t *field = d->fields->elts;
+    v->data = field[i].name.data;
+    v->len = field[i].name.len;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+    return NGX_OK;
+}
+
+static ngx_int_t ngx_pg_field_oid_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    v->not_found = 1;
+    ngx_http_upstream_t *u = r->upstream;
+    if (!u) return NGX_OK;
+    if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
+    ngx_pg_data_t *d = u->peer.data;
+    ngx_str_t *name = (ngx_str_t *)data;
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_oid_") - 1, name->len - sizeof("pg_field_oid_") + 1);
+    if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
+    ngx_uint_t i = n;
+    if (!d->fields || i >= d->fields->nelts) return NGX_OK;
+    ngx_pg_field_t *field = d->fields->elts;
+    v->len = snprintf(NULL, 0, "%i", field[i].oid);
+    if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
+    v->len = ngx_snprintf(v->data, v->len, "%i", field[i].oid) - v->data;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+    return NGX_OK;
+}
+
+static ngx_int_t ngx_pg_field_table_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    v->not_found = 1;
+    ngx_http_upstream_t *u = r->upstream;
+    if (!u) return NGX_OK;
+    if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
+    ngx_pg_data_t *d = u->peer.data;
+    ngx_str_t *name = (ngx_str_t *)data;
+    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_table_") - 1, name->len - sizeof("pg_field_table_") + 1);
+    if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
+    ngx_uint_t i = n;
+    if (!d->fields || i >= d->fields->nelts) return NGX_OK;
+    ngx_pg_field_t *field = d->fields->elts;
+    v->len = snprintf(NULL, 0, "%i", field[i].table);
+    if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
+    v->len = ngx_snprintf(v->data, v->len, "%i", field[i].table) - v->data;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
@@ -1346,87 +1391,42 @@ static ngx_int_t ngx_pg_nresults_get_handler(ngx_http_request_t *r, ngx_http_var
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_field_name_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_option_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
     if (!u) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
     ngx_pg_data_t *d = u->peer.data;
+    ngx_pg_save_t *s = d->save;
+    if (!s) return NGX_OK;
+    if (!s->options) return NGX_OK;
+    ngx_pg_option_t *option = s->options->elts;
     ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_name_") - 1, name->len - sizeof("pg_field_name_") + 1);
-    if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
-    ngx_uint_t i = n;
-    if (!d->fields || i >= d->fields->nelts) return NGX_OK;
-    ngx_pg_field_t *field = d->fields->elts;
-    v->data = field[i].name.data;
-    v->len = field[i].name.len;
+    ngx_uint_t i;
+    for (i = 0; i < s->options->nelts; i++) if (name->len - sizeof("pg_option_") + 1 == option[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_option_") - 1, option[i].key.data, option[i].key.len)) break;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", i == s->options->nelts ? "true" : "false");
+    if (i == s->options->nelts) return NGX_OK;
+    v->data = option[i].val.data;
+    v->len = option[i].val.len;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_field_table_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+static ngx_int_t ngx_pg_pid_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
     ngx_http_upstream_t *u = r->upstream;
     if (!u) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
     ngx_pg_data_t *d = u->peer.data;
-    ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_table_") - 1, name->len - sizeof("pg_field_table_") + 1);
-    if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
-    ngx_uint_t i = n;
-    if (!d->fields || i >= d->fields->nelts) return NGX_OK;
-    ngx_pg_field_t *field = d->fields->elts;
-    v->len = snprintf(NULL, 0, "%i", field[i].table);
+    ngx_pg_save_t *s = d->save;
+    if (!s) return NGX_OK;
+    v->len = snprintf(NULL, 0, "%i", s->pid);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%i", field[i].table) - v->data;
-    v->valid = 1;
-    v->no_cacheable = 0;
-    v->not_found = 0;
-    return NGX_OK;
-}
-
-static ngx_int_t ngx_pg_field_oid_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    v->not_found = 1;
-    ngx_http_upstream_t *u = r->upstream;
-    if (!u) return NGX_OK;
-    if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
-    ngx_pg_data_t *d = u->peer.data;
-    ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_oid_") - 1, name->len - sizeof("pg_field_oid_") + 1);
-    if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
-    ngx_uint_t i = n;
-    if (!d->fields || i >= d->fields->nelts) return NGX_OK;
-    ngx_pg_field_t *field = d->fields->elts;
-    v->len = snprintf(NULL, 0, "%i", field[i].oid);
-    if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%i", field[i].oid) - v->data;
-    v->valid = 1;
-    v->no_cacheable = 0;
-    v->not_found = 0;
-    return NGX_OK;
-}
-
-static ngx_int_t ngx_pg_field_length_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    v->not_found = 1;
-    ngx_http_upstream_t *u = r->upstream;
-    if (!u) return NGX_OK;
-    if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
-    ngx_pg_data_t *d = u->peer.data;
-    ngx_str_t *name = (ngx_str_t *)data;
-    ngx_int_t n = ngx_atoi(name->data + sizeof("pg_field_length_") - 1, name->len - sizeof("pg_field_length_") + 1);
-    if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
-    ngx_uint_t i = n;
-    if (!d->fields || i >= d->fields->nelts) return NGX_OK;
-    ngx_pg_field_t *field = d->fields->elts;
-    v->len = snprintf(NULL, 0, "%i", field[i].length);
-    if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%i", field[i].length) - v->data;
+    v->len = ngx_snprintf(v->data, v->len, "%i", s->pid) - v->data;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
