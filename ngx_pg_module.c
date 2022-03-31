@@ -962,6 +962,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
+    if (!s) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!s"); return NGX_ERROR; }
     s->rc = NGX_OK;
     while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_parser_execute(s->parser, b->pos, b->last);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
@@ -1168,6 +1169,7 @@ static ngx_int_t ngx_pg_pid_get_handler(ngx_http_request_t *r, ngx_http_variable
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
+    if (!s) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!s"); return NGX_ERROR; }
     v->len = snprintf(NULL, 0, "%i", s->pid);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
     v->len = ngx_snprintf(v->data, v->len, "%i", s->pid) - v->data;
@@ -1206,7 +1208,7 @@ static ngx_int_t ngx_pg_option_get_handler(ngx_http_request_t *r, ngx_http_varia
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
-    if (!s) return NGX_OK;
+    if (!s) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!s"); return NGX_ERROR; }
     if (!s->options) return NGX_OK;
     ngx_pg_option_t *option = s->options->elts;
     ngx_str_t *name = (ngx_str_t *)data;
