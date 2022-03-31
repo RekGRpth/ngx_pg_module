@@ -1660,7 +1660,7 @@ static char *ngx_pg_con_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 static char *ngx_pg_fun_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->sql.data) return "sql";
+    if (plcf->sql.data) return "conflicts with \"pg_sql\" directive";
     return ngx_http_set_complex_value_slot(cf, cmd, conf);
 }
 
@@ -1709,7 +1709,7 @@ static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 static char *ngx_pg_sql_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->function) return "function";
+    if (plcf->function) return "conflicts with \"pg_fun\" directive";
     return ngx_conf_set_str_slot(cf, cmd, conf);
 }
 
