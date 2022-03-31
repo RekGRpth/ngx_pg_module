@@ -822,8 +822,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         while (cl->next) cl = cl->next;
         cl->next = ngx_pg_execute(r->pool);
         while (cl->next) cl = cl->next;
-        cl->next = ngx_pg_close(r->pool);
-        while (cl->next) cl = cl->next;
+//        cl->next = ngx_pg_close(r->pool);
+//        while (cl->next) cl = cl->next;
         cl->next = ngx_pg_sync(r->pool);
         while (cl->next) cl = cl->next;
     } else { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!pg_fun && !pg_sql"); return NGX_ERROR; }
