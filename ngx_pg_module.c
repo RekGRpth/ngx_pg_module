@@ -139,6 +139,12 @@ static int ngx_pg_parser_complete_val(ngx_pg_save_t *s, size_t len, const u_char
     return s->rc;
 }
 
+static int ngx_pg_parser_empty(ngx_pg_save_t *s, uint32_t len) {
+    if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
+    return s->rc;
+}
+
 static int ngx_pg_parser_error(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i", len);
@@ -451,6 +457,7 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .close = (pg_parser_int4_cb)ngx_pg_parser_close,
     .complete = (pg_parser_int4_cb)ngx_pg_parser_complete,
     .complete_val = (pg_parser_str_cb)ngx_pg_parser_complete_val,
+    .empty = (pg_parser_int4_cb)ngx_pg_parser_empty,
     .error_key = (pg_parser_str_cb)ngx_pg_parser_error_key,
     .error = (pg_parser_int4_cb)ngx_pg_parser_error,
     .error_val = (pg_parser_str_cb)ngx_pg_parser_error_val,

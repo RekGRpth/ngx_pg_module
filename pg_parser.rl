@@ -25,6 +25,7 @@ typedef struct pg_parser_t {
     action close { if (settings->close(parser->data, parser->int4)) fbreak; }
     action complete { if (settings->complete(parser->data, parser->int4)) fbreak; }
     action complete_val { if (str && settings->complete_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
+    action empty { if (settings->empty(parser->data, parser->int4)) fbreak; }
     action error_column { if (settings->error_key(parser->data, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
     action error_constraint { if (settings->error_key(parser->data, sizeof("constraint") - 1, (const unsigned char *)"constraint")) fbreak; }
     action error_context { if (settings->error_key(parser->data, sizeof("context") - 1, (const unsigned char *)"context")) fbreak; }
@@ -56,6 +57,8 @@ typedef struct pg_parser_t {
     action field_oid { if (settings->field_oid(parser->data, parser->int4)) fbreak; }
     action field_table { if (settings->field_table(parser->data, parser->int4)) fbreak; }
     action function { if (settings->function(parser->data, parser->int4)) fbreak; }
+    action function_result_len { parser->result_len = parser->int4; if (settings->result_len(parser->data, parser->result_len)) fbreak; if (!parser->result_len || parser->result_len == (uint32_t)-1) fnext main; }
+    action function_result_val { if (!parser->result_len--) { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext main; } }
     action int2 { if (!parser->i) { parser->i = sizeof(parser->int2); parser->int2 = 0; } parser->int2 |= *p << ((2 << 2) * --parser->i); }
     action int4 { if (!parser->i) { parser->i = sizeof(parser->int4); parser->int4 = 0; } parser->int4 |= *p << ((2 << 2) * --parser->i); }
     action key { if (settings->key(parser->data, parser->int4)) fbreak; }
@@ -72,10 +75,8 @@ typedef struct pg_parser_t {
     action result_count { parser->result_count = parser->int2; if (settings->result_count(parser->data, parser->result_count)) fbreak; if (!parser->result_count) fnext main; }
     action result { if (settings->result(parser->data, parser->int4)) fbreak; }
     action result_len { parser->result_len = parser->int4; if (settings->result_len(parser->data, parser->result_len)) fbreak; if (!parser->result_len || parser->result_len == (uint32_t)-1) { if (!--parser->result_count) fnext main; else fnext result; } }
-    action function_result_len { parser->result_len = parser->int4; if (settings->result_len(parser->data, parser->result_len)) fbreak; if (!parser->result_len || parser->result_len == (uint32_t)-1) fnext main; }
     action result_valeof { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action result_val { if (!parser->result_len--) { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->result_count) fnext main; else fnext result; } }
-    action function_result_val { if (!parser->result_len--) { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext main; } }
     action secret { if (settings->secret(parser->data, parser->int4)) fbreak; }
     action str { if (!str) str = p; parser->str = cs; }
 
@@ -113,18 +114,19 @@ typedef struct pg_parser_t {
     result = int4 @result_len byte **;
 
     main :=
-    ( 49 int4 @parse
-    | 50 int4 @bind
-    | 51 int4 @close
-    | 67 int4 @complete str0 @complete_val @/complete_val
-    | 68 int4 @result int2 @result_count result **
-    | 69 int4 @error error ** 0
-    | 75 int4 @secret int4 @pid int4 @key
-    | 82 int4 @auth int4 @method
-    | 83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
-    | 84 int4 @field int2 @field_count field **
-    | 86 int4 @function int4 @function_result_len function_byte **
-    | 90 int4 @ready ready
+    (  49 int4 @parse
+    |  50 int4 @bind
+    |  51 int4 @close
+    |  67 int4 @complete str0 @complete_val @/complete_val
+    |  68 int4 @result int2 @result_count result **
+    |  69 int4 @error error ** 0
+    |  75 int4 @secret int4 @pid int4 @key
+    |  82 int4 @auth int4 @method
+    |  83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
+    |  84 int4 @field int2 @field_count field **
+    |  86 int4 @function int4 @function_result_len function_byte **
+    |  90 int4 @ready ready
+    | 110 int4 @empty
     ) ** $all;
 
     write data;

@@ -25,6 +25,7 @@ typedef struct {
     pg_parser_int4_cb bind;
     pg_parser_int4_cb close;
     pg_parser_int4_cb complete;
+    pg_parser_int4_cb empty;
     pg_parser_int4_cb error;
     pg_parser_int4_cb field;
     pg_parser_int4_cb field_mod;
