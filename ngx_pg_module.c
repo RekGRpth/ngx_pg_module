@@ -610,8 +610,10 @@ inline static ngx_chain_t *ngx_pg_connect(ngx_pool_t *p, ngx_array_t *options) {
     uint32_t size = 0;
     if (!(cl = cl_size = connect = ngx_pg_alloc_size(p, &size))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 0x00030000))) return NULL;
-    ngx_str_t *str = options->elts;
-    for (ngx_uint_t i = 0; i < options->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(p, &size, str[i].len, str[i].data))) return NULL;
+    if (options != NGX_CONF_UNSET_PTR) {
+        ngx_str_t *str = options->elts;
+        for (ngx_uint_t i = 0; i < options->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(p, &size, str[i].len, str[i].data))) return NULL;
+    }
     if (!(cl = cl->next = ngx_pg_write_char(p, &size, 0))) return NULL;
     cl_size->buf->last = pg_write_int4(cl_size->buf->last, size);
     cl->next = NULL;
