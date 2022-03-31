@@ -1678,9 +1678,10 @@ static char *ngx_pg_out_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
                 plcf->out.delimiter = str[i].data[sizeof("delimiter=") - 1];
                 continue;
             }
-            if (str[i].len > sizeof("null=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"null=", sizeof("null=") - 1)) {
-                if (!(plcf->out.null.len = str[i].len - (sizeof("null=") - 1))) return "empty \"null\" value";
-                plcf->out.null.data = &str[i].data[sizeof("null=") - 1];
+            if (str[i].len >= sizeof("escape=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"escape=", sizeof("escape=") - 1)) {
+                if (!(str[i].len - (sizeof("escape=") - 1))) { plcf->out.escape = '\0'; continue; }
+                else if (str[i].len > 1) return "\"escape\" value must be one character";
+                plcf->out.escape = str[i].data[sizeof("escape=") - 1];
                 continue;
             }
             if (str[i].len > sizeof("header=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"header=", sizeof("header=") - 1)) {
@@ -1689,10 +1690,9 @@ static char *ngx_pg_out_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
                 plcf->out.header = e[j].value;
                 continue;
             }
-            if (str[i].len > sizeof("string=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"string=", sizeof("string=") - 1)) {
-                for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("string=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("string=") - 1], str[i].len - (sizeof("string=") - 1))) break;
-                if (!e[j].name.len) return "\"string\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
-                plcf->out.string = e[j].value;
+            if (str[i].len > sizeof("null=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"null=", sizeof("null=") - 1)) {
+                if (!(plcf->out.null.len = str[i].len - (sizeof("null=") - 1))) return "empty \"null\" value";
+                plcf->out.null.data = &str[i].data[sizeof("null=") - 1];
                 continue;
             }
             if (str[i].len >= sizeof("quote=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"quote=", sizeof("quote=") - 1)) {
@@ -1701,10 +1701,10 @@ static char *ngx_pg_out_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
                 plcf->out.quote = str[i].data[sizeof("quote=") - 1];
                 continue;
             }
-            if (str[i].len >= sizeof("escape=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"escape=", sizeof("escape=") - 1)) {
-                if (!(str[i].len - (sizeof("escape=") - 1))) { plcf->out.escape = '\0'; continue; }
-                else if (str[i].len > 1) return "\"escape\" value must be one character";
-                plcf->out.escape = str[i].data[sizeof("escape=") - 1];
+            if (str[i].len > sizeof("string=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"string=", sizeof("string=") - 1)) {
+                for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("string=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("string=") - 1], str[i].len - (sizeof("string=") - 1))) break;
+                if (!e[j].name.len) return "\"string\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
+                plcf->out.string = e[j].value;
                 continue;
             }
         }
