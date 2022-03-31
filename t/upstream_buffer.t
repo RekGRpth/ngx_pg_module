@@ -47,7 +47,7 @@ complete: SELECT 1
 Content-Length: 1
 Content-Type: text/plain
 field-length-0: 4
-field-mod-0: 42
+field-mod-0: -1
 field-name-0: ?column?
 field-oid-0: 23
 option-application-name: upstream
@@ -149,8 +149,8 @@ Content-Length: 13
 Content-Type: text/plain
 field-length-0: 4
 field-length-1: 4
-field-mod-0: 42
-field-mod-1: 42
+field-mod-0: -1
+field-mod-1: -1
 field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
@@ -215,7 +215,7 @@ complete: SELECT 2
 Content-Length: 9
 Content-Type: text/plain
 field-length-0: 4
-field-mod-0: 42
+field-mod-0: -1
 field-name-0: ab
 field-oid-0: 23
 option-application-name: upstream
@@ -287,8 +287,8 @@ Content-Length: 19
 Content-Type: text/plain
 field-length-0: 4
 field-length-1: 4
-field-mod-0: 42
-field-mod-1: 42
+field-mod-0: -1
+field-mod-1: -1
 field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
@@ -362,10 +362,10 @@ GET /?a=34&b=qwe&c=89
 complete: SELECT 2
 Content-Length: 19
 Content-Type: text/plain
-field-length-0: 65535
+field-length-0: -1
 field-length-1: 4
-field-mod-0: 42
-field-mod-1: 42
+field-mod-0: -1
+field-mod-1: -1
 field-name-0: ab
 field-name-1: cde
 field-oid-0: 25
@@ -440,9 +440,9 @@ complete: SELECT 2
 Content-Length: 19
 Content-Type: text/plain
 field-length-0: 4
-field-length-1: 65535
-field-mod-0: 42
-field-mod-1: 42
+field-length-1: -1
+field-mod-0: -1
+field-mod-1: -1
 field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
@@ -517,9 +517,9 @@ complete: SELECT 2
 Content-Length: 19
 Content-Type: text/plain
 field-length-0: 4
-field-length-1: 65535
-field-mod-0: 42
-field-mod-1: 42
+field-length-1: -1
+field-mod-0: -1
+field-mod-1: -1
 field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
@@ -591,8 +591,8 @@ Content-Length: 21
 Content-Type: text/csv
 field-length-0: 4
 field-length-1: 4
-field-mod-0: 42
-field-mod-1: 42
+field-mod-0: -1
+field-mod-1: -1
 field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
@@ -657,7 +657,7 @@ complete: SELECT 2
 Content-Length: 15
 Content-Type: text/csv
 field-length-0: 4
-field-mod-0: 42
+field-mod-0: -1
 field-name-0: ab
 field-oid-0: 23
 option-application-name: upstream
@@ -729,8 +729,8 @@ Content-Length: 31
 Content-Type: text/csv
 field-length-0: 4
 field-length-1: 4
-field-mod-0: 42
-field-mod-1: 42
+field-mod-0: -1
+field-mod-1: -1
 field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
@@ -804,10 +804,10 @@ GET /?a=34&b=qwe&c=89
 complete: SELECT 2
 Content-Length: 27
 Content-Type: text/csv
-field-length-0: 65535
+field-length-0: -1
 field-length-1: 4
-field-mod-0: 42
-field-mod-1: 42
+field-mod-0: -1
+field-mod-1: -1
 field-name-0: ab
 field-name-1: cde
 field-oid-0: 25
@@ -882,9 +882,9 @@ complete: SELECT 2
 Content-Length: 27
 Content-Type: text/csv
 field-length-0: 4
-field-length-1: 65535
-field-mod-0: 42
-field-mod-1: 42
+field-length-1: -1
+field-mod-0: -1
+field-mod-1: -1
 field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
@@ -959,9 +959,9 @@ complete: SELECT 2
 Content-Length: 27
 Content-Type: text/csv
 field-length-0: 4
-field-length-1: 65535
-field-mod-0: 42
-field-mod-1: 42
+field-length-1: -1
+field-mod-0: -1
+field-mod-1: -1
 field-name-0: ab
 field-name-1: cde
 field-oid-0: 23
