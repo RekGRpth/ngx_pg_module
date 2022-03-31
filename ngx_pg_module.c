@@ -489,11 +489,6 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .secret = (pg_parser_int4_cb)ngx_pg_parser_secret,
 };
 
-inline static u_char *pg_write_int2(u_char *p, uint16_t n) {
-    for (uint8_t m = sizeof(uint16_t); m; *p++ = n >> (2 << 2) * --m);
-    return p;
-}
-
 inline static u_char *pg_write_int4(u_char *p, uint32_t n) {
     for (uint8_t m = sizeof(uint32_t); m; *p++ = n >> (2 << 2) * --m);
     return p;
@@ -529,7 +524,7 @@ inline static ngx_chain_t *ngx_pg_write_int2(ngx_pool_t *p, uint32_t *size, uint
     ngx_chain_t *cl;
     if (!(cl = ngx_alloc_chain_link(p))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_alloc_chain_link"); return NULL; }
     if (!(cl->buf = ngx_create_temp_buf(p, sizeof(n)))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_create_temp_buf"); return NULL; }
-    cl->buf->last = pg_write_int2(cl->buf->last, n);
+    for (uint8_t m = sizeof(uint16_t); m; *cl->buf->last++ = n >> (2 << 2) * --m);
     if (size) *size += sizeof(n);
     return cl;
 }
