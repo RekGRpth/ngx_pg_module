@@ -1532,8 +1532,7 @@ static ngx_int_t ngx_pg_out_csv_plain_handler(ngx_http_request_t *r, size_t len,
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (plcf->out.header) {
-        if (!d->fields) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!field"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
+    if (plcf->out.header && d->fields) {
         if (!d->fields->nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!nfields"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
         ngx_pg_field_t *field = d->fields->elts;
         for (ngx_uint_t i = 0; i < d->fields->nelts; i++) {
