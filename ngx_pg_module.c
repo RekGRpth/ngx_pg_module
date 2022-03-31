@@ -1261,9 +1261,9 @@ static ngx_int_t ngx_pg_field_length_get_handler(ngx_http_request_t *r, ngx_http
     ngx_uint_t i = n;
     if (!d->fields || i >= d->fields->nelts) return NGX_OK;
     ngx_pg_field_t *field = d->fields->elts;
-    v->len = snprintf(NULL, 0, "%d", field[i].length);
+    v->len = snprintf(NULL, 0, "%d", field[i].length == (uint16_t)-1 ? -1 : field[i].length);
     if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%d", field[i].length) - v->data;
+    v->len = ngx_snprintf(v->data, v->len, "%d", field[i].length == (uint16_t)-1 ? -1 : field[i].length) - v->data;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
