@@ -568,13 +568,13 @@ static ngx_chain_t *ngx_pg_write_opt(ngx_pool_t *p, uint32_t *size, size_t len, 
     return cl;
 }
 
-static ngx_chain_t *ngx_pg_connect(ngx_pool_t *p, ngx_array_t *argument) {
+static ngx_chain_t *ngx_pg_connect(ngx_pool_t *p, ngx_array_t *option) {
     ngx_chain_t *cl, *cl_size, *connect;
     uint32_t size = 0;
     if (!(cl = cl_size = connect = ngx_pg_alloc_size(p, &size))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 0x00030000))) return NULL;
-    ngx_str_t *str = argument->elts;
-    for (ngx_uint_t i = 0; i < argument->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(p, &size, str[i].len, str[i].data))) return NULL;
+    ngx_str_t *str = option->elts;
+    for (ngx_uint_t i = 0; i < option->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(p, &size, str[i].len, str[i].data))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_char(p, &size, 0))) return NULL;
     cl_size->buf->last = pg_write_int4(cl_size->buf->last, size);
     cl->next = NULL;
