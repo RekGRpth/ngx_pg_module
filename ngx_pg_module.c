@@ -1524,6 +1524,18 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
     return NGX_OK;
 }
 
+inline static ngx_flag_t ngx_pg_is_number(size_t len, const u_char *data) {
+    for (ngx_flag_t point = 0; len--; data++) {
+        if (*data == '.') {
+            if (point) return 0;
+            point = 1;
+            continue;
+        }
+        if (*data < '0' || *data > '9') return 0;
+    }
+    return 1;
+}
+
 static ngx_int_t ngx_pg_out_csv_plain_handler(ngx_http_request_t *r, size_t len, const u_char *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     r->headers_out.content_type.data = data;
@@ -1558,12 +1570,13 @@ static ngx_int_t ngx_pg_out_csv_plain_handler(ngx_http_request_t *r, size_t len,
             if (!str[j].data) {
                 if (plcf->out.null.len) if (ngx_pg_add_response(r, plcf->out.null.len, plcf->out.null.data) != NGX_OK) return NGX_ERROR;
             } else {
-                if (plcf->out.quote) if (ngx_pg_add_response(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
-                if (plcf->out.quote && plcf->out.escape) for (ngx_uint_t k = 0; k < str[j].len; k++) {
+                ngx_flag_t string = plcf->out.string && ngx_pg_is_number(str[j].len, str[j].data);
+                if (!string && plcf->out.quote) if (ngx_pg_add_response(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
+                if (!string && plcf->out.quote && plcf->out.escape) for (ngx_uint_t k = 0; k < str[j].len; k++) {
                     if (str[j].data[k] == plcf->out.quote) if (ngx_pg_add_response(r, sizeof(plcf->out.escape), &plcf->out.escape) != NGX_OK) return NGX_ERROR;
                     if (ngx_pg_add_response(r, sizeof(str[j].data[k]), &str[j].data[k]) != NGX_OK) return NGX_ERROR;
                 } else if (ngx_pg_add_response(r, str[j].len, str[j].data) != NGX_OK) return NGX_ERROR;
-                if (plcf->out.quote) if (ngx_pg_add_response(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
+                if (!string && plcf->out.quote) if (ngx_pg_add_response(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
             }
         }
     }
