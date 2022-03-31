@@ -72,11 +72,11 @@ typedef struct pg_parser_t {
     action ready_intrans { if (settings->ready_state(parser->data, pg_ready_state_intrans)) fbreak; }
     action result_count { parser->result_count = parser->int2; if (settings->result_count(parser->data, parser->result_count)) fbreak; if (!parser->result_count) fnext main; }
     action result { if (settings->result(parser->data, parser->int4)) fbreak; }
+    action result_len_byte { parser->result_len = parser->int4; if (settings->result_len(parser->data, parser->result_len)) fbreak; if (!parser->result_len || parser->result_len == (uint32_t)-1) { if (!--parser->result_count) fnext main; else fnext result; } }
     action result_len_function { parser->result_len = parser->int4; if (settings->result_len(parser->data, parser->result_len)) fbreak; if (!parser->result_len || parser->result_len == (uint32_t)-1) fnext main; }
-    action result_len { parser->result_len = parser->int4; if (settings->result_len(parser->data, parser->result_len)) fbreak; if (!parser->result_len || parser->result_len == (uint32_t)-1) { if (!--parser->result_count) fnext main; else fnext result; } }
+    action result_val_byte { if (!parser->result_len--) { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->result_count) fnext main; else fnext result; } }
     action result_valeof { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action result_val_function { if (!parser->result_len--) { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext main; } }
-    action result_val { if (!parser->result_len--) { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->result_count) fnext main; else fnext result; } }
     action secret { if (settings->secret(parser->data, parser->int4)) fbreak; }
     action str { if (!str) str = p; parser->str = cs; }
 
@@ -107,11 +107,11 @@ typedef struct pg_parser_t {
     );
 
     byte_function = any @str @result_val_function @/result_valeof;
-    byte_result = any @str @result_val @/result_valeof;
+    byte_result = any @str @result_val_byte @/result_valeof;
     error = error_key str0 @error_val @/error_val;
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
-    result = int4 @result_len byte_result **;
+    result = int4 @result_len_byte byte_result **;
 
     main :=
     (  49 int4 @parse
