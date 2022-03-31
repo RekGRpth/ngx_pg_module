@@ -110,9 +110,9 @@ typedef struct pg_parser_t {
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
     result_fun = any @str @result_val @/result_val_eof;
-    result_sql = any @str @result_val @result_val_next @/result_val_eof;
+    result_sql = any @str @result_val @/result_val_eof;
 
-    result = int4 @result_len @result_len_next result_sql **;
+    result = int4 @result_len @result_len_next result_sql ** @result_val_next;
 
     main :=
     (  49 int4 @parse
