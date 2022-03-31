@@ -16,17 +16,15 @@ typedef struct {
 typedef ngx_int_t (*ngx_pg_out_handler) (ngx_http_request_t *r);
 
 typedef struct {
+    ngx_array_t *argument;
     ngx_array_t *connect;
     ngx_http_complex_value_t complex;
+    ngx_http_complex_value_t *function;
     ngx_http_upstream_conf_t upstream;
+    ngx_str_t sql;
 #if (NGX_HTTP_CACHE)
     ngx_http_complex_value_t cache_key;
 #endif
-    struct {
-        ngx_array_t *argument;
-        ngx_http_complex_value_t *function;
-        ngx_str_t sql;
-    } cmd;
     struct {
         ngx_flag_t header;
         ngx_pg_out_handler handler;
@@ -774,11 +772,11 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     d->ready++;
     s->data = d;
     ngx_array_t argument = {0};
-    if (plcf->cmd.argument) {
+    if (plcf->argument) {
         ngx_pg_value_t *value;
-        if (ngx_array_init(&argument, r->pool, plcf->cmd.argument->nelts, sizeof(*value)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
-        ngx_pg_arg_t *arg = plcf->cmd.argument->elts;
-        for (ngx_uint_t i = 0; i < plcf->cmd.argument->nelts; i++) {
+        if (ngx_array_init(&argument, r->pool, plcf->argument->nelts, sizeof(*value)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
+        ngx_pg_arg_t *arg = plcf->argument->elts;
+        for (ngx_uint_t i = 0; i < plcf->argument->nelts; i++) {
             if (!(value = ngx_array_push(&argument))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_array_push"); return NGX_ERROR; }
             ngx_memzero(value, sizeof(*value));
             if (arg[i].type.value.data) {
@@ -791,17 +789,17 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             if (arg[i].argument.value.data) if (ngx_http_complex_value(r, &arg[i].argument, &value->argument) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
         }
     }
-    if (plcf->cmd.function) {
+    if (plcf->function) {
         ngx_str_t value;
-        if (ngx_http_complex_value(r, plcf->cmd.function, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
+        if (ngx_http_complex_value(r, plcf->function, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
         ngx_int_t oid = ngx_atoi(value.data, value.len);
         if (oid == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
-        if (cl) cl->next = ngx_pg_function(r->pool, oid, plcf->cmd.argument ? &argument : NULL);
-        else cl = u->request_bufs = ngx_pg_function(r->pool, oid, plcf->cmd.argument ? &argument : NULL);
+        if (cl) cl->next = ngx_pg_function(r->pool, oid, plcf->argument ? &argument : NULL);
+        else cl = u->request_bufs = ngx_pg_function(r->pool, oid, plcf->argument ? &argument : NULL);
         while (cl->next) cl = cl->next;
-    } else if (plcf->cmd.argument) {
-        if (cl) cl->next = ngx_pg_parse(r->pool, plcf->cmd.sql.len, plcf->cmd.sql.data, &argument);
-        else cl = u->request_bufs = ngx_pg_parse(r->pool, plcf->cmd.sql.len, plcf->cmd.sql.data, &argument);
+    } else if (plcf->argument) {
+        if (cl) cl->next = ngx_pg_parse(r->pool, plcf->sql.len, plcf->sql.data, &argument);
+        else cl = u->request_bufs = ngx_pg_parse(r->pool, plcf->sql.len, plcf->sql.data, &argument);
         while (cl->next) cl = cl->next;
         cl->next = ngx_pg_bind(r->pool, &argument);
         while (cl->next) cl = cl->next;
@@ -814,8 +812,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         cl->next = ngx_pg_sync(r->pool);
         while (cl->next) cl = cl->next;
     } else {
-        if (cl) cl->next = ngx_pg_query(r->pool, plcf->cmd.sql.len, plcf->cmd.sql.data);
-        else cl = u->request_bufs = ngx_pg_query(r->pool, plcf->cmd.sql.len, plcf->cmd.sql.data);
+        if (cl) cl->next = ngx_pg_query(r->pool, plcf->sql.len, plcf->sql.data);
+        else cl = u->request_bufs = ngx_pg_query(r->pool, plcf->sql.len, plcf->sql.data);
         while (cl->next) cl = cl->next;
     }
     cl->next = ngx_pg_flush(r->pool);
@@ -1693,8 +1691,8 @@ static char *ngx_pg_pas_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     ngx_pg_arg_t *arg;
-    if (!plcf->cmd.argument && !(plcf->cmd.argument = ngx_array_create(cf->pool, 1, sizeof(*arg)))) return "!ngx_array_create";
-    if (!(arg = ngx_array_push(plcf->cmd.argument))) return "!ngx_array_push";
+    if (!plcf->argument && !(plcf->argument = ngx_array_create(cf->pool, 1, sizeof(*arg)))) return "!ngx_array_create";
+    if (!(arg = ngx_array_push(plcf->argument))) return "!ngx_array_push";
     ngx_memzero(arg, sizeof(*arg));
     ngx_str_t *str = cf->args->elts;
     if (str[1].len != sizeof("NULL") - 1 || ngx_strncasecmp(str[1].data, "NULL", sizeof("NULL") - 1)) {
@@ -1766,11 +1764,11 @@ static ngx_command_t ngx_pg_commands[] = {
   { ngx_string("pg_arg"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_arg_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_con"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_conf_set_str_array_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, connect), NULL },
   { ngx_string("pg_con"), NGX_HTTP_UPS_CONF|NGX_CONF_TAKE1, ngx_pg_con_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, offsetof(ngx_pg_srv_conf_t, connect), NULL },
-  { ngx_string("pg_fun"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_fun_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, cmd.function), NULL },
+  { ngx_string("pg_fun"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_fun_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, function), NULL },
   { ngx_string("pg_log"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_log_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_out"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_out_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_pas"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_pas_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
-  { ngx_string("pg_sql"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_sql_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, cmd.sql), NULL },
+  { ngx_string("pg_sql"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_sql_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, sql), NULL },
   { ngx_string("pg_upstream_buffering"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG, ngx_conf_set_flag_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.buffering), NULL },
   { ngx_string("pg_upstream_buffer_size"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_conf_set_size_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.buffer_size), NULL },
   { ngx_string("pg_upstream_buffers"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE2, ngx_conf_set_bufs_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.bufs), NULL },
