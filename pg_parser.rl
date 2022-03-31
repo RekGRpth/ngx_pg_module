@@ -75,8 +75,7 @@ typedef struct pg_parser_t {
     action result_len { parser->result_len = parser->int4; if (settings->result_len(parser->data, parser->result_len)) fbreak; if (!parser->result_len || parser->result_len == (uint32_t)-1) fnext main; }
     action results_len_next { if (!parser->result_len || parser->result_len == (uint32_t)-1) if (--parser->result_count) fnext results; }
     action results_val_next { if (!str && --parser->result_count) fnext results; }
-    action result_val_eof { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
-    action result_val { if (!parser->result_len--) { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext main; } }
+    action result_val { if (p == eof || !parser->result_len--) { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; if (p != eof) { fhold; fnext main; } } }
     action secret { if (settings->secret(parser->data, parser->int4)) fbreak; }
     action str { if (!str) str = p; parser->str = cs; }
 
@@ -109,7 +108,7 @@ typedef struct pg_parser_t {
     error = error_key str0 @error_val @/error_val;
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
-    result = any @str @result_val @/result_val_eof;
+    result = any @str @result_val @/result_val;
     results = int4 @result_len @results_len_next result ** @results_val_next;
 
     main :=
