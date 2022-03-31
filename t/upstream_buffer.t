@@ -587,7 +587,7 @@ GET /?a=12&b=345
 --- error_code: 200
 --- response_headers
 complete: SELECT 1
-Content-Length: 21
+Content-Length: 17
 Content-Type: text/csv
 field-length-0: 4
 field-length-1: 4
@@ -610,7 +610,7 @@ option-standard-conforming-strings: on
 result-0-0: 12
 result-0-1: 345
 --- response_body eval
-"\"ab\",\"cde\"\x{0a}\"12\",\"345\""
+"\"ab\",\"cde\"\x{0a}12,345"
 --- timeout: 60
 
 === TEST 10:
@@ -654,7 +654,7 @@ GET /?a=12&b=345
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
-Content-Length: 15
+Content-Length: 11
 Content-Type: text/csv
 field-length-0: 4
 field-mod-0: -1
@@ -673,7 +673,7 @@ option-standard-conforming-strings: on
 result-0-0: 12
 result-1-0: 345
 --- response_body eval
-"\"ab\"\x{0a}\"12\"\x{0a}\"345\""
+"\"ab\"\x{0a}12\x{0a}345"
 --- timeout: 60
 
 === TEST 11:
@@ -725,7 +725,7 @@ GET /?a=12&b=345&c=67&d=89
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
-Content-Length: 31
+Content-Length: 23
 Content-Type: text/csv
 field-length-0: 4
 field-length-1: 4
@@ -750,7 +750,7 @@ result-0-1: 345
 result-1-0: 67
 result-1-1: 89
 --- response_body eval
-"\"ab\",\"cde\"\x{0a}\"12\",\"345\"\x{0a}\"67\",\"89\""
+"\"ab\",\"cde\"\x{0a}12,345\x{0a}67,89"
 --- timeout: 60
 
 === TEST 12:
@@ -802,7 +802,7 @@ GET /?a=34&b=qwe&c=89
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
-Content-Length: 27
+Content-Length: 23
 Content-Type: text/csv
 field-length-0: -1
 field-length-1: 4
@@ -827,7 +827,7 @@ result-0-1: 34
 result-1-0: qwe
 result-1-1: 89
 --- response_body eval
-"\"ab\",\"cde\"\x{0a},\"34\"\x{0a}\"qwe\",\"89\""
+"\"ab\",\"cde\"\x{0a},34\x{0a}\"qwe\",89"
 --- timeout: 60
 
 === TEST 13:
@@ -879,7 +879,7 @@ GET /?a=34&b=89&c=qwe
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
-Content-Length: 27
+Content-Length: 23
 Content-Type: text/csv
 field-length-0: 4
 field-length-1: -1
@@ -904,7 +904,7 @@ result-0-1:
 result-1-0: 89
 result-1-1: qwe
 --- response_body eval
-"\"ab\",\"cde\"\x{0a}\"34\",\x{0a}\"89\",\"qwe\""
+"\"ab\",\"cde\"\x{0a}34,\x{0a}89,\"qwe\""
 --- timeout: 60
 
 === TEST 14:
@@ -956,7 +956,7 @@ GET /?a=34&b=qwe&c=89
 --- error_code: 200
 --- response_headers
 complete: SELECT 2
-Content-Length: 27
+Content-Length: 23
 Content-Type: text/csv
 field-length-0: 4
 field-length-1: -1
@@ -981,5 +981,5 @@ result-0-1: qwe
 result-1-0: 89
 result-1-1:
 --- response_body eval
-"\"ab\",\"cde\"\x{0a}\"34\",\"qwe\"\x{0a}\"89\","
+"\"ab\",\"cde\"\x{0a}34,\"qwe\"\x{0a}89,"
 --- timeout: 60
