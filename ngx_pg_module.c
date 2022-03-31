@@ -97,9 +97,6 @@ typedef struct ngx_pg_data_t {
     ngx_uint_t ready;
 } ngx_pg_data_t;
 
-inline static u_char *pg_write_int2(u_char *p, uint16_t n) { for (uint8_t m = sizeof(uint16_t); m; *p++ = n >> (2 << 2) * --m); return p; }
-inline static u_char *pg_write_int4(u_char *p, uint32_t n) { for (uint8_t m = sizeof(uint32_t); m; *p++ = n >> (2 << 2) * --m); return p; }
-
 static int ngx_pg_parser_all(ngx_pg_save_t *s, size_t len, const u_char *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%i:%c", *data, *data);
     return s->rc;
@@ -483,6 +480,16 @@ static const pg_parser_settings_t ngx_pg_parser_settings = {
     .result_val = (pg_parser_str_cb)ngx_pg_parser_result_val,
     .secret = (pg_parser_int4_cb)ngx_pg_parser_secret,
 };
+
+inline static u_char *pg_write_int2(u_char *p, uint16_t n) {
+    for (uint8_t m = sizeof(uint16_t); m; *p++ = n >> (2 << 2) * --m);
+    return p;
+}
+
+inline static u_char *pg_write_int4(u_char *p, uint32_t n) {
+    for (uint8_t m = sizeof(uint32_t); m; *p++ = n >> (2 << 2) * --m);
+    return p;
+}
 
 inline static ngx_chain_t *ngx_pg_write_char(ngx_pool_t *p, uint32_t *len, u_char c) {
     ngx_chain_t *cl;
