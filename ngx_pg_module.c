@@ -780,8 +780,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         s->connection = c;
         cl = u->request_bufs = ngx_pg_connect(r->pool, pscf ? pscf->options : plcf->options);
         while (cl->next) cl = cl->next;
-        cl->next = ngx_pg_flush(r->pool);
-        while (cl->next) cl = cl->next;
+//        cl->next = ngx_pg_flush(r->pool);
+//        while (cl->next) cl = cl->next;
         d->ready++;
     }
     d->ready++;
@@ -827,8 +827,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         cl->next = ngx_pg_sync(r->pool);
         while (cl->next) cl = cl->next;
     } else { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!pg_fun && !pg_sql"); return NGX_ERROR; }
-    cl->next = ngx_pg_flush(r->pool);
-    while (cl->next) cl = cl->next;
+//    cl->next = ngx_pg_flush(r->pool);
+//    while (cl->next) cl = cl->next;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%i:%i:%c", i++, *p, *p);
     return NGX_DONE;
 }
