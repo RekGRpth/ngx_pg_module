@@ -72,10 +72,8 @@ typedef struct pg_parser_t {
     action ready_intrans { if (settings->ready_state(parser->data, pg_ready_state_intrans)) fbreak; }
     action result_count { parser->result_count = parser->int2; if (settings->result_count(parser->data, parser->result_count)) fbreak; if (!parser->result_count) fnext main; }
     action result { if (settings->result(parser->data, parser->int4)) fbreak; }
-#    action result_len_byte { parser->result_len = parser->int4; if (settings->result_len(parser->data, parser->result_len)) fbreak; if (!parser->result_len || parser->result_len == (uint32_t)-1) { if (!--parser->result_count) fnext main; else fnext result; } }
     action result_len_func { parser->result_len = parser->int4; if (settings->result_len(parser->data, parser->result_len)) fbreak; if (!parser->result_len || parser->result_len == (uint32_t)-1) fnext main; }
     action result_len_next { if (!parser->result_len || parser->result_len == (uint32_t)-1) if (--parser->result_count) fnext result; }
-#    action result_val_byte { if (!parser->result_len--) { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; if (!--parser->result_count) fnext main; else fnext result; } }
     action result_val_eof { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action result_val_func { if (!parser->result_len--) { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext main; } }
     action result_val_next { if (!str && --parser->result_count) fnext result; }
