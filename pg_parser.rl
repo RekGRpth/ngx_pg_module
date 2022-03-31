@@ -106,24 +106,24 @@ typedef struct pg_parser_t {
     | 116 @error_table
     );
 
-    byte = any @str @result_val @/result_val_eof;
     error = error_key str0 @error_val @/error_val;
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
-    result = int4 @result_len @result_len_next byte ** @result_val_next;
+    result = any @str @result_val @/result_val_eof;
+    results = int4 @result_len @result_len_next result ** @result_val_next;
 
     main :=
     (  49 int4 @parse
     |  50 int4 @bind
     |  51 int4 @close
     |  67 int4 @complete str0 @complete_val @/complete_val
-    |  68 int4 @result int2 @result_count result **
+    |  68 int4 @result int2 @result_count results **
     |  69 int4 @error error ** 0
     |  75 int4 @secret int4 @pid int4 @key
     |  82 int4 @auth int4 @method
     |  83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
     |  84 int4 @field int2 @field_count field **
-    |  86 int4 @function int4 @result_len byte **
+    |  86 int4 @function int4 @result_len result **
     |  90 int4 @ready ready
     | 110 int4 @empty
     ) ** $all;
