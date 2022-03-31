@@ -1578,6 +1578,44 @@ static ngx_int_t ngx_pg_out_value_handler(ngx_http_request_t *r) {
     return NGX_OK;
 }
 
+static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_loc_conf_t *plcf = conf;
+    ngx_pg_arg_t *arg;
+    if (!plcf->arguments && !(plcf->arguments = ngx_array_create(cf->pool, 1, sizeof(*arg)))) return "!ngx_array_create";
+    if (!(arg = ngx_array_push(plcf->arguments))) return "!ngx_array_push";
+    ngx_memzero(arg, sizeof(*arg));
+    ngx_str_t *str = cf->args->elts;
+    if (str[1].len != sizeof("NULL") - 1 || ngx_strncasecmp(str[1].data, "NULL", sizeof("NULL") - 1)) {
+        ngx_http_compile_complex_value_t ccv = {cf, &str[1], &arg->argument, 0, 0, 0};
+        if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+    }
+    if (cf->args->nelts <= 2) return NGX_CONF_OK;
+    ngx_http_compile_complex_value_t ccv = {cf, &str[2], &arg->type, 0, 0, 0};
+    if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+    return NGX_CONF_OK;
+}
+
+static char *ngx_pg_fun_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_loc_conf_t *plcf = conf;
+    if (plcf->sql.data) return "conflicts with \"pg_sql\" directive";
+    return ngx_http_set_complex_value_slot(cf, cmd, conf);
+}
+
+static char *ngx_pg_log_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_srv_conf_t *pscf = conf;
+    return ngx_log_set_log(cf, &pscf->log);
+}
+
+static char *ngx_pg_opt_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_srv_conf_t *pscf = conf;
+    ngx_http_upstream_srv_conf_t *uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
+    if (uscf->peer.init_upstream != ngx_pg_peer_init_upstream) {
+        pscf->peer.init_upstream = uscf->peer.init_upstream ? uscf->peer.init_upstream : ngx_http_upstream_init_round_robin;
+        uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
+    }
+    return ngx_conf_set_str_array_slot(cf, cmd, conf);
+}
+
 static char *ngx_pg_out_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->out.handler) return "duplicate";
@@ -1652,27 +1690,6 @@ static char *ngx_pg_out_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     return NGX_CONF_OK;
 }
 
-static char *ngx_pg_opt_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    ngx_pg_srv_conf_t *pscf = conf;
-    ngx_http_upstream_srv_conf_t *uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
-    if (uscf->peer.init_upstream != ngx_pg_peer_init_upstream) {
-        pscf->peer.init_upstream = uscf->peer.init_upstream ? uscf->peer.init_upstream : ngx_http_upstream_init_round_robin;
-        uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
-    }
-    return ngx_conf_set_str_array_slot(cf, cmd, conf);
-}
-
-static char *ngx_pg_fun_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->sql.data) return "conflicts with \"pg_sql\" directive";
-    return ngx_http_set_complex_value_slot(cf, cmd, conf);
-}
-
-static char *ngx_pg_log_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    ngx_pg_srv_conf_t *pscf = conf;
-    return ngx_log_set_log(cf, &pscf->log);
-}
-
 static char *ngx_pg_pas_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->upstream.upstream || plcf->complex.value.data) return "duplicate";
@@ -1691,23 +1708,6 @@ static char *ngx_pg_pas_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &url, 0))) return NGX_CONF_ERROR;
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
     uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
-    return NGX_CONF_OK;
-}
-
-static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    ngx_pg_loc_conf_t *plcf = conf;
-    ngx_pg_arg_t *arg;
-    if (!plcf->arguments && !(plcf->arguments = ngx_array_create(cf->pool, 1, sizeof(*arg)))) return "!ngx_array_create";
-    if (!(arg = ngx_array_push(plcf->arguments))) return "!ngx_array_push";
-    ngx_memzero(arg, sizeof(*arg));
-    ngx_str_t *str = cf->args->elts;
-    if (str[1].len != sizeof("NULL") - 1 || ngx_strncasecmp(str[1].data, "NULL", sizeof("NULL") - 1)) {
-        ngx_http_compile_complex_value_t ccv = {cf, &str[1], &arg->argument, 0, 0, 0};
-        if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
-    }
-    if (cf->args->nelts <= 2) return NGX_CONF_OK;
-    ngx_http_compile_complex_value_t ccv = {cf, &str[2], &arg->type, 0, 0, 0};
-    if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     return NGX_CONF_OK;
 }
 
