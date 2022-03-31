@@ -72,11 +72,11 @@ typedef struct pg_parser_t {
     action ready_intrans { if (settings->ready_state(parser->data, pg_ready_state_intrans)) fbreak; }
     action result_count { parser->result_count = parser->int2; if (settings->result_count(parser->data, parser->result_count)) fbreak; if (!parser->result_count) fnext main; }
     action result { if (settings->result(parser->data, parser->int4)) fbreak; }
-    action result_len_next { if (!parser->result_len || parser->result_len == (uint32_t)-1) if (--parser->result_count) fnext results; }
     action result_len { parser->result_len = parser->int4; if (settings->result_len(parser->data, parser->result_len)) fbreak; if (!parser->result_len || parser->result_len == (uint32_t)-1) fnext main; }
+    action results_len_next { if (!parser->result_len || parser->result_len == (uint32_t)-1) if (--parser->result_count) fnext results; }
+    action results_val_next { if (!str && --parser->result_count) fnext results; }
     action result_val_eof { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; }
     action result_val { if (!parser->result_len--) { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; fhold; fnext main; } }
-    action result_val_next { if (!str && --parser->result_count) fnext results; }
     action secret { if (settings->secret(parser->data, parser->int4)) fbreak; }
     action str { if (!str) str = p; parser->str = cs; }
 
@@ -110,7 +110,7 @@ typedef struct pg_parser_t {
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
     result = any @str @result_val @/result_val_eof;
-    results = int4 @result_len @result_len_next result ** @result_val_next;
+    results = int4 @result_len @results_len_next result ** @results_val_next;
 
     main :=
     (  49 int4 @parse
