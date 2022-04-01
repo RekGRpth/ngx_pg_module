@@ -35,7 +35,6 @@ typedef struct pg_fsm_t {
     action error_file { if (cb->error_key(fsm->user, sizeof("file") - 1, (const unsigned char *)"file")) fbreak; }
     action error_function { if (cb->error_key(fsm->user, sizeof("function") - 1, (const unsigned char *)"function")) fbreak; }
     action error_hint { if (cb->error_key(fsm->user, sizeof("hint") - 1, (const unsigned char *)"hint")) fbreak; }
-    action error { if (cb->error(fsm->user, fsm->int4)) fbreak; }
     action error_internal { if (cb->error_key(fsm->user, sizeof("internal") - 1, (const unsigned char *)"internal")) fbreak; }
     action error_line { if (cb->error_key(fsm->user, sizeof("line") - 1, (const unsigned char *)"line")) fbreak; }
     action error_nonlocalized { if (cb->error_key(fsm->user, sizeof("nonlocalized") - 1, (const unsigned char *)"nonlocalized")) fbreak; }
@@ -43,6 +42,7 @@ typedef struct pg_fsm_t {
     action error_query { if (cb->error_key(fsm->user, sizeof("query") - 1, (const unsigned char *)"query")) fbreak; }
     action error_schema { if (cb->error_key(fsm->user, sizeof("schema") - 1, (const unsigned char *)"schema")) fbreak; }
     action error_severity { if (cb->error_key(fsm->user, sizeof("severity") - 1, (const unsigned char *)"severity")) fbreak; }
+    action errors { if (cb->errors(fsm->user, fsm->int4)) fbreak; }
     action error_sqlstate { if (cb->error_key(fsm->user, sizeof("sqlstate") - 1, (const unsigned char *)"sqlstate")) fbreak; }
     action error_statement { if (cb->error_key(fsm->user, sizeof("statement") - 1, (const unsigned char *)"statement")) fbreak; }
     action error_table { if (cb->error_key(fsm->user, sizeof("table") - 1, (const unsigned char *)"table")) fbreak; }
@@ -106,12 +106,13 @@ typedef struct pg_fsm_t {
     | 116 @error_table
     );
 
+    error = error_key str0 @error_val @/error_val;
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
     result = any @str @result_val @/result_val;
 
     auth = int4 @method;
     complete = str0 @complete_val @/complete_val;
-    error = ( error_key str0 @error_val @/error_val ) ** 0;
+    errors = error ** 0;
     fields = int2 @field_count field **;
     function = int4 @result_len result **;
     option = str0 @option_key @/option_key str0 @option_val @/option_val;
@@ -125,7 +126,7 @@ typedef struct pg_fsm_t {
     |  51 int4 @close
     |  67 int4 @complete complete
     |  68 int4 @results results
-    |  69 int4 @error error
+    |  69 int4 @errors errors
     |  75 int4 @secret secret
     |  82 int4 @auth auth
     |  83 int4 @option option

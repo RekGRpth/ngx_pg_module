@@ -26,7 +26,7 @@ typedef struct {
     pg_fsm_int4_cb close;
     pg_fsm_int4_cb complete;
     pg_fsm_int4_cb empty;
-    pg_fsm_int4_cb error;
+    pg_fsm_int4_cb errors;
     pg_fsm_int4_cb field_mod;
     pg_fsm_int4_cb field_oid;
     pg_fsm_int4_cb fields;
