@@ -17,6 +17,7 @@ typedef struct pg_parser_t {
 
 %%{
     machine pg_parser;
+    access parser->;
     alphtype unsigned char;
 
     action all { if (settings->all(parser->data, 0, p)) fbreak; }
@@ -77,7 +78,7 @@ typedef struct pg_parser_t {
     action results_val_next { if (!str && --parser->result_count) fnext results; }
     action result_val { if (p == eof || !parser->result_len--) { if (str && settings->result_val(parser->data, p - str, str)) fbreak; str = NULL; parser->str = 0; if (p != eof) { fhold; fnext main; } } }
     action secret { if (settings->secret(parser->data, parser->int4)) fbreak; }
-    action str { if (!str) str = p; parser->str = cs; }
+    action str { if (!str) str = p; parser->str = parser->cs; }
 
     char = any - 0;
     int2 = any{2} $int2;
@@ -135,9 +136,7 @@ size_t pg_parser_execute(pg_parser_t *parser, const unsigned char *p, const unsi
     const unsigned char *b = p;
     const unsigned char *eof = pe;
     const unsigned char *str = parser->cs == parser->str ? p : NULL;
-    int cs = parser->cs;
     %% write exec;
-    parser->cs = cs;
     return p - b;
 }
 
@@ -146,9 +145,7 @@ size_t pg_parser_size(void) {
 }
 
 void pg_parser_init(pg_parser_t *parser, const pg_parser_settings_t *settings, const void *data) {
-    int cs = 0;
     %% write init;
-    parser->cs = cs;
     parser->data = data;
     parser->settings = settings;
 }
