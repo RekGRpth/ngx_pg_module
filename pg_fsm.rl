@@ -106,24 +106,30 @@ typedef struct pg_fsm_t {
     | 116 @error_table
     );
 
+    result = any @str @result_val @/result_val;
+
+    auth = int4 @method;
+    complete = str0 @complete_val @/complete_val;
     error = error_key str0 @error_val @/error_val;
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
+    function = int4 @result_len result **;
+    option = str0 @option_key @/option_key str0 @option_val @/option_val;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
-    result = any @str @result_val @/result_val;
     results = int4 @result_len @results_len_next result ** @results_val_next;
+    secret = int4 @pid int4 @key;
 
     main :=
     (  49 int4 @parse
     |  50 int4 @bind
     |  51 int4 @close
-    |  67 int4 @complete str0 @complete_val @/complete_val
+    |  67 int4 @complete complete
     |  68 int4 @result int2 @result_count results **
     |  69 int4 @error error ** 0
-    |  75 int4 @secret int4 @pid int4 @key
-    |  82 int4 @auth int4 @method
-    |  83 int4 @option str0 @option_key @/option_key str0 @option_val @/option_val
+    |  75 int4 @secret secret
+    |  82 int4 @auth auth
+    |  83 int4 @option option
     |  84 int4 @field int2 @field_count field **
-    |  86 int4 @function int4 @result_len result **
+    |  86 int4 @function function
     |  90 int4 @ready ready
     | 110 int4 @empty
     ) ** $all;
