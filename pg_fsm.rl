@@ -74,8 +74,8 @@ typedef struct pg_fsm_t {
     action result_len { fsm->result_len = fsm->int4; if (cb->result_len(fsm->user, fsm->result_len)) fbreak; if (!fsm->result_len || fsm->result_len == (uint32_t)-1) fnext main; }
     action results_count { fsm->results_count = fsm->int2; if (cb->results_count(fsm->user, fsm->results_count)) fbreak; if (!fsm->results_count) fnext main; }
     action results { if (cb->results(fsm->user, fsm->int4)) fbreak; }
-    action results_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->results_count) fnext results; }
-    action results_val_next { if (!fsm->string && --fsm->results_count) fnext results; }
+    action results_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->results_count) fnext results_val; }
+    action results_val_next { if (!fsm->string && --fsm->results_count) fnext results_val; }
     action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
     action secret { if (cb->secret(fsm->user, fsm->int4)) fbreak; }
     action string { if (!fsm->string) fsm->string = p; }
@@ -109,6 +109,7 @@ typedef struct pg_fsm_t {
     error = error_key str0 @error_val @/error_val;
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
     result = any @string @result_val @/result_val;
+    results_val = int4 @result_len @results_len_next result ** @results_val_next;
 
     auth = int4 @method;
     complete = str0 @complete_val @/complete_val;
@@ -117,7 +118,7 @@ typedef struct pg_fsm_t {
     function = int4 @result_len result **;
     option = str0 @option_key @/option_key str0 @option_val @/option_val;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
-    results = int2 @results_count ( int4 @result_len @results_len_next result ** @results_val_next ) **;
+    results = int2 @results_count results_val **;
     secret = int4 @pid int4 @key;
 
     main :=
