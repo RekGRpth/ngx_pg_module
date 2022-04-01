@@ -38,7 +38,7 @@ typedef struct {
     pg_fsm_int4_cb parse;
     pg_fsm_int4_cb pid;
     pg_fsm_int4_cb ready;
-    pg_fsm_int4_cb result;
+    pg_fsm_int4_cb results;
     pg_fsm_int4_cb result_len;
     pg_fsm_int4_cb secret;
     pg_fsm_str_cb all;

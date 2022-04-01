@@ -403,7 +403,7 @@ static int ngx_pg_fsm_ready(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_result(ngx_pg_save_t *s, uint32_t len) {
+static int ngx_pg_fsm_results(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     ngx_pg_data_t *d = s->data;
@@ -484,7 +484,7 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .ready_state = (pg_fsm_int2_cb)ngx_pg_fsm_ready_state,
     .result_count = (pg_fsm_int2_cb)ngx_pg_fsm_result_count,
     .result_len = (pg_fsm_int4_cb)ngx_pg_fsm_result_len,
-    .result = (pg_fsm_int4_cb)ngx_pg_fsm_result,
+    .results = (pg_fsm_int4_cb)ngx_pg_fsm_results,
     .result_val = (pg_fsm_str_cb)ngx_pg_fsm_result_val,
     .secret = (pg_fsm_int4_cb)ngx_pg_fsm_secret,
 };

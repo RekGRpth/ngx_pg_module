@@ -72,8 +72,8 @@ typedef struct pg_fsm_t {
     action ready_inerror { if (cb->ready_state(fsm->user, pg_ready_state_inerror)) fbreak; }
     action ready_intrans { if (cb->ready_state(fsm->user, pg_ready_state_intrans)) fbreak; }
     action result_count { fsm->result_count = fsm->int2; if (cb->result_count(fsm->user, fsm->result_count)) fbreak; if (!fsm->result_count) fnext main; }
-    action result { if (cb->result(fsm->user, fsm->int4)) fbreak; }
     action result_len { fsm->result_len = fsm->int4; if (cb->result_len(fsm->user, fsm->result_len)) fbreak; if (!fsm->result_len || fsm->result_len == (uint32_t)-1) fnext main; }
+    action results { if (cb->results(fsm->user, fsm->int4)) fbreak; }
     action results_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->result_count) fnext results; }
     action results_val_next { if (!fsm->string && --fsm->result_count) fnext results; }
     action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
@@ -115,7 +115,7 @@ typedef struct pg_fsm_t {
     function = int4 @result_len result **;
     option = str0 @option_key @/option_key str0 @option_val @/option_val;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
-    results = int4 @result_len @results_len_next result ** @results_val_next;
+    results = int2 @result_count ( int4 @result_len @results_len_next result ** @results_val_next ) **;
     secret = int4 @pid int4 @key;
 
     main :=
@@ -123,7 +123,7 @@ typedef struct pg_fsm_t {
     |  50 int4 @bind
     |  51 int4 @close
     |  67 int4 @complete complete
-    |  68 int4 @result int2 @result_count results **
+    |  68 int4 @results results
     |  69 int4 @error error
     |  75 int4 @secret secret
     |  82 int4 @auth auth
