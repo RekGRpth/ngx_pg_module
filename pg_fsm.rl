@@ -110,7 +110,7 @@ typedef struct pg_fsm_t {
 
     auth = int4 @method;
     complete = str0 @complete_val @/complete_val;
-    error = error_key str0 @error_val @/error_val;
+    error = ( error_key str0 @error_val @/error_val ) ** 0;
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
     function = int4 @result_len result **;
     option = str0 @option_key @/option_key str0 @option_val @/option_val;
@@ -124,7 +124,7 @@ typedef struct pg_fsm_t {
     |  51 int4 @close
     |  67 int4 @complete complete
     |  68 int4 @result int2 @result_count results **
-    |  69 int4 @error error ** 0
+    |  69 int4 @error error
     |  75 int4 @secret secret
     |  82 int4 @auth auth
     |  83 int4 @option option
