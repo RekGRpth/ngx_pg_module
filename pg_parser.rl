@@ -3,7 +3,7 @@
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 
 typedef struct pg_parser_t {
-    const pg_parser_settings_t *settings;
+    const pg_parser_cb_t *cb;
     const unsigned char *string;
     const void *data;
     int cs;
@@ -20,64 +20,64 @@ typedef struct pg_parser_t {
     access parser->;
     alphtype unsigned char;
 
-    action all { if (settings->all(parser->data, 0, p)) fbreak; }
-    action auth { if (settings->auth(parser->data, parser->int4)) fbreak; }
-    action bind { if (settings->bind(parser->data, parser->int4)) fbreak; }
-    action close { if (settings->close(parser->data, parser->int4)) fbreak; }
-    action complete { if (settings->complete(parser->data, parser->int4)) fbreak; }
-    action complete_val { if (parser->string && settings->complete_val(parser->data, p - parser->string, parser->string)) fbreak; parser->string = NULL; }
-    action empty { if (settings->empty(parser->data, parser->int4)) fbreak; }
-    action error_column { if (settings->error_key(parser->data, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
-    action error_constraint { if (settings->error_key(parser->data, sizeof("constraint") - 1, (const unsigned char *)"constraint")) fbreak; }
-    action error_context { if (settings->error_key(parser->data, sizeof("context") - 1, (const unsigned char *)"context")) fbreak; }
-    action error_datatype { if (settings->error_key(parser->data, sizeof("datatype") - 1, (const unsigned char *)"datatype")) fbreak; }
-    action error_detail { if (settings->error_key(parser->data, sizeof("detail") - 1, (const unsigned char *)"detail")) fbreak; }
-    action error_file { if (settings->error_key(parser->data, sizeof("file") - 1, (const unsigned char *)"file")) fbreak; }
-    action error_function { if (settings->error_key(parser->data, sizeof("function") - 1, (const unsigned char *)"function")) fbreak; }
-    action error_hint { if (settings->error_key(parser->data, sizeof("hint") - 1, (const unsigned char *)"hint")) fbreak; }
-    action error { if (settings->error(parser->data, parser->int4)) fbreak; }
-    action error_internal { if (settings->error_key(parser->data, sizeof("internal") - 1, (const unsigned char *)"internal")) fbreak; }
-    action error_line { if (settings->error_key(parser->data, sizeof("line") - 1, (const unsigned char *)"line")) fbreak; }
-    action error_nonlocalized { if (settings->error_key(parser->data, sizeof("nonlocalized") - 1, (const unsigned char *)"nonlocalized")) fbreak; }
-    action error_primary { if (settings->error_key(parser->data, sizeof("primary") - 1, (const unsigned char *)"primary")) fbreak; }
-    action error_query { if (settings->error_key(parser->data, sizeof("query") - 1, (const unsigned char *)"query")) fbreak; }
-    action error_schema { if (settings->error_key(parser->data, sizeof("schema") - 1, (const unsigned char *)"schema")) fbreak; }
-    action error_severity { if (settings->error_key(parser->data, sizeof("severity") - 1, (const unsigned char *)"severity")) fbreak; }
-    action error_sqlstate { if (settings->error_key(parser->data, sizeof("sqlstate") - 1, (const unsigned char *)"sqlstate")) fbreak; }
-    action error_statement { if (settings->error_key(parser->data, sizeof("statement") - 1, (const unsigned char *)"statement")) fbreak; }
-    action error_table { if (settings->error_key(parser->data, sizeof("table") - 1, (const unsigned char *)"table")) fbreak; }
-    action error_val { if (parser->string && settings->error_val(parser->data, p - parser->string, parser->string)) fbreak; parser->string = NULL; }
-    action field_beg { if (settings->field_beg(parser->data)) fbreak; }
-    action field_column { if (settings->field_column(parser->data, parser->int2)) fbreak; }
-    action field_count { parser->field_count = parser->int2; if (settings->field_count(parser->data, parser->field_count)) fbreak; if (!parser->field_count) fnext main; }
-    action field_format { if (settings->field_format(parser->data, parser->int2)) fbreak; if (!--parser->field_count) fnext main; }
-    action field { if (settings->field(parser->data, parser->int4)) fbreak; }
-    action field_length { if (settings->field_length(parser->data, parser->int2)) fbreak; }
-    action field_mod { if (settings->field_mod(parser->data, parser->int4)) fbreak; }
-    action field_name { if (parser->string && settings->field_name(parser->data, p - parser->string, parser->string)) fbreak; parser->string = NULL; }
-    action field_oid { if (settings->field_oid(parser->data, parser->int4)) fbreak; }
-    action field_table { if (settings->field_table(parser->data, parser->int4)) fbreak; }
-    action function { if (settings->function(parser->data, parser->int4)) fbreak; }
+    action all { if (cb->all(parser->data, 0, p)) fbreak; }
+    action auth { if (cb->auth(parser->data, parser->int4)) fbreak; }
+    action bind { if (cb->bind(parser->data, parser->int4)) fbreak; }
+    action close { if (cb->close(parser->data, parser->int4)) fbreak; }
+    action complete { if (cb->complete(parser->data, parser->int4)) fbreak; }
+    action complete_val { if (parser->string && cb->complete_val(parser->data, p - parser->string, parser->string)) fbreak; parser->string = NULL; }
+    action empty { if (cb->empty(parser->data, parser->int4)) fbreak; }
+    action error_column { if (cb->error_key(parser->data, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
+    action error_constraint { if (cb->error_key(parser->data, sizeof("constraint") - 1, (const unsigned char *)"constraint")) fbreak; }
+    action error_context { if (cb->error_key(parser->data, sizeof("context") - 1, (const unsigned char *)"context")) fbreak; }
+    action error_datatype { if (cb->error_key(parser->data, sizeof("datatype") - 1, (const unsigned char *)"datatype")) fbreak; }
+    action error_detail { if (cb->error_key(parser->data, sizeof("detail") - 1, (const unsigned char *)"detail")) fbreak; }
+    action error_file { if (cb->error_key(parser->data, sizeof("file") - 1, (const unsigned char *)"file")) fbreak; }
+    action error_function { if (cb->error_key(parser->data, sizeof("function") - 1, (const unsigned char *)"function")) fbreak; }
+    action error_hint { if (cb->error_key(parser->data, sizeof("hint") - 1, (const unsigned char *)"hint")) fbreak; }
+    action error { if (cb->error(parser->data, parser->int4)) fbreak; }
+    action error_internal { if (cb->error_key(parser->data, sizeof("internal") - 1, (const unsigned char *)"internal")) fbreak; }
+    action error_line { if (cb->error_key(parser->data, sizeof("line") - 1, (const unsigned char *)"line")) fbreak; }
+    action error_nonlocalized { if (cb->error_key(parser->data, sizeof("nonlocalized") - 1, (const unsigned char *)"nonlocalized")) fbreak; }
+    action error_primary { if (cb->error_key(parser->data, sizeof("primary") - 1, (const unsigned char *)"primary")) fbreak; }
+    action error_query { if (cb->error_key(parser->data, sizeof("query") - 1, (const unsigned char *)"query")) fbreak; }
+    action error_schema { if (cb->error_key(parser->data, sizeof("schema") - 1, (const unsigned char *)"schema")) fbreak; }
+    action error_severity { if (cb->error_key(parser->data, sizeof("severity") - 1, (const unsigned char *)"severity")) fbreak; }
+    action error_sqlstate { if (cb->error_key(parser->data, sizeof("sqlstate") - 1, (const unsigned char *)"sqlstate")) fbreak; }
+    action error_statement { if (cb->error_key(parser->data, sizeof("statement") - 1, (const unsigned char *)"statement")) fbreak; }
+    action error_table { if (cb->error_key(parser->data, sizeof("table") - 1, (const unsigned char *)"table")) fbreak; }
+    action error_val { if (parser->string && cb->error_val(parser->data, p - parser->string, parser->string)) fbreak; parser->string = NULL; }
+    action field_beg { if (cb->field_beg(parser->data)) fbreak; }
+    action field_column { if (cb->field_column(parser->data, parser->int2)) fbreak; }
+    action field_count { parser->field_count = parser->int2; if (cb->field_count(parser->data, parser->field_count)) fbreak; if (!parser->field_count) fnext main; }
+    action field_format { if (cb->field_format(parser->data, parser->int2)) fbreak; if (!--parser->field_count) fnext main; }
+    action field { if (cb->field(parser->data, parser->int4)) fbreak; }
+    action field_length { if (cb->field_length(parser->data, parser->int2)) fbreak; }
+    action field_mod { if (cb->field_mod(parser->data, parser->int4)) fbreak; }
+    action field_name { if (parser->string && cb->field_name(parser->data, p - parser->string, parser->string)) fbreak; parser->string = NULL; }
+    action field_oid { if (cb->field_oid(parser->data, parser->int4)) fbreak; }
+    action field_table { if (cb->field_table(parser->data, parser->int4)) fbreak; }
+    action function { if (cb->function(parser->data, parser->int4)) fbreak; }
     action int2 { if (!parser->i) { parser->i = sizeof(parser->int2); parser->int2 = 0; } parser->int2 |= *p << ((2 << 2) * --parser->i); }
     action int4 { if (!parser->i) { parser->i = sizeof(parser->int4); parser->int4 = 0; } parser->int4 |= *p << ((2 << 2) * --parser->i); }
-    action key { if (settings->key(parser->data, parser->int4)) fbreak; }
-    action method { if (settings->method(parser->data, parser->int4)) fbreak; }
-    action option { if (settings->option(parser->data, parser->int4)) fbreak; }
-    action option_key { if (parser->string && settings->option_key(parser->data, p - parser->string, parser->string)) fbreak; parser->string = NULL; }
-    action option_val { if (parser->string && settings->option_val(parser->data, p - parser->string, parser->string)) fbreak; parser->string = NULL; }
-    action parse { if (settings->parse(parser->data, parser->int4)) fbreak; }
-    action pid { if (settings->pid(parser->data, parser->int4)) fbreak; }
-    action ready_idle { if (settings->ready_state(parser->data, pg_ready_state_idle)) fbreak; }
-    action ready { if (settings->ready(parser->data, parser->int4)) fbreak; }
-    action ready_inerror { if (settings->ready_state(parser->data, pg_ready_state_inerror)) fbreak; }
-    action ready_intrans { if (settings->ready_state(parser->data, pg_ready_state_intrans)) fbreak; }
-    action result_count { parser->result_count = parser->int2; if (settings->result_count(parser->data, parser->result_count)) fbreak; if (!parser->result_count) fnext main; }
-    action result { if (settings->result(parser->data, parser->int4)) fbreak; }
-    action result_len { parser->result_len = parser->int4; if (settings->result_len(parser->data, parser->result_len)) fbreak; if (!parser->result_len || parser->result_len == (uint32_t)-1) fnext main; }
+    action key { if (cb->key(parser->data, parser->int4)) fbreak; }
+    action method { if (cb->method(parser->data, parser->int4)) fbreak; }
+    action option { if (cb->option(parser->data, parser->int4)) fbreak; }
+    action option_key { if (parser->string && cb->option_key(parser->data, p - parser->string, parser->string)) fbreak; parser->string = NULL; }
+    action option_val { if (parser->string && cb->option_val(parser->data, p - parser->string, parser->string)) fbreak; parser->string = NULL; }
+    action parse { if (cb->parse(parser->data, parser->int4)) fbreak; }
+    action pid { if (cb->pid(parser->data, parser->int4)) fbreak; }
+    action ready_idle { if (cb->ready_state(parser->data, pg_ready_state_idle)) fbreak; }
+    action ready { if (cb->ready(parser->data, parser->int4)) fbreak; }
+    action ready_inerror { if (cb->ready_state(parser->data, pg_ready_state_inerror)) fbreak; }
+    action ready_intrans { if (cb->ready_state(parser->data, pg_ready_state_intrans)) fbreak; }
+    action result_count { parser->result_count = parser->int2; if (cb->result_count(parser->data, parser->result_count)) fbreak; if (!parser->result_count) fnext main; }
+    action result { if (cb->result(parser->data, parser->int4)) fbreak; }
+    action result_len { parser->result_len = parser->int4; if (cb->result_len(parser->data, parser->result_len)) fbreak; if (!parser->result_len || parser->result_len == (uint32_t)-1) fnext main; }
     action results_len_next { if (!parser->result_len || parser->result_len == (uint32_t)-1) if (--parser->result_count) fnext results; }
     action results_val_next { if (!parser->string && --parser->result_count) fnext results; }
-    action result_val { if (p == eof || !parser->result_len--) { if (parser->string && settings->result_val(parser->data, p - parser->string, parser->string)) fbreak; parser->string = NULL; if (p != eof) { fhold; fnext main; } } }
-    action secret { if (settings->secret(parser->data, parser->int4)) fbreak; }
+    action result_val { if (p == eof || !parser->result_len--) { if (parser->string && cb->result_val(parser->data, p - parser->string, parser->string)) fbreak; parser->string = NULL; if (p != eof) { fhold; fnext main; } } }
+    action secret { if (cb->secret(parser->data, parser->int4)) fbreak; }
     action str { if (!parser->string) parser->string = p; }
 
     char = any - 0;
@@ -132,7 +132,7 @@ typedef struct pg_parser_t {
 }%%
 
 size_t pg_parser_execute(pg_parser_t *parser, const unsigned char *p, const unsigned char *eof) {
-    const pg_parser_settings_t *settings = parser->settings;
+    const pg_parser_cb_t *cb = parser->cb;
     const unsigned char *b = p;
     const unsigned char *pe = eof;
     %% write exec;
@@ -143,8 +143,8 @@ size_t pg_parser_size(void) {
     return sizeof(pg_parser_t);
 }
 
-void pg_parser_init(pg_parser_t *parser, const pg_parser_settings_t *settings, const void *data) {
+void pg_parser_init(pg_parser_t *parser, const pg_parser_cb_t *cb, const void *data) {
     %% write init;
+    parser->cb = cb;
     parser->data = data;
-    parser->settings = settings;
 }

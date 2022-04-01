@@ -451,7 +451,7 @@ static int ngx_pg_parser_secret(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
-static const pg_parser_settings_t ngx_pg_parser_settings = {
+static const pg_parser_cb_t ngx_pg_parser_cb = {
     .all = (pg_parser_str_cb)ngx_pg_parser_all,
     .auth = (pg_parser_int4_cb)ngx_pg_parser_auth,
     .bind = (pg_parser_int4_cb)ngx_pg_parser_bind,
@@ -758,7 +758,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         cln->handler = (ngx_pool_cleanup_pt)ngx_pg_save_cln_handler;
         if (!(s->options = ngx_array_create(c->pool, 1, sizeof(ngx_pg_option_t)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_array_create"); return NGX_ERROR; }
         if (!(s->parser = ngx_pcalloc(c->pool, pg_parser_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
-        pg_parser_init(s->parser, &ngx_pg_parser_settings, s);
+        pg_parser_init(s->parser, &ngx_pg_parser_cb, s);
         s->connection = c;
         cl = u->request_bufs = ngx_pg_connect(r->pool, pscf ? pscf->options : plcf->options);
         while (cl->next) cl = cl->next;
