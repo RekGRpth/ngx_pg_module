@@ -174,7 +174,7 @@ static int ngx_pg_fsm_error_key(ngx_pg_save_t *s, size_t len, const u_char *data
 }
 
 static int ngx_pg_fsm_error_val(ngx_pg_save_t *s, size_t len, const u_char *data) {
-    ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%*s", (int)len, data);
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     if (!d->errors->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
@@ -184,7 +184,7 @@ static int ngx_pg_fsm_error_val(ngx_pg_save_t *s, size_t len, const u_char *data
     ngx_memcpy(error->val.data + error->val.len, data, len);
     error->val.len += len;
     d->error.len += len;
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V = %V", &error->key, &error->val);
+    ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%V = %V", &error->key, &error->val);
     return s->rc;
 }
 
@@ -243,7 +243,7 @@ static int ngx_pg_fsm_field_format(ngx_pg_save_t *s, uint16_t format) {
 }
 
 static int ngx_pg_fsm_field_length(ngx_pg_save_t *s, uint16_t length) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", length);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", length == (uint16_t)-1 ? -1 : length);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     if (!d->fields->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
@@ -749,7 +749,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         ngx_connection_t *c = pc->connection;
         if (!c) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!c"); return NGX_ERROR; }
         if (c->pool) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "c->pool"); return NGX_ERROR; }
-        if (!(c->pool = ngx_create_pool(128 + sizeof(*s), pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
+        if (!(c->pool = ngx_create_pool(sizeof(*c->pool) + sizeof(*s), pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
         if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         if ((char *)s != (char *)c->pool + sizeof(*c->pool)) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "wrong pool"); return NGX_ERROR; }
         ngx_pool_cleanup_t *cln;
@@ -956,8 +956,16 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     }
     if (b->pos == b->last) b->pos = b->last = b->start;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %d", s->rc);
-    if (s->rc == NGX_OK && d->errors && d->errors->nelts) s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
+    if (s->rc == NGX_OK && d->errors && d->errors->nelts) {
+        s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
+        ngx_pg_error_t *error = d->errors->elts;
+        for (ngx_uint_t i = 0; i < d->errors->nelts; i++) ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%V = %V", &error[i].key, &error[i].val);
+    }
     if (s->rc == NGX_OK) {
+        if (s->options) {
+            ngx_pg_option_t *option = s->options->elts;
+            for (ngx_uint_t i = 0; i < s->options->nelts; i++) ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%V = %V", &option[i].key, &option[i].val);
+        }
         u->headers_in.content_length_n = 0;
         u->headers_in.status_n = NGX_HTTP_OK;
         ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);

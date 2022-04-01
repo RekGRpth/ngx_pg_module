@@ -135,7 +135,7 @@ typedef struct pg_fsm_t {
     |  86 int4 @function function
     |  90 int4 @ready ready
     | 110 int4 @empty
-    ) ** $all;
+    ) $all;
 
     write data noerror nofinal noentry;
 }%%
