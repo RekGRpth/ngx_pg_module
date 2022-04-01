@@ -1,4 +1,4 @@
-all: pg_parser.c
+all: pg_fsm.c
 
-pg_parser.c: pg_parser.rl Makefile
+pg_fsm.c: pg_fsm.rl Makefile
 	ragel -G2 $< -o $@

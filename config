@@ -1,8 +1,8 @@
 ngx_addon_name=ngx_pg_module
 
-NGX_PG_SRCS="$ngx_addon_dir/ngx_pg_module.c $ngx_addon_dir/pg_parser.c"
+NGX_PG_SRCS="$ngx_addon_dir/ngx_pg_module.c $ngx_addon_dir/pg_fsm.c"
 
-if [ ! -e  "$ngx_addon_dir/pg_parser.c" ] ; then
+if [ ! -e  "$ngx_addon_dir/pg_fsm.c" ] ; then
     cat << END
 
 $0: error: the $ngx_addon_name module requires the following command to be run to generate the necessary files.

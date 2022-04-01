@@ -1,5 +1,5 @@
 #include <ngx_http.h>
-#include "pg_parser.h"
+#include "pg_fsm.h"
 
 ngx_module_t ngx_pg_module;
 
