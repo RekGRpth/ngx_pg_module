@@ -188,7 +188,7 @@ static int ngx_pg_fsm_error_val(ngx_pg_save_t *s, size_t len, const u_char *data
     return s->rc;
 }
 
-static int ngx_pg_fsm_field(ngx_pg_save_t *s, uint32_t len) {
+static int ngx_pg_fsm_fields(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     ngx_pg_data_t *d = s->data;
@@ -470,7 +470,7 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .field_mod = (pg_fsm_int4_cb)ngx_pg_fsm_field_mod,
     .field_name = (pg_fsm_str_cb)ngx_pg_fsm_field_name,
     .field_oid = (pg_fsm_int4_cb)ngx_pg_fsm_field_oid,
-    .field = (pg_fsm_int4_cb)ngx_pg_fsm_field,
+    .fields = (pg_fsm_int4_cb)ngx_pg_fsm_fields,
     .field_table = (pg_fsm_int4_cb)ngx_pg_fsm_field_table,
     .function = (pg_fsm_int4_cb)ngx_pg_fsm_function,
     .key = (pg_fsm_int4_cb)ngx_pg_fsm_key,

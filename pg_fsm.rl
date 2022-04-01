@@ -51,11 +51,11 @@ typedef struct pg_fsm_t {
     action field_column { if (cb->field_column(fsm->user, fsm->int2)) fbreak; }
     action field_count { fsm->field_count = fsm->int2; if (cb->field_count(fsm->user, fsm->field_count)) fbreak; if (!fsm->field_count) fnext main; }
     action field_format { if (cb->field_format(fsm->user, fsm->int2)) fbreak; if (!--fsm->field_count) fnext main; }
-    action field { if (cb->field(fsm->user, fsm->int4)) fbreak; }
     action field_length { if (cb->field_length(fsm->user, fsm->int2)) fbreak; }
     action field_mod { if (cb->field_mod(fsm->user, fsm->int4)) fbreak; }
     action field_name { if (fsm->string && cb->field_name(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action field_oid { if (cb->field_oid(fsm->user, fsm->int4)) fbreak; }
+    action fields { if (cb->fields(fsm->user, fsm->int4)) fbreak; }
     action field_table { if (cb->field_table(fsm->user, fsm->int4)) fbreak; }
     action function { if (cb->function(fsm->user, fsm->int4)) fbreak; }
     action int2 { if (!fsm->i) { fsm->i = sizeof(fsm->int2); fsm->int2 = 0; } fsm->int2 |= *p << ((2 << 2) * --fsm->i); }
@@ -106,12 +106,13 @@ typedef struct pg_fsm_t {
     | 116 @error_table
     );
 
+    field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
     result = any @str @result_val @/result_val;
 
     auth = int4 @method;
     complete = str0 @complete_val @/complete_val;
     error = ( error_key str0 @error_val @/error_val ) ** 0;
-    field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
+    fields = int2 @field_count field **;
     function = int4 @result_len result **;
     option = str0 @option_key @/option_key str0 @option_val @/option_val;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
@@ -128,7 +129,7 @@ typedef struct pg_fsm_t {
     |  75 int4 @secret secret
     |  82 int4 @auth auth
     |  83 int4 @option option
-    |  84 int4 @field int2 @field_count field **
+    |  84 int4 @fields fields
     |  86 int4 @function function
     |  90 int4 @ready ready
     | 110 int4 @empty

@@ -27,9 +27,9 @@ typedef struct {
     pg_fsm_int4_cb complete;
     pg_fsm_int4_cb empty;
     pg_fsm_int4_cb error;
-    pg_fsm_int4_cb field;
     pg_fsm_int4_cb field_mod;
     pg_fsm_int4_cb field_oid;
+    pg_fsm_int4_cb fields;
     pg_fsm_int4_cb field_table;
     pg_fsm_int4_cb function;
     pg_fsm_int4_cb key;
@@ -38,8 +38,8 @@ typedef struct {
     pg_fsm_int4_cb parse;
     pg_fsm_int4_cb pid;
     pg_fsm_int4_cb ready;
-    pg_fsm_int4_cb results;
     pg_fsm_int4_cb result_len;
+    pg_fsm_int4_cb results;
     pg_fsm_int4_cb secret;
     pg_fsm_str_cb all;
     pg_fsm_str_cb complete_val;
