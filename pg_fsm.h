@@ -19,6 +19,8 @@ typedef struct {
     pg_fsm_int2_cb field_format;
     pg_fsm_int2_cb field_length;
     pg_fsm_int2_cb fields_count;
+    pg_fsm_int2_cb postpop;
+    pg_fsm_int2_cb prepush;
     pg_fsm_int2_cb ready_state;
     pg_fsm_int2_cb results_count;
     pg_fsm_int4_cb auth;
@@ -55,4 +57,5 @@ typedef struct pg_fsm_t pg_fsm_t;
 
 size_t pg_fsm_execute(pg_fsm_t *fsm, const unsigned char *p, const unsigned char *eof);
 size_t pg_fsm_size(void);
+size_t pg_fsm_stack(void);
 void pg_fsm_init(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *data);

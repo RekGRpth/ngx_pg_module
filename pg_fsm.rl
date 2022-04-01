@@ -1,15 +1,17 @@
+#define PG_FSM_STACK_SIZE 1
 #include "pg_fsm.h"
-
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 
 typedef struct pg_fsm_t {
     const pg_fsm_cb_t *cb;
     const unsigned char *string;
     const void *user;
-    int cs;
+    uint16_t cs;
     uint16_t fields_count;
     uint16_t int2;
     uint16_t results_count;
+    uint16_t stack[PG_FSM_STACK_SIZE];
+    uint16_t top;
     uint32_t int4;
     uint32_t result_len;
     uint8_t i;
@@ -80,6 +82,8 @@ typedef struct pg_fsm_t {
     action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
     action secret { if (cb->secret(fsm->user, fsm->int4)) fbreak; }
     action string { if (!fsm->string) fsm->string = p; }
+    postpop { if (cb->postpop(fsm->user, fsm->top)) fbreak; }
+    prepush { if (cb->prepush(fsm->user, fsm->top)) fbreak; }
 
     char = any - 0;
     int2 = any{2} $int2;
@@ -151,6 +155,10 @@ size_t pg_fsm_execute(pg_fsm_t *fsm, const unsigned char *p, const unsigned char
 
 size_t pg_fsm_size(void) {
     return sizeof(pg_fsm_t);
+}
+
+size_t pg_fsm_stack(void) {
+    return PG_FSM_STACK_SIZE;
 }
 
 void pg_fsm_init(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *user) {
