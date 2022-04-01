@@ -131,10 +131,10 @@ typedef struct pg_parser_t {
     write data;
 }%%
 
-size_t pg_parser_execute(pg_parser_t *parser, const unsigned char *p, const unsigned char *pe) {
+size_t pg_parser_execute(pg_parser_t *parser, const unsigned char *p, const unsigned char *eof) {
     const pg_parser_settings_t *settings = parser->settings;
     const unsigned char *b = p;
-    const unsigned char *eof = pe;
+    const unsigned char *pe = eof;
     const unsigned char *str = parser->cs == parser->str ? p : NULL;
     %% write exec;
     return p - b;
