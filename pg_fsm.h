@@ -16,11 +16,11 @@ typedef int (*pg_fsm_str_cb) (void *user, size_t len, const unsigned char *data)
 typedef struct {
     pg_fsm_cb field_beg;
     pg_fsm_int2_cb field_column;
-    pg_fsm_int2_cb field_count;
     pg_fsm_int2_cb field_format;
     pg_fsm_int2_cb field_length;
+    pg_fsm_int2_cb fields_count;
     pg_fsm_int2_cb ready_state;
-    pg_fsm_int2_cb result_count;
+    pg_fsm_int2_cb results_count;
     pg_fsm_int4_cb auth;
     pg_fsm_int4_cb bind;
     pg_fsm_int4_cb close;

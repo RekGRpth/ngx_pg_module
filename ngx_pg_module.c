@@ -220,7 +220,7 @@ static int ngx_pg_fsm_field_column(ngx_pg_save_t *s, uint16_t column) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_field_count(ngx_pg_save_t *s, uint16_t count) {
+static int ngx_pg_fsm_fields_count(ngx_pg_save_t *s, uint16_t count) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", count);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -414,7 +414,7 @@ static int ngx_pg_fsm_results(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_result_count(ngx_pg_save_t *s, uint16_t count) {
+static int ngx_pg_fsm_results_count(ngx_pg_save_t *s, uint16_t count) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", count);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -464,12 +464,12 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .error_val = (pg_fsm_str_cb)ngx_pg_fsm_error_val,
     .field_beg = (pg_fsm_cb)ngx_pg_fsm_field_beg,
     .field_column = (pg_fsm_int2_cb)ngx_pg_fsm_field_column,
-    .field_count = (pg_fsm_int2_cb)ngx_pg_fsm_field_count,
     .field_format = (pg_fsm_int2_cb)ngx_pg_fsm_field_format,
     .field_length = (pg_fsm_int2_cb)ngx_pg_fsm_field_length,
     .field_mod = (pg_fsm_int4_cb)ngx_pg_fsm_field_mod,
     .field_name = (pg_fsm_str_cb)ngx_pg_fsm_field_name,
     .field_oid = (pg_fsm_int4_cb)ngx_pg_fsm_field_oid,
+    .fields_count = (pg_fsm_int2_cb)ngx_pg_fsm_fields_count,
     .fields = (pg_fsm_int4_cb)ngx_pg_fsm_fields,
     .field_table = (pg_fsm_int4_cb)ngx_pg_fsm_field_table,
     .function = (pg_fsm_int4_cb)ngx_pg_fsm_function,
@@ -482,8 +482,8 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .pid = (pg_fsm_int4_cb)ngx_pg_fsm_pid,
     .ready = (pg_fsm_int4_cb)ngx_pg_fsm_ready,
     .ready_state = (pg_fsm_int2_cb)ngx_pg_fsm_ready_state,
-    .result_count = (pg_fsm_int2_cb)ngx_pg_fsm_result_count,
     .result_len = (pg_fsm_int4_cb)ngx_pg_fsm_result_len,
+    .results_count = (pg_fsm_int2_cb)ngx_pg_fsm_results_count,
     .results = (pg_fsm_int4_cb)ngx_pg_fsm_results,
     .result_val = (pg_fsm_str_cb)ngx_pg_fsm_result_val,
     .secret = (pg_fsm_int4_cb)ngx_pg_fsm_secret,
