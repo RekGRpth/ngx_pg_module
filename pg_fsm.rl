@@ -49,13 +49,14 @@ typedef struct pg_fsm_t {
     action error_val { if (fsm->string && cb->error_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action field_beg { if (cb->field_beg(fsm->user)) fbreak; }
     action field_column { if (cb->field_column(fsm->user, fsm->int2)) fbreak; }
-    action field_format { if (cb->field_format(fsm->user, fsm->int2)) fbreak; if (!--fsm->fields_count) fnext main; }
+    action field_format { if (cb->field_format(fsm->user, fsm->int2)) fbreak; }
     action field_length { if (cb->field_length(fsm->user, fsm->int2)) fbreak; }
     action field_mod { if (cb->field_mod(fsm->user, fsm->int4)) fbreak; }
     action field_name { if (fsm->string && cb->field_name(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action field_oid { if (cb->field_oid(fsm->user, fsm->int4)) fbreak; }
-    action fields_count { fsm->fields_count = fsm->int2; if (cb->fields_count(fsm->user, fsm->fields_count)) fbreak; if (!fsm->fields_count) fnext main; }
+    action fields_count { fsm->fields_count = fsm->int2; if (cb->fields_count(fsm->user, fsm->fields_count)) fbreak; }
     action fields { if (cb->fields(fsm->user, fsm->int4)) fbreak; }
+    action fields_out { --fsm->fields_count }
     action field_table { if (cb->field_table(fsm->user, fsm->int4)) fbreak; }
     action function { if (cb->function(fsm->user, fsm->int4)) fbreak; }
     action int2 { if (!fsm->i) { fsm->i = sizeof(fsm->int2); fsm->int2 = 0; } fsm->int2 |= *p << ((2 << 2) * --fsm->i); }
@@ -114,7 +115,7 @@ typedef struct pg_fsm_t {
     auth = int4 @method;
     complete = str0 @complete_val @/complete_val;
     errors = error ** 0;
-    fields = int2 @fields_count field **;
+    fields = int2 @fields_count ( field outwhen fields_out ) **;
     function = int4 @result_len result **;
     option = str0 @option_key @/option_key str0 @option_val @/option_val;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
