@@ -78,12 +78,12 @@ typedef struct pg_fsm_t {
     action results_val_next { if (!fsm->string && --fsm->results_count) fnext results; }
     action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
     action secret { if (cb->secret(fsm->user, fsm->int4)) fbreak; }
-    action str { if (!fsm->string) fsm->string = p; }
+    action string { if (!fsm->string) fsm->string = p; }
 
     char = any - 0;
     int2 = any{2} $int2;
     int4 = any{4} $int4;
-    str0 = char ** $str 0;
+    str0 = char ** $string 0;
 
     error_key =
     (  67 @error_sqlstate
@@ -108,7 +108,7 @@ typedef struct pg_fsm_t {
 
     error = error_key str0 @error_val @/error_val;
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
-    result = any @str @result_val @/result_val;
+    result = any @string @result_val @/result_val;
 
     auth = int4 @method;
     complete = str0 @complete_val @/complete_val;
