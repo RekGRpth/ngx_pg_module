@@ -8,10 +8,10 @@ typedef enum {
     pg_ready_state_intrans,
 } pg_ready_state_t;
 
-typedef int (*pg_fsm_cb) (void *fsm_data);
-typedef int (*pg_fsm_int2_cb) (void *fsm_data, uint16_t n);
-typedef int (*pg_fsm_int4_cb) (void *fsm_data, uint32_t n);
-typedef int (*pg_fsm_str_cb) (void *fsm_data, size_t len, const unsigned char *data);
+typedef int (*pg_fsm_cb) (void *user);
+typedef int (*pg_fsm_int2_cb) (void *user, uint16_t n);
+typedef int (*pg_fsm_int4_cb) (void *user, uint32_t n);
+typedef int (*pg_fsm_str_cb) (void *user, size_t len, const unsigned char *data);
 
 typedef struct {
     pg_fsm_cb field_beg;

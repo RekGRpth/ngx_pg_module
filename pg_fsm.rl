@@ -5,7 +5,7 @@
 typedef struct pg_fsm_t {
     const pg_fsm_cb_t *cb;
     const unsigned char *string;
-    const void *data;
+    const void *user;
     int cs;
     uint16_t field_count;
     uint16_t int2;
@@ -20,64 +20,64 @@ typedef struct pg_fsm_t {
     access fsm->;
     alphtype unsigned char;
 
-    action all { if (cb->all(fsm->data, 0, p)) fbreak; }
-    action auth { if (cb->auth(fsm->data, fsm->int4)) fbreak; }
-    action bind { if (cb->bind(fsm->data, fsm->int4)) fbreak; }
-    action close { if (cb->close(fsm->data, fsm->int4)) fbreak; }
-    action complete { if (cb->complete(fsm->data, fsm->int4)) fbreak; }
-    action complete_val { if (fsm->string && cb->complete_val(fsm->data, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action empty { if (cb->empty(fsm->data, fsm->int4)) fbreak; }
-    action error_column { if (cb->error_key(fsm->data, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
-    action error_constraint { if (cb->error_key(fsm->data, sizeof("constraint") - 1, (const unsigned char *)"constraint")) fbreak; }
-    action error_context { if (cb->error_key(fsm->data, sizeof("context") - 1, (const unsigned char *)"context")) fbreak; }
-    action error_datatype { if (cb->error_key(fsm->data, sizeof("datatype") - 1, (const unsigned char *)"datatype")) fbreak; }
-    action error_detail { if (cb->error_key(fsm->data, sizeof("detail") - 1, (const unsigned char *)"detail")) fbreak; }
-    action error_file { if (cb->error_key(fsm->data, sizeof("file") - 1, (const unsigned char *)"file")) fbreak; }
-    action error_function { if (cb->error_key(fsm->data, sizeof("function") - 1, (const unsigned char *)"function")) fbreak; }
-    action error_hint { if (cb->error_key(fsm->data, sizeof("hint") - 1, (const unsigned char *)"hint")) fbreak; }
-    action error { if (cb->error(fsm->data, fsm->int4)) fbreak; }
-    action error_internal { if (cb->error_key(fsm->data, sizeof("internal") - 1, (const unsigned char *)"internal")) fbreak; }
-    action error_line { if (cb->error_key(fsm->data, sizeof("line") - 1, (const unsigned char *)"line")) fbreak; }
-    action error_nonlocalized { if (cb->error_key(fsm->data, sizeof("nonlocalized") - 1, (const unsigned char *)"nonlocalized")) fbreak; }
-    action error_primary { if (cb->error_key(fsm->data, sizeof("primary") - 1, (const unsigned char *)"primary")) fbreak; }
-    action error_query { if (cb->error_key(fsm->data, sizeof("query") - 1, (const unsigned char *)"query")) fbreak; }
-    action error_schema { if (cb->error_key(fsm->data, sizeof("schema") - 1, (const unsigned char *)"schema")) fbreak; }
-    action error_severity { if (cb->error_key(fsm->data, sizeof("severity") - 1, (const unsigned char *)"severity")) fbreak; }
-    action error_sqlstate { if (cb->error_key(fsm->data, sizeof("sqlstate") - 1, (const unsigned char *)"sqlstate")) fbreak; }
-    action error_statement { if (cb->error_key(fsm->data, sizeof("statement") - 1, (const unsigned char *)"statement")) fbreak; }
-    action error_table { if (cb->error_key(fsm->data, sizeof("table") - 1, (const unsigned char *)"table")) fbreak; }
-    action error_val { if (fsm->string && cb->error_val(fsm->data, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action field_beg { if (cb->field_beg(fsm->data)) fbreak; }
-    action field_column { if (cb->field_column(fsm->data, fsm->int2)) fbreak; }
-    action field_count { fsm->field_count = fsm->int2; if (cb->field_count(fsm->data, fsm->field_count)) fbreak; if (!fsm->field_count) fnext main; }
-    action field_format { if (cb->field_format(fsm->data, fsm->int2)) fbreak; if (!--fsm->field_count) fnext main; }
-    action field { if (cb->field(fsm->data, fsm->int4)) fbreak; }
-    action field_length { if (cb->field_length(fsm->data, fsm->int2)) fbreak; }
-    action field_mod { if (cb->field_mod(fsm->data, fsm->int4)) fbreak; }
-    action field_name { if (fsm->string && cb->field_name(fsm->data, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action field_oid { if (cb->field_oid(fsm->data, fsm->int4)) fbreak; }
-    action field_table { if (cb->field_table(fsm->data, fsm->int4)) fbreak; }
-    action function { if (cb->function(fsm->data, fsm->int4)) fbreak; }
+    action all { if (cb->all(fsm->user, 0, p)) fbreak; }
+    action auth { if (cb->auth(fsm->user, fsm->int4)) fbreak; }
+    action bind { if (cb->bind(fsm->user, fsm->int4)) fbreak; }
+    action close { if (cb->close(fsm->user, fsm->int4)) fbreak; }
+    action complete { if (cb->complete(fsm->user, fsm->int4)) fbreak; }
+    action complete_val { if (fsm->string && cb->complete_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action empty { if (cb->empty(fsm->user, fsm->int4)) fbreak; }
+    action error_column { if (cb->error_key(fsm->user, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
+    action error_constraint { if (cb->error_key(fsm->user, sizeof("constraint") - 1, (const unsigned char *)"constraint")) fbreak; }
+    action error_context { if (cb->error_key(fsm->user, sizeof("context") - 1, (const unsigned char *)"context")) fbreak; }
+    action error_datatype { if (cb->error_key(fsm->user, sizeof("datatype") - 1, (const unsigned char *)"datatype")) fbreak; }
+    action error_detail { if (cb->error_key(fsm->user, sizeof("detail") - 1, (const unsigned char *)"detail")) fbreak; }
+    action error_file { if (cb->error_key(fsm->user, sizeof("file") - 1, (const unsigned char *)"file")) fbreak; }
+    action error_function { if (cb->error_key(fsm->user, sizeof("function") - 1, (const unsigned char *)"function")) fbreak; }
+    action error_hint { if (cb->error_key(fsm->user, sizeof("hint") - 1, (const unsigned char *)"hint")) fbreak; }
+    action error { if (cb->error(fsm->user, fsm->int4)) fbreak; }
+    action error_internal { if (cb->error_key(fsm->user, sizeof("internal") - 1, (const unsigned char *)"internal")) fbreak; }
+    action error_line { if (cb->error_key(fsm->user, sizeof("line") - 1, (const unsigned char *)"line")) fbreak; }
+    action error_nonlocalized { if (cb->error_key(fsm->user, sizeof("nonlocalized") - 1, (const unsigned char *)"nonlocalized")) fbreak; }
+    action error_primary { if (cb->error_key(fsm->user, sizeof("primary") - 1, (const unsigned char *)"primary")) fbreak; }
+    action error_query { if (cb->error_key(fsm->user, sizeof("query") - 1, (const unsigned char *)"query")) fbreak; }
+    action error_schema { if (cb->error_key(fsm->user, sizeof("schema") - 1, (const unsigned char *)"schema")) fbreak; }
+    action error_severity { if (cb->error_key(fsm->user, sizeof("severity") - 1, (const unsigned char *)"severity")) fbreak; }
+    action error_sqlstate { if (cb->error_key(fsm->user, sizeof("sqlstate") - 1, (const unsigned char *)"sqlstate")) fbreak; }
+    action error_statement { if (cb->error_key(fsm->user, sizeof("statement") - 1, (const unsigned char *)"statement")) fbreak; }
+    action error_table { if (cb->error_key(fsm->user, sizeof("table") - 1, (const unsigned char *)"table")) fbreak; }
+    action error_val { if (fsm->string && cb->error_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action field_beg { if (cb->field_beg(fsm->user)) fbreak; }
+    action field_column { if (cb->field_column(fsm->user, fsm->int2)) fbreak; }
+    action field_count { fsm->field_count = fsm->int2; if (cb->field_count(fsm->user, fsm->field_count)) fbreak; if (!fsm->field_count) fnext main; }
+    action field_format { if (cb->field_format(fsm->user, fsm->int2)) fbreak; if (!--fsm->field_count) fnext main; }
+    action field { if (cb->field(fsm->user, fsm->int4)) fbreak; }
+    action field_length { if (cb->field_length(fsm->user, fsm->int2)) fbreak; }
+    action field_mod { if (cb->field_mod(fsm->user, fsm->int4)) fbreak; }
+    action field_name { if (fsm->string && cb->field_name(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action field_oid { if (cb->field_oid(fsm->user, fsm->int4)) fbreak; }
+    action field_table { if (cb->field_table(fsm->user, fsm->int4)) fbreak; }
+    action function { if (cb->function(fsm->user, fsm->int4)) fbreak; }
     action int2 { if (!fsm->i) { fsm->i = sizeof(fsm->int2); fsm->int2 = 0; } fsm->int2 |= *p << ((2 << 2) * --fsm->i); }
     action int4 { if (!fsm->i) { fsm->i = sizeof(fsm->int4); fsm->int4 = 0; } fsm->int4 |= *p << ((2 << 2) * --fsm->i); }
-    action key { if (cb->key(fsm->data, fsm->int4)) fbreak; }
-    action method { if (cb->method(fsm->data, fsm->int4)) fbreak; }
-    action option { if (cb->option(fsm->data, fsm->int4)) fbreak; }
-    action option_key { if (fsm->string && cb->option_key(fsm->data, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action option_val { if (fsm->string && cb->option_val(fsm->data, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parse { if (cb->parse(fsm->data, fsm->int4)) fbreak; }
-    action pid { if (cb->pid(fsm->data, fsm->int4)) fbreak; }
-    action ready_idle { if (cb->ready_state(fsm->data, pg_ready_state_idle)) fbreak; }
-    action ready { if (cb->ready(fsm->data, fsm->int4)) fbreak; }
-    action ready_inerror { if (cb->ready_state(fsm->data, pg_ready_state_inerror)) fbreak; }
-    action ready_intrans { if (cb->ready_state(fsm->data, pg_ready_state_intrans)) fbreak; }
-    action result_count { fsm->result_count = fsm->int2; if (cb->result_count(fsm->data, fsm->result_count)) fbreak; if (!fsm->result_count) fnext main; }
-    action result { if (cb->result(fsm->data, fsm->int4)) fbreak; }
-    action result_len { fsm->result_len = fsm->int4; if (cb->result_len(fsm->data, fsm->result_len)) fbreak; if (!fsm->result_len || fsm->result_len == (uint32_t)-1) fnext main; }
+    action key { if (cb->key(fsm->user, fsm->int4)) fbreak; }
+    action method { if (cb->method(fsm->user, fsm->int4)) fbreak; }
+    action option { if (cb->option(fsm->user, fsm->int4)) fbreak; }
+    action option_key { if (fsm->string && cb->option_key(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action option_val { if (fsm->string && cb->option_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parse { if (cb->parse(fsm->user, fsm->int4)) fbreak; }
+    action pid { if (cb->pid(fsm->user, fsm->int4)) fbreak; }
+    action ready_idle { if (cb->ready_state(fsm->user, pg_ready_state_idle)) fbreak; }
+    action ready { if (cb->ready(fsm->user, fsm->int4)) fbreak; }
+    action ready_inerror { if (cb->ready_state(fsm->user, pg_ready_state_inerror)) fbreak; }
+    action ready_intrans { if (cb->ready_state(fsm->user, pg_ready_state_intrans)) fbreak; }
+    action result_count { fsm->result_count = fsm->int2; if (cb->result_count(fsm->user, fsm->result_count)) fbreak; if (!fsm->result_count) fnext main; }
+    action result { if (cb->result(fsm->user, fsm->int4)) fbreak; }
+    action result_len { fsm->result_len = fsm->int4; if (cb->result_len(fsm->user, fsm->result_len)) fbreak; if (!fsm->result_len || fsm->result_len == (uint32_t)-1) fnext main; }
     action results_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->result_count) fnext results; }
     action results_val_next { if (!fsm->string && --fsm->result_count) fnext results; }
-    action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(fsm->data, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
-    action secret { if (cb->secret(fsm->data, fsm->int4)) fbreak; }
+    action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
+    action secret { if (cb->secret(fsm->user, fsm->int4)) fbreak; }
     action str { if (!fsm->string) fsm->string = p; }
 
     char = any - 0;
@@ -143,8 +143,8 @@ size_t pg_fsm_size(void) {
     return sizeof(pg_fsm_t);
 }
 
-void pg_fsm_init(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *data) {
+void pg_fsm_init(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *user) {
     %% write init;
     fsm->cb = cb;
-    fsm->data = data;
+    fsm->user = user;
 }
