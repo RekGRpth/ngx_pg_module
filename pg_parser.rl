@@ -4,7 +4,7 @@
 
 typedef struct pg_parser_t {
     const pg_parser_settings_t *settings;
-    const unsigned char *str;
+    const unsigned char *s;
     const void *data;
     int cs;
     uint16_t field_count;
@@ -25,7 +25,7 @@ typedef struct pg_parser_t {
     action bind { if (settings->bind(parser->data, parser->int4)) fbreak; }
     action close { if (settings->close(parser->data, parser->int4)) fbreak; }
     action complete { if (settings->complete(parser->data, parser->int4)) fbreak; }
-    action complete_val { if (parser->str && settings->complete_val(parser->data, p - parser->str, parser->str)) fbreak; parser->str = NULL; }
+    action complete_val { if (parser->s && settings->complete_val(parser->data, p - parser->s, parser->s)) fbreak; parser->s = NULL; }
     action empty { if (settings->empty(parser->data, parser->int4)) fbreak; }
     action error_column { if (settings->error_key(parser->data, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
     action error_constraint { if (settings->error_key(parser->data, sizeof("constraint") - 1, (const unsigned char *)"constraint")) fbreak; }
@@ -46,7 +46,7 @@ typedef struct pg_parser_t {
     action error_sqlstate { if (settings->error_key(parser->data, sizeof("sqlstate") - 1, (const unsigned char *)"sqlstate")) fbreak; }
     action error_statement { if (settings->error_key(parser->data, sizeof("statement") - 1, (const unsigned char *)"statement")) fbreak; }
     action error_table { if (settings->error_key(parser->data, sizeof("table") - 1, (const unsigned char *)"table")) fbreak; }
-    action error_val { if (parser->str && settings->error_val(parser->data, p - parser->str, parser->str)) fbreak; parser->str = NULL; }
+    action error_val { if (parser->s && settings->error_val(parser->data, p - parser->s, parser->s)) fbreak; parser->s = NULL; }
     action field_beg { if (settings->field_beg(parser->data)) fbreak; }
     action field_column { if (settings->field_column(parser->data, parser->int2)) fbreak; }
     action field_count { parser->field_count = parser->int2; if (settings->field_count(parser->data, parser->field_count)) fbreak; if (!parser->field_count) fnext main; }
@@ -54,7 +54,7 @@ typedef struct pg_parser_t {
     action field { if (settings->field(parser->data, parser->int4)) fbreak; }
     action field_length { if (settings->field_length(parser->data, parser->int2)) fbreak; }
     action field_mod { if (settings->field_mod(parser->data, parser->int4)) fbreak; }
-    action field_name { if (parser->str && settings->field_name(parser->data, p - parser->str, parser->str)) fbreak; parser->str = NULL; }
+    action field_name { if (parser->s && settings->field_name(parser->data, p - parser->s, parser->s)) fbreak; parser->s = NULL; }
     action field_oid { if (settings->field_oid(parser->data, parser->int4)) fbreak; }
     action field_table { if (settings->field_table(parser->data, parser->int4)) fbreak; }
     action function { if (settings->function(parser->data, parser->int4)) fbreak; }
@@ -63,8 +63,8 @@ typedef struct pg_parser_t {
     action key { if (settings->key(parser->data, parser->int4)) fbreak; }
     action method { if (settings->method(parser->data, parser->int4)) fbreak; }
     action option { if (settings->option(parser->data, parser->int4)) fbreak; }
-    action option_key { if (parser->str && settings->option_key(parser->data, p - parser->str, parser->str)) fbreak; parser->str = NULL; }
-    action option_val { if (parser->str && settings->option_val(parser->data, p - parser->str, parser->str)) fbreak; parser->str = NULL; }
+    action option_key { if (parser->s && settings->option_key(parser->data, p - parser->s, parser->s)) fbreak; parser->s = NULL; }
+    action option_val { if (parser->s && settings->option_val(parser->data, p - parser->s, parser->s)) fbreak; parser->s = NULL; }
     action parse { if (settings->parse(parser->data, parser->int4)) fbreak; }
     action pid { if (settings->pid(parser->data, parser->int4)) fbreak; }
     action ready_idle { if (settings->ready_state(parser->data, pg_ready_state_idle)) fbreak; }
@@ -75,10 +75,10 @@ typedef struct pg_parser_t {
     action result { if (settings->result(parser->data, parser->int4)) fbreak; }
     action result_len { parser->result_len = parser->int4; if (settings->result_len(parser->data, parser->result_len)) fbreak; if (!parser->result_len || parser->result_len == (uint32_t)-1) fnext main; }
     action results_len_next { if (!parser->result_len || parser->result_len == (uint32_t)-1) if (--parser->result_count) fnext results; }
-    action results_val_next { if (!parser->str && --parser->result_count) fnext results; }
-    action result_val { if (p == eof || !parser->result_len--) { if (parser->str && settings->result_val(parser->data, p - parser->str, parser->str)) fbreak; parser->str = NULL; if (p != eof) { fhold; fnext main; } } }
+    action results_val_next { if (!parser->s && --parser->result_count) fnext results; }
+    action result_val { if (p == eof || !parser->result_len--) { if (parser->s && settings->result_val(parser->data, p - parser->s, parser->s)) fbreak; parser->s = NULL; if (p != eof) { fhold; fnext main; } } }
     action secret { if (settings->secret(parser->data, parser->int4)) fbreak; }
-    action str { if (!parser->str) parser->str = p; }
+    action str { if (!parser->s) parser->s = p; }
 
     char = any - 0;
     int2 = any{2} $int2;
