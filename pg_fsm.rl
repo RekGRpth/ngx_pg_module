@@ -157,7 +157,6 @@ typedef struct pg_fsm_t {
 
     data_rows_val = int4 @result_len @data_rows_len_next result ** @data_rows_val_next;
 
-    data_rows = int2 @data_rows_count data_rows_val **;
     error_response = error_response_key str0 @error_response_val @/error_response_val;
     notice_response = notice_response_key str0 @notice_response_val @/notice_response_val;
     row_description = str0 >row_description_beg @row_description_name @/row_description_name int4 @row_description_table int2 @row_description_column int4 @row_description_oid int2 @row_description_length int4 @row_description_mod int2 @row_description_format;
@@ -167,7 +166,7 @@ typedef struct pg_fsm_t {
     | "2" 0 0 0 4 @bind_complete
     | "3" 0 0 0 4 @close_complete
     | "C" int4 @command_complete str0 @command_complete_val @/command_complete_val
-    | "D" int4 @data_rows data_rows
+    | "D" int4 @data_rows int2 @data_rows_count data_rows_val **
     | "E" int4 @error_response error_response ** 0
     | "I" 0 0 0 4 @empty_query_response
     | "K" 0 0 0 12 @backend_key_data int4 @pid int4 @key
