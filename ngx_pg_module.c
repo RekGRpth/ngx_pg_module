@@ -238,7 +238,7 @@ static int ngx_pg_fsm_notice_response_val(ngx_pg_save_t *s, size_t len, const u_
     return s->rc;
 }
 
-static int ngx_pg_fsm_row_descriptions(ngx_pg_save_t *s, uint32_t len) {
+static int ngx_pg_fsm_row_description(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     ngx_pg_data_t *d = s->data;
@@ -281,7 +281,7 @@ static int ngx_pg_fsm_row_description_column(ngx_pg_save_t *s, uint16_t column) 
     return s->rc;
 }
 
-static int ngx_pg_fsm_row_descriptions_count(ngx_pg_save_t *s, uint16_t count) {
+static int ngx_pg_fsm_row_description_count(ngx_pg_save_t *s, uint16_t count) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", count);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -537,13 +537,13 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .result_val = (pg_fsm_str_cb)ngx_pg_fsm_result_val,
     .row_description_beg = (pg_fsm_cb)ngx_pg_fsm_row_description_beg,
     .row_description_column = (pg_fsm_int2_cb)ngx_pg_fsm_row_description_column,
+    .row_description_count = (pg_fsm_int2_cb)ngx_pg_fsm_row_description_count,
     .row_description_format = (pg_fsm_int2_cb)ngx_pg_fsm_row_description_format,
     .row_description_length = (pg_fsm_int2_cb)ngx_pg_fsm_row_description_length,
     .row_description_mod = (pg_fsm_int4_cb)ngx_pg_fsm_row_description_mod,
     .row_description_name = (pg_fsm_str_cb)ngx_pg_fsm_row_description_name,
     .row_description_oid = (pg_fsm_int4_cb)ngx_pg_fsm_row_description_oid,
-    .row_descriptions_count = (pg_fsm_int2_cb)ngx_pg_fsm_row_descriptions_count,
-    .row_descriptions = (pg_fsm_int4_cb)ngx_pg_fsm_row_descriptions,
+    .row_description = (pg_fsm_int4_cb)ngx_pg_fsm_row_description,
     .row_description_table = (pg_fsm_int4_cb)ngx_pg_fsm_row_description_table,
 };
 

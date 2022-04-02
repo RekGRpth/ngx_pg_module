@@ -7,7 +7,7 @@ typedef struct pg_fsm_t {
     const unsigned char *string;
     const void *user;
     uint16_t cs;
-    uint16_t row_descriptions_count;
+    uint16_t row_description_count;
     uint16_t int2;
     uint16_t data_row_count;
     uint16_t stack[PG_FSM_STACK_SIZE];
@@ -92,14 +92,14 @@ typedef struct pg_fsm_t {
     action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
     action row_description_beg { if (cb->row_description_beg(fsm->user)) fbreak; }
     action row_description_column { if (cb->row_description_column(fsm->user, fsm->int2)) fbreak; }
+    action row_description_count { fsm->row_description_count = fsm->int2; if (cb->row_description_count(fsm->user, fsm->row_description_count)) fbreak; }
     action row_description_format { if (cb->row_description_format(fsm->user, fsm->int2)) fbreak; }
+    action row_description { if (cb->row_description(fsm->user, fsm->int4)) fbreak; }
     action row_description_length { if (cb->row_description_length(fsm->user, fsm->int2)) fbreak; }
     action row_description_mod { if (cb->row_description_mod(fsm->user, fsm->int4)) fbreak; }
     action row_description_name { if (fsm->string && cb->row_description_name(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action row_description_oid { if (cb->row_description_oid(fsm->user, fsm->int4)) fbreak; }
-    action row_descriptions_count { fsm->row_descriptions_count = fsm->int2; if (cb->row_descriptions_count(fsm->user, fsm->row_descriptions_count)) fbreak; }
-    action row_descriptions { if (cb->row_descriptions(fsm->user, fsm->int4)) fbreak; }
-    action row_descriptions_out { --fsm->row_descriptions_count }
+    action row_description_out { --fsm->row_description_count }
     action row_description_table { if (cb->row_description_table(fsm->user, fsm->int4)) fbreak; }
     action string { if (!fsm->string) fsm->string = p; }
 
@@ -173,7 +173,7 @@ typedef struct pg_fsm_t {
     | "N" int4 @notice_response notice_response ** 0
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0
     | "S" int4 @parameter_status str0 @parameter_status_key @/parameter_status_key str0 @parameter_status_val @/parameter_status_val
-    | "T" int4 @row_descriptions int2 @row_descriptions_count ( row_description outwhen row_descriptions_out ) **
+    | "T" int4 @row_description int2 @row_description_count ( row_description outwhen row_description_out ) **
     | "V" int4 @function_call_response int4 @result_len result **
     | "Z" 0 0 0 5 @ready_for_query "E" @ready_for_query_inerror | "I" @ready_for_query_idle | "T" @ready_for_query_intrans
     ) $all;
