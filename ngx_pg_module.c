@@ -406,7 +406,7 @@ static int ngx_pg_fsm_field_name(ngx_pg_save_t *s, size_t len, const u_char *dat
     return s->rc;
 }
 
-static int ngx_pg_fsm_option(ngx_pg_save_t *s, uint32_t len) {
+static int ngx_pg_fsm_parameter_status(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     ngx_pg_option_t *option;
@@ -417,7 +417,7 @@ static int ngx_pg_fsm_option(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_option_key(ngx_pg_save_t *s, size_t len, const u_char *data) {
+static int ngx_pg_fsm_parameter_status_key(ngx_pg_save_t *s, size_t len, const u_char *data) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     if (!s->options->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
@@ -428,7 +428,7 @@ static int ngx_pg_fsm_option_key(ngx_pg_save_t *s, size_t len, const u_char *dat
     return s->rc;
 }
 
-static int ngx_pg_fsm_option_val(ngx_pg_save_t *s, size_t len, const u_char *data) {
+static int ngx_pg_fsm_parameter_status_val(ngx_pg_save_t *s, size_t len, const u_char *data) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     if (!s->options->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
@@ -538,9 +538,9 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .notice_response_key = (pg_fsm_str_cb)ngx_pg_fsm_notice_response_key,
     .notice_response = (pg_fsm_int4_cb)ngx_pg_fsm_notice_response,
     .notice_response_val = (pg_fsm_str_cb)ngx_pg_fsm_notice_response_val,
-    .option_key = (pg_fsm_str_cb)ngx_pg_fsm_option_key,
-    .option = (pg_fsm_int4_cb)ngx_pg_fsm_option,
-    .option_val = (pg_fsm_str_cb)ngx_pg_fsm_option_val,
+    .parameter_status_key = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_key,
+    .parameter_status = (pg_fsm_int4_cb)ngx_pg_fsm_parameter_status,
+    .parameter_status_val = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_val,
     .parse = (pg_fsm_int4_cb)ngx_pg_fsm_parse,
     .pid = (pg_fsm_int4_cb)ngx_pg_fsm_pid,
     .postpop = (pg_fsm_int2_cb)ngx_pg_fsm_postpop,

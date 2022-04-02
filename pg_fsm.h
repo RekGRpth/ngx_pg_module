@@ -40,7 +40,7 @@ typedef struct {
     pg_fsm_int4_cb function_call_response;
     pg_fsm_int4_cb key;
     pg_fsm_int4_cb notice_response;
-    pg_fsm_int4_cb option;
+    pg_fsm_int4_cb parameter_status;
     pg_fsm_int4_cb parse;
     pg_fsm_int4_cb pid;
     pg_fsm_int4_cb ready;
@@ -52,8 +52,8 @@ typedef struct {
     pg_fsm_str_cb field_name;
     pg_fsm_str_cb notice_response_key;
     pg_fsm_str_cb notice_response_val;
-    pg_fsm_str_cb option_key;
-    pg_fsm_str_cb option_val;
+    pg_fsm_str_cb parameter_status_key;
+    pg_fsm_str_cb parameter_status_val;
 } pg_fsm_cb_t;
 
 typedef struct pg_fsm_t pg_fsm_t;

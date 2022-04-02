@@ -92,9 +92,9 @@ typedef struct pg_fsm_t {
     action notice_response_statement { if (cb->notice_response_key(fsm->user, sizeof("statement") - 1, (const unsigned char *)"statement")) fbreak; }
     action notice_response_table { if (cb->notice_response_key(fsm->user, sizeof("table") - 1, (const unsigned char *)"table")) fbreak; }
     action notice_response_val { if (fsm->string && cb->notice_response_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action option { if (cb->option(fsm->user, fsm->int4)) fbreak; }
-    action option_key { if (fsm->string && cb->option_key(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action option_val { if (fsm->string && cb->option_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status { if (cb->parameter_status(fsm->user, fsm->int4)) fbreak; }
+    action parameter_status_key { if (fsm->string && cb->parameter_status_key(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_val { if (fsm->string && cb->parameter_status_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parse { if (cb->parse(fsm->user, fsm->int4)) fbreak; }
     action pid { if (cb->pid(fsm->user, fsm->int4)) fbreak; }
     action ready_idle { if (cb->ready_state(fsm->user, pg_ready_state_idle)) fbreak; }
@@ -160,7 +160,6 @@ typedef struct pg_fsm_t {
     notice_response = notice_response_key str0 @notice_response_val @/notice_response_val;
 
     fields = int2 @fields_count ( field outwhen fields_out ) **;
-    option = str0 @option_key @/option_key str0 @option_val @/option_val;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
     data_rows = int2 @data_rows_count data_rows_val **;
 
@@ -174,7 +173,7 @@ typedef struct pg_fsm_t {
     | "N" int4 @notice_response notice_response ** 0
     | "K" 0 0 0 12 @backend_key_data int4 @pid int4 @key
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0
-    |  83 int4 @option option
+    | "S" int4 @parameter_status str0 @parameter_status_key @/parameter_status_key str0 @parameter_status_val @/parameter_status_val
     |  84 int4 @fields fields
     | "V" int4 @function_call_response int4 @data_row_len data_row **
     |  90 int4 @ready ready
