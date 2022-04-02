@@ -378,7 +378,7 @@ static int ngx_pg_fsm_data_row_val(ngx_pg_save_t *s, size_t len, const u_char *d
     return s->rc;
 }
 
-static int ngx_pg_fsm_ready_state(ngx_pg_save_t *s, uint16_t state) {
+static int ngx_pg_fsm_ready_for_query_state(ngx_pg_save_t *s, uint16_t state) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", state);
     s->state = state;
     ngx_pg_data_t *d = s->data;
@@ -452,9 +452,8 @@ static int ngx_pg_fsm_pid(ngx_pg_save_t *s, uint32_t pid) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_ready(ngx_pg_save_t *s, uint32_t len) {
-    if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
+static int ngx_pg_fsm_ready_for_query(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     return s->rc;
 }
 
@@ -544,8 +543,8 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .pid = (pg_fsm_int4_cb)ngx_pg_fsm_pid,
     .postpop = (pg_fsm_int2_cb)ngx_pg_fsm_postpop,
     .prepush = (pg_fsm_int2_cb)ngx_pg_fsm_prepush,
-    .ready = (pg_fsm_int4_cb)ngx_pg_fsm_ready,
-    .ready_state = (pg_fsm_int2_cb)ngx_pg_fsm_ready_state,
+    .ready_for_query = (pg_fsm_cb)ngx_pg_fsm_ready_for_query,
+    .ready_for_query_state = (pg_fsm_int2_cb)ngx_pg_fsm_ready_for_query_state,
 };
 
 inline static ngx_chain_t *ngx_pg_alloc_size(ngx_pool_t *p, uint32_t *size) {

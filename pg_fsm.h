@@ -22,6 +22,7 @@ typedef struct {
     pg_fsm_cb field_beg;
     pg_fsm_cb no_data;
     pg_fsm_cb parse_complete;
+    pg_fsm_cb ready_for_query;
     pg_fsm_int2_cb data_rows_count;
     pg_fsm_int2_cb field_column;
     pg_fsm_int2_cb field_format;
@@ -29,7 +30,7 @@ typedef struct {
     pg_fsm_int2_cb fields_count;
     pg_fsm_int2_cb postpop;
     pg_fsm_int2_cb prepush;
-    pg_fsm_int2_cb ready_state;
+    pg_fsm_int2_cb ready_for_query_state;
     pg_fsm_int4_cb command_complete;
     pg_fsm_int4_cb data_row_len;
     pg_fsm_int4_cb data_rows;
@@ -43,7 +44,6 @@ typedef struct {
     pg_fsm_int4_cb notice_response;
     pg_fsm_int4_cb parameter_status;
     pg_fsm_int4_cb pid;
-    pg_fsm_int4_cb ready;
     pg_fsm_str_cb all;
     pg_fsm_str_cb command_complete_val;
     pg_fsm_str_cb data_row_val;

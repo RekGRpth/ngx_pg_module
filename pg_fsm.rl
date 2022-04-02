@@ -97,10 +97,10 @@ typedef struct pg_fsm_t {
     action parameter_status_val { if (fsm->string && cb->parameter_status_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parse_complete { if (cb->parse_complete(fsm->user)) fbreak; }
     action pid { if (cb->pid(fsm->user, fsm->int4)) fbreak; }
-    action ready_idle { if (cb->ready_state(fsm->user, pg_ready_state_idle)) fbreak; }
-    action ready { if (cb->ready(fsm->user, fsm->int4)) fbreak; }
-    action ready_inerror { if (cb->ready_state(fsm->user, pg_ready_state_inerror)) fbreak; }
-    action ready_intrans { if (cb->ready_state(fsm->user, pg_ready_state_intrans)) fbreak; }
+    action ready_for_query_idle { if (cb->ready_for_query_state(fsm->user, pg_ready_state_idle)) fbreak; }
+    action ready_for_query { if (cb->ready_for_query(fsm->user)) fbreak; }
+    action ready_for_query_inerror { if (cb->ready_for_query_state(fsm->user, pg_ready_state_inerror)) fbreak; }
+    action ready_for_query_intrans { if (cb->ready_for_query_state(fsm->user, pg_ready_state_intrans)) fbreak; }
     action string { if (!fsm->string) fsm->string = p; }
 
     postpop { if (cb->postpop(fsm->user, fsm->top)) fbreak; }
@@ -160,7 +160,6 @@ typedef struct pg_fsm_t {
     notice_response = notice_response_key str0 @notice_response_val @/notice_response_val;
 
     fields = int2 @fields_count ( field outwhen fields_out ) **;
-    ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
     data_rows = int2 @data_rows_count data_rows_val **;
 
     main :=
@@ -176,7 +175,7 @@ typedef struct pg_fsm_t {
     | "S" int4 @parameter_status str0 @parameter_status_key @/parameter_status_key str0 @parameter_status_val @/parameter_status_val
     |  84 int4 @fields fields
     | "V" int4 @function_call_response int4 @data_row_len data_row **
-    |  90 int4 @ready ready
+    | "Z" 0 0 0 5 @ready_for_query "E" @ready_for_query_inerror | "I" @ready_for_query_idle | "T" @ready_for_query_intrans
     | "n" 0 0 0 4 @no_data
     | "I" 0 0 0 4 @empty_query_response
     ) $all;
