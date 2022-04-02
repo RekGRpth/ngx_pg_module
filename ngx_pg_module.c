@@ -816,7 +816,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         cln->handler = (ngx_pool_cleanup_pt)ngx_pg_save_cln_handler;
         if (!(s->options = ngx_array_create(c->pool, 1, sizeof(ngx_pg_option_t)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_array_create"); return NGX_ERROR; }
         if (!(s->fsm = ngx_pcalloc(c->pool, pg_fsm_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
-        pg_fsm_init(s->fsm, &ngx_pg_fsm_cb, s);
+        pg_fsm_init(s->fsm);
         s->connection = c;
         cl = u->request_bufs = ngx_pg_startup_message(r->pool, pscf ? pscf->options : plcf->options);
         while (cl->next) cl = cl->next;
@@ -1004,7 +1004,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_pg_save_t *s = d->save;
     if (!s) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!s"); return NGX_ERROR; }
     s->rc = NGX_OK;
-    while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_fsm_execute(s->fsm, b->pos, b->last, b->end);
+    while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->pos, b->last, b->end);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %d", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
     if (s->rc == NGX_OK) {
