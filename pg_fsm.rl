@@ -95,6 +95,7 @@ typedef struct pg_fsm_t {
     action row_description_count { fsm->row_description_count = fsm->int2; if (cb->row_description_count(fsm->user, fsm->row_description_count)) fbreak; }
     action row_description_format { if (cb->row_description_format(fsm->user, fsm->int2)) fbreak; }
     action row_description { if (cb->row_description(fsm->user, fsm->int4)) fbreak; }
+    action row_description_in { fsm->row_description_count }
     action row_description_length { if (cb->row_description_length(fsm->user, fsm->int2)) fbreak; }
     action row_description_mod { if (cb->row_description_mod(fsm->user, fsm->int4)) fbreak; }
     action row_description_name { if (fsm->string && cb->row_description_name(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
@@ -173,7 +174,7 @@ typedef struct pg_fsm_t {
     | "N" int4 @notice_response notice_response ** 0
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0
     | "S" int4 @parameter_status str0 @parameter_status_key @/parameter_status_key str0 @parameter_status_val @/parameter_status_val
-    | "T" int4 @row_description int2 @row_description_count ( row_description outwhen row_description_out ) **
+    | "T" int4 @row_description int2 @row_description_count ( row_description >when row_description_in %when row_description_out ) **
     | "V" int4 @function_call_response int4 @result_len result **
     | "Z" 0 0 0 5 @ready_for_query "E" @ready_for_query_inerror | "I" @ready_for_query_idle | "T" @ready_for_query_intrans
     ) $all;
