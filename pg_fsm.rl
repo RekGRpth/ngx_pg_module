@@ -13,7 +13,7 @@ typedef struct pg_fsm_t {
     uint16_t stack[PG_FSM_STACK_SIZE];
     uint16_t top;
     uint32_t int4;
-    uint32_t data_row_len;
+    uint32_t result_len;
     uint8_t i;
 } pg_fsm_t;
 
@@ -29,12 +29,10 @@ typedef struct pg_fsm_t {
     action close_complete { if (cb->close_complete(fsm->user)) fbreak; }
     action command_complete { if (cb->command_complete(fsm->user, fsm->int4)) fbreak; }
     action command_complete_val { if (fsm->string && cb->command_complete_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action data_row_len { fsm->data_row_len = fsm->int4; if (cb->data_row_len(fsm->user, fsm->data_row_len)) fbreak; if (!fsm->data_row_len || fsm->data_row_len == (uint32_t)-1) fnext main; }
     action data_rows_count { fsm->data_rows_count = fsm->int2; if (cb->data_rows_count(fsm->user, fsm->data_rows_count)) fbreak; if (!fsm->data_rows_count) fnext main; }
     action data_rows { if (cb->data_rows(fsm->user, fsm->int4)) fbreak; }
-    action data_rows_len_next { if (!fsm->data_row_len || fsm->data_row_len == (uint32_t)-1) if (--fsm->data_rows_count) fnext data_rows_val; }
+    action data_rows_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->data_rows_count) fnext data_rows_val; }
     action data_rows_val_next { if (!fsm->string && --fsm->data_rows_count) fnext data_rows_val; }
-    action data_row_val { if (p == eof || !fsm->data_row_len--) { if (fsm->string && cb->data_row_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
     action empty_query_response { if (cb->empty_query_response(fsm->user)) fbreak; }
     action error_response_column { if (cb->error_response_key(fsm->user, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
     action error_response_constraint { if (cb->error_response_key(fsm->user, sizeof("constraint") - 1, (const unsigned char *)"constraint")) fbreak; }
@@ -90,6 +88,8 @@ typedef struct pg_fsm_t {
     action ready_for_query { if (cb->ready_for_query(fsm->user)) fbreak; }
     action ready_for_query_inerror { if (cb->ready_for_query_state(fsm->user, pg_ready_state_inerror)) fbreak; }
     action ready_for_query_intrans { if (cb->ready_for_query_state(fsm->user, pg_ready_state_intrans)) fbreak; }
+    action result_len { fsm->result_len = fsm->int4; if (cb->result_len(fsm->user, fsm->result_len)) fbreak; if (!fsm->result_len || fsm->result_len == (uint32_t)-1) fnext main; }
+    action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
     action row_description_beg { if (cb->row_description_beg(fsm->user)) fbreak; }
     action row_description_column { if (cb->row_description_column(fsm->user, fsm->int2)) fbreak; }
     action row_description_format { if (cb->row_description_format(fsm->user, fsm->int2)) fbreak; }
@@ -153,13 +153,14 @@ typedef struct pg_fsm_t {
     | "W" @notice_response_context
     );
 
-    data_row = any @string @data_row_val @/data_row_val;
-    data_rows_val = int4 @data_row_len @data_rows_len_next data_row ** @data_rows_val_next;
-    error_response = error_response_key str0 @error_response_val @/error_response_val;
-    row_description = str0 >row_description_beg @row_description_name @/row_description_name int4 @row_description_table int2 @row_description_column int4 @row_description_oid int2 @row_description_length int4 @row_description_mod int2 @row_description_format;
-    notice_response = notice_response_key str0 @notice_response_val @/notice_response_val;
+    result = any @string @result_val @/result_val;
+
+    data_rows_val = int4 @result_len @data_rows_len_next result ** @data_rows_val_next;
 
     data_rows = int2 @data_rows_count data_rows_val **;
+    error_response = error_response_key str0 @error_response_val @/error_response_val;
+    notice_response = notice_response_key str0 @notice_response_val @/notice_response_val;
+    row_description = str0 >row_description_beg @row_description_name @/row_description_name int4 @row_description_table int2 @row_description_column int4 @row_description_oid int2 @row_description_length int4 @row_description_mod int2 @row_description_format;
 
     main :=
     ( "1" 0 0 0 4 @parse_complete
@@ -175,7 +176,7 @@ typedef struct pg_fsm_t {
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0
     | "S" int4 @parameter_status str0 @parameter_status_key @/parameter_status_key str0 @parameter_status_val @/parameter_status_val
     | "T" int4 @row_descriptions int2 @row_descriptions_count ( row_description outwhen row_descriptions_out ) **
-    | "V" int4 @function_call_response int4 @data_row_len data_row **
+    | "V" int4 @function_call_response int4 @result_len result **
     | "Z" 0 0 0 5 @ready_for_query "E" @ready_for_query_inerror | "I" @ready_for_query_idle | "T" @ready_for_query_intrans
     ) $all;
 

@@ -362,7 +362,7 @@ static int ngx_pg_fsm_function_call_response(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_data_row_val(ngx_pg_save_t *s, size_t len, const u_char *data) {
+static int ngx_pg_fsm_result_val(ngx_pg_save_t *s, size_t len, const u_char *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -482,7 +482,7 @@ static int ngx_pg_fsm_data_rows_count(ngx_pg_save_t *s, uint16_t count) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_data_row_len(ngx_pg_save_t *s, uint32_t len) {
+static int ngx_pg_fsm_result_len(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -512,10 +512,8 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .close_complete = (pg_fsm_cb)ngx_pg_fsm_close_complete,
     .command_complete = (pg_fsm_int4_cb)ngx_pg_fsm_command_complete,
     .command_complete_val = (pg_fsm_str_cb)ngx_pg_fsm_command_complete_val,
-    .data_row_len = (pg_fsm_int4_cb)ngx_pg_fsm_data_row_len,
     .data_rows_count = (pg_fsm_int2_cb)ngx_pg_fsm_data_rows_count,
     .data_rows = (pg_fsm_int4_cb)ngx_pg_fsm_data_rows,
-    .data_row_val = (pg_fsm_str_cb)ngx_pg_fsm_data_row_val,
     .empty_query_response = (pg_fsm_cb)ngx_pg_fsm_empty_query_response,
     .error_response_key = (pg_fsm_str_cb)ngx_pg_fsm_error_response_key,
     .error_response = (pg_fsm_int4_cb)ngx_pg_fsm_error_response,
@@ -535,6 +533,8 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .prepush = (pg_fsm_int2_cb)ngx_pg_fsm_prepush,
     .ready_for_query = (pg_fsm_cb)ngx_pg_fsm_ready_for_query,
     .ready_for_query_state = (pg_fsm_int2_cb)ngx_pg_fsm_ready_for_query_state,
+    .result_len = (pg_fsm_int4_cb)ngx_pg_fsm_result_len,
+    .result_val = (pg_fsm_str_cb)ngx_pg_fsm_result_val,
     .row_description_beg = (pg_fsm_cb)ngx_pg_fsm_row_description_beg,
     .row_description_column = (pg_fsm_int2_cb)ngx_pg_fsm_row_description_column,
     .row_description_format = (pg_fsm_int2_cb)ngx_pg_fsm_row_description_format,
