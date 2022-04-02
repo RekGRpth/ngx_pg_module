@@ -971,14 +971,18 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %d", s->rc);
     if (s->rc == NGX_OK && d->errors && d->errors->nelts) {
         s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
+#if (NGX_DEBUG)
         ngx_pg_error_t *error = d->errors->elts;
         for (ngx_uint_t i = 0; i < d->errors->nelts; i++) ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%V = %V", &error[i].key, &error[i].val);
+#endif
     }
     if (s->rc == NGX_OK) {
+#if (NGX_DEBUG)
         if (s->options) {
             ngx_pg_option_t *option = s->options->elts;
             for (ngx_uint_t i = 0; i < s->options->nelts; i++) ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%V = %V", &option[i].key, &option[i].val);
         }
+#endif
         u->headers_in.content_length_n = 0;
         u->headers_in.status_n = NGX_HTTP_OK;
         ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
