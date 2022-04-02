@@ -20,6 +20,8 @@ typedef struct {
     pg_fsm_cb close_complete;
     pg_fsm_cb empty_query_response;
     pg_fsm_cb field_beg;
+    pg_fsm_cb no_data;
+    pg_fsm_int2_cb data_rows_count;
     pg_fsm_int2_cb field_column;
     pg_fsm_int2_cb field_format;
     pg_fsm_int2_cb field_length;
@@ -27,9 +29,9 @@ typedef struct {
     pg_fsm_int2_cb postpop;
     pg_fsm_int2_cb prepush;
     pg_fsm_int2_cb ready_state;
-    pg_fsm_int2_cb data_rows_count;
     pg_fsm_int4_cb command_complete;
-    pg_fsm_int4_cb empty;
+    pg_fsm_int4_cb data_row_len;
+    pg_fsm_int4_cb data_rows;
     pg_fsm_int4_cb error_response;
     pg_fsm_int4_cb field_mod;
     pg_fsm_int4_cb field_oid;
@@ -41,16 +43,14 @@ typedef struct {
     pg_fsm_int4_cb parse;
     pg_fsm_int4_cb pid;
     pg_fsm_int4_cb ready;
-    pg_fsm_int4_cb data_row_len;
-    pg_fsm_int4_cb data_rows;
     pg_fsm_str_cb all;
     pg_fsm_str_cb command_complete_val;
+    pg_fsm_str_cb data_row_val;
     pg_fsm_str_cb error_response_key;
     pg_fsm_str_cb error_response_val;
     pg_fsm_str_cb field_name;
     pg_fsm_str_cb option_key;
     pg_fsm_str_cb option_val;
-    pg_fsm_str_cb data_row_val;
 } pg_fsm_cb_t;
 
 typedef struct pg_fsm_t pg_fsm_t;

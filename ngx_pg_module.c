@@ -142,9 +142,8 @@ static int ngx_pg_fsm_command_complete_val(ngx_pg_save_t *s, size_t len, const u
     return s->rc;
 }
 
-static int ngx_pg_fsm_empty(ngx_pg_save_t *s, uint32_t len) {
-    if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
+static int ngx_pg_fsm_no_data(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     return s->rc;
 }
 
@@ -464,10 +463,13 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .backend_key_data = (pg_fsm_cb)ngx_pg_fsm_backend_key_data,
     .bind_complete = (pg_fsm_cb)ngx_pg_fsm_bind_complete,
     .close_complete = (pg_fsm_cb)ngx_pg_fsm_close_complete,
-    .empty_query_response = (pg_fsm_cb)ngx_pg_fsm_empty_query_response,
     .command_complete = (pg_fsm_int4_cb)ngx_pg_fsm_command_complete,
     .command_complete_val = (pg_fsm_str_cb)ngx_pg_fsm_command_complete_val,
-    .empty = (pg_fsm_int4_cb)ngx_pg_fsm_empty,
+    .data_row_len = (pg_fsm_int4_cb)ngx_pg_fsm_data_row_len,
+    .data_rows_count = (pg_fsm_int2_cb)ngx_pg_fsm_data_rows_count,
+    .data_rows = (pg_fsm_int4_cb)ngx_pg_fsm_data_rows,
+    .data_row_val = (pg_fsm_str_cb)ngx_pg_fsm_data_row_val,
+    .empty_query_response = (pg_fsm_cb)ngx_pg_fsm_empty_query_response,
     .error_response_key = (pg_fsm_str_cb)ngx_pg_fsm_error_response_key,
     .error_response = (pg_fsm_int4_cb)ngx_pg_fsm_error_response,
     .error_response_val = (pg_fsm_str_cb)ngx_pg_fsm_error_response_val,
@@ -483,6 +485,7 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .field_table = (pg_fsm_int4_cb)ngx_pg_fsm_field_table,
     .function_call_response = (pg_fsm_int4_cb)ngx_pg_fsm_function_call_response,
     .key = (pg_fsm_int4_cb)ngx_pg_fsm_key,
+    .no_data = (pg_fsm_cb)ngx_pg_fsm_no_data,
     .option_key = (pg_fsm_str_cb)ngx_pg_fsm_option_key,
     .option = (pg_fsm_int4_cb)ngx_pg_fsm_option,
     .option_val = (pg_fsm_str_cb)ngx_pg_fsm_option_val,
@@ -492,10 +495,6 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .prepush = (pg_fsm_int2_cb)ngx_pg_fsm_prepush,
     .ready = (pg_fsm_int4_cb)ngx_pg_fsm_ready,
     .ready_state = (pg_fsm_int2_cb)ngx_pg_fsm_ready_state,
-    .data_row_len = (pg_fsm_int4_cb)ngx_pg_fsm_data_row_len,
-    .data_rows_count = (pg_fsm_int2_cb)ngx_pg_fsm_data_rows_count,
-    .data_rows = (pg_fsm_int4_cb)ngx_pg_fsm_data_rows,
-    .data_row_val = (pg_fsm_str_cb)ngx_pg_fsm_data_row_val,
 };
 
 inline static ngx_chain_t *ngx_pg_alloc_size(ngx_pool_t *p, uint32_t *size) {
