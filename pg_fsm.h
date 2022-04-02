@@ -25,7 +25,7 @@ typedef struct {
     pg_fsm_int2_cb results_count;
     pg_fsm_int4_cb authentication_ok;
     pg_fsm_int4_cb backend_key_data;
-    pg_fsm_int4_cb bind;
+    pg_fsm_int4_cb bind_complete;
     pg_fsm_int4_cb close;
     pg_fsm_int4_cb complete;
     pg_fsm_int4_cb empty;
