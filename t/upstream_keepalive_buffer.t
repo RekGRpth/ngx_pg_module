@@ -946,3 +946,55 @@ result-1-1:
 --- response_body eval
 "\"ab\",\"cde\"\x{0a}34,\"qwe\"\x{0a}89,"
 --- timeout: 60
+
+=== TEST 15:
+--- main_config
+    load_module /etc/nginx/modules/ngx_pg_module.so;
+--- http_config
+    upstream pg {
+        keepalive 1;
+        pg_opt application_name=upstream;
+        pg_opt database=postgres;
+        pg_opt user=postgres;
+        server unix:///run/postgresql/.s.PGSQL.5432;
+    }
+--- config
+    location =/ {
+        add_header notice-file $pg_notice_file always;
+        add_header notice-function $pg_notice_function always;
+        add_header notice-nonlocalized $pg_notice_nonlocalized always;
+        add_header notice-primary $pg_notice_primary always;
+        add_header notice-severity $pg_notice_severity always;
+        add_header notice-sqlstate $pg_notice_sqlstate always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
+        pg_pas pg;
+        pg_sql "do $$begin raise info '%', 1;end;$$";
+        pg_upstream_buffer_size 1;
+    }
+--- request
+GET /
+--- notice_code: 200
+--- response_headers
+Content-Type: text/plain
+notice-file: pl_exec.c
+notice-function: exec_stmt_raise
+notice-nonlocalized: INFO
+notice-primary: 1
+notice-severity: INFO
+notice-sqlstate: 00000
+option-application-name: upstream
+option-client-encoding: UTF8
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
+--- timeout: 60
