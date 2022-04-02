@@ -58,7 +58,7 @@ typedef struct {
 
 typedef struct pg_fsm_t pg_fsm_t;
 
-size_t pg_fsm_execute(pg_fsm_t *fsm, const unsigned char *p, const unsigned char *eof);
+size_t pg_fsm_execute(pg_fsm_t *fsm, const unsigned char *p, const unsigned char *pe, const unsigned char *eof);
 size_t pg_fsm_size(void);
 size_t pg_fsm_stack(void);
 void pg_fsm_init(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *data);

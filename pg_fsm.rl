@@ -182,10 +182,9 @@ typedef struct pg_fsm_t {
     write data;
 }%%
 
-size_t pg_fsm_execute(pg_fsm_t *fsm, const unsigned char *p, const unsigned char *eof) {
+size_t pg_fsm_execute(pg_fsm_t *fsm, const unsigned char *p, const unsigned char *pe, const unsigned char *eof) {
     const pg_fsm_cb_t *cb = fsm->cb;
     const unsigned char *b = p;
-    const unsigned char *pe = eof;
     %% write exec;
     return p - b;
 }
