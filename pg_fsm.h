@@ -23,7 +23,7 @@ typedef struct {
     pg_fsm_cb parse_complete;
     pg_fsm_cb ready_for_query;
     pg_fsm_cb row_description_beg;
-    pg_fsm_int2_cb data_rows_count;
+    pg_fsm_int2_cb data_row_count;
     pg_fsm_int2_cb postpop;
     pg_fsm_int2_cb prepush;
     pg_fsm_int2_cb ready_for_query_state;
@@ -32,7 +32,7 @@ typedef struct {
     pg_fsm_int2_cb row_description_length;
     pg_fsm_int2_cb row_descriptions_count;
     pg_fsm_int4_cb command_complete;
-    pg_fsm_int4_cb data_rows;
+    pg_fsm_int4_cb data_row;
     pg_fsm_int4_cb error_response;
     pg_fsm_int4_cb function_call_response;
     pg_fsm_int4_cb key;

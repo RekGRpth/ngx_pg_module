@@ -457,7 +457,7 @@ static int ngx_pg_fsm_ready_for_query(ngx_pg_save_t *s) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_data_rows(ngx_pg_save_t *s, uint32_t len) {
+static int ngx_pg_fsm_data_row(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     ngx_pg_data_t *d = s->data;
@@ -468,7 +468,7 @@ static int ngx_pg_fsm_data_rows(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_data_rows_count(ngx_pg_save_t *s, uint16_t count) {
+static int ngx_pg_fsm_data_row_count(ngx_pg_save_t *s, uint16_t count) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", count);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -512,8 +512,8 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .close_complete = (pg_fsm_cb)ngx_pg_fsm_close_complete,
     .command_complete = (pg_fsm_int4_cb)ngx_pg_fsm_command_complete,
     .command_complete_val = (pg_fsm_str_cb)ngx_pg_fsm_command_complete_val,
-    .data_rows_count = (pg_fsm_int2_cb)ngx_pg_fsm_data_rows_count,
-    .data_rows = (pg_fsm_int4_cb)ngx_pg_fsm_data_rows,
+    .data_row_count = (pg_fsm_int2_cb)ngx_pg_fsm_data_row_count,
+    .data_row = (pg_fsm_int4_cb)ngx_pg_fsm_data_row,
     .empty_query_response = (pg_fsm_cb)ngx_pg_fsm_empty_query_response,
     .error_response_key = (pg_fsm_str_cb)ngx_pg_fsm_error_response_key,
     .error_response = (pg_fsm_int4_cb)ngx_pg_fsm_error_response,
