@@ -118,6 +118,11 @@ static int ngx_pg_fsm_close_complete(ngx_pg_save_t *s) {
     return s->rc;
 }
 
+static int ngx_pg_fsm_empty_query_response(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return s->rc;
+}
+
 static int ngx_pg_fsm_command_complete(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
@@ -459,6 +464,7 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .backend_key_data = (pg_fsm_cb)ngx_pg_fsm_backend_key_data,
     .bind_complete = (pg_fsm_cb)ngx_pg_fsm_bind_complete,
     .close_complete = (pg_fsm_cb)ngx_pg_fsm_close_complete,
+    .empty_query_response = (pg_fsm_cb)ngx_pg_fsm_empty_query_response,
     .command_complete = (pg_fsm_int4_cb)ngx_pg_fsm_command_complete,
     .command_complete_val = (pg_fsm_str_cb)ngx_pg_fsm_command_complete_val,
     .empty = (pg_fsm_int4_cb)ngx_pg_fsm_empty,

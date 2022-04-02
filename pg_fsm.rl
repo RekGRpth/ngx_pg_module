@@ -30,6 +30,7 @@ typedef struct pg_fsm_t {
     action command_complete { if (cb->command_complete(fsm->user, fsm->int4)) fbreak; }
     action command_complete_val { if (fsm->string && cb->command_complete_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action empty { if (cb->empty(fsm->user, fsm->int4)) fbreak; }
+    action empty_query_response { if (cb->empty_query_response(fsm->user)) fbreak; }
     action error_column { if (cb->error_key(fsm->user, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
     action error_constraint { if (cb->error_key(fsm->user, sizeof("constraint") - 1, (const unsigned char *)"constraint")) fbreak; }
     action error_context { if (cb->error_key(fsm->user, sizeof("context") - 1, (const unsigned char *)"context")) fbreak; }
@@ -136,6 +137,7 @@ typedef struct pg_fsm_t {
     |  86 int4 @function function
     |  90 int4 @ready ready
     | 110 int4 @empty
+    | "I" 0 0 0 4 @empty_query_response
     ) $all;
 
     write data;

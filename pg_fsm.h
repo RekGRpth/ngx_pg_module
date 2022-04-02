@@ -18,6 +18,7 @@ typedef struct {
     pg_fsm_cb backend_key_data;
     pg_fsm_cb bind_complete;
     pg_fsm_cb close_complete;
+    pg_fsm_cb empty_query_response;
     pg_fsm_cb field_beg;
     pg_fsm_int2_cb field_column;
     pg_fsm_int2_cb field_format;
