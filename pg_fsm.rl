@@ -79,7 +79,7 @@ typedef struct pg_fsm_t {
     action results_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->results_count) fnext results_val; }
     action results_val_next { if (!fsm->string && --fsm->results_count) fnext results_val; }
     action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
-    action secret { if (cb->secret(fsm->user, fsm->int4)) fbreak; }
+    action backend_key_data { if (cb->backend_key_data(fsm->user, fsm->int4)) fbreak; }
     action string { if (!fsm->string) fsm->string = p; }
     postpop { if (cb->postpop(fsm->user, fsm->top)) fbreak; }
     prepush { if (cb->prepush(fsm->user, fsm->top)) fbreak; }
@@ -122,7 +122,6 @@ typedef struct pg_fsm_t {
     option = str0 @option_key @/option_key str0 @option_val @/option_val;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
     results = int2 @results_count results_val **;
-    secret = int4 @pid int4 @key;
 
     main :=
     (  49 int4 @parse
@@ -131,7 +130,7 @@ typedef struct pg_fsm_t {
     |  67 int4 @complete complete
     |  68 int4 @results results
     |  69 int4 @errors errors
-    |  75 int4 @secret secret
+    | "K" ( 0 0 0 12 ) $int4 @backend_key_data int4 @pid int4 @key
     | "R" ( 0 0 0 8 ) $int4 @authentication_ok 0 0 0 0
     |  83 int4 @option option
     |  84 int4 @fields fields

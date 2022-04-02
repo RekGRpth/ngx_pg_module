@@ -451,7 +451,7 @@ static int ngx_pg_fsm_result_len(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_secret(ngx_pg_save_t *s, uint32_t len) {
+static int ngx_pg_fsm_backend_key_data(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     return s->rc;
@@ -460,6 +460,7 @@ static int ngx_pg_fsm_secret(ngx_pg_save_t *s, uint32_t len) {
 static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .all = (pg_fsm_str_cb)ngx_pg_fsm_all,
     .authentication_ok = (pg_fsm_int4_cb)ngx_pg_fsm_authentication_ok,
+    .backend_key_data = (pg_fsm_int4_cb)ngx_pg_fsm_backend_key_data,
     .bind = (pg_fsm_int4_cb)ngx_pg_fsm_bind,
     .close = (pg_fsm_int4_cb)ngx_pg_fsm_close,
     .complete = (pg_fsm_int4_cb)ngx_pg_fsm_complete,
@@ -493,7 +494,6 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .results_count = (pg_fsm_int2_cb)ngx_pg_fsm_results_count,
     .results = (pg_fsm_int4_cb)ngx_pg_fsm_results,
     .result_val = (pg_fsm_str_cb)ngx_pg_fsm_result_val,
-    .secret = (pg_fsm_int4_cb)ngx_pg_fsm_secret,
 };
 
 inline static ngx_chain_t *ngx_pg_alloc_size(ngx_pool_t *p, uint32_t *size) {
