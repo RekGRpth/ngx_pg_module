@@ -23,9 +23,10 @@ typedef struct pg_fsm_t {
     alphtype unsigned char;
 
     action all { if (cb->all(fsm->user, 0, p)) fbreak; }
-    action authentication_ok { if (cb->authentication_ok(fsm->user, fsm->int4)) fbreak; }
-    action bind_complete { if (cb->bind_complete(fsm->user, fsm->int4)) fbreak; }
-    action close_complete { if (cb->close_complete(fsm->user, fsm->int4)) fbreak; }
+    action authentication_ok { if (cb->authentication_ok(fsm->user)) fbreak; }
+    action backend_key_data { if (cb->backend_key_data(fsm->user)) fbreak; }
+    action bind_complete { if (cb->bind_complete(fsm->user)) fbreak; }
+    action close_complete { if (cb->close_complete(fsm->user)) fbreak; }
     action complete { if (cb->complete(fsm->user, fsm->int4)) fbreak; }
     action complete_val { if (fsm->string && cb->complete_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action empty { if (cb->empty(fsm->user, fsm->int4)) fbreak; }
@@ -79,7 +80,6 @@ typedef struct pg_fsm_t {
     action results_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->results_count) fnext results_val; }
     action results_val_next { if (!fsm->string && --fsm->results_count) fnext results_val; }
     action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
-    action backend_key_data { if (cb->backend_key_data(fsm->user, fsm->int4)) fbreak; }
     action string { if (!fsm->string) fsm->string = p; }
     postpop { if (cb->postpop(fsm->user, fsm->top)) fbreak; }
     prepush { if (cb->prepush(fsm->user, fsm->top)) fbreak; }
@@ -125,13 +125,13 @@ typedef struct pg_fsm_t {
 
     main :=
     (  49 int4 @parse
-    | "2" ( 0 0 0 4 ) $int4 @bind_complete
-    | "3" ( 0 0 0 4 ) $int4 @close_complete
+    | "2" 0 0 0 4 @bind_complete
+    | "3" 0 0 0 4 @close_complete
     |  67 int4 @complete complete
     |  68 int4 @results results
     |  69 int4 @errors errors
-    | "K" ( 0 0 0 12 ) $int4 @backend_key_data int4 @pid int4 @key
-    | "R" ( 0 0 0 8 ) $int4 @authentication_ok 0 0 0 0
+    | "K" 0 0 0 12 @backend_key_data int4 @pid int4 @key
+    | "R" 0 0 0 8 @authentication_ok 0 0 0 0
     |  83 int4 @option option
     |  84 int4 @fields fields
     |  86 int4 @function function

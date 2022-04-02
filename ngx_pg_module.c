@@ -103,21 +103,18 @@ static int ngx_pg_fsm_all(ngx_pg_save_t *s, size_t len, const u_char *data) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_authentication_ok(ngx_pg_save_t *s, uint32_t len) {
-    if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
+static int ngx_pg_fsm_authentication_ok(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     return s->rc;
 }
 
-static int ngx_pg_fsm_bind_complete(ngx_pg_save_t *s, uint32_t len) {
-    if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
+static int ngx_pg_fsm_bind_complete(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     return s->rc;
 }
 
-static int ngx_pg_fsm_close_complete(ngx_pg_save_t *s, uint32_t len) {
-    if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
+static int ngx_pg_fsm_close_complete(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     return s->rc;
 }
 
@@ -451,18 +448,17 @@ static int ngx_pg_fsm_result_len(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_backend_key_data(ngx_pg_save_t *s, uint32_t len) {
-    if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
+static int ngx_pg_fsm_backend_key_data(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     return s->rc;
 }
 
 static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .all = (pg_fsm_str_cb)ngx_pg_fsm_all,
-    .authentication_ok = (pg_fsm_int4_cb)ngx_pg_fsm_authentication_ok,
-    .backend_key_data = (pg_fsm_int4_cb)ngx_pg_fsm_backend_key_data,
-    .bind_complete = (pg_fsm_int4_cb)ngx_pg_fsm_bind_complete,
-    .close_complete = (pg_fsm_int4_cb)ngx_pg_fsm_close_complete,
+    .authentication_ok = (pg_fsm_cb)ngx_pg_fsm_authentication_ok,
+    .backend_key_data = (pg_fsm_cb)ngx_pg_fsm_backend_key_data,
+    .bind_complete = (pg_fsm_cb)ngx_pg_fsm_bind_complete,
+    .close_complete = (pg_fsm_cb)ngx_pg_fsm_close_complete,
     .complete = (pg_fsm_int4_cb)ngx_pg_fsm_complete,
     .complete_val = (pg_fsm_str_cb)ngx_pg_fsm_complete_val,
     .empty = (pg_fsm_int4_cb)ngx_pg_fsm_empty,

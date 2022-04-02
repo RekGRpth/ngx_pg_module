@@ -14,6 +14,10 @@ typedef int (*pg_fsm_int4_cb) (void *user, uint32_t n);
 typedef int (*pg_fsm_str_cb) (void *user, size_t len, const unsigned char *data);
 
 typedef struct {
+    pg_fsm_cb authentication_ok;
+    pg_fsm_cb backend_key_data;
+    pg_fsm_cb bind_complete;
+    pg_fsm_cb close_complete;
     pg_fsm_cb field_beg;
     pg_fsm_int2_cb field_column;
     pg_fsm_int2_cb field_format;
@@ -23,10 +27,6 @@ typedef struct {
     pg_fsm_int2_cb prepush;
     pg_fsm_int2_cb ready_state;
     pg_fsm_int2_cb results_count;
-    pg_fsm_int4_cb authentication_ok;
-    pg_fsm_int4_cb backend_key_data;
-    pg_fsm_int4_cb bind_complete;
-    pg_fsm_int4_cb close_complete;
     pg_fsm_int4_cb complete;
     pg_fsm_int4_cb empty;
     pg_fsm_int4_cb errors;
