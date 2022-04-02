@@ -133,7 +133,7 @@ typedef struct pg_fsm_t {
     |  68 int4 @results results
     |  69 int4 @errors errors
     |  75 int4 @secret secret
-    |  82 int4 @authentication_ok authentication_ok
+    | "R" ( 0 0 0 8 ) $int4 @authentication_ok authentication_ok
     |  83 int4 @option option
     |  84 int4 @fields fields
     |  86 int4 @function function
