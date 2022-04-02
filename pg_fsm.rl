@@ -75,12 +75,10 @@ typedef struct pg_fsm_t {
     action ready_inerror { if (cb->ready_state(fsm->user, pg_ready_state_inerror)) fbreak; }
     action ready_intrans { if (cb->ready_state(fsm->user, pg_ready_state_intrans)) fbreak; }
     action result_len { fsm->result_len = fsm->int4; if (cb->result_len(fsm->user, fsm->result_len)) fbreak; if (!fsm->result_len || fsm->result_len == (uint32_t)-1) fnext main; }
-    action result_out { --fsm->result_len }
     action results_count { fsm->results_count = fsm->int2; if (cb->results_count(fsm->user, fsm->results_count)) fbreak; if (!fsm->results_count) fnext main; }
     action results { if (cb->results(fsm->user, fsm->int4)) fbreak; }
     action results_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->results_count) fnext results_val; }
     action results_val_next { if (!fsm->string && --fsm->results_count) fnext results_val; }
-    action result_val_fun { if (fsm->string && cb->result_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
     action secret { if (cb->secret(fsm->user, fsm->int4)) fbreak; }
     action string { if (!fsm->string) fsm->string = p; }
@@ -122,7 +120,7 @@ typedef struct pg_fsm_t {
     complete = str0 @complete_val @/complete_val;
     errors = error ** 0;
     fields = int2 @fields_count ( field outwhen fields_out ) **;
-    function = int4 @result_len ( any @string outwhen result_out ) ** %!result_val_fun %/result_val_fun;
+    function = int4 @result_len result **;
     option = str0 @option_key @/option_key str0 @option_val @/option_val;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
     results = int2 @results_count results_val **;
