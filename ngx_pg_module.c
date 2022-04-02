@@ -238,7 +238,7 @@ static int ngx_pg_fsm_notice_response_val(ngx_pg_save_t *s, size_t len, const u_
     return s->rc;
 }
 
-static int ngx_pg_fsm_fields(ngx_pg_save_t *s, uint32_t len) {
+static int ngx_pg_fsm_row_descriptions(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     ngx_pg_data_t *d = s->data;
@@ -248,7 +248,7 @@ static int ngx_pg_fsm_fields(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_field_beg(ngx_pg_save_t *s) {
+static int ngx_pg_fsm_row_description_beg(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -270,7 +270,7 @@ static int ngx_pg_fsm_postpop(ngx_pg_save_t *s, uint16_t top) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_field_column(ngx_pg_save_t *s, uint16_t column) {
+static int ngx_pg_fsm_row_description_column(ngx_pg_save_t *s, uint16_t column) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", column);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -281,7 +281,7 @@ static int ngx_pg_fsm_field_column(ngx_pg_save_t *s, uint16_t column) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_fields_count(ngx_pg_save_t *s, uint16_t count) {
+static int ngx_pg_fsm_row_descriptions_count(ngx_pg_save_t *s, uint16_t count) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", count);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -292,7 +292,7 @@ static int ngx_pg_fsm_fields_count(ngx_pg_save_t *s, uint16_t count) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_field_format(ngx_pg_save_t *s, uint16_t format) {
+static int ngx_pg_fsm_row_description_format(ngx_pg_save_t *s, uint16_t format) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", format);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -303,7 +303,7 @@ static int ngx_pg_fsm_field_format(ngx_pg_save_t *s, uint16_t format) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_field_length(ngx_pg_save_t *s, uint16_t length) {
+static int ngx_pg_fsm_row_description_length(ngx_pg_save_t *s, uint16_t length) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", length == (uint16_t)-1 ? -1 : length);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -314,7 +314,7 @@ static int ngx_pg_fsm_field_length(ngx_pg_save_t *s, uint16_t length) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_field_mod(ngx_pg_save_t *s, uint32_t mod) {
+static int ngx_pg_fsm_row_description_mod(ngx_pg_save_t *s, uint32_t mod) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", mod);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -325,7 +325,7 @@ static int ngx_pg_fsm_field_mod(ngx_pg_save_t *s, uint32_t mod) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_field_oid(ngx_pg_save_t *s, uint32_t oid) {
+static int ngx_pg_fsm_row_description_oid(ngx_pg_save_t *s, uint32_t oid) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", oid);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -336,7 +336,7 @@ static int ngx_pg_fsm_field_oid(ngx_pg_save_t *s, uint32_t oid) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_field_table(ngx_pg_save_t *s, uint32_t table) {
+static int ngx_pg_fsm_row_description_table(ngx_pg_save_t *s, uint32_t table) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", table);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -391,7 +391,7 @@ static int ngx_pg_fsm_key(ngx_pg_save_t *s, uint32_t key) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_field_name(ngx_pg_save_t *s, size_t len, const u_char *data) {
+static int ngx_pg_fsm_row_description_name(ngx_pg_save_t *s, size_t len, const u_char *data) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     ngx_pg_data_t *d = s->data;
@@ -520,16 +520,6 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .error_response_key = (pg_fsm_str_cb)ngx_pg_fsm_error_response_key,
     .error_response = (pg_fsm_int4_cb)ngx_pg_fsm_error_response,
     .error_response_val = (pg_fsm_str_cb)ngx_pg_fsm_error_response_val,
-    .field_beg = (pg_fsm_cb)ngx_pg_fsm_field_beg,
-    .field_column = (pg_fsm_int2_cb)ngx_pg_fsm_field_column,
-    .field_format = (pg_fsm_int2_cb)ngx_pg_fsm_field_format,
-    .field_length = (pg_fsm_int2_cb)ngx_pg_fsm_field_length,
-    .field_mod = (pg_fsm_int4_cb)ngx_pg_fsm_field_mod,
-    .field_name = (pg_fsm_str_cb)ngx_pg_fsm_field_name,
-    .field_oid = (pg_fsm_int4_cb)ngx_pg_fsm_field_oid,
-    .fields_count = (pg_fsm_int2_cb)ngx_pg_fsm_fields_count,
-    .fields = (pg_fsm_int4_cb)ngx_pg_fsm_fields,
-    .field_table = (pg_fsm_int4_cb)ngx_pg_fsm_field_table,
     .function_call_response = (pg_fsm_int4_cb)ngx_pg_fsm_function_call_response,
     .key = (pg_fsm_int4_cb)ngx_pg_fsm_key,
     .no_data = (pg_fsm_cb)ngx_pg_fsm_no_data,
@@ -545,6 +535,16 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .prepush = (pg_fsm_int2_cb)ngx_pg_fsm_prepush,
     .ready_for_query = (pg_fsm_cb)ngx_pg_fsm_ready_for_query,
     .ready_for_query_state = (pg_fsm_int2_cb)ngx_pg_fsm_ready_for_query_state,
+    .row_description_beg = (pg_fsm_cb)ngx_pg_fsm_row_description_beg,
+    .row_description_column = (pg_fsm_int2_cb)ngx_pg_fsm_row_description_column,
+    .row_description_format = (pg_fsm_int2_cb)ngx_pg_fsm_row_description_format,
+    .row_description_length = (pg_fsm_int2_cb)ngx_pg_fsm_row_description_length,
+    .row_description_mod = (pg_fsm_int4_cb)ngx_pg_fsm_row_description_mod,
+    .row_description_name = (pg_fsm_str_cb)ngx_pg_fsm_row_description_name,
+    .row_description_oid = (pg_fsm_int4_cb)ngx_pg_fsm_row_description_oid,
+    .row_descriptions_count = (pg_fsm_int2_cb)ngx_pg_fsm_row_descriptions_count,
+    .row_descriptions = (pg_fsm_int4_cb)ngx_pg_fsm_row_descriptions,
+    .row_description_table = (pg_fsm_int4_cb)ngx_pg_fsm_row_description_table,
 };
 
 inline static ngx_chain_t *ngx_pg_alloc_size(ngx_pool_t *p, uint32_t *size) {

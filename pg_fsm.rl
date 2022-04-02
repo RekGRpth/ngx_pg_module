@@ -7,7 +7,7 @@ typedef struct pg_fsm_t {
     const unsigned char *string;
     const void *user;
     uint16_t cs;
-    uint16_t fields_count;
+    uint16_t row_descriptions_count;
     uint16_t int2;
     uint16_t data_rows_count;
     uint16_t stack[PG_FSM_STACK_SIZE];
@@ -56,17 +56,6 @@ typedef struct pg_fsm_t {
     action error_response_statement { if (cb->error_response_key(fsm->user, sizeof("statement") - 1, (const unsigned char *)"statement")) fbreak; }
     action error_response_table { if (cb->error_response_key(fsm->user, sizeof("table") - 1, (const unsigned char *)"table")) fbreak; }
     action error_response_val { if (fsm->string && cb->error_response_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action field_beg { if (cb->field_beg(fsm->user)) fbreak; }
-    action field_column { if (cb->field_column(fsm->user, fsm->int2)) fbreak; }
-    action field_format { if (cb->field_format(fsm->user, fsm->int2)) fbreak; }
-    action field_length { if (cb->field_length(fsm->user, fsm->int2)) fbreak; }
-    action field_mod { if (cb->field_mod(fsm->user, fsm->int4)) fbreak; }
-    action field_name { if (fsm->string && cb->field_name(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action field_oid { if (cb->field_oid(fsm->user, fsm->int4)) fbreak; }
-    action fields_count { fsm->fields_count = fsm->int2; if (cb->fields_count(fsm->user, fsm->fields_count)) fbreak; }
-    action fields { if (cb->fields(fsm->user, fsm->int4)) fbreak; }
-    action fields_out { --fsm->fields_count }
-    action field_table { if (cb->field_table(fsm->user, fsm->int4)) fbreak; }
     action function_call_response { if (cb->function_call_response(fsm->user, fsm->int4)) fbreak; }
     action int2 { if (!fsm->i) { fsm->i = sizeof(fsm->int2); fsm->int2 = 0; } fsm->int2 |= *p << ((2 << 2) * --fsm->i); }
     action int4 { if (!fsm->i) { fsm->i = sizeof(fsm->int4); fsm->int4 = 0; } fsm->int4 |= *p << ((2 << 2) * --fsm->i); }
@@ -101,6 +90,17 @@ typedef struct pg_fsm_t {
     action ready_for_query { if (cb->ready_for_query(fsm->user)) fbreak; }
     action ready_for_query_inerror { if (cb->ready_for_query_state(fsm->user, pg_ready_state_inerror)) fbreak; }
     action ready_for_query_intrans { if (cb->ready_for_query_state(fsm->user, pg_ready_state_intrans)) fbreak; }
+    action row_description_beg { if (cb->row_description_beg(fsm->user)) fbreak; }
+    action row_description_column { if (cb->row_description_column(fsm->user, fsm->int2)) fbreak; }
+    action row_description_format { if (cb->row_description_format(fsm->user, fsm->int2)) fbreak; }
+    action row_description_length { if (cb->row_description_length(fsm->user, fsm->int2)) fbreak; }
+    action row_description_mod { if (cb->row_description_mod(fsm->user, fsm->int4)) fbreak; }
+    action row_description_name { if (fsm->string && cb->row_description_name(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action row_description_oid { if (cb->row_description_oid(fsm->user, fsm->int4)) fbreak; }
+    action row_descriptions_count { fsm->row_descriptions_count = fsm->int2; if (cb->row_descriptions_count(fsm->user, fsm->row_descriptions_count)) fbreak; }
+    action row_descriptions { if (cb->row_descriptions(fsm->user, fsm->int4)) fbreak; }
+    action row_descriptions_out { --fsm->row_descriptions_count }
+    action row_description_table { if (cb->row_description_table(fsm->user, fsm->int4)) fbreak; }
     action string { if (!fsm->string) fsm->string = p; }
 
     postpop { if (cb->postpop(fsm->user, fsm->top)) fbreak; }
@@ -156,10 +156,9 @@ typedef struct pg_fsm_t {
     data_row = any @string @data_row_val @/data_row_val;
     data_rows_val = int4 @data_row_len @data_rows_len_next data_row ** @data_rows_val_next;
     error_response = error_response_key str0 @error_response_val @/error_response_val;
-    field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
+    row_description = str0 >row_description_beg @row_description_name @/row_description_name int4 @row_description_table int2 @row_description_column int4 @row_description_oid int2 @row_description_length int4 @row_description_mod int2 @row_description_format;
     notice_response = notice_response_key str0 @notice_response_val @/notice_response_val;
 
-    fields = int2 @fields_count ( field outwhen fields_out ) **;
     data_rows = int2 @data_rows_count data_rows_val **;
 
     main :=
@@ -169,15 +168,15 @@ typedef struct pg_fsm_t {
     | "C" int4 @command_complete str0 @command_complete_val @/command_complete_val
     | "D" int4 @data_rows data_rows
     | "E" int4 @error_response error_response ** 0
-    | "N" int4 @notice_response notice_response ** 0
+    | "I" 0 0 0 4 @empty_query_response
     | "K" 0 0 0 12 @backend_key_data int4 @pid int4 @key
+    | "n" 0 0 0 4 @no_data
+    | "N" int4 @notice_response notice_response ** 0
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0
     | "S" int4 @parameter_status str0 @parameter_status_key @/parameter_status_key str0 @parameter_status_val @/parameter_status_val
-    |  84 int4 @fields fields
+    | "T" int4 @row_descriptions int2 @row_descriptions_count ( row_description outwhen row_descriptions_out ) **
     | "V" int4 @function_call_response int4 @data_row_len data_row **
     | "Z" 0 0 0 5 @ready_for_query "E" @ready_for_query_inerror | "I" @ready_for_query_idle | "T" @ready_for_query_intrans
-    | "n" 0 0 0 4 @no_data
-    | "I" 0 0 0 4 @empty_query_response
     ) $all;
 
     write data;
