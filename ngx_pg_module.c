@@ -652,7 +652,7 @@ inline static ngx_chain_t *ngx_pg_close(ngx_pool_t *p) {
     return close;
 }
 
-inline static ngx_chain_t *ngx_pg_connect(ngx_pool_t *p, ngx_array_t *options) {
+inline static ngx_chain_t *ngx_pg_startup_message(ngx_pool_t *p, ngx_array_t *options) {
     ngx_chain_t *cl, *cl_size, *connect;
     uint32_t size = 0;
     if (!(cl = cl_size = connect = ngx_pg_alloc_size(p, &size))) return NULL;
@@ -818,7 +818,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!(s->fsm = ngx_pcalloc(c->pool, pg_fsm_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         pg_fsm_init(s->fsm, &ngx_pg_fsm_cb, s);
         s->connection = c;
-        cl = u->request_bufs = ngx_pg_connect(r->pool, pscf ? pscf->options : plcf->options);
+        cl = u->request_bufs = ngx_pg_startup_message(r->pool, pscf ? pscf->options : plcf->options);
         while (cl->next) cl = cl->next;
 //        cl->next = ngx_pg_flush(r->pool);
 //        while (cl->next) cl = cl->next;
