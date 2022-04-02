@@ -662,7 +662,7 @@ inline static ngx_chain_t *ngx_pg_flush(ngx_pool_t *p) {
     return flush;
 }
 
-inline static ngx_chain_t *ngx_pg_function(ngx_pool_t *p, uint32_t oid, ngx_array_t *arguments) {
+inline static ngx_chain_t *ngx_pg_function_call(ngx_pool_t *p, uint32_t oid, ngx_array_t *arguments) {
     ngx_chain_t *cl, *cl_size, *function;
     uint32_t size = 0;
     if (!(cl = function = ngx_pg_write_char(p, NULL, 'F'))) return NULL;
@@ -800,8 +800,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (ngx_http_complex_value(r, plcf->function, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
         ngx_int_t oid = ngx_atoi(value.data, value.len);
         if (oid == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
-        if (cl) cl->next = ngx_pg_function(r->pool, oid, &arguments);
-        else cl = u->request_bufs = ngx_pg_function(r->pool, oid, &arguments);
+        if (cl) cl->next = ngx_pg_function_call(r->pool, oid, &arguments);
+        else cl = u->request_bufs = ngx_pg_function_call(r->pool, oid, &arguments);
         while (cl->next) cl = cl->next;
     } else if (plcf->sql.data) {
         if (cl) cl->next = ngx_pg_parse(r->pool, plcf->sql.len, plcf->sql.data, &arguments);
