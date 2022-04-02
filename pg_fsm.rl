@@ -72,6 +72,26 @@ typedef struct pg_fsm_t {
     action int4 { if (!fsm->i) { fsm->i = sizeof(fsm->int4); fsm->int4 = 0; } fsm->int4 |= *p << ((2 << 2) * --fsm->i); }
     action key { if (cb->key(fsm->user, fsm->int4)) fbreak; }
     action no_data { if (cb->no_data(fsm->user)) fbreak; }
+    action notice_response_column { if (cb->notice_response_key(fsm->user, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
+    action notice_response_constraint { if (cb->notice_response_key(fsm->user, sizeof("constraint") - 1, (const unsigned char *)"constraint")) fbreak; }
+    action notice_response_context { if (cb->notice_response_key(fsm->user, sizeof("context") - 1, (const unsigned char *)"context")) fbreak; }
+    action notice_response_datatype { if (cb->notice_response_key(fsm->user, sizeof("datatype") - 1, (const unsigned char *)"datatype")) fbreak; }
+    action notice_response_detail { if (cb->notice_response_key(fsm->user, sizeof("detail") - 1, (const unsigned char *)"detail")) fbreak; }
+    action notice_response_file { if (cb->notice_response_key(fsm->user, sizeof("file") - 1, (const unsigned char *)"file")) fbreak; }
+    action notice_response_function { if (cb->notice_response_key(fsm->user, sizeof("function") - 1, (const unsigned char *)"function")) fbreak; }
+    action notice_response_hint { if (cb->notice_response_key(fsm->user, sizeof("hint") - 1, (const unsigned char *)"hint")) fbreak; }
+    action notice_response { if (cb->notice_response(fsm->user, fsm->int4)) fbreak; }
+    action notice_response_internal { if (cb->notice_response_key(fsm->user, sizeof("internal") - 1, (const unsigned char *)"internal")) fbreak; }
+    action notice_response_line { if (cb->notice_response_key(fsm->user, sizeof("line") - 1, (const unsigned char *)"line")) fbreak; }
+    action notice_response_nonlocalized { if (cb->notice_response_key(fsm->user, sizeof("nonlocalized") - 1, (const unsigned char *)"nonlocalized")) fbreak; }
+    action notice_response_primary { if (cb->notice_response_key(fsm->user, sizeof("primary") - 1, (const unsigned char *)"primary")) fbreak; }
+    action notice_response_query { if (cb->notice_response_key(fsm->user, sizeof("query") - 1, (const unsigned char *)"query")) fbreak; }
+    action notice_response_schema { if (cb->notice_response_key(fsm->user, sizeof("schema") - 1, (const unsigned char *)"schema")) fbreak; }
+    action notice_response_severity { if (cb->notice_response_key(fsm->user, sizeof("severity") - 1, (const unsigned char *)"severity")) fbreak; }
+    action notice_response_sqlstate { if (cb->notice_response_key(fsm->user, sizeof("sqlstate") - 1, (const unsigned char *)"sqlstate")) fbreak; }
+    action notice_response_statement { if (cb->notice_response_key(fsm->user, sizeof("statement") - 1, (const unsigned char *)"statement")) fbreak; }
+    action notice_response_table { if (cb->notice_response_key(fsm->user, sizeof("table") - 1, (const unsigned char *)"table")) fbreak; }
+    action notice_response_val { if (fsm->string && cb->notice_response_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action option { if (cb->option(fsm->user, fsm->int4)) fbreak; }
     action option_key { if (fsm->string && cb->option_key(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action option_val { if (fsm->string && cb->option_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
@@ -112,10 +132,32 @@ typedef struct pg_fsm_t {
     | 116 @error_response_table
     );
 
-    error_response = error_response_key str0 @error_response_val @/error_response_val;
-    field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
+    notice_response_key =
+    (  67 @notice_response_sqlstate
+    |  68 @notice_response_detail
+    |  70 @notice_response_file
+    |  72 @notice_response_hint
+    |  76 @notice_response_line
+    |  77 @notice_response_primary
+    |  80 @notice_response_statement
+    |  82 @notice_response_function
+    |  83 @notice_response_severity
+    |  86 @notice_response_nonlocalized
+    |  87 @notice_response_context
+    |  99 @notice_response_column
+    | 100 @notice_response_datatype
+    | 110 @notice_response_constraint
+    | 112 @notice_response_internal
+    | 113 @notice_response_query
+    | 115 @notice_response_schema
+    | 116 @notice_response_table
+    );
+
     data_row = any @string @data_row_val @/data_row_val;
     data_rows_val = int4 @data_row_len @data_rows_len_next data_row ** @data_rows_val_next;
+    error_response = error_response_key str0 @error_response_val @/error_response_val;
+    field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
+    notice_response = notice_response_key str0 @notice_response_val @/notice_response_val;
 
     fields = int2 @fields_count ( field outwhen fields_out ) **;
     option = str0 @option_key @/option_key str0 @option_val @/option_val;
@@ -129,6 +171,7 @@ typedef struct pg_fsm_t {
     | "C" int4 @command_complete str0 @command_complete_val @/command_complete_val
     | "D" int4 @data_rows data_rows
     | "E" int4 @error_response error_response ** 0
+    | "N" int4 @notice_response notice_response ** 0
     | "K" 0 0 0 12 @backend_key_data int4 @pid int4 @key
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0
     |  83 int4 @option option
