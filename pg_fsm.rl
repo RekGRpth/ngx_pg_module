@@ -112,45 +112,45 @@ typedef struct pg_fsm_t {
     str0 = char ** $string 0;
 
     error_response_key =
-    (  67 @error_response_sqlstate
-    |  68 @error_response_detail
-    |  70 @error_response_file
-    |  72 @error_response_hint
-    |  76 @error_response_line
-    |  77 @error_response_primary
-    |  80 @error_response_statement
-    |  82 @error_response_function
-    |  83 @error_response_severity
-    |  86 @error_response_nonlocalized
-    |  87 @error_response_context
-    |  99 @error_response_column
-    | 100 @error_response_datatype
-    | 110 @error_response_constraint
-    | 112 @error_response_internal
-    | 113 @error_response_query
-    | 115 @error_response_schema
-    | 116 @error_response_table
+    ( "c" @error_response_column
+    | "C" @error_response_sqlstate
+    | "d" @error_response_datatype
+    | "D" @error_response_detail
+    | "F" @error_response_file
+    | "H" @error_response_hint
+    | "L" @error_response_line
+    | "M" @error_response_primary
+    | "n" @error_response_constraint
+    | "p" @error_response_internal
+    | "P" @error_response_statement
+    | "q" @error_response_query
+    | "R" @error_response_function
+    | "s" @error_response_schema
+    | "S" @error_response_severity
+    | "t" @error_response_table
+    | "V" @error_response_nonlocalized
+    | "W" @error_response_context
     );
 
     notice_response_key =
-    (  67 @notice_response_sqlstate
-    |  68 @notice_response_detail
-    |  70 @notice_response_file
-    |  72 @notice_response_hint
-    |  76 @notice_response_line
-    |  77 @notice_response_primary
-    |  80 @notice_response_statement
-    |  82 @notice_response_function
-    |  83 @notice_response_severity
-    |  86 @notice_response_nonlocalized
-    |  87 @notice_response_context
-    |  99 @notice_response_column
-    | 100 @notice_response_datatype
-    | 110 @notice_response_constraint
-    | 112 @notice_response_internal
-    | 113 @notice_response_query
-    | 115 @notice_response_schema
-    | 116 @notice_response_table
+    ( "c" @notice_response_column
+    | "C" @notice_response_sqlstate
+    | "d" @notice_response_datatype
+    | "D" @notice_response_detail
+    | "F" @notice_response_file
+    | "H" @notice_response_hint
+    | "L" @notice_response_line
+    | "M" @notice_response_primary
+    | "n" @notice_response_constraint
+    | "p" @notice_response_internal
+    | "P" @notice_response_statement
+    | "q" @notice_response_query
+    | "R" @notice_response_function
+    | "s" @notice_response_schema
+    | "S" @notice_response_severity
+    | "t" @notice_response_table
+    | "V" @notice_response_nonlocalized
+    | "W" @notice_response_context
     );
 
     data_row = any @string @data_row_val @/data_row_val;
