@@ -26,7 +26,7 @@ typedef struct {
     pg_fsm_int4_cb authentication_ok;
     pg_fsm_int4_cb backend_key_data;
     pg_fsm_int4_cb bind_complete;
-    pg_fsm_int4_cb close;
+    pg_fsm_int4_cb close_complete;
     pg_fsm_int4_cb complete;
     pg_fsm_int4_cb empty;
     pg_fsm_int4_cb errors;

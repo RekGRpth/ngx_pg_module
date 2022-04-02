@@ -115,7 +115,7 @@ static int ngx_pg_fsm_bind_complete(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_close(ngx_pg_save_t *s, uint32_t len) {
+static int ngx_pg_fsm_close_complete(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     return s->rc;
@@ -462,7 +462,7 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .authentication_ok = (pg_fsm_int4_cb)ngx_pg_fsm_authentication_ok,
     .backend_key_data = (pg_fsm_int4_cb)ngx_pg_fsm_backend_key_data,
     .bind_complete = (pg_fsm_int4_cb)ngx_pg_fsm_bind_complete,
-    .close = (pg_fsm_int4_cb)ngx_pg_fsm_close,
+    .close_complete = (pg_fsm_int4_cb)ngx_pg_fsm_close_complete,
     .complete = (pg_fsm_int4_cb)ngx_pg_fsm_complete,
     .complete_val = (pg_fsm_str_cb)ngx_pg_fsm_complete_val,
     .empty = (pg_fsm_int4_cb)ngx_pg_fsm_empty,
@@ -811,8 +811,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         while (cl->next) cl = cl->next;
         cl->next = ngx_pg_execute(r->pool);
         while (cl->next) cl = cl->next;
-//        cl->next = ngx_pg_close(r->pool);
-//        while (cl->next) cl = cl->next;
+        cl->next = ngx_pg_close(r->pool);
+        while (cl->next) cl = cl->next;
         cl->next = ngx_pg_sync(r->pool);
         while (cl->next) cl = cl->next;
     } else { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!pg_fun && !pg_sql"); return NGX_ERROR; }

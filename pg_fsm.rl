@@ -25,7 +25,7 @@ typedef struct pg_fsm_t {
     action all { if (cb->all(fsm->user, 0, p)) fbreak; }
     action authentication_ok { if (cb->authentication_ok(fsm->user, fsm->int4)) fbreak; }
     action bind_complete { if (cb->bind_complete(fsm->user, fsm->int4)) fbreak; }
-    action close { if (cb->close(fsm->user, fsm->int4)) fbreak; }
+    action close_complete { if (cb->close_complete(fsm->user, fsm->int4)) fbreak; }
     action complete { if (cb->complete(fsm->user, fsm->int4)) fbreak; }
     action complete_val { if (fsm->string && cb->complete_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action empty { if (cb->empty(fsm->user, fsm->int4)) fbreak; }
@@ -126,7 +126,7 @@ typedef struct pg_fsm_t {
     main :=
     (  49 int4 @parse
     | "2" ( 0 0 0 4 ) $int4 @bind_complete
-    |  51 int4 @close
+    | "3" ( 0 0 0 4 ) $int4 @close_complete
     |  67 int4 @complete complete
     |  68 int4 @results results
     |  69 int4 @errors errors
