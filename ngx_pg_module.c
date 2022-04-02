@@ -691,7 +691,7 @@ inline static ngx_chain_t *ngx_pg_execute(ngx_pool_t *p) {
     return execute;
 }
 
-inline static ngx_chain_t *ngx_pg_exit(ngx_pool_t *p) {
+inline static ngx_chain_t *ngx_pg_terminate(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *exit;
     uint32_t size = 0;
     if (!(cl = exit = ngx_pg_write_char(p, NULL, 'X'))) return NULL;
@@ -775,7 +775,7 @@ static void ngx_pg_save_cln_handler(ngx_pg_save_t *s) {
     ngx_connection_t *c = s->connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
     ngx_chain_t *out, *last;
-    if (!(out = ngx_pg_exit(c->pool))) return;
+    if (!(out = ngx_pg_terminate(c->pool))) return;
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
     ngx_chain_writer(&ctx, NULL);
 }
