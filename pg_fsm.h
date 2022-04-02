@@ -23,7 +23,7 @@ typedef struct {
     pg_fsm_int2_cb prepush;
     pg_fsm_int2_cb ready_state;
     pg_fsm_int2_cb results_count;
-    pg_fsm_int4_cb auth;
+    pg_fsm_int4_cb authentication_ok;
     pg_fsm_int4_cb bind;
     pg_fsm_int4_cb close;
     pg_fsm_int4_cb complete;
@@ -35,7 +35,6 @@ typedef struct {
     pg_fsm_int4_cb field_table;
     pg_fsm_int4_cb function;
     pg_fsm_int4_cb key;
-    pg_fsm_int4_cb method;
     pg_fsm_int4_cb option;
     pg_fsm_int4_cb parse;
     pg_fsm_int4_cb pid;

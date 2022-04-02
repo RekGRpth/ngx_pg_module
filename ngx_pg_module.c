@@ -103,7 +103,7 @@ static int ngx_pg_fsm_all(ngx_pg_save_t *s, size_t len, const u_char *data) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_auth(ngx_pg_save_t *s, uint32_t len) {
+static int ngx_pg_fsm_authentication_ok(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     return s->rc;
@@ -341,11 +341,6 @@ static int ngx_pg_fsm_key(ngx_pg_save_t *s, uint32_t key) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_method(ngx_pg_save_t *s, uint32_t method) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", method);
-    return s->rc;
-}
-
 static int ngx_pg_fsm_field_name(ngx_pg_save_t *s, size_t len, const u_char *data) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
@@ -464,7 +459,7 @@ static int ngx_pg_fsm_secret(ngx_pg_save_t *s, uint32_t len) {
 
 static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .all = (pg_fsm_str_cb)ngx_pg_fsm_all,
-    .auth = (pg_fsm_int4_cb)ngx_pg_fsm_auth,
+    .authentication_ok = (pg_fsm_int4_cb)ngx_pg_fsm_authentication_ok,
     .bind = (pg_fsm_int4_cb)ngx_pg_fsm_bind,
     .close = (pg_fsm_int4_cb)ngx_pg_fsm_close,
     .complete = (pg_fsm_int4_cb)ngx_pg_fsm_complete,
@@ -485,7 +480,6 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .field_table = (pg_fsm_int4_cb)ngx_pg_fsm_field_table,
     .function = (pg_fsm_int4_cb)ngx_pg_fsm_function,
     .key = (pg_fsm_int4_cb)ngx_pg_fsm_key,
-    .method = (pg_fsm_int4_cb)ngx_pg_fsm_method,
     .option_key = (pg_fsm_str_cb)ngx_pg_fsm_option_key,
     .option = (pg_fsm_int4_cb)ngx_pg_fsm_option,
     .option_val = (pg_fsm_str_cb)ngx_pg_fsm_option_val,

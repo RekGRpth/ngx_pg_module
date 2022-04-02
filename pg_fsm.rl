@@ -23,7 +23,7 @@ typedef struct pg_fsm_t {
     alphtype unsigned char;
 
     action all { if (cb->all(fsm->user, 0, p)) fbreak; }
-    action auth { if (cb->auth(fsm->user, fsm->int4)) fbreak; }
+    action authentication_ok { if (cb->authentication_ok(fsm->user, fsm->int4)) fbreak; }
     action bind { if (cb->bind(fsm->user, fsm->int4)) fbreak; }
     action close { if (cb->close(fsm->user, fsm->int4)) fbreak; }
     action complete { if (cb->complete(fsm->user, fsm->int4)) fbreak; }
@@ -64,7 +64,6 @@ typedef struct pg_fsm_t {
     action int2 { if (!fsm->i) { fsm->i = sizeof(fsm->int2); fsm->int2 = 0; } fsm->int2 |= *p << ((2 << 2) * --fsm->i); }
     action int4 { if (!fsm->i) { fsm->i = sizeof(fsm->int4); fsm->int4 = 0; } fsm->int4 |= *p << ((2 << 2) * --fsm->i); }
     action key { if (cb->key(fsm->user, fsm->int4)) fbreak; }
-    action method { if (cb->method(fsm->user, fsm->int4)) fbreak; }
     action option { if (cb->option(fsm->user, fsm->int4)) fbreak; }
     action option_key { if (fsm->string && cb->option_key(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action option_val { if (fsm->string && cb->option_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
@@ -116,7 +115,7 @@ typedef struct pg_fsm_t {
     result = any @string @result_val @/result_val;
     results_val = int4 @result_len @results_len_next result ** @results_val_next;
 
-    auth = int4 @method;
+    authentication_ok = 0{4};
     complete = str0 @complete_val @/complete_val;
     errors = error ** 0;
     fields = int2 @fields_count ( field outwhen fields_out ) **;
@@ -134,7 +133,7 @@ typedef struct pg_fsm_t {
     |  68 int4 @results results
     |  69 int4 @errors errors
     |  75 int4 @secret secret
-    |  82 int4 @auth auth
+    |  82 int4 @authentication_ok authentication_ok
     |  83 int4 @option option
     |  84 int4 @fields fields
     |  86 int4 @function function
