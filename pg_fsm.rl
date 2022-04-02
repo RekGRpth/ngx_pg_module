@@ -152,7 +152,7 @@ typedef struct pg_fsm_t {
     | "W" @notice_response_context
     );
 
-    result = any @string @result_val @/result_val;
+    result = any $string $result_val $/result_val;
 
     data_row = int4 @result_len @data_row_len_next result ** @data_row_next;
     error_response = error_response_key str0 @error_response_val @/error_response_val;
