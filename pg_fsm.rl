@@ -95,7 +95,7 @@ typedef struct pg_fsm_t {
     action parameter_status { if (cb->parameter_status(fsm->user, fsm->int4)) fbreak; }
     action parameter_status_key { if (fsm->string && cb->parameter_status_key(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parameter_status_val { if (fsm->string && cb->parameter_status_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parse { if (cb->parse(fsm->user, fsm->int4)) fbreak; }
+    action parse_complete { if (cb->parse_complete(fsm->user)) fbreak; }
     action pid { if (cb->pid(fsm->user, fsm->int4)) fbreak; }
     action ready_idle { if (cb->ready_state(fsm->user, pg_ready_state_idle)) fbreak; }
     action ready { if (cb->ready(fsm->user, fsm->int4)) fbreak; }
@@ -164,7 +164,7 @@ typedef struct pg_fsm_t {
     data_rows = int2 @data_rows_count data_rows_val **;
 
     main :=
-    (  49 int4 @parse
+    ( "1" 0 0 0 4 @parse_complete
     | "2" 0 0 0 4 @bind_complete
     | "3" 0 0 0 4 @close_complete
     | "C" int4 @command_complete str0 @command_complete_val @/command_complete_val

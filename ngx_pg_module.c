@@ -441,9 +441,8 @@ static int ngx_pg_fsm_parameter_status_val(ngx_pg_save_t *s, size_t len, const u
     return s->rc;
 }
 
-static int ngx_pg_fsm_parse(ngx_pg_save_t *s, uint32_t len) {
-    if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
+static int ngx_pg_fsm_parse_complete(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     return s->rc;
 }
 
@@ -541,7 +540,7 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .parameter_status_key = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_key,
     .parameter_status = (pg_fsm_int4_cb)ngx_pg_fsm_parameter_status,
     .parameter_status_val = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_val,
-    .parse = (pg_fsm_int4_cb)ngx_pg_fsm_parse,
+    .parse_complete = (pg_fsm_cb)ngx_pg_fsm_parse_complete,
     .pid = (pg_fsm_int4_cb)ngx_pg_fsm_pid,
     .postpop = (pg_fsm_int2_cb)ngx_pg_fsm_postpop,
     .prepush = (pg_fsm_int2_cb)ngx_pg_fsm_prepush,
