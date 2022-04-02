@@ -35,7 +35,7 @@ typedef struct {
     pg_fsm_int4_cb field_oid;
     pg_fsm_int4_cb fields;
     pg_fsm_int4_cb field_table;
-    pg_fsm_int4_cb function;
+    pg_fsm_int4_cb function_call_response;
     pg_fsm_int4_cb key;
     pg_fsm_int4_cb option;
     pg_fsm_int4_cb parse;

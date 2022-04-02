@@ -62,7 +62,7 @@ typedef struct pg_fsm_t {
     action fields { if (cb->fields(fsm->user, fsm->int4)) fbreak; }
     action fields_out { --fsm->fields_count }
     action field_table { if (cb->field_table(fsm->user, fsm->int4)) fbreak; }
-    action function { if (cb->function(fsm->user, fsm->int4)) fbreak; }
+    action function_call_response { if (cb->function_call_response(fsm->user, fsm->int4)) fbreak; }
     action int2 { if (!fsm->i) { fsm->i = sizeof(fsm->int2); fsm->int2 = 0; } fsm->int2 |= *p << ((2 << 2) * --fsm->i); }
     action int4 { if (!fsm->i) { fsm->i = sizeof(fsm->int4); fsm->int4 = 0; } fsm->int4 |= *p << ((2 << 2) * --fsm->i); }
     action key { if (cb->key(fsm->user, fsm->int4)) fbreak; }
@@ -117,7 +117,6 @@ typedef struct pg_fsm_t {
     data_rows_val = int4 @data_row_len @data_rows_len_next data_row ** @data_rows_val_next;
 
     fields = int2 @fields_count ( field outwhen fields_out ) **;
-    function = int4 @data_row_len data_row **;
     option = str0 @option_key @/option_key str0 @option_val @/option_val;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
     data_rows = int2 @data_rows_count data_rows_val **;
@@ -133,7 +132,7 @@ typedef struct pg_fsm_t {
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0
     |  83 int4 @option option
     |  84 int4 @fields fields
-    |  86 int4 @function function
+    | "V" int4 @function_call_response int4 @data_row_len data_row **
     |  90 int4 @ready ready
     | 110 int4 @empty
     | "I" 0 0 0 4 @empty_query_response

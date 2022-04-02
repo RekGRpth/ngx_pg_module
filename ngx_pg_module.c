@@ -299,7 +299,7 @@ static int ngx_pg_fsm_field_table(ngx_pg_save_t *s, uint32_t table) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_function(ngx_pg_save_t *s, uint32_t len) {
+static int ngx_pg_fsm_function_call_response(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     ngx_pg_data_t *d = s->data;
@@ -481,7 +481,7 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .fields_count = (pg_fsm_int2_cb)ngx_pg_fsm_fields_count,
     .fields = (pg_fsm_int4_cb)ngx_pg_fsm_fields,
     .field_table = (pg_fsm_int4_cb)ngx_pg_fsm_field_table,
-    .function = (pg_fsm_int4_cb)ngx_pg_fsm_function,
+    .function_call_response = (pg_fsm_int4_cb)ngx_pg_fsm_function_call_response,
     .key = (pg_fsm_int4_cb)ngx_pg_fsm_key,
     .option_key = (pg_fsm_str_cb)ngx_pg_fsm_option_key,
     .option = (pg_fsm_int4_cb)ngx_pg_fsm_option,
