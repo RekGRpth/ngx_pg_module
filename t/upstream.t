@@ -49,8 +49,6 @@ field-name-0: ?column?
 field-oid-0: 23
 option-application-name: upstream
 option-client-encoding: UTF8
-option-default-transaction-read-only: off
-option-in-hot-standby: off
 option-integer-datetimes: on
 option-intervalstyle: postgres
 option-is-superuser: on
@@ -150,8 +148,6 @@ field-oid-0: 23
 field-oid-1: 23
 option-application-name: upstream
 option-client-encoding: UTF8
-option-default-transaction-read-only: off
-option-in-hot-standby: off
 option-integer-datetimes: on
 option-intervalstyle: postgres
 option-is-superuser: on
@@ -210,8 +206,6 @@ field-name-0: ab
 field-oid-0: 23
 option-application-name: upstream
 option-client-encoding: UTF8
-option-default-transaction-read-only: off
-option-in-hot-standby: off
 option-integer-datetimes: on
 option-intervalstyle: postgres
 option-is-superuser: on
@@ -282,8 +276,6 @@ field-oid-0: 23
 field-oid-1: 23
 option-application-name: upstream
 option-client-encoding: UTF8
-option-default-transaction-read-only: off
-option-in-hot-standby: off
 option-integer-datetimes: on
 option-intervalstyle: postgres
 option-is-superuser: on
@@ -356,8 +348,6 @@ field-oid-0: 25
 field-oid-1: 23
 option-application-name: upstream
 option-client-encoding: UTF8
-option-default-transaction-read-only: off
-option-in-hot-standby: off
 option-integer-datetimes: on
 option-intervalstyle: postgres
 option-is-superuser: on
@@ -430,8 +420,6 @@ field-oid-0: 23
 field-oid-1: 25
 option-application-name: upstream
 option-client-encoding: UTF8
-option-default-transaction-read-only: off
-option-in-hot-standby: off
 option-integer-datetimes: on
 option-intervalstyle: postgres
 option-is-superuser: on
@@ -504,8 +492,6 @@ field-oid-0: 23
 field-oid-1: 25
 option-application-name: upstream
 option-client-encoding: UTF8
-option-default-transaction-read-only: off
-option-in-hot-standby: off
 option-integer-datetimes: on
 option-intervalstyle: postgres
 option-is-superuser: on
@@ -574,8 +560,6 @@ field-oid-0: 23
 field-oid-1: 23
 option-application-name: upstream
 option-client-encoding: UTF8
-option-default-transaction-read-only: off
-option-in-hot-standby: off
 option-integer-datetimes: on
 option-intervalstyle: postgres
 option-is-superuser: on
@@ -634,8 +618,6 @@ field-name-0: ab
 field-oid-0: 23
 option-application-name: upstream
 option-client-encoding: UTF8
-option-default-transaction-read-only: off
-option-in-hot-standby: off
 option-integer-datetimes: on
 option-intervalstyle: postgres
 option-is-superuser: on
@@ -706,8 +688,6 @@ field-oid-0: 23
 field-oid-1: 23
 option-application-name: upstream
 option-client-encoding: UTF8
-option-default-transaction-read-only: off
-option-in-hot-standby: off
 option-integer-datetimes: on
 option-intervalstyle: postgres
 option-is-superuser: on
@@ -780,8 +760,6 @@ field-oid-0: 25
 field-oid-1: 23
 option-application-name: upstream
 option-client-encoding: UTF8
-option-default-transaction-read-only: off
-option-in-hot-standby: off
 option-integer-datetimes: on
 option-intervalstyle: postgres
 option-is-superuser: on
@@ -854,8 +832,6 @@ field-oid-0: 23
 field-oid-1: 25
 option-application-name: upstream
 option-client-encoding: UTF8
-option-default-transaction-read-only: off
-option-in-hot-standby: off
 option-integer-datetimes: on
 option-intervalstyle: postgres
 option-is-superuser: on
@@ -928,8 +904,6 @@ field-oid-0: 23
 field-oid-1: 25
 option-application-name: upstream
 option-client-encoding: UTF8
-option-default-transaction-read-only: off
-option-in-hot-standby: off
 option-integer-datetimes: on
 option-intervalstyle: postgres
 option-is-superuser: on
