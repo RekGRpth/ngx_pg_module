@@ -156,7 +156,6 @@ typedef struct pg_fsm_t {
     result = any @string @result_val @/result_val;
 
     data_rows_val = int4 @result_len @data_rows_len_next result ** @data_rows_val_next;
-
     error_response = error_response_key str0 @error_response_val @/error_response_val;
     notice_response = notice_response_key str0 @notice_response_val @/notice_response_val;
     row_description = str0 >row_description_beg @row_description_name @/row_description_name int4 @row_description_table int2 @row_description_column int4 @row_description_oid int2 @row_description_length int4 @row_description_mod int2 @row_description_format;
