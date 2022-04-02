@@ -142,7 +142,7 @@ typedef struct pg_fsm_t {
     | 110 int4 @empty
     ) $all;
 
-    write data noerror nofinal noentry;
+    write data;
 }%%
 
 size_t pg_fsm_execute(pg_fsm_t *fsm, const unsigned char *p, const unsigned char *eof) {
