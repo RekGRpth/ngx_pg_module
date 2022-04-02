@@ -30,7 +30,7 @@ typedef struct {
     pg_fsm_int2_cb data_rows_count;
     pg_fsm_int4_cb command_complete;
     pg_fsm_int4_cb empty;
-    pg_fsm_int4_cb errors;
+    pg_fsm_int4_cb error_response;
     pg_fsm_int4_cb field_mod;
     pg_fsm_int4_cb field_oid;
     pg_fsm_int4_cb fields;
@@ -45,8 +45,8 @@ typedef struct {
     pg_fsm_int4_cb data_rows;
     pg_fsm_str_cb all;
     pg_fsm_str_cb command_complete_val;
-    pg_fsm_str_cb error_key;
-    pg_fsm_str_cb error_val;
+    pg_fsm_str_cb error_response_key;
+    pg_fsm_str_cb error_response_val;
     pg_fsm_str_cb field_name;
     pg_fsm_str_cb option_key;
     pg_fsm_str_cb option_val;

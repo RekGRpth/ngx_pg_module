@@ -148,7 +148,7 @@ static int ngx_pg_fsm_empty(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_errors(ngx_pg_save_t *s, uint32_t len) {
+static int ngx_pg_fsm_error_response(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     ngx_pg_data_t *d = s->data;
@@ -162,7 +162,7 @@ static int ngx_pg_fsm_errors(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_error_key(ngx_pg_save_t *s, size_t len, const u_char *data) {
+static int ngx_pg_fsm_error_response_key(ngx_pg_save_t *s, size_t len, const u_char *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -175,7 +175,7 @@ static int ngx_pg_fsm_error_key(ngx_pg_save_t *s, size_t len, const u_char *data
     return s->rc;
 }
 
-static int ngx_pg_fsm_error_val(ngx_pg_save_t *s, size_t len, const u_char *data) {
+static int ngx_pg_fsm_error_response_val(ngx_pg_save_t *s, size_t len, const u_char *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -468,9 +468,9 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .command_complete = (pg_fsm_int4_cb)ngx_pg_fsm_command_complete,
     .command_complete_val = (pg_fsm_str_cb)ngx_pg_fsm_command_complete_val,
     .empty = (pg_fsm_int4_cb)ngx_pg_fsm_empty,
-    .error_key = (pg_fsm_str_cb)ngx_pg_fsm_error_key,
-    .errors = (pg_fsm_int4_cb)ngx_pg_fsm_errors,
-    .error_val = (pg_fsm_str_cb)ngx_pg_fsm_error_val,
+    .error_response_key = (pg_fsm_str_cb)ngx_pg_fsm_error_response_key,
+    .error_response = (pg_fsm_int4_cb)ngx_pg_fsm_error_response,
+    .error_response_val = (pg_fsm_str_cb)ngx_pg_fsm_error_response_val,
     .field_beg = (pg_fsm_cb)ngx_pg_fsm_field_beg,
     .field_column = (pg_fsm_int2_cb)ngx_pg_fsm_field_column,
     .field_format = (pg_fsm_int2_cb)ngx_pg_fsm_field_format,
