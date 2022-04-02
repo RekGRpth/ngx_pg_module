@@ -9,11 +9,11 @@ typedef struct pg_fsm_t {
     uint16_t cs;
     uint16_t fields_count;
     uint16_t int2;
-    uint16_t results_count;
+    uint16_t data_rows_count;
     uint16_t stack[PG_FSM_STACK_SIZE];
     uint16_t top;
     uint32_t int4;
-    uint32_t result_len;
+    uint32_t data_row_len;
     uint8_t i;
 } pg_fsm_t;
 
@@ -74,12 +74,12 @@ typedef struct pg_fsm_t {
     action ready { if (cb->ready(fsm->user, fsm->int4)) fbreak; }
     action ready_inerror { if (cb->ready_state(fsm->user, pg_ready_state_inerror)) fbreak; }
     action ready_intrans { if (cb->ready_state(fsm->user, pg_ready_state_intrans)) fbreak; }
-    action result_len { fsm->result_len = fsm->int4; if (cb->result_len(fsm->user, fsm->result_len)) fbreak; if (!fsm->result_len || fsm->result_len == (uint32_t)-1) fnext main; }
-    action results_count { fsm->results_count = fsm->int2; if (cb->results_count(fsm->user, fsm->results_count)) fbreak; if (!fsm->results_count) fnext main; }
-    action results { if (cb->results(fsm->user, fsm->int4)) fbreak; }
-    action results_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->results_count) fnext results_val; }
-    action results_val_next { if (!fsm->string && --fsm->results_count) fnext results_val; }
-    action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
+    action data_row_len { fsm->data_row_len = fsm->int4; if (cb->data_row_len(fsm->user, fsm->data_row_len)) fbreak; if (!fsm->data_row_len || fsm->data_row_len == (uint32_t)-1) fnext main; }
+    action data_rows_count { fsm->data_rows_count = fsm->int2; if (cb->data_rows_count(fsm->user, fsm->data_rows_count)) fbreak; if (!fsm->data_rows_count) fnext main; }
+    action data_rows { if (cb->data_rows(fsm->user, fsm->int4)) fbreak; }
+    action data_rows_len_next { if (!fsm->data_row_len || fsm->data_row_len == (uint32_t)-1) if (--fsm->data_rows_count) fnext data_rows_val; }
+    action data_rows_val_next { if (!fsm->string && --fsm->data_rows_count) fnext data_rows_val; }
+    action data_row_val { if (p == eof || !fsm->data_row_len--) { if (fsm->string && cb->data_row_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
     action string { if (!fsm->string) fsm->string = p; }
     postpop { if (cb->postpop(fsm->user, fsm->top)) fbreak; }
     prepush { if (cb->prepush(fsm->user, fsm->top)) fbreak; }
@@ -112,22 +112,22 @@ typedef struct pg_fsm_t {
 
     error = error_key str0 @error_val @/error_val;
     field = str0 >field_beg @field_name @/field_name int4 @field_table int2 @field_column int4 @field_oid int2 @field_length int4 @field_mod int2 @field_format;
-    result = any @string @result_val @/result_val;
-    results_val = int4 @result_len @results_len_next result ** @results_val_next;
+    data_row = any @string @data_row_val @/data_row_val;
+    data_rows_val = int4 @data_row_len @data_rows_len_next data_row ** @data_rows_val_next;
 
     errors = error ** 0;
     fields = int2 @fields_count ( field outwhen fields_out ) **;
-    function = int4 @result_len result **;
+    function = int4 @data_row_len data_row **;
     option = str0 @option_key @/option_key str0 @option_val @/option_val;
     ready = 69 @ready_inerror | 73 @ready_idle | 84 @ready_intrans;
-    results = int2 @results_count results_val **;
+    data_rows = int2 @data_rows_count data_rows_val **;
 
     main :=
     (  49 int4 @parse
     | "2" 0 0 0 4 @bind_complete
     | "3" 0 0 0 4 @close_complete
     | "C" int4 @command_complete str0 @command_complete_val @/command_complete_val
-    |  68 int4 @results results
+    | "D" int4 @data_rows data_rows
     |  69 int4 @errors errors
     | "K" 0 0 0 12 @backend_key_data int4 @pid int4 @key
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0
