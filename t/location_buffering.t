@@ -18,7 +18,6 @@ __DATA__
         add_header field-oid-0 $pg_field_oid_0 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
-        add_header option-in-hot-standby $pg_option_in_hot_standby always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
         add_header option-intervalstyle $pg_option_intervalstyle always;
         add_header option-is-superuser $pg_option_is_superuser always;
@@ -109,7 +108,6 @@ error-sqlstate: 22012
         add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
-        add_header option-in-hot-standby $pg_option_in_hot_standby always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
         add_header option-intervalstyle $pg_option_intervalstyle always;
         add_header option-is-superuser $pg_option_is_superuser always;
@@ -172,7 +170,6 @@ result-0-1: 345
         add_header field-oid-0 $pg_field_oid_0 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
-        add_header option-in-hot-standby $pg_option_in_hot_standby always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
         add_header option-intervalstyle $pg_option_intervalstyle always;
         add_header option-is-superuser $pg_option_is_superuser always;
@@ -235,7 +232,6 @@ result-1-0: 345
         add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
-        add_header option-in-hot-standby $pg_option_in_hot_standby always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
         add_header option-intervalstyle $pg_option_intervalstyle always;
         add_header option-is-superuser $pg_option_is_superuser always;
@@ -308,7 +304,6 @@ result-1-1: 89
         add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
-        add_header option-in-hot-standby $pg_option_in_hot_standby always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
         add_header option-intervalstyle $pg_option_intervalstyle always;
         add_header option-is-superuser $pg_option_is_superuser always;
@@ -381,7 +376,6 @@ result-1-1: 89
         add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
-        add_header option-in-hot-standby $pg_option_in_hot_standby always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
         add_header option-intervalstyle $pg_option_intervalstyle always;
         add_header option-is-superuser $pg_option_is_superuser always;
@@ -454,7 +448,6 @@ result-1-1: qwe
         add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
-        add_header option-in-hot-standby $pg_option_in_hot_standby always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
         add_header option-intervalstyle $pg_option_intervalstyle always;
         add_header option-is-superuser $pg_option_is_superuser always;
@@ -527,7 +520,6 @@ result-1-1:
         add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
-        add_header option-in-hot-standby $pg_option_in_hot_standby always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
         add_header option-intervalstyle $pg_option_intervalstyle always;
         add_header option-is-superuser $pg_option_is_superuser always;
@@ -590,7 +582,6 @@ result-0-1: 345
         add_header field-oid-0 $pg_field_oid_0 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
-        add_header option-in-hot-standby $pg_option_in_hot_standby always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
         add_header option-intervalstyle $pg_option_intervalstyle always;
         add_header option-is-superuser $pg_option_is_superuser always;
@@ -653,7 +644,6 @@ result-1-0: 345
         add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
-        add_header option-in-hot-standby $pg_option_in_hot_standby always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
         add_header option-intervalstyle $pg_option_intervalstyle always;
         add_header option-is-superuser $pg_option_is_superuser always;
@@ -726,7 +716,6 @@ result-1-1: 89
         add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
-        add_header option-in-hot-standby $pg_option_in_hot_standby always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
         add_header option-intervalstyle $pg_option_intervalstyle always;
         add_header option-is-superuser $pg_option_is_superuser always;
@@ -799,7 +788,6 @@ result-1-1: 89
         add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
-        add_header option-in-hot-standby $pg_option_in_hot_standby always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
         add_header option-intervalstyle $pg_option_intervalstyle always;
         add_header option-is-superuser $pg_option_is_superuser always;
@@ -872,7 +860,6 @@ result-1-1: qwe
         add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
-        add_header option-in-hot-standby $pg_option_in_hot_standby always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
         add_header option-intervalstyle $pg_option_intervalstyle always;
         add_header option-is-superuser $pg_option_is_superuser always;
