@@ -27,7 +27,7 @@ typedef struct {
     pg_fsm_int2_cb prepush;
     pg_fsm_int2_cb ready_state;
     pg_fsm_int2_cb results_count;
-    pg_fsm_int4_cb complete;
+    pg_fsm_int4_cb command_complete;
     pg_fsm_int4_cb empty;
     pg_fsm_int4_cb errors;
     pg_fsm_int4_cb field_mod;
@@ -43,7 +43,7 @@ typedef struct {
     pg_fsm_int4_cb result_len;
     pg_fsm_int4_cb results;
     pg_fsm_str_cb all;
-    pg_fsm_str_cb complete_val;
+    pg_fsm_str_cb command_complete_val;
     pg_fsm_str_cb error_key;
     pg_fsm_str_cb error_val;
     pg_fsm_str_cb field_name;

@@ -118,7 +118,7 @@ static int ngx_pg_fsm_close_complete(ngx_pg_save_t *s) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_complete(ngx_pg_save_t *s, uint32_t len) {
+static int ngx_pg_fsm_command_complete(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     ngx_pg_data_t *d = s->data;
@@ -128,7 +128,7 @@ static int ngx_pg_fsm_complete(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_complete_val(ngx_pg_save_t *s, size_t len, const u_char *data) {
+static int ngx_pg_fsm_command_complete_val(ngx_pg_save_t *s, size_t len, const u_char *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -459,8 +459,8 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .backend_key_data = (pg_fsm_cb)ngx_pg_fsm_backend_key_data,
     .bind_complete = (pg_fsm_cb)ngx_pg_fsm_bind_complete,
     .close_complete = (pg_fsm_cb)ngx_pg_fsm_close_complete,
-    .complete = (pg_fsm_int4_cb)ngx_pg_fsm_complete,
-    .complete_val = (pg_fsm_str_cb)ngx_pg_fsm_complete_val,
+    .command_complete = (pg_fsm_int4_cb)ngx_pg_fsm_command_complete,
+    .command_complete_val = (pg_fsm_str_cb)ngx_pg_fsm_command_complete_val,
     .empty = (pg_fsm_int4_cb)ngx_pg_fsm_empty,
     .error_key = (pg_fsm_str_cb)ngx_pg_fsm_error_key,
     .errors = (pg_fsm_int4_cb)ngx_pg_fsm_errors,

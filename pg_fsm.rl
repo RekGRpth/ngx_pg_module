@@ -27,8 +27,8 @@ typedef struct pg_fsm_t {
     action backend_key_data { if (cb->backend_key_data(fsm->user)) fbreak; }
     action bind_complete { if (cb->bind_complete(fsm->user)) fbreak; }
     action close_complete { if (cb->close_complete(fsm->user)) fbreak; }
-    action complete { if (cb->complete(fsm->user, fsm->int4)) fbreak; }
-    action complete_val { if (fsm->string && cb->complete_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action command_complete { if (cb->command_complete(fsm->user, fsm->int4)) fbreak; }
+    action command_complete_val { if (fsm->string && cb->command_complete_val(fsm->user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action empty { if (cb->empty(fsm->user, fsm->int4)) fbreak; }
     action error_column { if (cb->error_key(fsm->user, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
     action error_constraint { if (cb->error_key(fsm->user, sizeof("constraint") - 1, (const unsigned char *)"constraint")) fbreak; }
@@ -115,7 +115,6 @@ typedef struct pg_fsm_t {
     result = any @string @result_val @/result_val;
     results_val = int4 @result_len @results_len_next result ** @results_val_next;
 
-    complete = str0 @complete_val @/complete_val;
     errors = error ** 0;
     fields = int2 @fields_count ( field outwhen fields_out ) **;
     function = int4 @result_len result **;
@@ -127,7 +126,7 @@ typedef struct pg_fsm_t {
     (  49 int4 @parse
     | "2" 0 0 0 4 @bind_complete
     | "3" 0 0 0 4 @close_complete
-    |  67 int4 @complete complete
+    | "C" int4 @command_complete str0 @command_complete_val @/command_complete_val
     |  68 int4 @results results
     |  69 int4 @errors errors
     | "K" 0 0 0 12 @backend_key_data int4 @pid int4 @key
