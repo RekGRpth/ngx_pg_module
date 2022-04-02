@@ -115,7 +115,6 @@ typedef struct pg_fsm_t {
     result = any @string @result_val @/result_val;
     results_val = int4 @result_len @results_len_next result ** @results_val_next;
 
-    authentication_ok = 0{4};
     complete = str0 @complete_val @/complete_val;
     errors = error ** 0;
     fields = int2 @fields_count ( field outwhen fields_out ) **;
@@ -133,7 +132,7 @@ typedef struct pg_fsm_t {
     |  68 int4 @results results
     |  69 int4 @errors errors
     |  75 int4 @secret secret
-    | "R" ( 0 0 0 8 ) $int4 @authentication_ok authentication_ok
+    | "R" ( 0 0 0 8 ) $int4 @authentication_ok 0 0 0 0
     |  83 int4 @option option
     |  84 int4 @fields fields
     |  86 int4 @function function
