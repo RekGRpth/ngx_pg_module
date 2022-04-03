@@ -23,6 +23,8 @@ typedef struct pg_fsm_t {
     action all { if (cb->all(user, 0, p)) fbreak; }
     action authentication_ok { if (cb->authentication_ok(user)) fbreak; }
     action backend_key_data { if (cb->backend_key_data(user)) fbreak; }
+    action backend_key_data_key { if (cb->backend_key_data_key(user, fsm->int4)) fbreak; }
+    action backend_key_data_pid { if (cb->backend_key_data_pid(user, fsm->int4)) fbreak; }
     action bind_complete { if (cb->bind_complete(user)) fbreak; }
     action close_complete { if (cb->close_complete(user)) fbreak; }
     action command_complete { if (cb->command_complete(user, fsm->int4)) fbreak; }
@@ -55,7 +57,6 @@ typedef struct pg_fsm_t {
     action function_call_response { if (cb->function_call_response(user, fsm->int4)) fbreak; }
     action int2 { if (!fsm->i) { fsm->i = sizeof(fsm->int2); fsm->int2 = 0; } fsm->int2 |= *p << ((2 << 2) * --fsm->i); }
     action int4 { if (!fsm->i) { fsm->i = sizeof(fsm->int4); fsm->int4 = 0; } fsm->int4 |= *p << ((2 << 2) * --fsm->i); }
-    action key { if (cb->key(user, fsm->int4)) fbreak; }
     action no_data { if (cb->no_data(user)) fbreak; }
     action notice_response_column { if (cb->notice_response_key(user, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
     action notice_response_constraint { if (cb->notice_response_key(user, sizeof("constraint") - 1, (const unsigned char *)"constraint")) fbreak; }
@@ -81,7 +82,6 @@ typedef struct pg_fsm_t {
     action parameter_status_key { if (fsm->string && cb->parameter_status_key(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parameter_status_val { if (fsm->string && cb->parameter_status_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parse_complete { if (cb->parse_complete(user)) fbreak; }
-    action pid { if (cb->pid(user, fsm->int4)) fbreak; }
     action ready_for_query_idle { if (cb->ready_for_query_state(user, pg_ready_state_idle)) fbreak; }
     action ready_for_query { if (cb->ready_for_query(user)) fbreak; }
     action ready_for_query_inerror { if (cb->ready_for_query_state(user, pg_ready_state_inerror)) fbreak; }
@@ -167,7 +167,7 @@ typedef struct pg_fsm_t {
     | "D" int4 @data_row int2 @data_row_count data_row **
     | "E" int4 @error_response error_response ** 0
     | "I" 0 0 0 4 @empty_query_response
-    | "K" 0 0 0 12 @backend_key_data int4 @pid int4 @key
+    | "K" 0 0 0 12 @backend_key_data int4 @backend_key_data_pid int4 @backend_key_data_key
     | "n" 0 0 0 4 @no_data
     | "N" int4 @notice_response notice_response ** 0
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0

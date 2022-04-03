@@ -31,14 +31,14 @@ typedef struct {
     pg_fsm_int2_cb row_description_count;
     pg_fsm_int2_cb row_description_format;
     pg_fsm_int2_cb row_description_length;
+    pg_fsm_int4_cb backend_key_data_key;
+    pg_fsm_int4_cb backend_key_data_pid;
     pg_fsm_int4_cb command_complete;
     pg_fsm_int4_cb data_row;
     pg_fsm_int4_cb error_response;
     pg_fsm_int4_cb function_call_response;
-    pg_fsm_int4_cb key;
     pg_fsm_int4_cb notice_response;
     pg_fsm_int4_cb parameter_status;
-    pg_fsm_int4_cb pid;
     pg_fsm_int4_cb result_len;
     pg_fsm_int4_cb row_description;
     pg_fsm_int4_cb row_description_mod;

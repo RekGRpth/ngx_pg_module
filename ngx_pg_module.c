@@ -386,7 +386,7 @@ static int ngx_pg_fsm_ready_for_query_state(ngx_pg_save_t *s, uint16_t state) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_key(ngx_pg_save_t *s, uint32_t key) {
+static int ngx_pg_fsm_backend_key_data_key(ngx_pg_save_t *s, uint32_t key) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", key);
     return s->rc;
 }
@@ -446,7 +446,7 @@ static int ngx_pg_fsm_parse_complete(ngx_pg_save_t *s) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_pid(ngx_pg_save_t *s, uint32_t pid) {
+static int ngx_pg_fsm_backend_key_data_pid(ngx_pg_save_t *s, uint32_t pid) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", pid);
     s->pid = pid;
     return s->rc;
@@ -507,7 +507,9 @@ static int ngx_pg_fsm_backend_key_data(ngx_pg_save_t *s) {
 static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .all = (pg_fsm_str_cb)ngx_pg_fsm_all,
     .authentication_ok = (pg_fsm_cb)ngx_pg_fsm_authentication_ok,
+    .backend_key_data_key = (pg_fsm_int4_cb)ngx_pg_fsm_backend_key_data_key,
     .backend_key_data = (pg_fsm_cb)ngx_pg_fsm_backend_key_data,
+    .backend_key_data_pid = (pg_fsm_int4_cb)ngx_pg_fsm_backend_key_data_pid,
     .bind_complete = (pg_fsm_cb)ngx_pg_fsm_bind_complete,
     .close_complete = (pg_fsm_cb)ngx_pg_fsm_close_complete,
     .command_complete = (pg_fsm_int4_cb)ngx_pg_fsm_command_complete,
@@ -519,7 +521,6 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .error_response = (pg_fsm_int4_cb)ngx_pg_fsm_error_response,
     .error_response_val = (pg_fsm_str_cb)ngx_pg_fsm_error_response_val,
     .function_call_response = (pg_fsm_int4_cb)ngx_pg_fsm_function_call_response,
-    .key = (pg_fsm_int4_cb)ngx_pg_fsm_key,
     .no_data = (pg_fsm_cb)ngx_pg_fsm_no_data,
     .notice_response_key = (pg_fsm_str_cb)ngx_pg_fsm_notice_response_key,
     .notice_response = (pg_fsm_int4_cb)ngx_pg_fsm_notice_response,
@@ -528,7 +529,6 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .parameter_status = (pg_fsm_int4_cb)ngx_pg_fsm_parameter_status,
     .parameter_status_val = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_val,
     .parse_complete = (pg_fsm_cb)ngx_pg_fsm_parse_complete,
-    .pid = (pg_fsm_int4_cb)ngx_pg_fsm_pid,
     .postpop = (pg_fsm_int2_cb)ngx_pg_fsm_postpop,
     .prepush = (pg_fsm_int2_cb)ngx_pg_fsm_prepush,
     .ready_for_query = (pg_fsm_cb)ngx_pg_fsm_ready_for_query,
