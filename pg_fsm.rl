@@ -93,12 +93,10 @@ typedef struct pg_fsm_t {
     action row_description_count { fsm->row_description_count = fsm->int2; if (cb->row_description_count(user, fsm->row_description_count)) fbreak; if (!fsm->row_description_count) fnext main;}
     action row_description_format { if (cb->row_description_format(user, fsm->int2)) fbreak; if (!--fsm->row_description_count) fnext main; }
     action row_description { if (cb->row_description(user, fsm->int4)) fbreak; }
-#    action row_description_in { fsm->row_description_count }
     action row_description_length { if (cb->row_description_length(user, fsm->int2)) fbreak; }
     action row_description_mod { if (cb->row_description_mod(user, fsm->int4)) fbreak; }
     action row_description_name { if (fsm->string && cb->row_description_name(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action row_description_oid { if (cb->row_description_oid(user, fsm->int4)) fbreak; }
-#    action row_description_out { --fsm->row_description_count }
     action row_description_table { if (cb->row_description_table(user, fsm->int4)) fbreak; }
     action string { if (!fsm->string) fsm->string = p; }
 
@@ -179,7 +177,7 @@ typedef struct pg_fsm_t {
     | "T" int4 @row_description int2 @row_description_count row_description **
     | "V" int4 @function_call_response int4 @result_len result **
     | "Z" 0 0 0 5 @ready_for_query ready_for_query
-    ) $all;
+    ) ** $all;
 
     write data;
 }%%
