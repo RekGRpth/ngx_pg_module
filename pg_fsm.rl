@@ -152,11 +152,15 @@ typedef struct pg_fsm_t {
     | "W" @notice_response_context
     );
 
+    ready_for_query_idle = "I" @ready_for_query_idle;
+    ready_for_query_inerror = "E" @ready_for_query_inerror;
+    ready_for_query_intrans = "T" @ready_for_query_intrans;
     result = any $string $result_val $/result_val;
 
     data_row = int4 @result_len @data_row_len_next result ** @data_row_next;
     error_response = error_response_key str0 @error_response_val @/error_response_val;
     notice_response = notice_response_key str0 @notice_response_val @/notice_response_val;
+    ready_for_query = ready_for_query_inerror | ready_for_query_idle | ready_for_query_intrans;
     row_description = str0 >row_description_beg @row_description_name @/row_description_name int4 @row_description_table int2 @row_description_column int4 @row_description_oid int2 @row_description_length int4 @row_description_mod int2 @row_description_format;
 
     main :=
@@ -174,7 +178,7 @@ typedef struct pg_fsm_t {
     | "S" int4 @parameter_status str0 @parameter_status_key @/parameter_status_key str0 @parameter_status_val @/parameter_status_val
     | "T" int4 @row_description int2 @row_description_count ( row_description >when row_description_in %when row_description_out ) **
     | "V" int4 @function_call_response int4 @result_len result **
-    | "Z" 0 0 0 5 @ready_for_query "E" @ready_for_query_inerror | "I" @ready_for_query_idle | "T" @ready_for_query_intrans
+    | "Z" 0 0 0 5 @ready_for_query ready_for_query
     ) $all;
 
     write data;
