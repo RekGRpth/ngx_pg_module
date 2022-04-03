@@ -90,15 +90,15 @@ typedef struct pg_fsm_t {
     action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
     action row_description_beg { if (cb->row_description_beg(user)) fbreak; }
     action row_description_column { if (cb->row_description_column(user, fsm->int2)) fbreak; }
-    action row_description_count { fsm->row_description_count = fsm->int2; if (cb->row_description_count(user, fsm->row_description_count)) fbreak; }
-    action row_description_format { if (cb->row_description_format(user, fsm->int2)) fbreak; }
+    action row_description_count { fsm->row_description_count = fsm->int2; if (cb->row_description_count(user, fsm->row_description_count)) fbreak; if (!fsm->row_description_count) fnext main;}
+    action row_description_format { if (cb->row_description_format(user, fsm->int2)) fbreak; if (!--fsm->row_description_count) fnext main; }
     action row_description { if (cb->row_description(user, fsm->int4)) fbreak; }
-    action row_description_in { fsm->row_description_count }
+#    action row_description_in { fsm->row_description_count }
     action row_description_length { if (cb->row_description_length(user, fsm->int2)) fbreak; }
     action row_description_mod { if (cb->row_description_mod(user, fsm->int4)) fbreak; }
     action row_description_name { if (fsm->string && cb->row_description_name(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action row_description_oid { if (cb->row_description_oid(user, fsm->int4)) fbreak; }
-    action row_description_out { --fsm->row_description_count }
+#    action row_description_out { --fsm->row_description_count }
     action row_description_table { if (cb->row_description_table(user, fsm->int4)) fbreak; }
     action string { if (!fsm->string) fsm->string = p; }
 
@@ -176,7 +176,7 @@ typedef struct pg_fsm_t {
     | "N" int4 @notice_response notice_response ** 0
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0
     | "S" int4 @parameter_status str0 @parameter_status_key @/parameter_status_key str0 @parameter_status_val @/parameter_status_val
-    | "T" int4 @row_description int2 @row_description_count ( row_description >when row_description_in %when row_description_out ) **
+    | "T" int4 @row_description int2 @row_description_count row_description **
     | "V" int4 @function_call_response int4 @result_len result **
     | "Z" 0 0 0 5 @ready_for_query ready_for_query
     ) $all;
