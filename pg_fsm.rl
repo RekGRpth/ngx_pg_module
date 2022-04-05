@@ -5,9 +5,9 @@
 typedef struct pg_fsm_t {
     const unsigned char *string;
     uint16_t cs;
-    uint16_t row_description_count;
-    uint16_t int2;
     uint16_t data_row_count;
+    uint16_t int2;
+    uint16_t row_description_count;
     uint16_t stack[PG_FSM_STACK_SIZE];
     uint16_t top;
     uint32_t int4;
