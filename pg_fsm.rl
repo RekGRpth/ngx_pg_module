@@ -153,9 +153,9 @@ typedef struct pg_fsm_t {
     ready_for_query_idle = "I" @ready_for_query_idle;
     ready_for_query_inerror = "E" @ready_for_query_inerror;
     ready_for_query_intrans = "T" @ready_for_query_intrans;
-    result = any $string $result_val $/result_val;
+    result = any ** $string $result_val $/result_val;
 
-    data_row = int4 @result_len @data_row_len_next result ** @data_row_next;
+    data_row = int4 @result_len @data_row_len_next result @data_row_next;
     error_response = error_response_key str0 @error_response_val @/error_response_val;
     notice_response = notice_response_key str0 @notice_response_val @/notice_response_val;
     ready_for_query = ready_for_query_inerror | ready_for_query_idle | ready_for_query_intrans;
@@ -175,7 +175,7 @@ typedef struct pg_fsm_t {
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0
     | "S" int4 @parameter_status str0 @parameter_status_key @/parameter_status_key str0 @parameter_status_val @/parameter_status_val
     | "T" int4 @row_description int2 @row_description_count row_description **
-    | "V" int4 @function_call_response int4 @result_len result **
+    | "V" int4 @function_call_response int4 @result_len result
     | "Z" 0 0 0 5 @ready_for_query ready_for_query
     ) ** $all;
 
