@@ -115,6 +115,11 @@ static int ngx_pg_fsm_authentication_ok(ngx_pg_save_t *s) {
     return s->rc;
 }
 
+static int ngx_pg_fsm_first_final(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return s->rc;
+}
+
 static int ngx_pg_fsm_bind_complete(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     return s->rc;
@@ -520,6 +525,7 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .error_response_key = (pg_fsm_str_cb)ngx_pg_fsm_error_response_key,
     .error_response = (pg_fsm_int4_cb)ngx_pg_fsm_error_response,
     .error_response_val = (pg_fsm_str_cb)ngx_pg_fsm_error_response_val,
+    .first_final = (pg_fsm_cb)ngx_pg_fsm_first_final,
     .function_call_response = (pg_fsm_int4_cb)ngx_pg_fsm_function_call_response,
     .no_data = (pg_fsm_cb)ngx_pg_fsm_no_data,
     .notice_response_key = (pg_fsm_str_cb)ngx_pg_fsm_notice_response_key,

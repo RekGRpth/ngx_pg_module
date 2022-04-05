@@ -185,6 +185,7 @@ typedef struct pg_fsm_t {
 size_t pg_fsm_execute(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *user, const unsigned char *p, const unsigned char *pe, const unsigned char *eof) {
     const unsigned char *b = p;
     %% write exec;
+    if (fsm->cs < pg_fsm_first_final) (void)cb->first_final(user);
     return p - b;
 }
 
