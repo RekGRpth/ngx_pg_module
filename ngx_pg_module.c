@@ -269,17 +269,6 @@ static int ngx_pg_fsm_row_description_beg(ngx_pg_save_t *s) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_prepush(ngx_pg_save_t *s, uint16_t top) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", top);
-    if (top == pg_fsm_stack()) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "top == pg_fsm_stack"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    return s->rc;
-}
-
-static int ngx_pg_fsm_postpop(ngx_pg_save_t *s, uint16_t top) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", top);
-    return s->rc;
-}
-
 static int ngx_pg_fsm_row_description_column(ngx_pg_save_t *s, uint16_t column) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", column);
     ngx_pg_data_t *d = s->data;
@@ -541,8 +530,6 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .parameter_status = (pg_fsm_int4_cb)ngx_pg_fsm_parameter_status,
     .parameter_status_val = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_val,
     .parse_complete = (pg_fsm_cb)ngx_pg_fsm_parse_complete,
-    .postpop = (pg_fsm_int2_cb)ngx_pg_fsm_postpop,
-    .prepush = (pg_fsm_int2_cb)ngx_pg_fsm_prepush,
     .ready_for_query = (pg_fsm_cb)ngx_pg_fsm_ready_for_query,
     .ready_for_query_state = (pg_fsm_int2_cb)ngx_pg_fsm_ready_for_query_state,
     .result_len = (pg_fsm_int4_cb)ngx_pg_fsm_result_len,

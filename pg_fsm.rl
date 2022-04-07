@@ -1,4 +1,3 @@
-#define PG_FSM_STACK_SIZE 1
 #include "pg_fsm.h"
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 
@@ -8,8 +7,6 @@ typedef struct pg_fsm_t {
     uint16_t data_row_count;
     uint16_t int2;
     uint16_t row_description_count;
-    uint16_t stack[PG_FSM_STACK_SIZE];
-    uint16_t top;
     uint32_t int4;
     uint32_t result_len;
     uint8_t i;
@@ -100,9 +97,6 @@ typedef struct pg_fsm_t {
     action row_description_table { if (cb->row_description_table(user, fsm->int4)) fbreak; }
     action string { if (!fsm->string) fsm->string = p; }
 
-    postpop { if (cb->postpop(user, fsm->top)) fbreak; }
-    prepush { if (cb->prepush(user, fsm->top)) fbreak; }
-
     char = any - 0;
     int2 = any{2} $int2;
     int4 = any{4} $int4;
@@ -192,10 +186,6 @@ size_t pg_fsm_execute(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *user, co
 
 size_t pg_fsm_size(void) {
     return sizeof(pg_fsm_t);
-}
-
-size_t pg_fsm_stack(void) {
-    return PG_FSM_STACK_SIZE;
 }
 
 void pg_fsm_init(pg_fsm_t *fsm) {
