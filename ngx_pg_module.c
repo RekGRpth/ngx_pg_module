@@ -153,6 +153,7 @@ static int ngx_pg_fsm_command_complete(ngx_pg_save_t *s, uint32_t len) {
 
 static int ngx_pg_fsm_notification_response(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     return s->rc;
 }
 
@@ -910,11 +911,34 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     return NGX_DONE;
 }
 
+static ngx_int_t ngx_pg_process(ngx_pg_save_t *s) {
+    ngx_buf_t *b = &s->buffer;
+    ngx_connection_t *c = s->connection;
+    ssize_t n;
+    for ( ;; ) {
+        switch ((n = c->recv(c, b->last, b->end - b->last))) {
+            case 0: ngx_log_error(NGX_LOG_ERR, c->log, 0, "upstream prematurely closed connection"); return NGX_ERROR; break;
+            case NGX_AGAIN: if (ngx_handle_read_event(c->read, 0) != NGX_OK) return NGX_ERROR; return NGX_OK; break;
+            case NGX_ERROR: return NGX_ERROR; break;
+        }
+        b->last += n;
+        while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->pos, b->last, b->end);
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "s->rc = %d", s->rc);
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
+        if ((ngx_int_t)s->rc == NGX_AGAIN) {
+            if (b->last == b->end) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "upstream sent too big header"); return NGX_ERROR; }
+            continue;
+        }
+        break;
+    }
+    return NGX_OK;
+}
+
 static void ngx_pg_read_handler(ngx_event_t *ev) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
     ngx_connection_t *c = ev->data;
     ngx_pg_save_t *s = c->data;
-//    if (ngx_pg_parse(s) == NGX_OK) return;
+    if (ngx_pg_process(s) == NGX_OK) return;
     c->data = s->keep.data;
     s->keep.read_handler(ev);
     if (c->data == s->keep.data) c->data = s;
@@ -940,9 +964,18 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     if (pc->connection) return;
     ngx_pg_srv_conf_t *pscf = d->conf;
     if (!pscf) return;
-
+    if (!s->buffer.start) {
+        ngx_connection_t *c = s->connection;
+        ngx_http_request_t *r = d->request;
+        ngx_http_upstream_t *u = r->upstream;
+        if (!(s->buffer.start = ngx_palloc(c->pool, u->conf->buffer_size))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_palloc"); return; }
+        s->buffer.end = s->buffer.start + u->conf->buffer_size;
+        s->buffer.tag = u->output.tag;
+        s->buffer.temporary = 1;
+    }
+    s->buffer.last = s->buffer.start;
+    s->buffer.pos = s->buffer.start;
     // cancel
-
 //    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "s = %p", s);
     ngx_connection_t *c = s->connection;
 //    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "c = %p", c);
