@@ -29,7 +29,7 @@ typedef struct pg_fsm_t {
     action data_row_count { fsm->data_row_count = fsm->int2; if (cb->data_row_count(user, fsm->data_row_count)) fbreak; if (!fsm->data_row_count) fnext main; }
     action data_row { if (cb->data_row(user, fsm->int4)) fbreak; }
     action data_row_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->data_row_count) fnext data_row; }
-    action data_row_next { if (!fsm->string && --fsm->data_row_count) fnext data_row; }
+    action data_row_val_next { if (!fsm->string && --fsm->data_row_count) fnext data_row; }
     action empty_query_response { if (cb->empty_query_response(user)) fbreak; }
     action error_response_column { if (cb->error_response_key(user, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
     action error_response_constraint { if (cb->error_response_key(user, sizeof("constraint") - 1, (const unsigned char *)"constraint")) fbreak; }
@@ -149,7 +149,7 @@ typedef struct pg_fsm_t {
     ready_for_query_intrans = "T" @ready_for_query_intrans;
     result = any ** $string $result_val $/result_val;
 
-    data_row = int4 @result_len @data_row_len_next result @data_row_next;
+    data_row = int4 @result_len @data_row_len_next result @data_row_val_next;
     error_response = error_response_key str0 @error_response_val @/error_response_val;
     notice_response = notice_response_key str0 @notice_response_val @/notice_response_val;
     ready_for_query = ready_for_query_inerror | ready_for_query_idle | ready_for_query_intrans;
