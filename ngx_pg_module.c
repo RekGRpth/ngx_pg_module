@@ -71,6 +71,7 @@ typedef struct {
     ngx_uint_t rc;
     pg_fsm_t *fsm;
     pg_ready_state_t state;
+    uint32_t key;
     uint32_t pid;
     struct {
         ngx_event_handler_pt read_handler;
@@ -387,6 +388,7 @@ static int ngx_pg_fsm_ready_for_query_state(ngx_pg_save_t *s, uint16_t state) {
 
 static int ngx_pg_fsm_backend_key_data_key(ngx_pg_save_t *s, uint32_t key) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", key);
+    s->key = key;
     return s->rc;
 }
 
