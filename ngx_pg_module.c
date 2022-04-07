@@ -964,6 +964,9 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     if (pc->connection) return;
     ngx_pg_srv_conf_t *pscf = d->conf;
     if (!pscf) return;
+    if (d->ready) {
+        // cancel
+    }
     if (!s->buffer.start) {
         ngx_connection_t *c = s->connection;
         ngx_http_request_t *r = d->request;
@@ -975,7 +978,6 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     }
     s->buffer.last = s->buffer.start;
     s->buffer.pos = s->buffer.start;
-    // cancel
 //    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "s = %p", s);
     ngx_connection_t *c = s->connection;
 //    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "c = %p", c);
