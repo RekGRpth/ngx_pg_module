@@ -955,6 +955,34 @@ static void ngx_pg_write_handler(ngx_event_t *ev) {
     if (c->data == s->keep.data) c->data = s;
 }
 
+static void ngx_pg_cancel_request_read_handler(ngx_event_t *ev) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
+/*    ngx_connection_t *c = ev->data;
+    if (c->close || c->read->timedout) goto close;
+    char buf[1];
+    int n = recv(c->fd, buf, 1, MSG_PEEK);
+    if (n == -1 && ngx_socket_errno == NGX_EAGAIN) {
+        ev->ready = 0;
+        if (ngx_handle_read_event(c->read, 0) != NGX_OK) goto close;
+        return;
+    }
+close:
+    ngx_destroy_pool(c->pool);
+    ngx_close_connection(c);*/
+}
+
+static void ngx_pg_cancel_request_write_handler(ngx_event_t *ev) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
+    ngx_chain_t *out, *last;
+    ngx_connection_t *c = ev->data;
+    ngx_pg_save_t *s = c->data;
+    if (!(out = ngx_pg_cancel_request(c->pool, s->pid, s->key))) return;
+    ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
+    ngx_chain_writer(&ctx, NULL);
+    ngx_destroy_pool(c->pool);
+    ngx_close_connection(c);
+}
+
 static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t state) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "state = %d", state);
     ngx_pg_data_t *d = data;
@@ -982,12 +1010,15 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
         if (!c) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!c"); return; }
         if (c->pool) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "c->pool"); return; }
         if (!(c->pool = ngx_create_pool(128, pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return; }
-        ngx_chain_t *out, *last;
-        if (!(out = ngx_pg_cancel_request(c->pool, s->pid, s->key))) return;
-        ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
-        ngx_chain_writer(&ctx, NULL);
-        ngx_close_connection(c);
-//        pc->connection = NULL;
+        c->data = s;
+        c->read->handler = ngx_pg_cancel_request_read_handler;
+        c->write->handler = ngx_pg_cancel_request_write_handler;
+        if (rc == NGX_AGAIN) {
+            ngx_http_request_t *r = d->request;
+            ngx_http_upstream_t *u = r->upstream;
+            ngx_add_timer(c->write, u->conf->connect_timeout);
+        }
+        if (rc == NGX_OK) ngx_pg_cancel_request_write_handler(c->write);
     }
 //    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "pc->connection = %p", pc->connection);
     if (pc->connection) return;
