@@ -38,6 +38,8 @@ typedef struct {
     pg_fsm_int4_cb error_response;
     pg_fsm_int4_cb function_call_response;
     pg_fsm_int4_cb notice_response;
+    pg_fsm_int4_cb notification_response;
+    pg_fsm_int4_cb notification_response_pid;
     pg_fsm_int4_cb parameter_status;
     pg_fsm_int4_cb result_len;
     pg_fsm_int4_cb row_description;
@@ -50,6 +52,8 @@ typedef struct {
     pg_fsm_str_cb error_response_val;
     pg_fsm_str_cb notice_response_key;
     pg_fsm_str_cb notice_response_val;
+    pg_fsm_str_cb notification_response_extra;
+    pg_fsm_str_cb notification_response_relname;
     pg_fsm_str_cb parameter_status_key;
     pg_fsm_str_cb parameter_status_val;
     pg_fsm_str_cb result_val;

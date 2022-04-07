@@ -75,6 +75,10 @@ typedef struct pg_fsm_t {
     action notice_response_statement { if (cb->notice_response_key(user, sizeof("statement") - 1, (const unsigned char *)"statement")) fbreak; }
     action notice_response_table { if (cb->notice_response_key(user, sizeof("table") - 1, (const unsigned char *)"table")) fbreak; }
     action notice_response_val { if (fsm->string && cb->notice_response_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action notification_response_extra { if (fsm->string && cb->notification_response_extra(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action notification_response { if (cb->notification_response(user, fsm->int4)) fbreak; }
+    action notification_response_pid { if (cb->notification_response_pid(user, fsm->int4)) fbreak; }
+    action notification_response_relname { if (fsm->string && cb->notification_response_relname(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parameter_status { if (cb->parameter_status(user, fsm->int4)) fbreak; }
     action parameter_status_key { if (fsm->string && cb->parameter_status_key(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parameter_status_val { if (fsm->string && cb->parameter_status_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
@@ -159,6 +163,7 @@ typedef struct pg_fsm_t {
     ( "1" 0 0 0 4 @parse_complete
     | "2" 0 0 0 4 @bind_complete
     | "3" 0 0 0 4 @close_complete
+    | "A" int4 @notification_response int4 @notification_response_pid str0 @notification_response_relname @/notification_response_relname str0 @notification_response_extra @/notification_response_extra
     | "C" int4 @command_complete str0 @command_complete_val @/command_complete_val
     | "D" int4 @data_row int2 @data_row_count data_row **
     | "E" int4 @error_response error_response ** 0

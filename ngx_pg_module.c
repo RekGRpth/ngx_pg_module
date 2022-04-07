@@ -151,12 +151,32 @@ static int ngx_pg_fsm_command_complete(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
+static int ngx_pg_fsm_notification_response(ngx_pg_save_t *s, uint32_t len) {
+    if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    return s->rc;
+}
+
+static int ngx_pg_fsm_notification_response_pid(ngx_pg_save_t *s, uint32_t pid) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", pid);
+    return s->rc;
+}
+
 static int ngx_pg_fsm_command_complete_val(ngx_pg_save_t *s, size_t len, const u_char *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_memcpy(d->complete.data + d->complete.len, data, len);
     d->complete.len += len;
+    return s->rc;
+}
+
+static int ngx_pg_fsm_notification_response_relname(ngx_pg_save_t *s, size_t len, const u_char *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return s->rc;
+}
+
+static int ngx_pg_fsm_notification_response_extra(ngx_pg_save_t *s, size_t len, const u_char *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     return s->rc;
 }
 
@@ -528,6 +548,10 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .notice_response_key = (pg_fsm_str_cb)ngx_pg_fsm_notice_response_key,
     .notice_response = (pg_fsm_int4_cb)ngx_pg_fsm_notice_response,
     .notice_response_val = (pg_fsm_str_cb)ngx_pg_fsm_notice_response_val,
+    .notification_response_extra = (pg_fsm_str_cb)ngx_pg_fsm_notification_response_extra,
+    .notification_response = (pg_fsm_int4_cb)ngx_pg_fsm_notification_response,
+    .notification_response_pid = (pg_fsm_int4_cb)ngx_pg_fsm_notification_response_pid,
+    .notification_response_relname = (pg_fsm_str_cb)ngx_pg_fsm_notification_response_relname,
     .parameter_status_key = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_key,
     .parameter_status = (pg_fsm_int4_cb)ngx_pg_fsm_parameter_status,
     .parameter_status_val = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_val,
