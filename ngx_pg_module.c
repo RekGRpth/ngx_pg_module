@@ -641,6 +641,18 @@ inline static ngx_chain_t *ngx_pg_bind(ngx_pool_t *p, ngx_array_t *arguments) {
     return bind;
 }
 
+inline static ngx_chain_t *ngx_pg_cancel_request(ngx_pool_t *p, uint32_t pid, uint32_t key) {
+    ngx_chain_t *cl, *cl_size, *cancel;
+    uint32_t size = 0;
+    if (!(cl = cl_size = cancel = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 80877102))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, pid))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, key))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = cancel; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%d:%d:%c", i++, *c, *c);
+    return cancel;
+}
+
 inline static ngx_chain_t *ngx_pg_close(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *close;
     uint32_t size = 0;
@@ -904,6 +916,9 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     if (pc->connection) return;
     ngx_pg_srv_conf_t *pscf = d->conf;
     if (!pscf) return;
+
+    // cancel
+
 //    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "s = %p", s);
     ngx_connection_t *c = s->connection;
 //    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "c = %p", c);
