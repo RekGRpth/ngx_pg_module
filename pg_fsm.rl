@@ -24,10 +24,10 @@ typedef struct pg_fsm_t {
     action backend_key_data_pid { if (cb->backend_key_data_pid(user, fsm->int4)) fbreak; }
     action bind_complete { if (cb->bind_complete(user)) fbreak; }
     action close_complete { if (cb->close_complete(user)) fbreak; }
-    action command_complete { if (cb->command_complete(user, fsm->int4)) fbreak; }
+    action command_complete { if (cb->command_complete(user, fsm->int4 - 4)) fbreak; }
     action command_complete_val { if (fsm->string && cb->command_complete_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action data_row_count { fsm->data_row_count = fsm->int2; if (cb->data_row_count(user, fsm->data_row_count)) fbreak; if (!fsm->data_row_count) fnext main; }
-    action data_row { if (cb->data_row(user, fsm->int4)) fbreak; }
+    action data_row { if (cb->data_row(user, fsm->int4 - 4)) fbreak; }
     action data_row_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->data_row_count) fnext data_row; }
     action data_row_val_next { if (!fsm->string && --fsm->data_row_count) fnext data_row; }
     action empty_query_response { if (cb->empty_query_response(user)) fbreak; }
@@ -39,7 +39,7 @@ typedef struct pg_fsm_t {
     action error_response_file { if (cb->error_response_key(user, sizeof("file") - 1, (const unsigned char *)"file")) fbreak; }
     action error_response_function { if (cb->error_response_key(user, sizeof("function") - 1, (const unsigned char *)"function")) fbreak; }
     action error_response_hint { if (cb->error_response_key(user, sizeof("hint") - 1, (const unsigned char *)"hint")) fbreak; }
-    action error_response { if (cb->error_response(user, fsm->int4)) fbreak; }
+    action error_response { if (cb->error_response(user, fsm->int4 - 4)) fbreak; }
     action error_response_internal { if (cb->error_response_key(user, sizeof("internal") - 1, (const unsigned char *)"internal")) fbreak; }
     action error_response_line { if (cb->error_response_key(user, sizeof("line") - 1, (const unsigned char *)"line")) fbreak; }
     action error_response_nonlocalized { if (cb->error_response_key(user, sizeof("nonlocalized") - 1, (const unsigned char *)"nonlocalized")) fbreak; }
@@ -51,7 +51,7 @@ typedef struct pg_fsm_t {
     action error_response_statement { if (cb->error_response_key(user, sizeof("statement") - 1, (const unsigned char *)"statement")) fbreak; }
     action error_response_table { if (cb->error_response_key(user, sizeof("table") - 1, (const unsigned char *)"table")) fbreak; }
     action error_response_val { if (fsm->string && cb->error_response_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action function_call_response { if (cb->function_call_response(user, fsm->int4)) fbreak; }
+    action function_call_response { if (cb->function_call_response(user, fsm->int4 - 4)) fbreak; }
     action int2 { if (!fsm->i) { fsm->i = sizeof(fsm->int2); fsm->int2 = 0; } fsm->int2 |= *p << ((2 << 2) * --fsm->i); }
     action int4 { if (!fsm->i) { fsm->i = sizeof(fsm->int4); fsm->int4 = 0; } fsm->int4 |= *p << ((2 << 2) * --fsm->i); }
     action no_data { if (cb->no_data(user)) fbreak; }
@@ -63,7 +63,7 @@ typedef struct pg_fsm_t {
     action notice_response_file { if (cb->notice_response_key(user, sizeof("file") - 1, (const unsigned char *)"file")) fbreak; }
     action notice_response_function { if (cb->notice_response_key(user, sizeof("function") - 1, (const unsigned char *)"function")) fbreak; }
     action notice_response_hint { if (cb->notice_response_key(user, sizeof("hint") - 1, (const unsigned char *)"hint")) fbreak; }
-    action notice_response { if (cb->notice_response(user, fsm->int4)) fbreak; }
+    action notice_response { if (cb->notice_response(user, fsm->int4 - 4)) fbreak; }
     action notice_response_internal { if (cb->notice_response_key(user, sizeof("internal") - 1, (const unsigned char *)"internal")) fbreak; }
     action notice_response_line { if (cb->notice_response_key(user, sizeof("line") - 1, (const unsigned char *)"line")) fbreak; }
     action notice_response_nonlocalized { if (cb->notice_response_key(user, sizeof("nonlocalized") - 1, (const unsigned char *)"nonlocalized")) fbreak; }
@@ -76,10 +76,10 @@ typedef struct pg_fsm_t {
     action notice_response_table { if (cb->notice_response_key(user, sizeof("table") - 1, (const unsigned char *)"table")) fbreak; }
     action notice_response_val { if (fsm->string && cb->notice_response_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action notification_response_extra { if (fsm->string && cb->notification_response_extra(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action notification_response { if (cb->notification_response(user, fsm->int4)) fbreak; }
+    action notification_response { if (cb->notification_response(user, fsm->int4 - 4)) fbreak; }
     action notification_response_pid { if (cb->notification_response_pid(user, fsm->int4)) fbreak; }
     action notification_response_relname { if (fsm->string && cb->notification_response_relname(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status { if (cb->parameter_status(user, fsm->int4)) fbreak; }
+    action parameter_status { if (cb->parameter_status(user, fsm->int4 - 4)) fbreak; }
     action parameter_status_key { if (fsm->string && cb->parameter_status_key(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parameter_status_val { if (fsm->string && cb->parameter_status_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parse_complete { if (cb->parse_complete(user)) fbreak; }
@@ -92,8 +92,8 @@ typedef struct pg_fsm_t {
     action row_description_beg { if (cb->row_description_beg(user)) fbreak; }
     action row_description_column { if (cb->row_description_column(user, fsm->int2)) fbreak; }
     action row_description_count { fsm->row_description_count = fsm->int2; if (cb->row_description_count(user, fsm->row_description_count)) fbreak; if (!fsm->row_description_count) fnext main;}
-    action row_description_format { if (cb->row_description_format(user, fsm->int2)) fbreak; if (!--fsm->row_description_count) fnext main; }
-    action row_description { if (cb->row_description(user, fsm->int4)) fbreak; }
+    action row_description_format { if (cb->row_description_format(user, 0)) fbreak; if (!--fsm->row_description_count) fnext main; }
+    action row_description { if (cb->row_description(user, fsm->int4 - 4)) fbreak; }
     action row_description_length { if (cb->row_description_length(user, fsm->int2)) fbreak; }
     action row_description_mod { if (cb->row_description_mod(user, fsm->int4)) fbreak; }
     action row_description_name { if (fsm->string && cb->row_description_name(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
@@ -157,7 +157,7 @@ typedef struct pg_fsm_t {
     error_response = error_response_key str0 @error_response_val @/error_response_val;
     notice_response = notice_response_key str0 @notice_response_val @/notice_response_val;
     ready_for_query = ready_for_query_inerror | ready_for_query_idle | ready_for_query_intrans;
-    row_description = str0 >row_description_beg @row_description_name @/row_description_name int4 @row_description_table int2 @row_description_column int4 @row_description_oid int2 @row_description_length int4 @row_description_mod int2 @row_description_format;
+    row_description = str0 >row_description_beg @row_description_name @/row_description_name int4 @row_description_table int2 @row_description_column int4 @row_description_oid int2 @row_description_length int4 @row_description_mod 0 0 @row_description_format;
 
     main :=
     ( "1" 0 0 0 4 @parse_complete
@@ -185,7 +185,6 @@ size_t pg_fsm_execute(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *user, co
     const unsigned char *b = p;
     %% write exec;
     if (fsm->cs == pg_fsm_error) (void)cb->error(user);
-    else if (fsm->cs < pg_fsm_first_final) (void)cb->first_final(user);
     return p - b;
 }
 

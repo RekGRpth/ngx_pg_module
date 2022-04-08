@@ -20,7 +20,6 @@ typedef struct {
     pg_fsm_cb close_complete;
     pg_fsm_cb empty_query_response;
     pg_fsm_cb error;
-    pg_fsm_cb first_final;
     pg_fsm_cb no_data;
     pg_fsm_cb parse_complete;
     pg_fsm_cb ready_for_query;
