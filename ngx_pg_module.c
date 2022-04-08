@@ -118,7 +118,7 @@ static int ngx_pg_fsm_error(ngx_pg_save_t *s) {
         ngx_http_upstream_t *u = r->upstream;
         b = &u->buffer;
     }
-    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d:%d:%c", i++, *p, *p);
+    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%d:%d:%c", i++, *p, *p);
     s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
     return s->rc;
 }
