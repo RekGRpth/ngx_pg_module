@@ -18,6 +18,7 @@ typedef struct {
     pg_fsm_cb backend_key_data;
     pg_fsm_cb bind_complete;
     pg_fsm_cb close_complete;
+    pg_fsm_cb copy_done;
     pg_fsm_cb empty_query_response;
     pg_fsm_cb error;
     pg_fsm_cb no_data;
@@ -33,6 +34,8 @@ typedef struct {
     pg_fsm_int4_cb backend_key_data_key;
     pg_fsm_int4_cb backend_key_data_pid;
     pg_fsm_int4_cb command_complete;
+    pg_fsm_int4_cb copy_data;
+    pg_fsm_int4_cb copy_out_response;
     pg_fsm_int4_cb data_row;
     pg_fsm_int4_cb error_response;
     pg_fsm_int4_cb function_call_response;

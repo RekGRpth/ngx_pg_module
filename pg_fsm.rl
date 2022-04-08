@@ -26,6 +26,9 @@ typedef struct pg_fsm_t {
     action close_complete { if (cb->close_complete(user)) fbreak; }
     action command_complete { if (cb->command_complete(user, fsm->int4 - 4)) fbreak; }
     action command_complete_val { if (fsm->string && cb->command_complete_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action copy_data { fsm->result_len = fsm->int4 - 4; if (cb->copy_data(user, fsm->result_len)) fbreak; }
+    action copy_done { if (cb->copy_done(user)) fbreak; }
+    action copy_out_response { if (cb->copy_out_response(user, fsm->int4 - 4)) fbreak; }
     action data_row_count { fsm->data_row_count = fsm->int2; if (cb->data_row_count(user, fsm->data_row_count)) fbreak; if (!fsm->data_row_count) fnext main; }
     action data_row { if (cb->data_row(user, fsm->int4 - 4)) fbreak; }
     action data_row_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->data_row_count) fnext data_row; }
@@ -123,9 +126,12 @@ typedef struct pg_fsm_t {
     | "2" 0 0 0 4 @bind_complete
     | "3" 0 0 0 4 @close_complete
     | "A" int4 @notification_response int4 @notification_response_pid str0 @notification_response_relname @/notification_response_relname str0 @notification_response_extra @/notification_response_extra
+    | "c" 0 0 0 4 @copy_done
     | "C" int4 @command_complete str0 @command_complete_val @/command_complete_val
+    | "d" int4 @copy_data result
     | "D" int4 @data_row int2 @data_row_count data_row **
     | "E" int4 @error_response error_response ** 0
+    | "H" int4 @copy_out_response 0 any{2} ( 0 0 ) **
     | "I" 0 0 0 4 @empty_query_response
     | "K" 0 0 0 12 @backend_key_data int4 @backend_key_data_pid int4 @backend_key_data_key
     | "n" 0 0 0 4 @no_data
@@ -135,7 +141,7 @@ typedef struct pg_fsm_t {
     | "T" int4 @row_description int2 @row_description_count row_description **
     | "V" int4 @function_call_response int4 @result_len result
     | "Z" 0 0 0 5 @ready_for_query ready_for_query
-    ) **;
+    ) ** $all;
 
     write data;
 }%%
