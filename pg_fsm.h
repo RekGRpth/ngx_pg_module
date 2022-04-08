@@ -49,8 +49,6 @@ typedef struct {
     pg_fsm_str_cb command_complete_val;
     pg_fsm_str_cb error_response_key;
     pg_fsm_str_cb error_response_val;
-    pg_fsm_str_cb notice_response_key;
-    pg_fsm_str_cb notice_response_val;
     pg_fsm_str_cb notification_response_extra;
     pg_fsm_str_cb notification_response_relname;
     pg_fsm_str_cb parameter_status_key;
