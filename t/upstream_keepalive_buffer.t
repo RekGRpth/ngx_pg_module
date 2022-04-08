@@ -960,12 +960,12 @@ result-1-1:
     }
 --- config
     location =/ {
-        add_header notice-file $pg_notice_file always;
-        add_header notice-function $pg_notice_function always;
-        add_header notice-nonlocalized $pg_notice_nonlocalized always;
-        add_header notice-primary $pg_notice_primary always;
-        add_header notice-severity $pg_notice_severity always;
-        add_header notice-sqlstate $pg_notice_sqlstate always;
+        add_header error-file $pg_error_file always;
+        add_header error-function $pg_error_function always;
+        add_header error-nonlocalized $pg_error_nonlocalized always;
+        add_header error-primary $pg_error_primary always;
+        add_header error-severity $pg_error_severity always;
+        add_header error-sqlstate $pg_error_sqlstate always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -980,15 +980,15 @@ result-1-1:
     }
 --- request
 GET /
---- notice_code: 200
+--- error_code: 200
 --- response_headers
 Content-Type: text/plain
-notice-file: pl_exec.c
-notice-function: exec_stmt_raise
-notice-nonlocalized: INFO
-notice-primary: 1
-notice-severity: INFO
-notice-sqlstate: 00000
+error-file: pl_exec.c
+error-function: exec_stmt_raise
+error-nonlocalized: INFO
+error-primary: 1
+error-severity: INFO
+error-sqlstate: 00000
 option-application-name: upstream
 option-client-encoding: UTF8
 option-integer-datetimes: on

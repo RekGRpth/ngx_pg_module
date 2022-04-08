@@ -1356,27 +1356,6 @@ static ngx_int_t ngx_pg_error_get_handler(ngx_http_request_t *r, ngx_http_variab
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_notice_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    v->not_found = 1;
-    ngx_http_upstream_t *u = r->upstream;
-    if (!u) return NGX_OK;
-    if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
-    ngx_pg_data_t *d = u->peer.data;
-    if (!d->errors) return NGX_OK;
-    ngx_pg_error_t *error = d->errors->elts;
-    ngx_str_t *name = (ngx_str_t *)data;
-    ngx_uint_t i;
-    for (i = 0; i < d->errors->nelts; i++) if (name->len - sizeof("pg_notice_") + 1 == error[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_notice_") - 1, error[i].key.data, error[i].key.len)) break;
-    if (i == d->errors->nelts) return NGX_OK;
-    v->data = error[i].val.data;
-    v->len = error[i].val.len;
-    v->valid = 1;
-    v->no_cacheable = 0;
-    v->not_found = 0;
-    return NGX_OK;
-}
-
 static ngx_int_t ngx_pg_field_format_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     v->not_found = 1;
@@ -1647,7 +1626,6 @@ static const ngx_http_variable_t ngx_pg_variables[] = {
   { ngx_string("pg_field_oid_"), NULL, ngx_pg_field_oid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_field_table_"), NULL, ngx_pg_field_table_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_nfields"), NULL, ngx_pg_nfields_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
-  { ngx_string("pg_notice_"), NULL, ngx_pg_notice_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_nresults"), NULL, ngx_pg_nresults_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
   { ngx_string("pg_option_"), NULL, ngx_pg_option_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_pid"), NULL, ngx_pg_pid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },

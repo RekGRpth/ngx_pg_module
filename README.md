@@ -206,31 +206,6 @@ add_header error_sqlstate $pg_error_sqlstate always;
 add_header error_statement $pg_error_statement always;
 add_header error_table $pg_error_table always;
 ```
-$pg_notice_
--------------
-* Syntax: $pg_notice_*name*
-
-Notice *name* from connection:
-```nginx
-add_header notice_column $pg_notice_column;
-add_header notice_constraint $pg_notice_constraint;
-add_header notice_context $pg_notice_context;
-add_header notice_datatype $pg_notice_datatype;
-add_header notice_detail $pg_notice_detail;
-add_header notice_file $pg_notice_file;
-add_header notice_function $pg_notice_function;
-add_header notice_hint $pg_notice_hint;
-add_header notice_internal $pg_notice_internal;
-add_header notice_line $pg_notice_line;
-add_header notice_nonlocalized $pg_notice_nonlocalized;
-add_header notice_primary $pg_notice_primary;
-add_header notice_query $pg_notice_query;
-add_header notice_schema $pg_notice_schema;
-add_header notice_severity $pg_notice_severity;
-add_header notice_sqlstate $pg_notice_sqlstate;
-add_header notice_statement $pg_notice_statement;
-add_header notice_table $pg_notice_table;
-```
 $pg_option_
 -------------
 * Syntax: $pg_option_*name*
