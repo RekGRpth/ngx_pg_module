@@ -141,7 +141,7 @@ typedef struct pg_fsm_t {
     | "T" int4 @row_description int2 @row_description_count row_description **
     | "V" int4 @function_call_response int4 @result_len result
     | "Z" 0 0 0 5 @ready_for_query ready_for_query
-    ) ** $all;
+    ) **;
 
     write data;
 }%%
