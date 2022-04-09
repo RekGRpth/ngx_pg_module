@@ -827,7 +827,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     switch ((rc = d->peer.get(pc, d->peer.data))) {
         case NGX_DONE: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = NGX_DONE"); break;
         case NGX_OK: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = NGX_OK"); break;
-        default: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = %d", rc); return rc; break;
+        default: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = %d", rc); return rc;
     }
     ngx_chain_t *cl = NULL;
     ngx_http_request_t *r = d->request;
@@ -841,7 +841,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             case NGX_AGAIN: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = NGX_AGAIN"); break;
             case NGX_DONE: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = NGX_DONE"); break;
             case NGX_OK: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = NGX_OK"); break;
-            default: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = %d", rc); return rc; break;
+            default: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = %d", rc); return rc;
         }
         pc->get = ngx_pg_peer_get;
         ngx_connection_t *c = pc->connection;
@@ -920,9 +920,9 @@ static ngx_int_t ngx_pg_process(ngx_pg_save_t *s) {
     ssize_t n;
     for ( ;; ) {
         switch ((n = c->recv(c, b->last, b->end - b->last))) {
-            case 0: ngx_log_error(NGX_LOG_ERR, c->log, 0, "upstream prematurely closed connection"); return NGX_ERROR; break;
-            case NGX_AGAIN: if (ngx_handle_read_event(c->read, 0) != NGX_OK) return NGX_ERROR; return NGX_OK; break;
-            case NGX_ERROR: return NGX_ERROR; break;
+            case 0: ngx_log_error(NGX_LOG_ERR, c->log, 0, "upstream prematurely closed connection"); return NGX_ERROR;
+            case NGX_AGAIN: if (ngx_handle_read_event(c->read, 0) != NGX_OK) return NGX_ERROR; return NGX_OK;
+            case NGX_ERROR: return NGX_ERROR;
         }
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "n = %d", n);
         b->last += n;
@@ -1008,7 +1008,7 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
             case NGX_AGAIN: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = NGX_AGAIN"); break;
             case NGX_DONE: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = NGX_DONE"); break;
             case NGX_OK: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = NGX_OK"); break;
-            default: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = %d", rc); return; break;
+            default: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = %d", rc); return;
         }
         ngx_connection_t *c = pc_->connection;
         if (!c) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!c"); return; }
