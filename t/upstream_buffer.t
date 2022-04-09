@@ -981,3 +981,48 @@ option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
 --- timeout: 60
+
+=== TEST 16:
+--- main_config
+    load_module /etc/nginx/modules/ngx_pg_module.so;
+--- http_config
+    upstream pg {
+        pg_opt application_name=upstream;
+        pg_opt database=postgres;
+        pg_opt user=postgres;
+        server unix:///run/postgresql/.s.PGSQL.5432;
+    }
+--- config
+    location =/ {
+        add_header complete $pg_complete always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
+        default_type text/csv;
+        pg_pas pg;
+        pg_sql "copy (select 34 as ab, 'qwe' as cde union select 89, null order by 1) to stdout with (format csv, header true)";
+        pg_upstream_buffer_size 1;
+    }
+--- request
+GET /?a=34&b=qwe&c=89
+--- error_code: 200
+--- response_headers
+complete: COPY 2
+Content-Length: 18
+Content-Type: text/csv
+option-application-name: upstream
+option-client-encoding: UTF8
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
+--- response_body eval
+"ab,cde\x{0a}34,qwe\x{0a}89,\x{0a}"
+--- timeout: 60
