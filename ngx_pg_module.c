@@ -914,8 +914,9 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
 }
 
 static ngx_int_t ngx_pg_process(ngx_pg_save_t *s) {
-    ngx_buf_t *b = &s->buffer;
     ngx_connection_t *c = s->connection;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
+    ngx_buf_t *b = &s->buffer;
     ssize_t n;
     for ( ;; ) {
         switch ((n = c->recv(c, b->last, b->end - b->last))) {
@@ -923,6 +924,7 @@ static ngx_int_t ngx_pg_process(ngx_pg_save_t *s) {
             case NGX_AGAIN: if (ngx_handle_read_event(c->read, 0) != NGX_OK) return NGX_ERROR; return NGX_OK; break;
             case NGX_ERROR: return NGX_ERROR; break;
         }
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "n = %d", n);
         b->last += n;
 //        ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, c->log, 0, "%d:%d:%c", i++, *p, *p);
         s->rc = NGX_OK;
@@ -942,7 +944,7 @@ static void ngx_pg_read_handler(ngx_event_t *ev) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
     ngx_connection_t *c = ev->data;
     ngx_pg_save_t *s = c->data;
-    if (ngx_pg_process(s) == NGX_OK) return;
+    if (!ev->timedout && ngx_pg_process(s) == NGX_OK) return;
     c->data = s->keep.data;
     s->keep.read_handler(ev);
     if (c->data == s->keep.data) c->data = s;
