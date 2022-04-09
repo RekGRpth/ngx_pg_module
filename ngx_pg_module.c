@@ -592,12 +592,12 @@ inline static ngx_chain_t *ngx_pg_write_byte(ngx_pool_t *p, uint32_t *size, size
     return cl;
 }
 
-inline static ngx_chain_t *ngx_pg_write_int1(ngx_pool_t *p, uint32_t *len, uint8_t c) {
+inline static ngx_chain_t *ngx_pg_write_int1(ngx_pool_t *p, uint32_t *size, uint8_t c) {
     ngx_chain_t *cl;
     if (!(cl = ngx_alloc_chain_link(p))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_alloc_chain_link"); return NULL; }
     if (!(cl->buf = ngx_create_temp_buf(p, sizeof(c)))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_create_temp_buf"); return NULL; }
     *cl->buf->last++ = c;
-    if (len) *len += sizeof(c);
+    if (size) *size += sizeof(c);
     return cl;
 }
 
@@ -637,10 +637,10 @@ inline static ngx_chain_t *ngx_pg_write_size(ngx_chain_t *cl, uint32_t size) {
 inline static ngx_chain_t *ngx_pg_write_str(ngx_pool_t *p, uint32_t *size, size_t len, const u_char *data) {
     ngx_chain_t *cl;
     if (!(cl = ngx_alloc_chain_link(p))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_alloc_chain_link"); return NULL; }
-    if (!(cl->buf = ngx_create_temp_buf(p, len + sizeof(u_char)))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_create_temp_buf"); return NULL; }
+    if (!(cl->buf = ngx_create_temp_buf(p, len + sizeof(uint8_t)))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_create_temp_buf"); return NULL; }
     if (len) cl->buf->last = ngx_copy(cl->buf->last, data, len);
     *cl->buf->last++ = 0;
-    if (size) *size += len + sizeof(u_char);
+    if (size) *size += len + sizeof(uint8_t);
     return cl;
 }
 
