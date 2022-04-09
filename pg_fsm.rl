@@ -76,7 +76,7 @@ typedef struct pg_fsm_t {
     action row_description_beg { if (cb->row_description_beg(user)) fbreak; }
     action row_description_column { if (cb->row_description_column(user, fsm->int2)) fbreak; }
     action row_description_count { fsm->row_description_count = fsm->int2; if (cb->row_description_count(user, fsm->row_description_count)) fbreak; if (!fsm->row_description_count) fnext main;}
-    action row_description_format { if (cb->row_description_format(user, 0)) fbreak; if (!--fsm->row_description_count) fnext main; }
+    action row_description_format { if (cb->row_description_format(user, 0)) fbreak; if (!--fsm->row_description_count) { if (cb->row_description_done(user)) fbreak; else fnext main; } }
     action row_description { if (cb->row_description(user, fsm->int4 - 4)) fbreak; }
     action row_description_length { if (cb->row_description_length(user, fsm->int2)) fbreak; }
     action row_description_mod { if (cb->row_description_mod(user, fsm->int4)) fbreak; }
