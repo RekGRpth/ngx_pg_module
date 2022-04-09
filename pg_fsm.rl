@@ -26,7 +26,7 @@ typedef struct pg_fsm_t {
     action close_complete { if (cb->close_complete(user)) fbreak; }
     action command_complete { if (cb->command_complete(user, fsm->int4 - 4)) fbreak; }
     action command_complete_val { if (fsm->string && cb->command_complete_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action copy_data { fsm->result_len = fsm->int4 - 4; if (cb->copy_data(user, fsm->result_len)) fbreak; }
+    action copy_data { fsm->result_len = fsm->int4 - 4; if (cb->result_len(user, fsm->result_len)) fbreak; }
     action copy_done { if (cb->copy_done(user)) fbreak; }
     action copy_out_response { if (cb->copy_out_response(user, fsm->int4 - 4)) fbreak; }
     action data_row_count { fsm->data_row_count = fsm->int2; if (cb->data_row_count(user, fsm->data_row_count)) fbreak; if (!fsm->data_row_count) fnext main; }

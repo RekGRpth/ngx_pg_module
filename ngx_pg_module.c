@@ -155,7 +155,12 @@ static int ngx_pg_fsm_command_complete_val(ngx_pg_save_t *s, size_t len, const u
     return s->rc;
 }
 
-static int ngx_pg_fsm_copy_data(ngx_pg_save_t *s, uint32_t len) {
+static int ngx_pg_fsm_copy_done(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return s->rc;
+}
+
+static int ngx_pg_fsm_copy_out_response(ngx_pg_save_t *s, uint32_t len) {
     if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     ngx_pg_data_t *d = s->data;
@@ -167,23 +172,6 @@ static int ngx_pg_fsm_copy_data(ngx_pg_save_t *s, uint32_t len) {
     ngx_memzero(results, sizeof(*results));
     ngx_str_t *str;
     if (ngx_array_init(results, r->pool, 1, sizeof(*str)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_array_init != NGX_OK"); s->rc = NGX_ERROR; return s->rc; }
-    results = &results[d->results->nelts - 1];
-    if (!(str = ngx_array_push(results))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
-    ngx_memzero(str, sizeof(*str));
-    if (len == (uint32_t)-1) return s->rc;
-    if (!len) { ngx_str_set(str, ""); return s->rc; }
-    if (!(str->data = ngx_pnalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
-    return s->rc;
-}
-
-static int ngx_pg_fsm_copy_done(ngx_pg_save_t *s) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    return s->rc;
-}
-
-static int ngx_pg_fsm_copy_out_response(ngx_pg_save_t *s, uint32_t len) {
-    if (!len) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!len"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     return s->rc;
 }
 
@@ -543,7 +531,6 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .close_complete = (pg_fsm_cb)ngx_pg_fsm_close_complete,
     .command_complete = (pg_fsm_int4_cb)ngx_pg_fsm_command_complete,
     .command_complete_val = (pg_fsm_str_cb)ngx_pg_fsm_command_complete_val,
-    .copy_data = (pg_fsm_int4_cb)ngx_pg_fsm_copy_data,
     .copy_done = (pg_fsm_cb)ngx_pg_fsm_copy_done,
     .copy_out_response = (pg_fsm_int4_cb)ngx_pg_fsm_copy_out_response,
     .data_row_count = (pg_fsm_int2_cb)ngx_pg_fsm_data_row_count,
