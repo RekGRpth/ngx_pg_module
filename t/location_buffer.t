@@ -28,7 +28,6 @@ __DATA__
         pg_opt application_name=location;
         pg_opt database=postgres;
         pg_opt user=postgres;
-        pg_out value;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select 1";
         pg_upstream_buffer_size 1;

@@ -1159,7 +1159,15 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
 #endif
         u->headers_in.content_length_n = 0;
         ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-        if (plcf->out.handler) s->rc = plcf->out.handler(r);
+        if (plcf->out.handler) s->rc = plcf->out.handler(r); else if (d->results && d->results->nelts) {
+            ngx_array_t *results = d->results->elts;
+            for (ngx_uint_t i = 0; i < d->results->nelts; i++) {
+                if (i || plcf->out.header) if (ngx_pg_add_response(r, sizeof("\n") - 1, (uint8_t *)"\n") != NGX_OK) return NGX_ERROR;
+                if (!results[i].nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!nfields"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
+                ngx_str_t *str = results[i].elts;
+                for (ngx_uint_t j = 0; j < results[i].nelts; j++) if (str[j].data) if (ngx_pg_add_response(r, str[j].len, str[j].data) != NGX_OK) return NGX_ERROR;
+            }
+        }
     }
     return s->rc;
 }
@@ -1804,20 +1812,6 @@ static ngx_int_t ngx_pg_out_plain_handler(ngx_http_request_t *r) {
     return ngx_pg_out_csv_plain_handler(r, sizeof("text/plain") - 1, (u_char *)"text/plain");
 }
 
-static ngx_int_t ngx_pg_out_value_handler(ngx_http_request_t *r) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    ngx_http_upstream_t *u = r->upstream;
-    if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
-    ngx_pg_data_t *d = u->peer.data;
-    if (!d->results) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!results"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
-    if (d->results->nelts != 1) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "nresults != 1"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
-    ngx_array_t *results = d->results->elts;
-    if (results[0].nelts != 1) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "nfields != 1"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
-    ngx_str_t *str = results[0].elts;
-    if (ngx_pg_add_response(r, str[0].len, str[0].data) != NGX_OK) return NGX_ERROR;
-    return NGX_OK;
-}
-
 static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     ngx_pg_arg_t *arg;
@@ -1870,12 +1864,11 @@ static char *ngx_pg_out_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     } h[] = {
         { ngx_string("csv"), ngx_pg_out_csv_handler },
         { ngx_string("plain"), ngx_pg_out_plain_handler },
-        { ngx_string("value"), ngx_pg_out_value_handler },
         { ngx_null_string, NULL }
     };
     ngx_uint_t i;
     for (i = 0; h[i].name.len; i++) if (h[i].name.len == str[1].len && !ngx_strncmp(h[i].name.data, str[1].data, str[1].len)) break;
-    if (!h[i].name.len) return "format must be \"plain\", \"csv\" or \"value\"";
+    if (!h[i].name.len) return "format must be \"plain\" or \"csv\"";
     plcf->out.handler = h[i].handler;
     plcf->out.header = 1;
     plcf->out.string = 1;

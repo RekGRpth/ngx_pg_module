@@ -32,7 +32,6 @@ __DATA__
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         add_header result-0-0 $pg_result_0_0 always;
-        pg_out value;
         pg_pas pg;
         pg_sql "select 1";
         pg_upstream_buffer_size 1;

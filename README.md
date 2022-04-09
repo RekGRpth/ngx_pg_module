@@ -83,14 +83,12 @@ Sets function oid (nginx variables allowed) (with using [evaluate](https://githu
 location =/function {
     pg_arg $arg_name;
     pg_arg $arg_schema;
-    pg_out value;
     pg_pas pg;
     pg_sql "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2";
 }
 location =/ {
     evaluate $now_oid /function?schema=pg_catalog&name=now;
     pg_fun $now_oid;
-    pg_out value;
     pg_pas pg;
 }
 ```
@@ -108,7 +106,7 @@ upstream pg {
 ```
 pg_out
 -------------
-* Syntax: **pg_out** *csv* | *plain* | *value*
+* Syntax: **pg_out** *csv* | *plain*
 * Default: --
 * Context: location, if in location
 
@@ -120,10 +118,6 @@ location =/ {
 # or
 location =/ {
     pg_out plain; # set plain output
-}
-# or
-location =/ {
-    pg_out value; # set value output (only one row and one col in result allowed)
 }
 ```
 pg_pas
