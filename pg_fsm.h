@@ -11,7 +11,7 @@ typedef enum {
 typedef int (*pg_fsm_cb) (void *user);
 typedef int (*pg_fsm_int2_cb) (void *user, uint16_t n);
 typedef int (*pg_fsm_int4_cb) (void *user, uint32_t n);
-typedef int (*pg_fsm_str_cb) (void *user, size_t len, const unsigned char *data);
+typedef int (*pg_fsm_str_cb) (void *user, size_t len, const uint8_t *data);
 
 typedef struct {
     pg_fsm_cb authentication_ok;
