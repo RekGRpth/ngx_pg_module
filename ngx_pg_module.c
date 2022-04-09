@@ -937,7 +937,7 @@ static ngx_int_t ngx_pg_process(ngx_pg_save_t *s) {
         }
         break;
     }
-    return NGX_OK;
+    return s->rc;
 }
 
 static void ngx_pg_read_handler(ngx_event_t *ev) {
