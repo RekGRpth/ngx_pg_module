@@ -8,6 +8,29 @@ typedef enum {
     pg_ready_for_query_state_intrans,
 } pg_ready_for_query_state_t;
 
+typedef enum {
+    pg_command_state_unknown = 0,
+    pg_command_state_authentication_ok,
+    pg_command_state_backend_key_data,
+    pg_command_state_bind_complete,
+    pg_command_state_close_complete,
+    pg_command_state_command_complete,
+    pg_command_state_copy_data,
+    pg_command_state_copy_done,
+    pg_command_state_copy_out_response,
+    pg_command_state_data_row,
+    pg_command_state_empty_query_response,
+    pg_command_state_error_response,
+    pg_command_state_function_call_response,
+    pg_command_state_no_data,
+    pg_command_state_notice_response,
+    pg_command_state_notification_response,
+    pg_command_state_parameter_status,
+    pg_command_state_parse_complete,
+    pg_command_state_ready_for_query,
+    pg_command_state_row_description,
+} pg_command_state_t;
+
 typedef int (*pg_fsm_cb) (void *user);
 typedef int (*pg_fsm_int2_cb) (void *user, uint16_t n);
 typedef int (*pg_fsm_int4_cb) (void *user, uint32_t n);
