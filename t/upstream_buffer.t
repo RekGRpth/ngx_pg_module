@@ -35,6 +35,8 @@ __DATA__
         pg_pas pg;
         pg_sql "select 1";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /
@@ -81,6 +83,8 @@ result-0-0: 1
         pg_pas pg;
         pg_sql "select 1/0";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /
@@ -132,6 +136,8 @@ error-sqlstate: 22012
         pg_pas pg;
         pg_sql "select $1 as ab, $2 as cde";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /?a=12&b=345
@@ -195,6 +201,8 @@ result-0-1: 345
         pg_pas pg;
         pg_sql "select $1 as ab union select $2 order by 1";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /?a=12&b=345
@@ -262,6 +270,8 @@ result-1-0: 345
         pg_pas pg;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /?a=12&b=345&c=67&d=89
@@ -335,6 +345,8 @@ result-1-1: 89
         pg_pas pg;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 2";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /?a=34&b=qwe&c=89
@@ -408,6 +420,8 @@ result-1-1: 89
         pg_pas pg;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /?a=34&b=89&c=qwe
@@ -481,6 +495,8 @@ result-1-1: qwe
         pg_pas pg;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /?a=34&b=qwe&c=89
@@ -550,6 +566,8 @@ result-1-1:
         pg_pas pg;
         pg_sql "select $1 as ab, $2 as cde";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /?a=12&b=345
@@ -613,6 +631,8 @@ result-0-1: 345
         pg_pas pg;
         pg_sql "select $1 as ab union select $2 order by 1";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /?a=12&b=345
@@ -680,6 +700,8 @@ result-1-0: 345
         pg_pas pg;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /?a=12&b=345&c=67&d=89
@@ -753,6 +775,8 @@ result-1-1: 89
         pg_pas pg;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 2";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /?a=34&b=qwe&c=89
@@ -826,6 +850,8 @@ result-1-1: 89
         pg_pas pg;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /?a=34&b=89&c=qwe
@@ -899,6 +925,8 @@ result-1-1: qwe
         pg_pas pg;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /?a=34&b=qwe&c=89
@@ -960,6 +988,8 @@ result-1-1:
         pg_pas pg;
         pg_sql "do $$begin raise info '%', 1;end;$$";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /
@@ -1007,6 +1037,8 @@ option-standard-conforming-strings: on
         pg_pas pg;
         pg_sql "copy (select 34 as ab, 'qwe' as cde union select 89, null order by 1) to stdout with (format csv, header true)";
         pg_upstream_buffer_size 1;
+        pg_upstream_buffers 8 1;
+
     }
 --- request
 GET /?a=34&b=qwe&c=89
