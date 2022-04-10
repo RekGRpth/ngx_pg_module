@@ -67,10 +67,10 @@ typedef struct pg_fsm_t {
     action parameter_status_key { if (fsm->string && cb->parameter_status_key(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parameter_status_val { if (fsm->string && cb->parameter_status_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parse_complete { if (cb->parse_complete(user)) fbreak; }
-    action ready_for_query_idle { if (cb->ready_for_query_state(user, pg_ready_state_idle)) fbreak; }
+    action ready_for_query_idle { if (cb->ready_for_query_state(user, pg_ready_for_query_state_idle)) fbreak; }
     action ready_for_query { if (cb->ready_for_query(user)) fbreak; }
-    action ready_for_query_inerror { if (cb->ready_for_query_state(user, pg_ready_state_inerror)) fbreak; }
-    action ready_for_query_intrans { if (cb->ready_for_query_state(user, pg_ready_state_intrans)) fbreak; }
+    action ready_for_query_inerror { if (cb->ready_for_query_state(user, pg_ready_for_query_state_inerror)) fbreak; }
+    action ready_for_query_intrans { if (cb->ready_for_query_state(user, pg_ready_for_query_state_intrans)) fbreak; }
     action result_len { fsm->result_len = fsm->int4; if (cb->result_len(user, fsm->result_len)) fbreak; if (!fsm->result_len || fsm->result_len == (uint32_t)-1) fnext main; }
     action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { fhold; fnext main; } } }
     action row_description_beg { if (cb->row_description_beg(user)) fbreak; }

@@ -65,7 +65,7 @@ typedef struct {
     ngx_pg_data_t *data;
     ngx_uint_t rc;
     pg_fsm_t *fsm;
-    pg_ready_state_t state;
+    pg_ready_for_query_state_t state;
     uint32_t key;
     uint32_t pid;
     struct {
@@ -1151,7 +1151,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     if (s->rc == NGX_OK) {
         char buf[1];
         ngx_connection_t *c = s->connection;
-        s->rc = d->busy || s->state == pg_ready_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
+        s->rc = d->busy || s->state == pg_ready_for_query_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
     }
     if (b->pos == b->last) b->pos = b->last = b->start;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %d", s->rc);
@@ -1215,8 +1215,8 @@ static ngx_int_t ngx_pg_pipe_output_filter(ngx_http_request_t *r, ngx_chain_t *c
     ngx_pg_save_t *s = d->save;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "d->busy = %d", d->busy);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "s->state = %d", s->state);
-//    p->upstream_done = d->busy || s->state == pg_ready_state_unknown ? 0 : 1;
-    if (!d->busy && s->state != pg_ready_state_unknown) p->length = 0;
+//    p->upstream_done = d->busy || s->state == pg_ready_for_query_state_unknown ? 0 : 1;
+    if (!d->busy && s->state != pg_ready_for_query_state_unknown) p->length = 0;
     return rc;
 }
 
@@ -1248,7 +1248,7 @@ static ngx_int_t ngx_pg_input_filter(ngx_http_request_t *r, ssize_t bytes) {
     s->rc = NGX_OK;
     while (b->last < last && s->rc == NGX_OK) b->last += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->last, last, b->end);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %d", s->rc);
-    if (!d->busy && s->state != pg_ready_state_unknown) u->length = 0;
+    if (!d->busy && s->state != pg_ready_for_query_state_unknown) u->length = 0;
     return s->rc;
 }
 

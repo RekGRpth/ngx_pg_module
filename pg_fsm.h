@@ -2,11 +2,11 @@
 #include <stdint.h>
 
 typedef enum {
-    pg_ready_state_unknown = 0,
-    pg_ready_state_idle,
-    pg_ready_state_inerror,
-    pg_ready_state_intrans,
-} pg_ready_state_t;
+    pg_ready_for_query_state_unknown = 0,
+    pg_ready_for_query_state_idle,
+    pg_ready_for_query_state_inerror,
+    pg_ready_for_query_state_intrans,
+} pg_ready_for_query_state_t;
 
 typedef int (*pg_fsm_cb) (void *user);
 typedef int (*pg_fsm_int2_cb) (void *user, uint16_t n);
