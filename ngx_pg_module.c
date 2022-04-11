@@ -3,6 +3,11 @@
 
 ngx_module_t ngx_pg_module;
 
+typedef enum {
+    ngx_pg_out_type_csv = 1,
+    ngx_pg_out_type_plain,
+} ngx_pg_out_type_t;
+
 typedef struct {
     ngx_http_complex_value_t argument;
     ngx_http_complex_value_t type;
@@ -12,8 +17,6 @@ typedef struct {
     ngx_str_t argument;
     ngx_uint_t type;
 } ngx_pg_value_t;
-
-typedef ngx_int_t (*ngx_pg_out_handler_pt) (ngx_http_request_t *r);
 
 typedef struct {
     ngx_array_t *arguments;
@@ -28,7 +31,7 @@ typedef struct {
     struct {
         ngx_flag_t header;
         ngx_flag_t string;
-        ngx_pg_out_handler_pt handler;
+        ngx_pg_out_type_t type;
         ngx_str_t null;
         u_char delimiter;
         u_char escape;
@@ -1142,6 +1145,75 @@ static ngx_int_t ngx_pg_out_handler(ngx_http_request_t *r, size_t len, const uin
     return NGX_OK;
 }
 
+inline static ngx_flag_t ngx_pg_is_number(size_t len, const uint8_t *data) {
+    for (ngx_flag_t point = 0; len--; data++) {
+        if (*data == '.') {
+            if (point) return 0;
+            point = 1;
+            continue;
+        }
+        if (*data < '0' || *data > '9') return 0;
+    }
+    return 1;
+}
+
+static ngx_int_t ngx_pg_out_csv_plain_handler(ngx_http_request_t *r) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    r->headers_out.content_type_len = r->headers_out.content_type.len;
+    ngx_http_upstream_t *u = r->upstream;
+    if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
+    ngx_pg_data_t *d = u->peer.data;
+    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
+    if (plcf->out.header && d->fields) {
+        if (!d->fields->nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!nfields"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
+        ngx_pg_field_t *field = d->fields->elts;
+        for (ngx_uint_t i = 0; i < d->fields->nelts; i++) {
+            if (i) if (ngx_pg_out_handler(r, sizeof(plcf->out.delimiter), &plcf->out.delimiter) != NGX_OK) return NGX_ERROR;
+            if (plcf->out.quote) if (ngx_pg_out_handler(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
+            if (plcf->out.quote && plcf->out.escape) for (ngx_uint_t k = 0; k < field[i].name.len; k++) {
+                if (field[i].name.data[k] == plcf->out.quote) if (ngx_pg_out_handler(r, sizeof(plcf->out.escape), &plcf->out.escape) != NGX_OK) return NGX_ERROR;
+                if (ngx_pg_out_handler(r, sizeof(field[i].name.data[k]), &field[i].name.data[k]) != NGX_OK) return NGX_ERROR;
+            } else if (ngx_pg_out_handler(r, field[i].name.len, field[i].name.data) != NGX_OK) return NGX_ERROR;
+            if (plcf->out.quote) if (ngx_pg_out_handler(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
+        }
+    }
+    if (!d->results) return NGX_OK;
+    if (!d->results->nelts) return NGX_OK;
+    ngx_array_t *results = d->results->elts;
+    for (ngx_uint_t i = 0; i < d->results->nelts; i++) {
+        if (i || plcf->out.header) if (ngx_pg_out_handler(r, sizeof("\n") - 1, (uint8_t *)"\n") != NGX_OK) return NGX_ERROR;
+        if (!results[i].nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!nfields"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
+        ngx_str_t *str = results[i].elts;
+        for (ngx_uint_t j = 0; j < results[i].nelts; j++) {
+            if (j) if (ngx_pg_out_handler(r, sizeof(plcf->out.delimiter), &plcf->out.delimiter) != NGX_OK) return NGX_ERROR;
+            if (!str[j].data) {
+                if (plcf->out.null.len) if (ngx_pg_out_handler(r, plcf->out.null.len, plcf->out.null.data) != NGX_OK) return NGX_ERROR;
+            } else {
+                ngx_flag_t string = plcf->out.string && ngx_pg_is_number(str[j].len, str[j].data);
+                if (!string && plcf->out.quote) if (ngx_pg_out_handler(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
+                if (!string && plcf->out.quote && plcf->out.escape) for (ngx_uint_t k = 0; k < str[j].len; k++) {
+                    if (str[j].data[k] == plcf->out.quote) if (ngx_pg_out_handler(r, sizeof(plcf->out.escape), &plcf->out.escape) != NGX_OK) return NGX_ERROR;
+                    if (ngx_pg_out_handler(r, sizeof(str[j].data[k]), &str[j].data[k]) != NGX_OK) return NGX_ERROR;
+                } else if (ngx_pg_out_handler(r, str[j].len, str[j].data) != NGX_OK) return NGX_ERROR;
+                if (!string && plcf->out.quote) if (ngx_pg_out_handler(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
+            }
+        }
+    }
+    return NGX_OK;
+}
+
+static ngx_int_t ngx_pg_out_csv_handler(ngx_http_request_t *r) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    ngx_str_set(&r->headers_out.content_type, "text/csv");
+    return ngx_pg_out_csv_plain_handler(r);
+}
+
+static ngx_int_t ngx_pg_out_plain_handler(ngx_http_request_t *r) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    ngx_str_set(&r->headers_out.content_type, "text/plain");
+    return ngx_pg_out_csv_plain_handler(r);
+}
+
 static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
@@ -1167,30 +1239,21 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     }
     if (b->pos == b->last) b->pos = b->last = b->start;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %d", s->rc);
-    if (s->rc == NGX_OK && u->headers_in.status_n == NGX_HTTP_INTERNAL_SERVER_ERROR && d->errors && d->errors->nelts) {
-        s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
-#if (NGX_DEBUG)
-        ngx_pg_error_t *error = d->errors->elts;
-        for (ngx_uint_t i = 0; i < d->errors->nelts; i++) ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%V = %V", &error[i].key, &error[i].val);
-#endif
-    }
+    if (s->rc == NGX_OK && u->headers_in.status_n == NGX_HTTP_INTERNAL_SERVER_ERROR && d->errors && d->errors->nelts) s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
     if (s->rc == NGX_OK) {
-#if (NGX_DEBUG)
-        if (s->options) {
-            ngx_pg_option_t *option = s->options->elts;
-            for (ngx_uint_t i = 0; i < s->options->nelts; i++) ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%V = %V", &option[i].key, &option[i].val);
-        }
-#endif
         u->headers_in.content_length_n = 0;
         ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-        if (plcf->out.handler) s->rc = plcf->out.handler(r); else if (d->results && d->results->nelts) {
-            ngx_array_t *results = d->results->elts;
-            for (ngx_uint_t i = 0; i < d->results->nelts; i++) {
-                if (i || plcf->out.header) if (ngx_pg_out_handler(r, sizeof("\n") - 1, (uint8_t *)"\n") != NGX_OK) return NGX_ERROR;
-                if (!results[i].nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!nfields"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
-                ngx_str_t *str = results[i].elts;
-                for (ngx_uint_t j = 0; j < results[i].nelts; j++) if (str[j].data) if (ngx_pg_out_handler(r, str[j].len, str[j].data) != NGX_OK) return NGX_ERROR;
-            }
+        switch (plcf->out.type) {
+            case ngx_pg_out_type_csv: s->rc = ngx_pg_out_csv_handler(r); break;
+            case ngx_pg_out_type_plain: s->rc = ngx_pg_out_plain_handler(r); break;
+            default: if (d->results && d->results->nelts) {
+                ngx_array_t *results = d->results->elts;
+                for (ngx_uint_t i = 0; i < d->results->nelts; i++) {
+                    if (!results[i].nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!nfields"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+                    ngx_str_t *str = results[i].elts;
+                    for (ngx_uint_t j = 0; j < results[i].nelts; j++) if (str[j].data) if (ngx_pg_out_handler(r, str[j].len, str[j].data) != NGX_OK) { s->rc = NGX_ERROR; return s->rc; }
+                }
+            } break;
         }
     }
     return s->rc;
@@ -1319,8 +1382,8 @@ static void *ngx_pg_create_loc_conf(ngx_conf_t *cf) {
     ngx_pg_loc_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
     if (!conf) return NULL;
     conf->options = NGX_CONF_UNSET_PTR;
-    conf->upstream.buffer_size = NGX_CONF_UNSET_SIZE;
     conf->upstream.buffering = NGX_CONF_UNSET;
+    conf->upstream.buffer_size = NGX_CONF_UNSET_SIZE;
     conf->upstream.busy_buffers_size_conf = NGX_CONF_UNSET_SIZE;
     conf->upstream.connect_timeout = NGX_CONF_UNSET_MSEC;
     conf->upstream.ignore_client_abort = NGX_CONF_UNSET;
@@ -1767,75 +1830,6 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
     return NGX_OK;
 }
 
-inline static ngx_flag_t ngx_pg_is_number(size_t len, const uint8_t *data) {
-    for (ngx_flag_t point = 0; len--; data++) {
-        if (*data == '.') {
-            if (point) return 0;
-            point = 1;
-            continue;
-        }
-        if (*data < '0' || *data > '9') return 0;
-    }
-    return 1;
-}
-
-static ngx_int_t ngx_pg_out_csv_plain_handler(ngx_http_request_t *r) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    r->headers_out.content_type_len = r->headers_out.content_type.len;
-    ngx_http_upstream_t *u = r->upstream;
-    if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
-    ngx_pg_data_t *d = u->peer.data;
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (plcf->out.header && d->fields) {
-        if (!d->fields->nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!nfields"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
-        ngx_pg_field_t *field = d->fields->elts;
-        for (ngx_uint_t i = 0; i < d->fields->nelts; i++) {
-            if (i) if (ngx_pg_out_handler(r, sizeof(plcf->out.delimiter), &plcf->out.delimiter) != NGX_OK) return NGX_ERROR;
-            if (plcf->out.quote) if (ngx_pg_out_handler(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
-            if (plcf->out.quote && plcf->out.escape) for (ngx_uint_t k = 0; k < field[i].name.len; k++) {
-                if (field[i].name.data[k] == plcf->out.quote) if (ngx_pg_out_handler(r, sizeof(plcf->out.escape), &plcf->out.escape) != NGX_OK) return NGX_ERROR;
-                if (ngx_pg_out_handler(r, sizeof(field[i].name.data[k]), &field[i].name.data[k]) != NGX_OK) return NGX_ERROR;
-            } else if (ngx_pg_out_handler(r, field[i].name.len, field[i].name.data) != NGX_OK) return NGX_ERROR;
-            if (plcf->out.quote) if (ngx_pg_out_handler(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
-        }
-    }
-    if (!d->results) return NGX_OK;
-    if (!d->results->nelts) return NGX_OK;
-    ngx_array_t *results = d->results->elts;
-    for (ngx_uint_t i = 0; i < d->results->nelts; i++) {
-        if (i || plcf->out.header) if (ngx_pg_out_handler(r, sizeof("\n") - 1, (uint8_t *)"\n") != NGX_OK) return NGX_ERROR;
-        if (!results[i].nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!nfields"); return NGX_HTTP_UPSTREAM_INVALID_HEADER; }
-        ngx_str_t *str = results[i].elts;
-        for (ngx_uint_t j = 0; j < results[i].nelts; j++) {
-            if (j) if (ngx_pg_out_handler(r, sizeof(plcf->out.delimiter), &plcf->out.delimiter) != NGX_OK) return NGX_ERROR;
-            if (!str[j].data) {
-                if (plcf->out.null.len) if (ngx_pg_out_handler(r, plcf->out.null.len, plcf->out.null.data) != NGX_OK) return NGX_ERROR;
-            } else {
-                ngx_flag_t string = plcf->out.string && ngx_pg_is_number(str[j].len, str[j].data);
-                if (!string && plcf->out.quote) if (ngx_pg_out_handler(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
-                if (!string && plcf->out.quote && plcf->out.escape) for (ngx_uint_t k = 0; k < str[j].len; k++) {
-                    if (str[j].data[k] == plcf->out.quote) if (ngx_pg_out_handler(r, sizeof(plcf->out.escape), &plcf->out.escape) != NGX_OK) return NGX_ERROR;
-                    if (ngx_pg_out_handler(r, sizeof(str[j].data[k]), &str[j].data[k]) != NGX_OK) return NGX_ERROR;
-                } else if (ngx_pg_out_handler(r, str[j].len, str[j].data) != NGX_OK) return NGX_ERROR;
-                if (!string && plcf->out.quote) if (ngx_pg_out_handler(r, sizeof(plcf->out.quote), &plcf->out.quote) != NGX_OK) return NGX_ERROR;
-            }
-        }
-    }
-    return NGX_OK;
-}
-
-static ngx_int_t ngx_pg_out_csv_handler(ngx_http_request_t *r) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    ngx_str_set(&r->headers_out.content_type, "text/csv");
-    return ngx_pg_out_csv_plain_handler(r);
-}
-
-static ngx_int_t ngx_pg_out_plain_handler(ngx_http_request_t *r) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
-    ngx_str_set(&r->headers_out.content_type, "text/plain");
-    return ngx_pg_out_csv_plain_handler(r);
-}
-
 static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     ngx_pg_arg_t *arg;
@@ -1880,30 +1874,30 @@ static char *ngx_pg_opt_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 static char *ngx_pg_out_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->out.handler) return "duplicate";
+    if (plcf->out.type) return "duplicate";
     ngx_str_t *str = cf->args->elts;
-    static const struct {
-        ngx_str_t name;
-        ngx_pg_out_handler_pt handler;
-    } h[] = {
-        { ngx_string("csv"), ngx_pg_out_csv_handler },
-        { ngx_string("plain"), ngx_pg_out_plain_handler },
-        { ngx_null_string, NULL }
+    static const ngx_conf_enum_t t[] = {
+        { ngx_string("csv"), ngx_pg_out_type_csv },
+        { ngx_string("plain"), ngx_pg_out_type_plain },
+        { ngx_null_string, 0 }
     };
     ngx_uint_t i;
-    for (i = 0; h[i].name.len; i++) if (h[i].name.len == str[1].len && !ngx_strncmp(h[i].name.data, str[1].data, str[1].len)) break;
-    if (!h[i].name.len) return "format must be \"plain\" or \"csv\"";
-    plcf->out.handler = h[i].handler;
+    for (i = 0; t[i].name.len; i++) if (t[i].name.len == str[1].len && !ngx_strncmp(t[i].name.data, str[1].data, str[1].len)) break;
+    if (!t[i].name.len) return "must be \"plain\" or \"csv\"";
+    plcf->out.type = t[i].value;
     plcf->out.header = 1;
     plcf->out.string = 1;
-    if (plcf->out.handler == ngx_pg_out_csv_handler) {
-        ngx_str_set(&plcf->out.null, "");
-        plcf->out.delimiter = ',';
-        plcf->out.escape = '"';
-        plcf->out.quote = '"';
-    } else if (plcf->out.handler == ngx_pg_out_plain_handler) {
-        ngx_str_set(&plcf->out.null, "\\N");
-        plcf->out.delimiter = '\t';
+    switch ((plcf->out.type = t[i].value)) {
+        case ngx_pg_out_type_csv: {
+            ngx_str_set(&plcf->out.null, "");
+            plcf->out.delimiter = ',';
+            plcf->out.escape = '"';
+            plcf->out.quote = '"';
+        } break;
+        case ngx_pg_out_type_plain: {
+            ngx_str_set(&plcf->out.null, "\\N");
+            plcf->out.delimiter = '\t';
+        } break;
     }
     static const ngx_conf_enum_t e[] = {
         { ngx_string("off"), 0 },
@@ -1916,42 +1910,40 @@ static char *ngx_pg_out_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     };
     ngx_uint_t j;
     for (i = 2; i < cf->args->nelts; i++) {
-        if (plcf->out.handler == ngx_pg_out_csv_handler || plcf->out.handler == ngx_pg_out_plain_handler) {
-            if (str[i].len > sizeof("delimiter=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"delimiter=", sizeof("delimiter=") - 1)) {
-                if (!(str[i].len - (sizeof("delimiter=") - 1))) return "empty \"delimiter\" value";
-                if (str[i].len - (sizeof("delimiter=") - 1) > 1) return "\"delimiter\" value must be one character";
-                plcf->out.delimiter = str[i].data[sizeof("delimiter=") - 1];
-                continue;
-            }
-            if (str[i].len >= sizeof("escape=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"escape=", sizeof("escape=") - 1)) {
-                if (!(str[i].len - (sizeof("escape=") - 1))) { plcf->out.escape = '\0'; continue; }
-                else if (str[i].len > 1) return "\"escape\" value must be one character";
-                plcf->out.escape = str[i].data[sizeof("escape=") - 1];
-                continue;
-            }
-            if (str[i].len > sizeof("header=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"header=", sizeof("header=") - 1)) {
-                for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("header=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("header=") - 1], str[i].len - (sizeof("header=") - 1))) break;
-                if (!e[j].name.len) return "\"header\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
-                plcf->out.header = e[j].value;
-                continue;
-            }
-            if (str[i].len > sizeof("null=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"null=", sizeof("null=") - 1)) {
-                if (!(plcf->out.null.len = str[i].len - (sizeof("null=") - 1))) return "empty \"null\" value";
-                plcf->out.null.data = &str[i].data[sizeof("null=") - 1];
-                continue;
-            }
-            if (str[i].len >= sizeof("quote=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"quote=", sizeof("quote=") - 1)) {
-                if (!(str[i].len - (sizeof("quote=") - 1))) { plcf->out.quote = '\0'; continue; }
-                else if (str[i].len - (sizeof("quote=") - 1) > 1) return "\"quote\" value must be one character";
-                plcf->out.quote = str[i].data[sizeof("quote=") - 1];
-                continue;
-            }
-            if (str[i].len > sizeof("string=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"string=", sizeof("string=") - 1)) {
-                for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("string=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("string=") - 1], str[i].len - (sizeof("string=") - 1))) break;
-                if (!e[j].name.len) return "\"string\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
-                plcf->out.string = e[j].value;
-                continue;
-            }
+        if (str[i].len > sizeof("delimiter=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"delimiter=", sizeof("delimiter=") - 1)) {
+            if (!(str[i].len - (sizeof("delimiter=") - 1))) return "empty \"delimiter\" value";
+            if (str[i].len - (sizeof("delimiter=") - 1) > 1) return "\"delimiter\" value must be one character";
+            plcf->out.delimiter = str[i].data[sizeof("delimiter=") - 1];
+            continue;
+        }
+        if (str[i].len >= sizeof("escape=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"escape=", sizeof("escape=") - 1)) {
+            if (!(str[i].len - (sizeof("escape=") - 1))) { plcf->out.escape = '\0'; continue; }
+            else if (str[i].len > 1) return "\"escape\" value must be one character";
+            plcf->out.escape = str[i].data[sizeof("escape=") - 1];
+            continue;
+        }
+        if (str[i].len > sizeof("header=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"header=", sizeof("header=") - 1)) {
+            for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("header=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("header=") - 1], str[i].len - (sizeof("header=") - 1))) break;
+            if (!e[j].name.len) return "\"header\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
+            plcf->out.header = e[j].value;
+            continue;
+        }
+        if (str[i].len > sizeof("null=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"null=", sizeof("null=") - 1)) {
+            if (!(plcf->out.null.len = str[i].len - (sizeof("null=") - 1))) return "empty \"null\" value";
+            plcf->out.null.data = &str[i].data[sizeof("null=") - 1];
+            continue;
+        }
+        if (str[i].len >= sizeof("quote=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"quote=", sizeof("quote=") - 1)) {
+            if (!(str[i].len - (sizeof("quote=") - 1))) { plcf->out.quote = '\0'; continue; }
+            else if (str[i].len - (sizeof("quote=") - 1) > 1) return "\"quote\" value must be one character";
+            plcf->out.quote = str[i].data[sizeof("quote=") - 1];
+            continue;
+        }
+        if (str[i].len > sizeof("string=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"string=", sizeof("string=") - 1)) {
+            for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("string=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("string=") - 1], str[i].len - (sizeof("string=") - 1))) break;
+            if (!e[j].name.len) return "\"string\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
+            plcf->out.string = e[j].value;
+            continue;
         }
         return "invalid additional parameter";
     }
