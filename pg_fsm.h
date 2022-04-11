@@ -47,6 +47,7 @@ typedef struct {
     pg_fsm_cb no_data;
     pg_fsm_cb parse_complete;
     pg_fsm_cb ready_for_query;
+    pg_fsm_cb result_done;
     pg_fsm_cb row_description_beg;
     pg_fsm_int2_cb data_row_count;
     pg_fsm_int2_cb ready_for_query_state;

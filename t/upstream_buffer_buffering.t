@@ -18,11 +18,6 @@ __DATA__
     }
 --- config
     location =/ {
-        add_header complete $pg_complete always;
-        add_header field-length-0 $pg_field_length_0 always;
-        add_header field-mod-0 $pg_field_mod_0 always;
-        add_header field-name-0 $pg_field_name_0 always;
-        add_header field-oid-0 $pg_field_oid_0 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -31,7 +26,6 @@ __DATA__
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header result-0-0 $pg_result_0_0 always;
         pg_pas pg;
         pg_sql "select 1";
         pg_upstream_buffering off;
@@ -43,13 +37,8 @@ __DATA__
 GET /
 --- error_code: 200
 --- response_headers
-complete: SELECT 1
-Content-Length: 1
+Transfer-Encoding: chunked
 Content-Type: text/plain
-field-length-0: 4
-field-mod-0: -1
-field-name-0: ?column?
-field-oid-0: 23
 option-application-name: upstream
 option-client-encoding: UTF8
 option-integer-datetimes: on
@@ -58,7 +47,6 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-result-0-0: 1
 --- response_body chomp
 1
 --- timeout: 60
@@ -113,15 +101,6 @@ error-sqlstate: 22012
     }
 --- config
     location =/ {
-        add_header complete $pg_complete always;
-        add_header field-length-0 $pg_field_length_0 always;
-        add_header field-length-1 $pg_field_length_1 always;
-        add_header field-mod-0 $pg_field_mod_0 always;
-        add_header field-mod-1 $pg_field_mod_1 always;
-        add_header field-name-0 $pg_field_name_0 always;
-        add_header field-name-1 $pg_field_name_1 always;
-        add_header field-oid-0 $pg_field_oid_0 always;
-        add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -130,8 +109,6 @@ error-sqlstate: 22012
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header result-0-0 $pg_result_0_0 always;
-        add_header result-0-1 $pg_result_0_1 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
         pg_out plain;
@@ -146,17 +123,8 @@ error-sqlstate: 22012
 GET /?a=12&b=345
 --- error_code: 200
 --- response_headers
-complete: SELECT 1
-Content-Length: 13
+Transfer-Encoding: chunked
 Content-Type: text/plain
-field-length-0: 4
-field-length-1: 4
-field-mod-0: -1
-field-mod-1: -1
-field-name-0: ab
-field-name-1: cde
-field-oid-0: 23
-field-oid-1: 23
 option-application-name: upstream
 option-client-encoding: UTF8
 option-integer-datetimes: on
@@ -165,8 +133,6 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-result-0-0: 12
-result-0-1: 345
 --- response_body eval
 "ab\x{09}cde\x{0a}12\x{09}345"
 --- timeout: 60
@@ -183,11 +149,6 @@ result-0-1: 345
     }
 --- config
     location =/ {
-        add_header complete $pg_complete always;
-        add_header field-length-0 $pg_field_length_0 always;
-        add_header field-mod-0 $pg_field_mod_0 always;
-        add_header field-name-0 $pg_field_name_0 always;
-        add_header field-oid-0 $pg_field_oid_0 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -196,8 +157,6 @@ result-0-1: 345
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header result-0-0 $pg_result_0_0 always;
-        add_header result-1-0 $pg_result_1_0 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
         pg_out plain;
@@ -212,13 +171,8 @@ result-0-1: 345
 GET /?a=12&b=345
 --- error_code: 200
 --- response_headers
-complete: SELECT 2
-Content-Length: 9
+Transfer-Encoding: chunked
 Content-Type: text/plain
-field-length-0: 4
-field-mod-0: -1
-field-name-0: ab
-field-oid-0: 23
 option-application-name: upstream
 option-client-encoding: UTF8
 option-integer-datetimes: on
@@ -227,8 +181,6 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-result-0-0: 12
-result-1-0: 345
 --- response_body eval
 "ab\x{0a}12\x{0a}345"
 --- timeout: 60
@@ -245,15 +197,6 @@ result-1-0: 345
     }
 --- config
     location =/ {
-        add_header complete $pg_complete always;
-        add_header field-length-0 $pg_field_length_0 always;
-        add_header field-length-1 $pg_field_length_1 always;
-        add_header field-mod-0 $pg_field_mod_0 always;
-        add_header field-mod-1 $pg_field_mod_1 always;
-        add_header field-name-0 $pg_field_name_0 always;
-        add_header field-name-1 $pg_field_name_1 always;
-        add_header field-oid-0 $pg_field_oid_0 always;
-        add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -262,10 +205,6 @@ result-1-0: 345
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header result-0-0 $pg_result_0_0 always;
-        add_header result-0-1 $pg_result_0_1 always;
-        add_header result-1-0 $pg_result_1_0 always;
-        add_header result-1-1 $pg_result_1_1 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
         pg_arg $arg_c 23;
@@ -282,17 +221,8 @@ result-1-0: 345
 GET /?a=12&b=345&c=67&d=89
 --- error_code: 200
 --- response_headers
-complete: SELECT 2
-Content-Length: 19
+Transfer-Encoding: chunked
 Content-Type: text/plain
-field-length-0: 4
-field-length-1: 4
-field-mod-0: -1
-field-mod-1: -1
-field-name-0: ab
-field-name-1: cde
-field-oid-0: 23
-field-oid-1: 23
 option-application-name: upstream
 option-client-encoding: UTF8
 option-integer-datetimes: on
@@ -301,10 +231,6 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-result-0-0: 12
-result-0-1: 345
-result-1-0: 67
-result-1-1: 89
 --- response_body eval
 "ab\x{09}cde\x{0a}12\x{09}345\x{0a}67\x{09}89"
 --- timeout: 60
@@ -321,15 +247,6 @@ result-1-1: 89
     }
 --- config
     location =/ {
-        add_header complete $pg_complete always;
-        add_header field-length-0 $pg_field_length_0 always;
-        add_header field-length-1 $pg_field_length_1 always;
-        add_header field-mod-0 $pg_field_mod_0 always;
-        add_header field-mod-1 $pg_field_mod_1 always;
-        add_header field-name-0 $pg_field_name_0 always;
-        add_header field-name-1 $pg_field_name_1 always;
-        add_header field-oid-0 $pg_field_oid_0 always;
-        add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -338,10 +255,6 @@ result-1-1: 89
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header result-0-0 $pg_result_0_0 always;
-        add_header result-0-1 $pg_result_0_1 always;
-        add_header result-1-0 $pg_result_1_0 always;
-        add_header result-1-1 $pg_result_1_1 always;
         pg_arg NULL 25;
         pg_arg $arg_a 23;
         pg_arg $arg_b;
@@ -358,17 +271,8 @@ result-1-1: 89
 GET /?a=34&b=qwe&c=89
 --- error_code: 200
 --- response_headers
-complete: SELECT 2
-Content-Length: 19
+Transfer-Encoding: chunked
 Content-Type: text/plain
-field-length-0: -1
-field-length-1: 4
-field-mod-0: -1
-field-mod-1: -1
-field-name-0: ab
-field-name-1: cde
-field-oid-0: 25
-field-oid-1: 23
 option-application-name: upstream
 option-client-encoding: UTF8
 option-integer-datetimes: on
@@ -377,10 +281,6 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-result-0-0:
-result-0-1: 34
-result-1-0: qwe
-result-1-1: 89
 --- response_body eval
 "ab\x{09}cde\x{0a}\\N\x{09}34\x{0a}qwe\x{09}89"
 --- timeout: 60
@@ -397,15 +297,6 @@ result-1-1: 89
     }
 --- config
     location =/ {
-        add_header complete $pg_complete always;
-        add_header field-length-0 $pg_field_length_0 always;
-        add_header field-length-1 $pg_field_length_1 always;
-        add_header field-mod-0 $pg_field_mod_0 always;
-        add_header field-mod-1 $pg_field_mod_1 always;
-        add_header field-name-0 $pg_field_name_0 always;
-        add_header field-name-1 $pg_field_name_1 always;
-        add_header field-oid-0 $pg_field_oid_0 always;
-        add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -414,10 +305,6 @@ result-1-1: 89
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header result-0-0 $pg_result_0_0 always;
-        add_header result-0-1 $pg_result_0_1 always;
-        add_header result-1-0 $pg_result_1_0 always;
-        add_header result-1-1 $pg_result_1_1 always;
         pg_arg $arg_a 23;
         pg_arg NULL 25;
         pg_arg $arg_b 23;
@@ -434,17 +321,8 @@ result-1-1: 89
 GET /?a=34&b=89&c=qwe
 --- error_code: 200
 --- response_headers
-complete: SELECT 2
-Content-Length: 19
+Transfer-Encoding: chunked
 Content-Type: text/plain
-field-length-0: 4
-field-length-1: -1
-field-mod-0: -1
-field-mod-1: -1
-field-name-0: ab
-field-name-1: cde
-field-oid-0: 23
-field-oid-1: 25
 option-application-name: upstream
 option-client-encoding: UTF8
 option-integer-datetimes: on
@@ -453,10 +331,6 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-result-0-0: 34
-result-0-1:
-result-1-0: 89
-result-1-1: qwe
 --- response_body eval
 "ab\x{09}cde\x{0a}34\x{09}\\N\x{0a}89\x{09}qwe"
 --- timeout: 60
@@ -473,15 +347,6 @@ result-1-1: qwe
     }
 --- config
     location =/ {
-        add_header complete $pg_complete always;
-        add_header field-length-0 $pg_field_length_0 always;
-        add_header field-length-1 $pg_field_length_1 always;
-        add_header field-mod-0 $pg_field_mod_0 always;
-        add_header field-mod-1 $pg_field_mod_1 always;
-        add_header field-name-0 $pg_field_name_0 always;
-        add_header field-name-1 $pg_field_name_1 always;
-        add_header field-oid-0 $pg_field_oid_0 always;
-        add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -490,10 +355,6 @@ result-1-1: qwe
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header result-0-0 $pg_result_0_0 always;
-        add_header result-0-1 $pg_result_0_1 always;
-        add_header result-1-0 $pg_result_1_0 always;
-        add_header result-1-1 $pg_result_1_1 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b;
         pg_arg $arg_c 23;
@@ -510,17 +371,8 @@ result-1-1: qwe
 GET /?a=34&b=qwe&c=89
 --- error_code: 200
 --- response_headers
-complete: SELECT 2
-Content-Length: 19
+Transfer-Encoding: chunked
 Content-Type: text/plain
-field-length-0: 4
-field-length-1: -1
-field-mod-0: -1
-field-mod-1: -1
-field-name-0: ab
-field-name-1: cde
-field-oid-0: 23
-field-oid-1: 25
 option-application-name: upstream
 option-client-encoding: UTF8
 option-integer-datetimes: on
@@ -529,10 +381,6 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-result-0-0: 34
-result-0-1: qwe
-result-1-0: 89
-result-1-1:
 --- response_body eval
 "ab\x{09}cde\x{0a}34\x{09}qwe\x{0a}89\x{09}\\N"
 --- timeout: 60
@@ -549,15 +397,6 @@ result-1-1:
     }
 --- config
     location =/ {
-        add_header complete $pg_complete always;
-        add_header field-length-0 $pg_field_length_0 always;
-        add_header field-length-1 $pg_field_length_1 always;
-        add_header field-mod-0 $pg_field_mod_0 always;
-        add_header field-mod-1 $pg_field_mod_1 always;
-        add_header field-name-0 $pg_field_name_0 always;
-        add_header field-name-1 $pg_field_name_1 always;
-        add_header field-oid-0 $pg_field_oid_0 always;
-        add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -566,8 +405,6 @@ result-1-1:
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header result-0-0 $pg_result_0_0 always;
-        add_header result-0-1 $pg_result_0_1 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
         pg_out csv;
@@ -582,17 +419,8 @@ result-1-1:
 GET /?a=12&b=345
 --- error_code: 200
 --- response_headers
-complete: SELECT 1
-Content-Length: 17
+Transfer-Encoding: chunked
 Content-Type: text/csv
-field-length-0: 4
-field-length-1: 4
-field-mod-0: -1
-field-mod-1: -1
-field-name-0: ab
-field-name-1: cde
-field-oid-0: 23
-field-oid-1: 23
 option-application-name: upstream
 option-client-encoding: UTF8
 option-integer-datetimes: on
@@ -601,10 +429,8 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-result-0-0: 12
-result-0-1: 345
 --- response_body eval
-"\"ab\",\"cde\"\x{0a}12,345"
+"ab,cde\x{0a}12,345"
 --- timeout: 60
 
 === TEST 10:
@@ -619,11 +445,6 @@ result-0-1: 345
     }
 --- config
     location =/ {
-        add_header complete $pg_complete always;
-        add_header field-length-0 $pg_field_length_0 always;
-        add_header field-mod-0 $pg_field_mod_0 always;
-        add_header field-name-0 $pg_field_name_0 always;
-        add_header field-oid-0 $pg_field_oid_0 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -632,8 +453,6 @@ result-0-1: 345
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header result-0-0 $pg_result_0_0 always;
-        add_header result-1-0 $pg_result_1_0 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
         pg_out csv;
@@ -648,13 +467,8 @@ result-0-1: 345
 GET /?a=12&b=345
 --- error_code: 200
 --- response_headers
-complete: SELECT 2
-Content-Length: 11
+Transfer-Encoding: chunked
 Content-Type: text/csv
-field-length-0: 4
-field-mod-0: -1
-field-name-0: ab
-field-oid-0: 23
 option-application-name: upstream
 option-client-encoding: UTF8
 option-integer-datetimes: on
@@ -663,10 +477,8 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-result-0-0: 12
-result-1-0: 345
 --- response_body eval
-"\"ab\"\x{0a}12\x{0a}345"
+"ab\x{0a}12\x{0a}345"
 --- timeout: 60
 
 === TEST 11:
@@ -681,15 +493,6 @@ result-1-0: 345
     }
 --- config
     location =/ {
-        add_header complete $pg_complete always;
-        add_header field-length-0 $pg_field_length_0 always;
-        add_header field-length-1 $pg_field_length_1 always;
-        add_header field-mod-0 $pg_field_mod_0 always;
-        add_header field-mod-1 $pg_field_mod_1 always;
-        add_header field-name-0 $pg_field_name_0 always;
-        add_header field-name-1 $pg_field_name_1 always;
-        add_header field-oid-0 $pg_field_oid_0 always;
-        add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -698,10 +501,6 @@ result-1-0: 345
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header result-0-0 $pg_result_0_0 always;
-        add_header result-0-1 $pg_result_0_1 always;
-        add_header result-1-0 $pg_result_1_0 always;
-        add_header result-1-1 $pg_result_1_1 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
         pg_arg $arg_c 23;
@@ -718,17 +517,8 @@ result-1-0: 345
 GET /?a=12&b=345&c=67&d=89
 --- error_code: 200
 --- response_headers
-complete: SELECT 2
-Content-Length: 23
+Transfer-Encoding: chunked
 Content-Type: text/csv
-field-length-0: 4
-field-length-1: 4
-field-mod-0: -1
-field-mod-1: -1
-field-name-0: ab
-field-name-1: cde
-field-oid-0: 23
-field-oid-1: 23
 option-application-name: upstream
 option-client-encoding: UTF8
 option-integer-datetimes: on
@@ -737,12 +527,8 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-result-0-0: 12
-result-0-1: 345
-result-1-0: 67
-result-1-1: 89
 --- response_body eval
-"\"ab\",\"cde\"\x{0a}12,345\x{0a}67,89"
+"ab,cde\x{0a}12,345\x{0a}67,89"
 --- timeout: 60
 
 === TEST 12:
@@ -757,15 +543,6 @@ result-1-1: 89
     }
 --- config
     location =/ {
-        add_header complete $pg_complete always;
-        add_header field-length-0 $pg_field_length_0 always;
-        add_header field-length-1 $pg_field_length_1 always;
-        add_header field-mod-0 $pg_field_mod_0 always;
-        add_header field-mod-1 $pg_field_mod_1 always;
-        add_header field-name-0 $pg_field_name_0 always;
-        add_header field-name-1 $pg_field_name_1 always;
-        add_header field-oid-0 $pg_field_oid_0 always;
-        add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -774,10 +551,6 @@ result-1-1: 89
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header result-0-0 $pg_result_0_0 always;
-        add_header result-0-1 $pg_result_0_1 always;
-        add_header result-1-0 $pg_result_1_0 always;
-        add_header result-1-1 $pg_result_1_1 always;
         pg_arg NULL 25;
         pg_arg $arg_a 23;
         pg_arg $arg_b;
@@ -794,17 +567,8 @@ result-1-1: 89
 GET /?a=34&b=qwe&c=89
 --- error_code: 200
 --- response_headers
-complete: SELECT 2
-Content-Length: 23
+Transfer-Encoding: chunked
 Content-Type: text/csv
-field-length-0: -1
-field-length-1: 4
-field-mod-0: -1
-field-mod-1: -1
-field-name-0: ab
-field-name-1: cde
-field-oid-0: 25
-field-oid-1: 23
 option-application-name: upstream
 option-client-encoding: UTF8
 option-integer-datetimes: on
@@ -813,12 +577,8 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-result-0-0:
-result-0-1: 34
-result-1-0: qwe
-result-1-1: 89
 --- response_body eval
-"\"ab\",\"cde\"\x{0a},34\x{0a}\"qwe\",89"
+"ab,cde\x{0a},34\x{0a}qwe,89"
 --- timeout: 60
 
 === TEST 13:
@@ -833,15 +593,6 @@ result-1-1: 89
     }
 --- config
     location =/ {
-        add_header complete $pg_complete always;
-        add_header field-length-0 $pg_field_length_0 always;
-        add_header field-length-1 $pg_field_length_1 always;
-        add_header field-mod-0 $pg_field_mod_0 always;
-        add_header field-mod-1 $pg_field_mod_1 always;
-        add_header field-name-0 $pg_field_name_0 always;
-        add_header field-name-1 $pg_field_name_1 always;
-        add_header field-oid-0 $pg_field_oid_0 always;
-        add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -850,10 +601,6 @@ result-1-1: 89
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header result-0-0 $pg_result_0_0 always;
-        add_header result-0-1 $pg_result_0_1 always;
-        add_header result-1-0 $pg_result_1_0 always;
-        add_header result-1-1 $pg_result_1_1 always;
         pg_arg $arg_a 23;
         pg_arg NULL 25;
         pg_arg $arg_b 23;
@@ -870,17 +617,8 @@ result-1-1: 89
 GET /?a=34&b=89&c=qwe
 --- error_code: 200
 --- response_headers
-complete: SELECT 2
-Content-Length: 23
+Transfer-Encoding: chunked
 Content-Type: text/csv
-field-length-0: 4
-field-length-1: -1
-field-mod-0: -1
-field-mod-1: -1
-field-name-0: ab
-field-name-1: cde
-field-oid-0: 23
-field-oid-1: 25
 option-application-name: upstream
 option-client-encoding: UTF8
 option-integer-datetimes: on
@@ -889,12 +627,8 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-result-0-0: 34
-result-0-1:
-result-1-0: 89
-result-1-1: qwe
 --- response_body eval
-"\"ab\",\"cde\"\x{0a}34,\x{0a}89,\"qwe\""
+"ab,cde\x{0a}34,\x{0a}89,qwe"
 --- timeout: 60
 
 === TEST 14:
@@ -909,15 +643,6 @@ result-1-1: qwe
     }
 --- config
     location =/ {
-        add_header complete $pg_complete always;
-        add_header field-length-0 $pg_field_length_0 always;
-        add_header field-length-1 $pg_field_length_1 always;
-        add_header field-mod-0 $pg_field_mod_0 always;
-        add_header field-mod-1 $pg_field_mod_1 always;
-        add_header field-name-0 $pg_field_name_0 always;
-        add_header field-name-1 $pg_field_name_1 always;
-        add_header field-oid-0 $pg_field_oid_0 always;
-        add_header field-oid-1 $pg_field_oid_1 always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -926,10 +651,6 @@ result-1-1: qwe
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        add_header result-0-0 $pg_result_0_0 always;
-        add_header result-0-1 $pg_result_0_1 always;
-        add_header result-1-0 $pg_result_1_0 always;
-        add_header result-1-1 $pg_result_1_1 always;
         pg_arg $arg_a 23;
         pg_arg $arg_b;
         pg_arg $arg_c 23;
@@ -946,17 +667,8 @@ result-1-1: qwe
 GET /?a=34&b=qwe&c=89
 --- error_code: 200
 --- response_headers
-complete: SELECT 2
-Content-Length: 23
+Transfer-Encoding: chunked
 Content-Type: text/csv
-field-length-0: 4
-field-length-1: -1
-field-mod-0: -1
-field-mod-1: -1
-field-name-0: ab
-field-name-1: cde
-field-oid-0: 23
-field-oid-1: 25
 option-application-name: upstream
 option-client-encoding: UTF8
 option-integer-datetimes: on
@@ -965,12 +677,8 @@ option-is-superuser: on
 option-server-encoding: UTF8
 option-session-authorization: postgres
 option-standard-conforming-strings: on
-result-0-0: 34
-result-0-1: qwe
-result-1-0: 89
-result-1-1:
 --- response_body eval
-"\"ab\",\"cde\"\x{0a}34,\"qwe\"\x{0a}89,"
+"ab,cde\x{0a}34,qwe\x{0a}89,"
 --- timeout: 60
 
 === TEST 15:
@@ -1039,7 +747,6 @@ option-standard-conforming-strings: on
     }
 --- config
     location =/ {
-        add_header complete $pg_complete always;
         add_header option-application-name $pg_option_application_name always;
         add_header option-client-encoding $pg_option_client_encoding always;
         add_header option-integer-datetimes $pg_option_integer_datetimes always;
@@ -1060,8 +767,7 @@ option-standard-conforming-strings: on
 GET /?a=34&b=qwe&c=89
 --- error_code: 200
 --- response_headers
-complete: COPY 2
-Content-Length: 18
+Transfer-Encoding: chunked
 Content-Type: text/csv
 option-application-name: upstream
 option-client-encoding: UTF8
