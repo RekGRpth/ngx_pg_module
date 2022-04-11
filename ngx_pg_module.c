@@ -1140,7 +1140,6 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *b) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "%s", __func__);
     ngx_http_request_t *r = p->input_ctx;
     ngx_http_upstream_t *u = r->upstream;
-//    if (u->headers_in.content_length_n >= 0) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
@@ -1156,7 +1155,6 @@ static ngx_int_t ngx_pg_pipe_output_filter(ngx_http_request_t *r, ngx_chain_t *c
     ngx_event_pipe_t *p = u->pipe;
     ngx_int_t rc = ngx_http_output_filter(r, cl);
     p->aio = r->aio;
-//    if (u->headers_in.content_length_n >= 0) return rc;
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
@@ -1188,7 +1186,6 @@ static ngx_int_t ngx_pg_input_filter_init(ngx_http_request_t *r) {
 static ngx_int_t ngx_pg_input_filter(ngx_http_request_t *r, ssize_t bytes) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "bytes = %d", bytes);
     ngx_http_upstream_t *u = r->upstream;
-//    if (u->headers_in.content_length_n >= 0) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
