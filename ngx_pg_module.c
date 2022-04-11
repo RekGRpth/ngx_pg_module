@@ -97,6 +97,7 @@ static ngx_int_t ngx_pg_out_handler(ngx_http_request_t *r, size_t len, const uin
     ngx_http_upstream_t *u = r->upstream;
     if (u->buffering) {
         ngx_event_pipe_t *p = u->pipe;
+        if (!p->pool) p->pool = r->pool;
         if (!(cl = ngx_chain_get_free_buf(p->pool, &p->free))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
         if (p->in) *p->last_in = cl; else p->in = cl;
         p->last_in = &cl->next;
@@ -166,12 +167,21 @@ static int ngx_pg_fsm_command_complete(ngx_pg_save_t *s, uint32_t len) {
 
 static int ngx_pg_fsm_command_complete_val(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    ngx_pg_data_t *d = s->data;
+    if (!d) return s->rc;
+    ngx_http_request_t *r = d->request;
+    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
+    if (plcf->out.type || d->row) return s->rc;
+    if ((s->rc = ngx_pg_out_handler(r, len, data)) != NGX_OK) return s->rc;
     return s->rc;
 }
 
 static int ngx_pg_fsm_copy_data(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     s->command = pg_command_state_copy_data;
+    ngx_pg_data_t *d = s->data;
+    if (!d) return s->rc;
+    d->row++;
     return s->rc;
 }
 
