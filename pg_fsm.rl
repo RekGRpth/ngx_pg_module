@@ -25,14 +25,14 @@ typedef struct pg_fsm_t {
     action bind_complete { if (cb->bind_complete(user)) fbreak; }
     action close_complete { if (cb->close_complete(user)) fbreak; }
     action command_complete { if (cb->command_complete(user, fsm->int4 - 4)) fbreak; }
-    action command_complete_val { if (fsm->string && cb->command_complete_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action command_complete_val { if (fsm->string && p - fsm->string > 0 && cb->command_complete_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action copy_data { fsm->result_len = fsm->int4 - 4; if (cb->copy_data(user, fsm->result_len)) fbreak; }
     action copy_done { if (cb->copy_done(user)) fbreak; }
     action copy_out_response { if (cb->copy_out_response(user, fsm->int4 - 4)) fbreak; }
     action data_row_count { fsm->data_row_count = fsm->int2; if (cb->data_row_count(user, fsm->data_row_count)) fbreak; if (!fsm->data_row_count) fnext main; }
     action data_row { if (cb->data_row(user, fsm->int4 - 4)) fbreak; }
     action data_row_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->data_row_count) fnext data_row; }
-    action data_row_val_next { if (!fsm->string && --fsm->data_row_count) fnext data_row; }
+    action data_row_val_next { if (!fsm->string && p - fsm->string > 0 && --fsm->data_row_count) fnext data_row; }
     action empty_query_response { if (cb->empty_query_response(user)) fbreak; }
     action error_response_column { if (cb->error_response_key(user, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
     action error_response_constraint { if (cb->error_response_key(user, sizeof("constraint") - 1, (const unsigned char *)"constraint")) fbreak; }
@@ -53,26 +53,26 @@ typedef struct pg_fsm_t {
     action error_response_sqlstate { if (cb->error_response_key(user, sizeof("sqlstate") - 1, (const unsigned char *)"sqlstate")) fbreak; }
     action error_response_statement { if (cb->error_response_key(user, sizeof("statement") - 1, (const unsigned char *)"statement")) fbreak; }
     action error_response_table { if (cb->error_response_key(user, sizeof("table") - 1, (const unsigned char *)"table")) fbreak; }
-    action error_response_val { if (fsm->string && cb->error_response_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_val { if (fsm->string && p - fsm->string > 0 && cb->error_response_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action function_call_response { if (cb->function_call_response(user, fsm->int4 - 4)) fbreak; }
     action int2 { if (!fsm->i) { fsm->i = sizeof(fsm->int2); fsm->int2 = 0; } fsm->int2 |= *p << ((2 << 2) * --fsm->i); }
     action int4 { if (!fsm->i) { fsm->i = sizeof(fsm->int4); fsm->int4 = 0; } fsm->int4 |= *p << ((2 << 2) * --fsm->i); }
     action no_data { if (cb->no_data(user)) fbreak; }
     action notice_response { if (cb->notice_response(user, fsm->int4 - 4)) fbreak; }
-    action notification_response_extra { if (fsm->string && cb->notification_response_extra(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action notification_response_extra { if (fsm->string && p - fsm->string > 0 && cb->notification_response_extra(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action notification_response { if (cb->notification_response(user, fsm->int4 - 4)) fbreak; }
     action notification_response_pid { if (cb->notification_response_pid(user, fsm->int4)) fbreak; }
-    action notification_response_relname { if (fsm->string && cb->notification_response_relname(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action notification_response_relname { if (fsm->string && p - fsm->string > 0 && cb->notification_response_relname(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parameter_status { if (cb->parameter_status(user, fsm->int4 - 4)) fbreak; }
-    action parameter_status_key { if (fsm->string && cb->parameter_status_key(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status_val { if (fsm->string && cb->parameter_status_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_key { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_key(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_val { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parse_complete { if (cb->parse_complete(user)) fbreak; }
     action ready_for_query_idle { if (cb->ready_for_query_state(user, pg_ready_for_query_state_idle)) fbreak; }
     action ready_for_query { if (cb->ready_for_query(user)) fbreak; }
     action ready_for_query_inerror { if (cb->ready_for_query_state(user, pg_ready_for_query_state_inerror)) fbreak; }
     action ready_for_query_intrans { if (cb->ready_for_query_state(user, pg_ready_for_query_state_intrans)) fbreak; }
     action result_len { fsm->result_len = fsm->int4; if (cb->result_len(user, fsm->result_len)) fbreak; if (!fsm->result_len || fsm->result_len == (uint32_t)-1) fnext main; }
-    action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && cb->result_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) { if (cb->result_done(user)) fbreak; fhold; fnext main; } } }
+    action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && p - fsm->string > 0 && cb->result_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (fsm->result_len == (uint32_t)-1) { if (cb->result_done(user)) fbreak; fhold; fnext main; } } }
     action row_description_beg { if (cb->row_description_beg(user)) fbreak; }
     action row_description_column { if (cb->row_description_column(user, fsm->int2)) fbreak; }
     action row_description_count { fsm->row_description_count = fsm->int2; if (cb->row_description_count(user, fsm->row_description_count)) fbreak; if (!fsm->row_description_count) fnext main;}
@@ -80,7 +80,7 @@ typedef struct pg_fsm_t {
     action row_description { if (cb->row_description(user, fsm->int4 - 4)) fbreak; }
     action row_description_length { if (cb->row_description_length(user, fsm->int2)) fbreak; }
     action row_description_mod { if (cb->row_description_mod(user, fsm->int4)) fbreak; }
-    action row_description_name { if (fsm->string && cb->row_description_name(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action row_description_name { if (fsm->string && p - fsm->string > 0 && cb->row_description_name(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action row_description_oid { if (cb->row_description_oid(user, fsm->int4)) fbreak; }
     action row_description_table { if (cb->row_description_table(user, fsm->int4)) fbreak; }
     action string { if (!fsm->string) fsm->string = p; }
