@@ -81,6 +81,7 @@ typedef struct {
 
 typedef struct ngx_pg_data_t {
     ngx_array_t *errors;
+    ngx_flag_t filter;
     ngx_http_request_t *request;
     ngx_peer_connection_t peer;
     ngx_pg_save_t *save;
@@ -185,7 +186,7 @@ static int ngx_pg_fsm_copy_data(ngx_pg_save_t *s, uint32_t len) {
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
     ngx_buf_t *b = &u->buffer;
-    if (d->row == 1 && len > b->last - b->pos) s->rc = NGX_DONE;
+    if (!d->filter && len > b->last - b->pos) { d->filter = 1; s->rc = NGX_DONE; }
     return s->rc;
 }
 
@@ -212,7 +213,7 @@ static int ngx_pg_fsm_data_row(ngx_pg_save_t *s, uint32_t len) {
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     ngx_http_upstream_t *u = r->upstream;
     ngx_buf_t *b = &u->buffer;
-    if (d->row == 1 && len > b->last - b->pos) s->rc = NGX_DONE;
+    if (!d->filter && len > b->last - b->pos) { d->filter = 1; s->rc = NGX_DONE; }
     if (!plcf->out.type) return s->rc;
     if (d->row > 1 || plcf->out.header) if ((s->rc = ngx_pg_out_handler(r, sizeof("\n") - 1, (uint8_t *)"\n")) != NGX_OK) return s->rc;
     return s->rc;
@@ -297,7 +298,7 @@ static int ngx_pg_fsm_function_call_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
     ngx_buf_t *b = &u->buffer;
-    if (d->row == 1 && len > b->last - b->pos) s->rc = NGX_DONE;
+    if (!d->filter && len > b->last - b->pos) { d->filter = 1; s->rc = NGX_DONE; }
     return s->rc;
 }
 
@@ -1162,7 +1163,7 @@ static ngx_int_t ngx_pg_pipe_output_filter(ngx_http_request_t *r, ngx_chain_t *c
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "d->busy = %d", d->busy);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "s->state = %d", s->state);
 //    p->upstream_done = d->busy || s->state == pg_ready_for_query_state_unknown ? 0 : 1;
-    if (!d->busy && s->state != pg_ready_for_query_state_unknown) p->length = 0;
+    if (!d->busy && s->state != pg_ready_for_query_state_unknown) p->length = 0; //else p->length = -1;
     return rc;
 }
 
@@ -1173,10 +1174,7 @@ static ngx_int_t ngx_pg_input_filter_init(ngx_http_request_t *r) {
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
     if (!d->busy && s->state != pg_ready_for_query_state_unknown) u->length = 0;
-//    if (u->headers_in.content_length_n >= 0) {
-//        u->length = 0;
-        u->pipe->length = 0;
-//    }
+    u->pipe->length = 0;
     u->pipe->output_filter = (ngx_event_pipe_output_filter_pt)ngx_pg_pipe_output_filter;
     if (r->cache) {
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%d", r->cache->header_start);
