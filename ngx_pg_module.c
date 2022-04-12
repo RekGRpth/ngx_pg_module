@@ -1114,7 +1114,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         ngx_connection_t *c = s->connection;
         s->rc = d->busy || s->state == pg_ready_for_query_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
     }
-    if (b->pos == b->last) b->pos = b->last = b->start;
+    if (b->pos == b->last) b->pos = b->last = b->start + (r->cached ? r->cache->header_start : 0);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %d", s->rc);
     if (s->rc == NGX_OK && u->headers_in.status_n == NGX_HTTP_INTERNAL_SERVER_ERROR && d->errors && d->errors->nelts) s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
     return s->rc;
