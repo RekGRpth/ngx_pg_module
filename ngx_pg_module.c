@@ -1017,6 +1017,11 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
     return NGX_OK;
 }
 
+static ngx_int_t ngx_pg_output_filter(ngx_http_request_t *r, ngx_chain_t *in) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    return NGX_OK;
+}
+
 static void ngx_pg_abort_request(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
 }
@@ -1038,6 +1043,8 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     }
     u->headers_in.status_n = NGX_HTTP_OK;
     u->keepalive = !u->headers_in.connection_close;
+//    u->output.output_filter = ngx_pg_output_filter;
+//    u->output.filter_ctx = r;
     switch (plcf->out.type) {
         case ngx_pg_out_type_csv: ngx_str_set(&r->headers_out.content_type, "text/csv"); break;
         case ngx_pg_out_type_plain: ngx_str_set(&r->headers_out.content_type, "text/plain"); break;
@@ -1123,6 +1130,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
 
 static ngx_int_t ngx_pg_reinit_request(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    r->state = 0;
     return NGX_OK;
 }
 
@@ -1214,7 +1222,9 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     if (ngx_http_upstream_create(r) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_upstream_create != NGX_OK"); return NGX_HTTP_INTERNAL_SERVER_ERROR; }
     ngx_http_upstream_t *u = r->upstream;
     ngx_str_set(&u->schema, "pg://");
-    u->output.tag = (ngx_buf_tag_t)&ngx_pg_module;
+//    u->output.filter_ctx = r;
+//    u->output.output_filter = (ngx_output_chain_filter_pt)ngx_pg_output_filter;
+    u->output.tag = (ngx_buf_tag_t)&ngx_pg_output_filter;
     u->conf = &plcf->upstream;
 #if (NGX_HTTP_CACHE)
     ngx_pg_main_conf_t *pmcf = ngx_http_get_module_main_conf(r, ngx_pg_module);
