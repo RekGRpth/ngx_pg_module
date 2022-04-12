@@ -81,6 +81,7 @@ typedef struct {
 
 typedef struct ngx_pg_data_t {
     ngx_array_t *errors;
+    ngx_flag_t filter;
     ngx_http_request_t *request;
     ngx_peer_connection_t peer;
     ngx_pg_save_t *save;
@@ -182,6 +183,13 @@ static int ngx_pg_fsm_copy_data(ngx_pg_save_t *s, uint32_t len) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     d->row++;
+    ngx_http_request_t *r = d->request;
+    ngx_http_upstream_t *u = r->upstream;
+    ngx_buf_t *b = &u->buffer;
+    if (!d->filter && len > b->last - b->pos) {
+        d->filter = 1;
+        s->rc = NGX_DONE;
+    }
     return s->rc;
 }
 
@@ -194,7 +202,6 @@ static int ngx_pg_fsm_copy_done(ngx_pg_save_t *s) {
 static int ngx_pg_fsm_copy_out_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     s->command = pg_command_state_copy_out_response;
-    s->rc = NGX_DONE;
     return s->rc;
 }
 
@@ -206,9 +213,15 @@ static int ngx_pg_fsm_data_row(ngx_pg_save_t *s, uint32_t len) {
     d->col = 0;
     d->row++;
     ngx_http_request_t *r = d->request;
+    ngx_http_upstream_t *u = r->upstream;
+    ngx_buf_t *b = &u->buffer;
+    if (!d->filter && len > b->last - b->pos) {
+        d->filter = 1;
+        s->rc = NGX_DONE;
+    }
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     if (!plcf->out.type) return s->rc;
-    if (d->row > 1 || plcf->out.header) if ((s->rc = ngx_pg_out_handler(r, sizeof("\n") - 1, (uint8_t *)"\n")) != NGX_OK) return s->rc;
+    if (d->row > 1 || plcf->out.header) if (ngx_pg_out_handler(r, sizeof("\n") - 1, (uint8_t *)"\n") == NGX_ERROR) { s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
@@ -288,7 +301,13 @@ static int ngx_pg_fsm_function_call_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     d->row++;
-    s->rc = NGX_DONE;
+    ngx_http_request_t *r = d->request;
+    ngx_http_upstream_t *u = r->upstream;
+    ngx_buf_t *b = &u->buffer;
+    if (!d->filter && len > b->last - b->pos) {
+        d->filter = 1;
+        s->rc = NGX_DONE;
+    }
     return s->rc;
 }
 
@@ -434,7 +453,15 @@ static int ngx_pg_fsm_row_description(ngx_pg_save_t *s, uint32_t len) {
     if (!d) return s->rc;
     d->col = 0;
     d->row = 0;
-    s->rc = NGX_DONE;
+    ngx_http_request_t *r = d->request;
+    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
+    if (!plcf->out.type) return s->rc;
+    ngx_http_upstream_t *u = r->upstream;
+    ngx_buf_t *b = &u->buffer;
+    if (!d->filter && len > b->last - b->pos) {
+        d->filter = 1;
+        s->rc = NGX_DONE;
+    }
     return s->rc;
 }
 
