@@ -1017,10 +1017,10 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
     return NGX_OK;
 }
 
-static ngx_int_t ngx_pg_output_filter(ngx_http_request_t *r, ngx_chain_t *in) {
+/*static ngx_int_t ngx_pg_output_filter(ngx_http_request_t *r, ngx_chain_t *in) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     return NGX_OK;
-}
+}*/
 
 static void ngx_pg_abort_request(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
@@ -1144,12 +1144,16 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *b) {
     s->rc = NGX_OK;
     while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->pos, b->last, b->end);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "s->rc = %d", s->rc);
-    if (!d->busy && s->state != pg_ready_for_query_state_unknown) p->length = 0; //else p->length = -1;
-    p->upstream_done = 0;
+//    if (!d->busy && s->state != pg_ready_for_query_state_unknown) p->length = 0; //else p->length = 1;
+//    p->upstream_done = 0;
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = p->in; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%d:%d:%c", i++, *p, *p);
+    if (p->allocated < p->bufs.num) {
+//        if (ngx_event_pipe_add_free_buf(p, b) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "ngx_event_pipe_add_free_buf != NGX_OK"); return NGX_ERROR; }
+    } else p->allocated = 0;
     return s->rc;
 }
 
-static ngx_int_t ngx_pg_pipe_output_filter(ngx_http_request_t *r, ngx_chain_t *cl) {
+/*static ngx_int_t ngx_pg_pipe_output_filter(ngx_http_request_t *r, ngx_chain_t *cl) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     ngx_http_upstream_t *u = r->upstream;
     ngx_event_pipe_t *p = u->pipe;
@@ -1160,15 +1164,15 @@ static ngx_int_t ngx_pg_pipe_output_filter(ngx_http_request_t *r, ngx_chain_t *c
     ngx_pg_save_t *s = d->save;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "d->busy = %d", d->busy);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "s->state = %d", s->state);
-    p->allocated = 0;
+//    p->allocated = 0;
 //    if (!d->busy && s->state != pg_ready_for_query_state_unknown) p->length = 0; else p->length = -1;
 //    if (!d->busy && s->state != pg_ready_for_query_state_unknown) 
-    p->length = 0;
+//    p->length = 0;
 //    p->upstream_done = 0;
 //    p->upstream_done = d->busy || s->state == pg_ready_for_query_state_unknown ? 0 : 1;
-//    if (d->busy || s->state == pg_ready_for_query_state_unknown) p->upstream_done = 0; //else p->length = -1;
+//    if (!d->busy && s->state != pg_ready_for_query_state_unknown) p->length = 0; //else p->length = -1;
     return rc;
-}
+}*/
 
 static ngx_int_t ngx_pg_input_filter_init(ngx_http_request_t *r) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
@@ -1179,7 +1183,8 @@ static ngx_int_t ngx_pg_input_filter_init(ngx_http_request_t *r) {
     ngx_pg_save_t *s = d->save;
     if (!d->busy && s->state != pg_ready_for_query_state_unknown) u->length = 0;
     p->length = 0;
-    p->output_filter = (ngx_event_pipe_output_filter_pt)ngx_pg_pipe_output_filter;
+//    } else p->length = 1;
+//    p->output_filter = (ngx_event_pipe_output_filter_pt)ngx_pg_pipe_output_filter;
     if (r->cache) {
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%d", r->cache->header_start);
         if (p->buf_to_file) p->buf_to_file->last = p->buf_to_file->pos + r->cache->header_start;
@@ -1224,7 +1229,7 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     ngx_str_set(&u->schema, "pg://");
 //    u->output.filter_ctx = r;
 //    u->output.output_filter = (ngx_output_chain_filter_pt)ngx_pg_output_filter;
-    u->output.tag = (ngx_buf_tag_t)&ngx_pg_output_filter;
+    u->output.tag = (ngx_buf_tag_t)&ngx_pg_module;
     u->conf = &plcf->upstream;
 #if (NGX_HTTP_CACHE)
     ngx_pg_main_conf_t *pmcf = ngx_http_get_module_main_conf(r, ngx_pg_module);
