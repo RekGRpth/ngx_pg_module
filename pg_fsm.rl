@@ -72,10 +72,13 @@ typedef struct pg_fsm_t {
     action ready_for_query_inerror { if (cb->ready_for_query_state(user, pg_ready_for_query_state_inerror)) fbreak; }
     action ready_for_query_intrans { if (cb->ready_for_query_state(user, pg_ready_for_query_state_intrans)) fbreak; }
     action result_len { fsm->result_len = fsm->int4; if (cb->result_len(user, fsm->result_len)) fbreak; if (!fsm->result_len || fsm->result_len == (uint32_t)-1) fnext main; }
+#    action result_val { if (!fsm->result_len-- || p == eof) { if (fsm->string && p - fsm->string > 0 && cb->result_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (fsm->result_len == (uint32_t)-1) { if (cb->result_done(user)) fbreak; fhold; fnext main; } } }
     action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && p - fsm->string > 0 && cb->result_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (fsm->result_len == (uint32_t)-1) { if (cb->result_done(user)) fbreak; fhold; fnext main; } } }
+#    action result_val { if (!fsm->result_len-- || p == eof) { if (fsm->string && p - fsm->string > 0 && cb->result_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (!fsm->result_len) { if (cb->result_done(user)) fbreak; fhold; fnext main; } } }
+#    action result_val { if (!fsm->result_len-- || p == eof) { if (fsm->string && p - fsm->string > 0 && cb->result_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (fsm->result_len == (uint32_t)-1) { if (cb->result_done(user)) fbreak; fhold; fnext main; } } }
     action row_description_beg { if (cb->row_description_beg(user)) fbreak; }
     action row_description_column { if (cb->row_description_column(user, fsm->int2)) fbreak; }
-    action row_description_count { fsm->row_description_count = fsm->int2; if (cb->row_description_count(user, fsm->row_description_count)) fbreak; if (!fsm->row_description_count) fnext main;}
+    action row_description_count { fsm->row_description_count = fsm->int2; if (cb->row_description_count(user, fsm->row_description_count)) fbreak; if (!fsm->row_description_count) fnext main; }
     action row_description_format { if (cb->row_description_format(user, 0)) fbreak; if (!--fsm->row_description_count) fnext main; }
     action row_description { if (cb->row_description(user, fsm->int4 - 4)) fbreak; }
     action row_description_length { if (cb->row_description_length(user, fsm->int2)) fbreak; }
@@ -115,19 +118,24 @@ typedef struct pg_fsm_t {
     ready_for_query_inerror = "E" @ready_for_query_inerror;
     ready_for_query_intrans = "T" @ready_for_query_intrans;
     result = any ** $string $result_val $/result_val;
+#    result = any ** $string $result_val;
 
     data_row = int4 @result_len @data_row_len_next result @data_row_val_next;
     error_response = error_response_key str0 @error_response_val @/error_response_val;
+#    error_response = error_response_key str0 @error_response_val;
     ready_for_query = ready_for_query_inerror | ready_for_query_idle | ready_for_query_intrans;
     row_description = str0 >row_description_beg @row_description_name @/row_description_name int4 @row_description_table int2 @row_description_column int4 @row_description_oid int2 @row_description_length int4 @row_description_mod 0 0 @row_description_format;
+#    row_description = str0 >row_description_beg @row_description_name int4 @row_description_table int2 @row_description_column int4 @row_description_oid int2 @row_description_length int4 @row_description_mod 0 0 @row_description_format;
 
     main :=
     ( "1" 0 0 0 4 @parse_complete
     | "2" 0 0 0 4 @bind_complete
     | "3" 0 0 0 4 @close_complete
     | "A" int4 @notification_response int4 @notification_response_pid str0 @notification_response_relname @/notification_response_relname str0 @notification_response_extra @/notification_response_extra
+#    | "A" int4 @notification_response int4 @notification_response_pid str0 @notification_response_relname str0 @notification_response_extra
     | "c" 0 0 0 4 @copy_done
     | "C" int4 @command_complete str0 @command_complete_val @/command_complete_val
+#    | "C" int4 @command_complete str0 @command_complete_val
     | "d" int4 @copy_data result
     | "D" int4 @data_row int2 @data_row_count data_row **
     | "E" int4 @error_response error_response ** 0
@@ -138,10 +146,11 @@ typedef struct pg_fsm_t {
     | "N" int4 @notice_response error_response ** 0
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0
     | "S" int4 @parameter_status str0 @parameter_status_key @/parameter_status_key str0 @parameter_status_val @/parameter_status_val
+#    | "S" int4 @parameter_status str0 @parameter_status_key str0 @parameter_status_val
     | "T" int4 @row_description int2 @row_description_count row_description **
     | "V" int4 @function_call_response int4 @result_len result
     | "Z" 0 0 0 5 @ready_for_query ready_for_query
-    ) **;
+    ) ** $all;
 
     write data;
 }%%
@@ -149,7 +158,7 @@ typedef struct pg_fsm_t {
 size_t pg_fsm_execute(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *user, const unsigned char *p, const unsigned char *pe, const unsigned char *eof) {
     const unsigned char *b = p;
     %% write exec;
-    if (fsm->cs == pg_fsm_error) (void)cb->error(user);
+//    if (fsm->cs == pg_fsm_error) (void)cb->error(user);
     return p - b;
 }
 
