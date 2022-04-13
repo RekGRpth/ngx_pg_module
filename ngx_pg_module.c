@@ -81,7 +81,6 @@ typedef struct {
 
 typedef struct ngx_pg_data_t {
     ngx_array_t *errors;
-    ngx_flag_t filter;
     ngx_http_request_t *request;
     ngx_peer_connection_t peer;
     ngx_pg_save_t *save;
@@ -89,6 +88,7 @@ typedef struct ngx_pg_data_t {
     ngx_str_t error;
     ngx_uint_t busy;
     ngx_uint_t col;
+    ngx_uint_t filter;
     ngx_uint_t row;
 } ngx_pg_data_t;
 
@@ -183,10 +183,7 @@ static int ngx_pg_fsm_copy_data(ngx_pg_save_t *s, uint32_t len) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     d->row++;
-    if (!d->filter) {
-        d->filter = 1;
-        s->rc = NGX_DONE;
-    }
+    if (!d->filter++) s->rc = NGX_DONE;
     return s->rc;
 }
 
@@ -210,10 +207,7 @@ static int ngx_pg_fsm_data_row(ngx_pg_save_t *s, uint32_t len) {
     d->col = 0;
     d->row++;
     ngx_http_request_t *r = d->request;
-    if (!d->filter) {
-        d->filter = 1;
-        s->rc = NGX_DONE;
-    }
+    if (!d->filter++) s->rc = NGX_DONE;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     if (!plcf->out.type) return s->rc;
     if (d->row > 1 || plcf->out.header) if (ngx_pg_out_handler(r, sizeof("\n") - 1, (uint8_t *)"\n") == NGX_ERROR) { s->rc = NGX_ERROR; return s->rc; }
@@ -296,10 +290,7 @@ static int ngx_pg_fsm_function_call_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     d->row++;
-    if (!d->filter) {
-        d->filter = 1;
-        s->rc = NGX_DONE;
-    }
+    if (!d->filter++) s->rc = NGX_DONE;
     return s->rc;
 }
 
@@ -448,10 +439,7 @@ static int ngx_pg_fsm_row_description(ngx_pg_save_t *s, uint32_t len) {
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     if (!plcf->out.type) return s->rc;
-    if (!d->filter) {
-        d->filter = 1;
-        s->rc = NGX_DONE;
-    }
+    if (!d->filter++) s->rc = NGX_DONE;
     return s->rc;
 }
 
