@@ -1301,12 +1301,12 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     ngx_conf_merge_value(conf->upstream.request_buffering, prev->upstream.request_buffering, 1);
     ngx_conf_merge_value(conf->upstream.pass_request_body, prev->upstream.pass_request_body, 0);
     ngx_conf_merge_value(conf->upstream.socket_keepalive, prev->upstream.socket_keepalive, 0);
-    if (conf->upstream.bufs.num < 2) return "there must be at least 2 \"pg_buffers\"";
+    if (conf->upstream.bufs.num < 2) return "there must be at least 2 \"pg_upstream_buffers\"";
     size_t size = conf->upstream.buffer_size;
     if (size < conf->upstream.bufs.size) size = conf->upstream.bufs.size;
     conf->upstream.busy_buffers_size = conf->upstream.busy_buffers_size_conf == NGX_CONF_UNSET_SIZE ? 2 * size : conf->upstream.busy_buffers_size_conf;
-    if (conf->upstream.busy_buffers_size < size) return "\"pg_busy_buffers_size\" must be equal to or greater than the maximum of the value of \"pg_buffer_size\" and one of the \"pg_buffers\"";
-    if (conf->upstream.busy_buffers_size > (conf->upstream.bufs.num - 1) * conf->upstream.bufs.size) return "\"pg_busy_buffers_size\" must be less than the size of all \"pg_buffers\" minus one buffer";
+    if (conf->upstream.busy_buffers_size < size) return "\"pg_upstream_busy_buffers_size\" must be equal to or greater than the maximum of the value of \"pg_upstream_buffer_size\" and one of the \"pg_upstream_buffers\"";
+    if (conf->upstream.busy_buffers_size > (conf->upstream.bufs.num - 1) * conf->upstream.bufs.size) return "\"pg_upstream_busy_buffers_size\" must be less than the size of all \"pg_upstream_buffers\" minus one buffer";
     if (conf->upstream.next_upstream & NGX_HTTP_UPSTREAM_FT_OFF) conf->upstream.next_upstream = NGX_CONF_BITMASK_SET|NGX_HTTP_UPSTREAM_FT_OFF;
     if (ngx_conf_merge_path_value(cf, &conf->upstream.temp_path, prev->upstream.temp_path, &ngx_pg_temp_path) != NGX_OK) return NGX_CONF_ERROR;
 #if (NGX_HTTP_CACHE)
