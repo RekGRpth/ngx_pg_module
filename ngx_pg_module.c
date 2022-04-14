@@ -80,6 +80,11 @@ typedef struct {
         ngx_event_handler_pt write_handler;
         void *data;
     } keep;
+    struct {
+        ngx_str_t extra;
+        ngx_str_t relname;
+        uint32_t pid;
+    } notification;
 } ngx_pg_save_t;
 
 typedef struct ngx_pg_data_t {
@@ -326,26 +331,44 @@ static int ngx_pg_fsm_notice_response(ngx_pg_save_t *s, uint32_t len) {
 static int ngx_pg_fsm_notification_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     s->command = pg_command_state_notification_response;
+    ngx_connection_t *c = s->connection;
+    if (!(s->notification.relname.data = ngx_pnalloc(c->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
 static int ngx_pg_fsm_notification_response_done(ngx_pg_save_t *s) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    s->notification.extra.data[s->notification.extra.len] = '\0';
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "extra = %V", &s->notification.extra);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "pid = %d", s->notification.pid);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "relname = %V", &s->notification.relname);
+    ngx_connection_t *c = s->connection;
+    ngx_pfree(c->pool, s->notification.relname.data);
+    ngx_str_null(&s->notification.extra);
+    ngx_str_null(&s->notification.relname);
     return s->rc;
 }
 
 static int ngx_pg_fsm_notification_response_extra(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    if (!s->notification.extra.data) {
+        s->notification.extra.data = s->notification.relname.data + s->notification.relname.len + 1;
+        s->notification.relname.data[s->notification.relname.len] = '\0';
+    }
+    ngx_memcpy(s->notification.extra.data + s->notification.extra.len, data, len);
+    s->notification.extra.len += len;
     return s->rc;
 }
 
 static int ngx_pg_fsm_notification_response_pid(ngx_pg_save_t *s, uint32_t pid) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", pid);
+    s->notification.pid = pid;
     return s->rc;
 }
 
 static int ngx_pg_fsm_notification_response_relname(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    ngx_memcpy(s->notification.relname.data + s->notification.relname.len, data, len);
+    s->notification.relname.len += len;
     return s->rc;
 }
 
