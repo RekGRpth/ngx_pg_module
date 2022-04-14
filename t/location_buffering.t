@@ -24,7 +24,7 @@ __DATA__
         pg_opt user=postgres;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select 1";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /
@@ -60,7 +60,7 @@ option-standard-conforming-strings: on
         pg_opt user=postgres;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select 1/0";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /
@@ -96,7 +96,7 @@ error-sqlstate: 22012
         pg_out plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /?a=12&b=345
@@ -137,7 +137,7 @@ option-standard-conforming-strings: on
         pg_out plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab union select $2 order by 1";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /?a=12&b=345
@@ -180,7 +180,7 @@ option-standard-conforming-strings: on
         pg_out plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /?a=12&b=345&c=67&d=89
@@ -223,7 +223,7 @@ option-standard-conforming-strings: on
         pg_out plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 2";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /?a=34&b=qwe&c=89
@@ -266,7 +266,7 @@ option-standard-conforming-strings: on
         pg_out plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /?a=34&b=89&c=qwe
@@ -309,7 +309,7 @@ option-standard-conforming-strings: on
         pg_out plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /?a=34&b=qwe&c=89
@@ -350,7 +350,7 @@ option-standard-conforming-strings: on
         pg_out csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /?a=12&b=345
@@ -391,7 +391,7 @@ option-standard-conforming-strings: on
         pg_out csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab union select $2 order by 1";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /?a=12&b=345
@@ -434,7 +434,7 @@ option-standard-conforming-strings: on
         pg_out csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /?a=12&b=345&c=67&d=89
@@ -477,7 +477,7 @@ option-standard-conforming-strings: on
         pg_out csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 2";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /?a=34&b=qwe&c=89
@@ -520,7 +520,7 @@ option-standard-conforming-strings: on
         pg_out csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /?a=34&b=89&c=qwe
@@ -563,7 +563,7 @@ option-standard-conforming-strings: on
         pg_out csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /?a=34&b=qwe&c=89
@@ -607,7 +607,7 @@ option-standard-conforming-strings: on
         pg_opt user=postgres;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "do $$begin raise info '%', 1;end;$$";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /
@@ -649,7 +649,7 @@ option-standard-conforming-strings: on
         pg_opt user=postgres;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "copy (select 34 as ab, 'qwe' as cde union select 89, null order by 1) to stdout with (format csv, header true)";
-        pg_upstream_buffering off;
+        pg_buffering off;
     }
 --- request
 GET /?a=34&b=qwe&c=89
