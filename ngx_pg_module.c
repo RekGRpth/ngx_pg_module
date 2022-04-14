@@ -419,10 +419,10 @@ static int ngx_pg_fsm_notification_response_done(ngx_pg_save_t *s) {
         case NGX_DECLINED: ngx_log_error(NGX_LOG_WARN, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_DECLINED"); {
             ngx_chain_t *cl, *cl_size, *out, *last;
             uint32_t size = 0;
-            if (!(cl = out = ngx_pg_write_int1(p, NULL, 'Q'))) goto destroy;
-            if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) goto destroy;
-            if (!(cl = cl->next = ngx_pg_write_byte(p, &size, sizeof("UNLISTEN ") - 1, (uint8_t *)"UNLISTEN "))) goto destroy;
-            if (!(cl = cl->next = ngx_pg_write_str(p, &size, s->notification.relname.len, s->notification.relname.data))) goto destroy;
+            if (!(cl = out = ngx_pg_write_int1(p, NULL, 'Q'))) { s->rc = NGX_ERROR; goto destroy; }
+            if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) { s->rc = NGX_ERROR; goto destroy; }
+            if (!(cl = cl->next = ngx_pg_write_byte(p, &size, sizeof("UNLISTEN ") - 1, (uint8_t *)"UNLISTEN "))) { s->rc = NGX_ERROR; goto destroy; }
+            if (!(cl = cl->next = ngx_pg_write_str(p, &size, s->notification.relname.len, s->notification.relname.data))) { s->rc = NGX_ERROR; goto destroy; }
             cl->next = ngx_pg_write_size(cl_size, size);
             ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = p, .limit = 0 };
             ngx_chain_writer(&ctx, NULL);
@@ -431,6 +431,7 @@ static int ngx_pg_fsm_notification_response_done(ngx_pg_save_t *s) {
         case NGX_OK: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_OK"); break;
         default: ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == %i", s->rc); break;
     }
+    s->rc = NGX_OK;
 destroy:
     ngx_destroy_pool(p);
 free:
