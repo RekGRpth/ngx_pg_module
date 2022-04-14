@@ -411,30 +411,29 @@ static int ngx_pg_fsm_notification_response_done(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "pid = %d", s->notification.pid);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "relname = %V", &s->notification.relname);
     ngx_connection_t *c = s->connection;
-    if (ngx_http_push_stream_add_msg_to_channel_my) {
-        ngx_pool_t *p;
-        if (!(p = ngx_create_pool(4096 + s->notification.relname.len + s->notification.extra.len, s->connection->log)))
-        switch ((s->rc = ngx_http_push_stream_add_msg_to_channel_my(s->connection->log, &s->notification.relname, &s->notification.extra, NULL, NULL, 1, p))) {
-            case NGX_ERROR: ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_ERROR"); break;
-            case NGX_DECLINED: ngx_log_error(NGX_LOG_WARN, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_DECLINED"); {
-                ngx_chain_t *cl, *cl_size, *out, *last;
-                uint32_t size = 0;
-                if (!(cl = out = ngx_pg_write_int1(p, NULL, 'Q')));
-                else if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size)));
-                else if (!(cl = cl->next = ngx_pg_write_byte(p, &size, sizeof("UNLISTEN ") - 1, (uint8_t *)"UNLISTEN ")));
-                else if (!(cl = cl->next = ngx_pg_write_str(p, &size, s->notification.relname.len, s->notification.relname.data)));
-                else {
-                    cl->next = ngx_pg_write_size(cl_size, size);
-                    ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = p, .limit = 0 };
-                    ngx_chain_writer(&ctx, NULL);
-                }
-            } break;
-            case NGX_DONE: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_DONE"); break;
-            case NGX_OK: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_OK"); break;
-            default: ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == %i", s->rc); break;
-        }
-        ngx_destroy_pool(p);
+    if (!ngx_http_push_stream_add_msg_to_channel_my) goto free;
+    ngx_pool_t *p;
+    if (!(p = ngx_create_pool(4096 + s->notification.relname.len + s->notification.extra.len, s->connection->log))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_create_pool"); s->rc = NGX_ERROR; goto free; }
+    switch ((s->rc = ngx_http_push_stream_add_msg_to_channel_my(s->connection->log, &s->notification.relname, &s->notification.extra, NULL, NULL, 1, p))) {
+        case NGX_ERROR: ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_ERROR"); break;
+        case NGX_DECLINED: ngx_log_error(NGX_LOG_WARN, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_DECLINED"); {
+            ngx_chain_t *cl, *cl_size, *out, *last;
+            uint32_t size = 0;
+            if (!(cl = out = ngx_pg_write_int1(p, NULL, 'Q'))) goto destroy;
+            if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) goto destroy;
+            if (!(cl = cl->next = ngx_pg_write_byte(p, &size, sizeof("UNLISTEN ") - 1, (uint8_t *)"UNLISTEN "))) goto destroy;
+            if (!(cl = cl->next = ngx_pg_write_str(p, &size, s->notification.relname.len, s->notification.relname.data))) goto destroy;
+            cl->next = ngx_pg_write_size(cl_size, size);
+            ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = p, .limit = 0 };
+            ngx_chain_writer(&ctx, NULL);
+        } break;
+        case NGX_DONE: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_DONE"); break;
+        case NGX_OK: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_OK"); break;
+        default: ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == %i", s->rc); break;
     }
+destroy:
+    ngx_destroy_pool(p);
+free:
     ngx_pfree(c->pool, s->notification.relname.data);
     ngx_str_null(&s->notification.extra);
     ngx_str_null(&s->notification.relname);
