@@ -1,6 +1,9 @@
 #include <ngx_http.h>
 #include "pg_fsm.h"
 
+extern ngx_int_t ngx_http_push_stream_add_msg_to_channel_my(ngx_log_t *log, ngx_str_t *id, ngx_str_t *text, ngx_str_t *event_id, ngx_str_t *event_type, ngx_flag_t store_messages, ngx_pool_t *temp_pool) __attribute__((weak));
+extern ngx_int_t ngx_http_push_stream_delete_channel_my(ngx_log_t *log, ngx_str_t *id, u_char *text, size_t len, ngx_pool_t *temp_pool) __attribute__((weak));
+
 ngx_module_t ngx_pg_module;
 
 typedef enum {
@@ -326,6 +329,11 @@ static int ngx_pg_fsm_notification_response(ngx_pg_save_t *s, uint32_t len) {
     return s->rc;
 }
 
+static int ngx_pg_fsm_notification_response_done(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return s->rc;
+}
+
 static int ngx_pg_fsm_notification_response_extra(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     return s->rc;
@@ -543,6 +551,7 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .function_call_response = (pg_fsm_int4_cb)ngx_pg_fsm_function_call_response,
     .no_data = (pg_fsm_cb)ngx_pg_fsm_no_data,
     .notice_response = (pg_fsm_int4_cb)ngx_pg_fsm_notice_response,
+    .notification_response_done = (pg_fsm_cb)ngx_pg_fsm_notification_response_done,
     .notification_response_extra = (pg_fsm_str_cb)ngx_pg_fsm_notification_response_extra,
     .notification_response = (pg_fsm_int4_cb)ngx_pg_fsm_notification_response,
     .notification_response_pid = (pg_fsm_int4_cb)ngx_pg_fsm_notification_response_pid,

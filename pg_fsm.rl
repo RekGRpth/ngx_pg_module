@@ -59,7 +59,7 @@ typedef struct pg_fsm_t {
     action int4 { if (!fsm->i) { fsm->i = sizeof(fsm->int4); fsm->int4 = 0; } fsm->int4 |= *p << ((2 << 2) * --fsm->i); }
     action no_data { if (cb->no_data(user)) fbreak; }
     action notice_response { if (cb->notice_response(user, fsm->int4 - 4)) fbreak; }
-    action notification_response_extra { if (fsm->string && p - fsm->string > 0 && cb->notification_response_extra(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action notification_response_extra { if (fsm->string && p - fsm->string > 0 && cb->notification_response_extra(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) if (cb->notification_response_done(user)) fbreak; }
     action notification_response { if (cb->notification_response(user, fsm->int4 - 4)) fbreak; }
     action notification_response_pid { if (cb->notification_response_pid(user, fsm->int4)) fbreak; }
     action notification_response_relname { if (fsm->string && p - fsm->string > 0 && cb->notification_response_relname(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
