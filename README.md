@@ -18,6 +18,38 @@ location =/ {
     pg_arg NULL; # argument is NULL and type is auto detect
 }
 ```
+pg_fun
+-------------
+* Syntax: **pg_fun** *$oid*
+* Default: --
+* Context: location, if in location
+
+Sets function oid (nginx variables allowed) (with using [evaluate](https://github.com/RekGRpth/ngx_http_evaluate_module)):
+```nginx
+location =/function {
+    pg_arg $arg_name;
+    pg_arg $arg_schema;
+    pg_pas pg;
+    pg_sql "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2";
+}
+location =/ {
+    evaluate $now_oid /function?schema=pg_catalog&name=now;
+    pg_fun $now_oid;
+    pg_pas pg;
+}
+```
+pg_log
+-------------
+* Syntax: **pg_log** *file* [ *level* ]
+* Default: error_log logs/error.log error;
+* Context: upstream
+
+Configures logging (used when keepalive):
+```nginx
+upstream pg {
+    pg_log /var/log/nginx/pg.err info;
+}
+```
 pg_opt
 -------------
 * Syntax: **pg_opt** *name*=*value*
@@ -70,38 +102,6 @@ upstream pg {
     pg_opt database=database; # set database
     pg_opt user=user; # set user
     server unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
-}
-```
-pg_fun
--------------
-* Syntax: **pg_fun** *$oid*
-* Default: --
-* Context: location, if in location
-
-Sets function oid (nginx variables allowed) (with using [evaluate](https://github.com/RekGRpth/ngx_http_evaluate_module)):
-```nginx
-location =/function {
-    pg_arg $arg_name;
-    pg_arg $arg_schema;
-    pg_pas pg;
-    pg_sql "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2";
-}
-location =/ {
-    evaluate $now_oid /function?schema=pg_catalog&name=now;
-    pg_fun $now_oid;
-    pg_pas pg;
-}
-```
-pg_log
--------------
-* Syntax: **pg_log** *file* [ *level* ]
-* Default: error_log logs/error.log error;
-* Context: upstream
-
-Configures logging (used when keepalive):
-```nginx
-upstream pg {
-    pg_log /var/log/nginx/pg.err info;
 }
 ```
 pg_out
