@@ -443,6 +443,12 @@ static int ngx_pg_fsm_close_complete(ngx_pg_save_t *s) {
 static int ngx_pg_fsm_command_complete(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     s->command = pg_command_state_command_complete;
+    ngx_pg_data_t *d = s->data;
+    if (!d) return s->rc;
+    if (!d->filter && d->nqueries) {
+        d->nqueries--;
+        d->query++;
+    }
     return s->rc;
 }
 
