@@ -126,7 +126,7 @@ static ngx_int_t ngx_pg_output_handler(ngx_pg_data_t *d, size_t len, const uint8
     b->last = data + len;
     b->memory = 1;
     b->pos = data;
-    b->tag = p->tag;
+    b->tag = u->output.tag;
     b->temporary = 1;
     if (u->buffering && d->shadow && !d->shadow->shadow) {
         b->last_shadow = 1;
@@ -1285,13 +1285,15 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     u->process_header = ngx_pg_process_header;
     u->reinit_request = ngx_pg_reinit_request;
     r->state = 0;
-    u->buffering = u->conf->buffering;
-    if (!(u->pipe = ngx_pcalloc(r->pool, sizeof(*u->pipe)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_HTTP_INTERNAL_SERVER_ERROR; }
-    u->pipe->input_ctx = r;
-    u->pipe->input_filter = ngx_pg_pipe_input_filter;
     u->input_filter_init = (ngx_int_t (*)(void *data))ngx_pg_input_filter_init;
-    u->input_filter = (ngx_int_t (*)(void *data, ssize_t bytes))ngx_pg_input_filter;
-    u->input_filter_ctx = r;
+    if ((u->buffering = u->conf->buffering)) {
+        if (!(u->pipe = ngx_pcalloc(r->pool, sizeof(*u->pipe)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_HTTP_INTERNAL_SERVER_ERROR; }
+        u->pipe->input_ctx = r;
+        u->pipe->input_filter = ngx_pg_pipe_input_filter;
+    } else {
+        u->input_filter = (ngx_int_t (*)(void *data, ssize_t bytes))ngx_pg_input_filter;
+        u->input_filter_ctx = r;
+    }
     if (!u->conf->request_buffering && u->conf->pass_request_body && !r->headers_in.chunked) r->request_body_no_buffering = 1;
     if ((rc = ngx_http_read_client_request_body(r, ngx_http_upstream_init)) >= NGX_HTTP_SPECIAL_RESPONSE) return rc;
     return NGX_DONE;
