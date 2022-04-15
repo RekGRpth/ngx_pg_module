@@ -26,6 +26,7 @@ typedef struct {
     ngx_flag_t header;
     ngx_flag_t string;
     ngx_http_complex_value_t function;
+    ngx_http_complex_value_t listen;
     ngx_pg_output_t output;
     ngx_str_t null;
     ngx_str_t sql;
@@ -205,6 +206,197 @@ inline static ngx_chain_t *ngx_pg_write_str(ngx_pool_t *p, uint32_t *size, size_
     *cl->buf->last++ = 0;
     if (size) *size += len + sizeof(uint8_t);
     return cl;
+}
+
+inline static ngx_chain_t *ngx_pg_bind(ngx_pool_t *p, ngx_array_t *arguments) {
+    ngx_chain_t *cl, *cl_size, *bind;
+    uint32_t size = 0;
+    if (!(cl = bind = ngx_pg_write_int1(p, NULL, 'B'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (uint8_t *)""))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (uint8_t *)""))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arguments->nelts))) return NULL;
+    ngx_pg_value_t *value = arguments->elts;
+    for (ngx_uint_t i = 0; i < arguments->nelts; i++) {
+        if (value[i].argument.data) {
+            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].argument.len))) return NULL;
+            if (!(cl = cl->next = ngx_pg_write_byte(p, &size, value[i].argument.len, value[i].argument.data))) return NULL;
+        } else {
+            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, -1))) return NULL;
+        }
+    }
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = bind; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return bind;
+}
+
+inline static ngx_chain_t *ngx_pg_cancel_request(ngx_pool_t *p, uint32_t pid, uint32_t key) {
+    ngx_chain_t *cl, *cl_size, *cancel;
+    uint32_t size = 0;
+    if (!(cl = cl_size = cancel = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 80877102))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, pid))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, key))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = cancel; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return cancel;
+}
+
+inline static ngx_chain_t *ngx_pg_close(ngx_pool_t *p) {
+    ngx_chain_t *cl, *cl_size, *close;
+    uint32_t size = 0;
+    if (!(cl = close = ngx_pg_write_int1(p, NULL, 'C'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 'P'))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (uint8_t *)""))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = close; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return close;
+}
+
+inline static ngx_chain_t *ngx_pg_startup_message(ngx_pool_t *p, ngx_array_t *options) {
+    ngx_chain_t *cl, *cl_size, *connect;
+    uint32_t size = 0;
+    if (!(cl = cl_size = connect = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 0x00030000))) return NULL;
+    if (options) {
+        ngx_str_t *str = options->elts;
+        for (ngx_uint_t i = 0; i < options->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(p, &size, str[i].len, str[i].data))) return NULL;
+    }
+    if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = *connect; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%ui:%d:%c", i++, *p, *p);
+    return connect;
+}
+
+inline static ngx_chain_t *ngx_pg_describe(ngx_pool_t *p) {
+    ngx_chain_t *cl, *cl_size, *describe;
+    uint32_t size = 0;
+    if (!(cl = describe = ngx_pg_write_int1(p, NULL, 'D'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 'P'))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (uint8_t *)""))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = describe; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return describe;
+}
+
+inline static ngx_chain_t *ngx_pg_execute(ngx_pool_t *p) {
+    ngx_chain_t *cl, *cl_size, *execute;
+    uint32_t size = 0;
+    if (!(cl = execute = ngx_pg_write_int1(p, NULL, 'E'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (uint8_t *)""))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 0))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = execute; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return execute;
+}
+
+inline static ngx_chain_t *ngx_pg_terminate(ngx_pool_t *p) {
+    ngx_chain_t *cl, *cl_size, *exit;
+    uint32_t size = 0;
+    if (!(cl = exit = ngx_pg_write_int1(p, NULL, 'X'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = exit; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return exit;
+}
+
+inline static ngx_chain_t *ngx_pg_flush(ngx_pool_t *p) {
+    ngx_chain_t *cl, *cl_size, *flush;
+    uint32_t size = 0;
+    if (!(cl = flush = ngx_pg_write_int1(p, NULL, 'H'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = flush; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return flush;
+}
+
+inline static ngx_chain_t *ngx_pg_function_call(ngx_pool_t *p, uint32_t oid, ngx_array_t *arguments) {
+    ngx_chain_t *cl, *cl_size, *function;
+    uint32_t size = 0;
+    if (!(cl = function = ngx_pg_write_int1(p, NULL, 'F'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, oid))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 1))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arguments->nelts))) return NULL;
+    ngx_pg_value_t *value = arguments->elts;
+    for (ngx_uint_t i = 0; i < arguments->nelts; i++) {
+        if (value[i].argument.data) {
+            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].argument.len))) return NULL;
+            if (!(cl = cl->next = ngx_pg_write_byte(p, &size, value[i].argument.len, value[i].argument.data))) return NULL;
+        } else {
+            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, -1))) return NULL;
+        }
+    }
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = function; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return function;
+}
+
+inline static ngx_chain_t *ngx_pg_listen(ngx_pool_t *p, size_t len, const uint8_t *data) {
+    ngx_chain_t *cl, *cl_size, *unlisten;
+    uint32_t size = 0;
+    if (!(cl = unlisten = ngx_pg_write_int1(p, NULL, 'Q'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_byte(p, &size, sizeof("LISTEN ") - 1, (uint8_t *)"LISTEN "))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = parse; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return unlisten;
+}
+
+inline static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, size_t len, const uint8_t *data, ngx_array_t *arguments) {
+    ngx_chain_t *cl, *cl_size, *parse;
+    uint32_t size = 0;
+    if (!(cl = parse = ngx_pg_write_int1(p, NULL, 'P'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (uint8_t *)""))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arguments->nelts))) return NULL;
+    ngx_pg_value_t *value = arguments->elts;
+    for (ngx_uint_t i = 0; i < arguments->nelts; i++) if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].type))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = parse; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return parse;
+}
+
+inline static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, size_t len, const uint8_t *data) {
+    ngx_chain_t *cl, *cl_size, *query;
+    uint32_t size = 0;
+    if (!(cl = query = ngx_pg_write_int1(p, NULL, 'Q'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = query; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return query;
+}
+
+inline static ngx_chain_t *ngx_pg_sync(ngx_pool_t *p) {
+    ngx_chain_t *cl, *cl_size, *sync;
+    uint32_t size = 0;
+    if (!(cl = sync = ngx_pg_write_int1(p, NULL, 'S'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = sync; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return sync;
+}
+
+inline static ngx_chain_t *ngx_pg_unlisten(ngx_pool_t *p, size_t len, const uint8_t *data) {
+    ngx_chain_t *cl, *cl_size, *unlisten;
+    uint32_t size = 0;
+    if (!(cl = unlisten = ngx_pg_write_int1(p, NULL, 'Q'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_byte(p, &size, sizeof("UNLISTEN ") - 1, (uint8_t *)"UNLISTEN "))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = parse; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return unlisten;
 }
 
 static int ngx_pg_fsm_all(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
@@ -421,13 +613,8 @@ static int ngx_pg_fsm_notification_response_done(ngx_pg_save_t *s) {
     switch ((s->rc = ngx_http_push_stream_add_msg_to_channel_my(s->connection->log, &s->notification.relname, &s->notification.extra, NULL, NULL, 1, p))) {
         case NGX_ERROR: ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_ERROR"); break;
         case NGX_DECLINED: ngx_log_error(NGX_LOG_WARN, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_DECLINED"); {
-            ngx_chain_t *cl, *cl_size, *out, *last;
-            uint32_t size = 0;
-            if (!(cl = out = ngx_pg_write_int1(p, NULL, 'Q'))) { s->rc = NGX_ERROR; goto destroy; }
-            if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) { s->rc = NGX_ERROR; goto destroy; }
-            if (!(cl = cl->next = ngx_pg_write_byte(p, &size, sizeof("UNLISTEN ") - 1, (uint8_t *)"UNLISTEN "))) { s->rc = NGX_ERROR; goto destroy; }
-            if (!(cl = cl->next = ngx_pg_write_str(p, &size, s->notification.relname.len, s->notification.relname.data))) { s->rc = NGX_ERROR; goto destroy; }
-            cl->next = ngx_pg_write_size(cl_size, size);
+            ngx_chain_t *out, *last;
+            if (!(out = ngx_pg_unlisten(p, s->notification.relname.len, s->notification.relname.data))) goto destroy;
             ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = p, .limit = 0 };
             ngx_chain_writer(&ctx, NULL);
         } break;
@@ -691,173 +878,6 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .row_description = (pg_fsm_int4_cb)ngx_pg_fsm_row_description,
     .row_description_table = (pg_fsm_int4_cb)ngx_pg_fsm_row_description_table,
 };
-
-inline static ngx_chain_t *ngx_pg_bind(ngx_pool_t *p, ngx_array_t *arguments) {
-    ngx_chain_t *cl, *cl_size, *bind;
-    uint32_t size = 0;
-    if (!(cl = bind = ngx_pg_write_int1(p, NULL, 'B'))) return NULL;
-    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (uint8_t *)""))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (uint8_t *)""))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arguments->nelts))) return NULL;
-    ngx_pg_value_t *value = arguments->elts;
-    for (ngx_uint_t i = 0; i < arguments->nelts; i++) {
-        if (value[i].argument.data) {
-            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].argument.len))) return NULL;
-            if (!(cl = cl->next = ngx_pg_write_byte(p, &size, value[i].argument.len, value[i].argument.data))) return NULL;
-        } else {
-            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, -1))) return NULL;
-        }
-    }
-    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = bind; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
-    return bind;
-}
-
-inline static ngx_chain_t *ngx_pg_cancel_request(ngx_pool_t *p, uint32_t pid, uint32_t key) {
-    ngx_chain_t *cl, *cl_size, *cancel;
-    uint32_t size = 0;
-    if (!(cl = cl_size = cancel = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 80877102))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, pid))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, key))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = cancel; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
-    return cancel;
-}
-
-inline static ngx_chain_t *ngx_pg_close(ngx_pool_t *p) {
-    ngx_chain_t *cl, *cl_size, *close;
-    uint32_t size = 0;
-    if (!(cl = close = ngx_pg_write_int1(p, NULL, 'C'))) return NULL;
-    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 'P'))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (uint8_t *)""))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = close; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
-    return close;
-}
-
-inline static ngx_chain_t *ngx_pg_startup_message(ngx_pool_t *p, ngx_array_t *options) {
-    ngx_chain_t *cl, *cl_size, *connect;
-    uint32_t size = 0;
-    if (!(cl = cl_size = connect = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 0x00030000))) return NULL;
-    if (options) {
-        ngx_str_t *str = options->elts;
-        for (ngx_uint_t i = 0; i < options->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(p, &size, str[i].len, str[i].data))) return NULL;
-    }
-    if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = *connect; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%ui:%d:%c", i++, *p, *p);
-    return connect;
-}
-
-inline static ngx_chain_t *ngx_pg_describe(ngx_pool_t *p) {
-    ngx_chain_t *cl, *cl_size, *describe;
-    uint32_t size = 0;
-    if (!(cl = describe = ngx_pg_write_int1(p, NULL, 'D'))) return NULL;
-    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 'P'))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (uint8_t *)""))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = describe; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
-    return describe;
-}
-
-inline static ngx_chain_t *ngx_pg_execute(ngx_pool_t *p) {
-    ngx_chain_t *cl, *cl_size, *execute;
-    uint32_t size = 0;
-    if (!(cl = execute = ngx_pg_write_int1(p, NULL, 'E'))) return NULL;
-    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (uint8_t *)""))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 0))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = execute; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
-    return execute;
-}
-
-inline static ngx_chain_t *ngx_pg_terminate(ngx_pool_t *p) {
-    ngx_chain_t *cl, *cl_size, *exit;
-    uint32_t size = 0;
-    if (!(cl = exit = ngx_pg_write_int1(p, NULL, 'X'))) return NULL;
-    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = exit; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
-    return exit;
-}
-
-inline static ngx_chain_t *ngx_pg_flush(ngx_pool_t *p) {
-    ngx_chain_t *cl, *cl_size, *flush;
-    uint32_t size = 0;
-    if (!(cl = flush = ngx_pg_write_int1(p, NULL, 'H'))) return NULL;
-    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = flush; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
-    return flush;
-}
-
-inline static ngx_chain_t *ngx_pg_function_call(ngx_pool_t *p, uint32_t oid, ngx_array_t *arguments) {
-    ngx_chain_t *cl, *cl_size, *function;
-    uint32_t size = 0;
-    if (!(cl = function = ngx_pg_write_int1(p, NULL, 'F'))) return NULL;
-    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, oid))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 1))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arguments->nelts))) return NULL;
-    ngx_pg_value_t *value = arguments->elts;
-    for (ngx_uint_t i = 0; i < arguments->nelts; i++) {
-        if (value[i].argument.data) {
-            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].argument.len))) return NULL;
-            if (!(cl = cl->next = ngx_pg_write_byte(p, &size, value[i].argument.len, value[i].argument.data))) return NULL;
-        } else {
-            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, -1))) return NULL;
-        }
-    }
-    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, 0))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = function; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
-    return function;
-}
-
-inline static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, size_t len, const uint8_t *data, ngx_array_t *arguments) {
-    ngx_chain_t *cl, *cl_size, *parse;
-    uint32_t size = 0;
-    if (!(cl = parse = ngx_pg_write_int1(p, NULL, 'P'))) return NULL;
-    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("") - 1, (uint8_t *)""))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arguments->nelts))) return NULL;
-    ngx_pg_value_t *value = arguments->elts;
-    for (ngx_uint_t i = 0; i < arguments->nelts; i++) if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].type))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = parse; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
-    return parse;
-}
-
-inline static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, size_t len, const uint8_t *data) {
-    ngx_chain_t *cl, *cl_size, *query;
-    uint32_t size = 0;
-    if (!(cl = query = ngx_pg_write_int1(p, NULL, 'Q'))) return NULL;
-    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = query; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
-    return query;
-}
-
-inline static ngx_chain_t *ngx_pg_sync(ngx_pool_t *p) {
-    ngx_chain_t *cl, *cl_size, *sync;
-    uint32_t size = 0;
-    if (!(cl = sync = ngx_pg_write_int1(p, NULL, 'S'))) return NULL;
-    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = sync; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
-    return sync;
-}
 
 static void ngx_pg_save_cln_handler(ngx_pg_save_t *s) {
     ngx_connection_t *c = s->connection;
@@ -1137,6 +1157,16 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
                 if (!(cl->next = ngx_pg_function_call(r->pool, oid, &arguments))) return NGX_ERROR;
             } else {
                 if (!(cl = ngx_pg_function_call(r->pool, oid, &arguments))) return NGX_ERROR;
+                if (!u->request_bufs) u->request_bufs = cl;
+            }
+            while (cl->next) cl = cl->next;
+        } else if (query[i].listen.value.data) {
+            ngx_str_t value;
+            if (ngx_http_complex_value(r, &query[i].listen, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
+            if (cl) {
+                if (!(cl->next = ngx_pg_listen(r->pool, value.len, value.data))) return NGX_ERROR;
+            } else {
+                if (!(cl = ngx_pg_listen(r->pool, value.len, value.data))) return NGX_ERROR;
                 if (!u->request_bufs) u->request_bufs = cl;
             }
             while (cl->next) cl = cl->next;
@@ -1611,6 +1641,18 @@ static char *ngx_pg_function_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *
     return ngx_pg_argument_output_loc_conf(cf, cmd, conf);
 }
 
+static char *ngx_pg_listen_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_loc_conf_t *plcf = conf;
+    ngx_pg_query_t *query;
+    if (!plcf->queries && !(plcf->queries = ngx_array_create(cf->pool, 1, sizeof(*query)))) return "!ngx_array_create";
+    if (!(query = ngx_array_push(plcf->queries))) return "!ngx_array_push";
+    ngx_memzero(query, sizeof(*query));
+    ngx_str_t *str = cf->args->elts;
+    ngx_http_compile_complex_value_t ccv = {cf, &str[1], &query->listen, 0, 0, 0};
+    if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+    return NGX_CONF_OK;
+}
+
 static char *ngx_pg_log_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_srv_conf_t *pscf = conf;
     return ngx_log_set_log(cf, &pscf->log);
@@ -1732,6 +1774,7 @@ static ngx_conf_bitmask_t ngx_pg_next_upstream_masks[] = {
 
 static ngx_command_t ngx_pg_commands[] = {
   { ngx_string("pg_function"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_function_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
+  { ngx_string("pg_listen"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_listen_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_log"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_log_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_option"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_option_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_option"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_option_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
