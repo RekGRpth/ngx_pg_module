@@ -385,6 +385,10 @@ static int ngx_pg_fsm_function_call_response(ngx_pg_save_t *s, uint32_t len) {
     s->command = pg_command_state_function_call_response;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
+    if (d->nqueries) {
+        d->nqueries--;
+        d->query++;
+    }
     d->row++;
     if (!d->filter++) s->rc = NGX_DONE;
     return s->rc;
