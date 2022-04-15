@@ -3,34 +3,17 @@ it uses ragel-based PostgreSQL connection parser with zero-alloc and zero-copy
 
 # Directives
 
-pg_argument
--------------
-* Syntax: **pg_argument** NULL | *$arg* [ *$type* ]
-* Default: --
-* Context: location, if in location
-
-Sets query argument (nginx variables allowed) and type (nginx variables allowed), can be several:
-```nginx
-location =/ {
-    pg_argument $argument $type; # argument is taken from $argument variable and type is taken from $type variable
-    pg_argument $argument; # argument is taken from $argument variable and type is auto detect
-    pg_argument NULL $type; # argument is NULL and type is taken from $type variable
-    pg_argument NULL; # argument is NULL and type is auto detect
-}
-```
 pg_function
 -------------
-* Syntax: **pg_function** *$oid*
+* Syntax: **pg_function** *$oid* [ NULL | NULL::*$type* | *$arg* | *$arg*::*$type* ] [ output=*csv* | output=*plain* ]
 * Default: --
 * Context: location, if in location
 
-Sets function oid (nginx variables allowed) (with using [evaluate](https://github.com/RekGRpth/ngx_http_evaluate_module)):
+Sets function oid (nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) type(s) (nginx variables allowed) and output type (no nginx variables allowed) (with using [evaluate](https://github.com/RekGRpth/ngx_http_evaluate_module)):
 ```nginx
 location =/function {
-    pg_argument $arg_name;
-    pg_argument $arg_schema;
     pg_pass pg;
-    pg_query "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2";
+    pg_query "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2" $arg_name $arg_schema;
 }
 location =/now {
     evaluate $now_oid /function?schema=pg_catalog&name=now;
@@ -52,7 +35,7 @@ upstream pg {
 ```
 pg_option
 -------------
-* Syntax: **pg_opt** *name*=*value*
+* Syntax: **pg_option** *name*=*value*
 * Default: --
 * Context: location, if in location, upstream
 
@@ -104,22 +87,6 @@ upstream pg {
     server unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
 }
 ```
-pg_output
--------------
-* Syntax: **pg_output** *csv* | *plain*
-* Default: --
-* Context: location, if in location
-
-Configures output type (no nginx variables allowed):
-```nginx
-location =/ {
-    pg_output csv; # set csv output
-}
-# or
-location =/ {
-    pg_output plain; # set plain output
-}
-```
 pg_pass
 -------------
 * Syntax: **pg_pass** *host*:*port* | unix://*socket* | *$upstream*
@@ -146,14 +113,14 @@ location =/ {
 ```
 pg_query
 -------------
-* Syntax: **pg_query** *sql*
+* Syntax: **pg_query** *sql* [ NULL | NULL::*$type* | *$arg* | *$arg*::*$type* ] [ output=*csv* | output=*plain* ]
 * Default: --
 * Context: location, if in location
 
-Sets SQL query (no nginx variables allowed):
+Sets SQL query (no nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) type(s) (nginx variables allowed) and output type (no nginx variables allowed):
 ```nginx
 location =/ {
-    pg_query "SELECT now()"; # simple query
+    pg_query "SELECT now()" output=csv; # simple query and csv output type
 }
 # or
 location =/ {
@@ -161,9 +128,7 @@ location =/ {
 }
 # or
 location =/ {
-    pg_argument NULL 25; # first query argument is NULL and type of TEXTOID
-    pg_argument $arg; # second query argument is taken from $arg variable and auto type
-    pg_query "SELECT $1, $2::text"; # extended query with 2 arguments
+    pg_query "SELECT $1, $2::text" NULL::25 $arg output=plain; # extended query with two arguments: first query argument is NULL and type of 25 (TEXTOID) and second query argument is taken from $arg variable and auto type and plain output type
 }
 ```
 # Embedded Variables
