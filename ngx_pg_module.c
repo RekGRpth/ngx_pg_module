@@ -330,6 +330,7 @@ static int ngx_pg_fsm_error_response(ngx_pg_save_t *s, uint32_t len) {
     s->command = pg_command_state_error_response;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
+    d->nqueries = 0;
     ngx_pg_error_t *error;
     ngx_http_request_t *r = d->request;
     if (!(d->errors = ngx_array_create(r->pool, 1, sizeof(*error)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
