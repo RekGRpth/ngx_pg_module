@@ -25,7 +25,7 @@ typedef struct {
     ngx_array_t *arguments;
     ngx_array_t *options;
     ngx_http_complex_value_t complex;
-    ngx_http_complex_value_t *function;
+    ngx_http_complex_value_t function;
     ngx_http_upstream_conf_t upstream;
     ngx_str_t query;
 #if (NGX_HTTP_CACHE)
@@ -1126,9 +1126,9 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
             if (argument[i].argument.value.data) if (ngx_http_complex_value(r, &argument[i].argument, &value->argument) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
         }
     }
-    if (plcf->function) {
+    if (plcf->function.value.data) {
         ngx_str_t value;
-        if (ngx_http_complex_value(r, plcf->function, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
+        if (ngx_http_complex_value(r, &plcf->function, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
         ngx_int_t oid = ngx_atoi(value.data, value.len);
         if (oid == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
         if (!(cl = u->request_bufs = ngx_pg_function_call(r->pool, oid, &arguments))) return NGX_ERROR;
@@ -1515,8 +1515,12 @@ static char *ngx_pg_argument_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *
 
 static char *ngx_pg_function_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
+    if (plcf->function.value.data) return "duplicate";
     if (plcf->query.data) return "conflicts with \"pg_query\" directive";
-    return ngx_http_set_complex_value_slot(cf, cmd, conf);
+    ngx_str_t *str = cf->args->elts;
+    ngx_http_compile_complex_value_t ccv = {cf, &str[1], &plcf->function, 0, 0, 0};
+    if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+    return NGX_CONF_OK;
 }
 
 static char *ngx_pg_log_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
@@ -1638,8 +1642,11 @@ static char *ngx_pg_pass_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
 
 static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->function) return "conflicts with \"pg_function\" directive";
-    return ngx_conf_set_str_slot(cf, cmd, conf);
+    if (plcf->query.data) return "duplicate";
+    if (plcf->function.value.data) return "conflicts with \"pg_function\" directive";
+    ngx_str_t *str = cf->args->elts;
+    plcf->query = str[1];
+    return NGX_CONF_OK;
 }
 
 #if (NGX_HTTP_CACHE)
