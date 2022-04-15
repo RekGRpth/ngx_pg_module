@@ -22,24 +22,26 @@ typedef struct {
 } ngx_pg_value_t;
 
 typedef struct {
+    ngx_array_t *arguments;
+    ngx_flag_t header;
+    ngx_flag_t string;
+    ngx_http_complex_value_t function;
+    ngx_pg_output_t output;
+    ngx_str_t null;
+    ngx_str_t sql;
+    u_char delimiter;
+    u_char escape;
+    u_char quote;
+} ngx_pg_query_t;
+
+typedef struct {
     ngx_array_t *options;
     ngx_http_complex_value_t complex;
     ngx_http_upstream_conf_t upstream;
 #if (NGX_HTTP_CACHE)
     ngx_http_complex_value_t cache_key;
 #endif
-    struct {
-        ngx_array_t *arguments;
-        ngx_flag_t header;
-        ngx_flag_t string;
-        ngx_http_complex_value_t function;
-        ngx_pg_output_t output;
-        ngx_str_t null;
-        ngx_str_t sql;
-        u_char delimiter;
-        u_char escape;
-        u_char quote;
-    } query;
+    ngx_pg_query_t query;
 } ngx_pg_loc_conf_t;
 
 typedef struct {
