@@ -515,9 +515,9 @@ static int ngx_pg_fsm_ready_for_query_state(ngx_pg_save_t *s, uint16_t state) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", state);
     s->state = state;
     ngx_pg_data_t *d = s->data;
-    if (d && d->filter && d->nqueries) {
+    if (d && d->nqueries) {
         d->nqueries--;
-        d->query++;
+        if (d->filter) d->query++;
     }
     return s->rc;
 }
@@ -909,6 +909,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         while (cl->next) cl = cl->next;
         cl->next = u->request_bufs;
         u->request_bufs = connect;
+        d->nqueries += 1;
     }
     s->data = d;
     while (cl->next) cl = cl->next;
@@ -916,7 +917,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     ngx_pg_query_t *query = plcf->queries->elts;
     d->query = &query[0];
-    d->nqueries = plcf->queries->nelts;
+    d->nqueries += plcf->queries->nelts;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%d:%d:%c", i++, *p, *p);
     return NGX_DONE;
 }
