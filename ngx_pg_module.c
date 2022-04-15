@@ -570,7 +570,7 @@ static int ngx_pg_fsm_row_description(ngx_pg_save_t *s, uint32_t len) {
     d->row = 0;
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->out.type) return s->rc;
+    if (!plcf->out.type || !plcf->out.header) return s->rc;
     if (!d->filter++) s->rc = NGX_DONE;
     return s->rc;
 }
@@ -582,7 +582,7 @@ static int ngx_pg_fsm_row_description_beg(ngx_pg_save_t *s) {
     d->col++;
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->out.type) return s->rc;
+    if (!plcf->out.type || !plcf->out.header) return s->rc;
     if (d->col > 1) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->out.delimiter), &plcf->out.delimiter)) != NGX_OK) return s->rc;
     if (plcf->out.string && plcf->out.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->out.quote), &plcf->out.quote)) != NGX_OK) return s->rc;
     return s->rc;
@@ -620,7 +620,7 @@ static int ngx_pg_fsm_row_description_name(ngx_pg_save_t *s, size_t len, const u
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", d->col);
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->out.type) return s->rc;
+    if (!plcf->out.type || !plcf->out.header) return s->rc;
     if (plcf->out.string && plcf->out.quote && plcf->out.escape) for (ngx_uint_t k = 0; k < len; k++) {
         if (data[k] == plcf->out.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->out.escape), &plcf->out.escape)) != NGX_OK) return s->rc;
         if ((s->rc = ngx_pg_output_handler(r, sizeof(data[k]), &data[k])) != NGX_OK) return s->rc;
