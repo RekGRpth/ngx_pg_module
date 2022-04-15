@@ -913,7 +913,6 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         pg_fsm_init(s->fsm);
         s->connection = c;
         ngx_chain_t *connect;
-        ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
         ngx_pg_srv_conf_t *pscf = d->conf;
         if (!(cl = connect = ngx_pg_startup_message(r->pool, pscf ? pscf->options : plcf->options))) return NGX_ERROR;
         while (cl->next) cl = cl->next;
