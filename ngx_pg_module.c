@@ -1202,6 +1202,7 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *b) {
     while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->pos, b->last, b->end);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "s->rc = %d", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "d->nqueries = %d", d->nqueries);
     if (!d->nqueries && s->state != pg_ready_for_query_state_unknown) p->length = 0;
     return s->rc;
 }
@@ -1233,6 +1234,7 @@ static ngx_int_t ngx_pg_input_filter(ngx_http_request_t *r, ssize_t bytes) {
     while (b->last < last && s->rc == NGX_OK) b->last += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->last, last, b->end);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %d", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->last == last = %s", b->last == last ? "true" : "false");
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "d->nqueries = %d", d->nqueries);
     if (!d->nqueries && s->state != pg_ready_for_query_state_unknown) u->length = 0;
     return s->rc;
 }
