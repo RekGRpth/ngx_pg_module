@@ -36,12 +36,12 @@ typedef struct {
 
 typedef struct {
     ngx_array_t *options;
+    ngx_array_t *queries;
     ngx_http_complex_value_t complex;
     ngx_http_upstream_conf_t upstream;
 #if (NGX_HTTP_CACHE)
     ngx_http_complex_value_t cache_key;
 #endif
-    ngx_pg_query_t query;
 } ngx_pg_loc_conf_t;
 
 typedef struct {
@@ -94,6 +94,7 @@ typedef struct ngx_pg_data_t {
     ngx_buf_t *shadow;
     ngx_http_request_t *request;
     ngx_peer_connection_t peer;
+    ngx_pg_query_t *query;
     ngx_pg_save_t *save;
     ngx_pg_srv_conf_t *conf;
     ngx_str_t error;
@@ -103,12 +104,12 @@ typedef struct ngx_pg_data_t {
     ngx_uint_t row;
 } ngx_pg_data_t;
 
-static ngx_int_t ngx_pg_output_handler(ngx_http_request_t *r, size_t len, const uint8_t *data) {
+static ngx_int_t ngx_pg_output_handler(ngx_pg_data_t *d, size_t len, const uint8_t *data) {
+    ngx_http_request_t *r = d->request;
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%*s", (int)len, data);
     ngx_chain_t *cl;
     ngx_http_upstream_t *u = r->upstream;
     ngx_event_pipe_t *p = u->pipe;
-    ngx_pg_data_t *d = u->peer.data;
     if (u->buffering) {
         if (!p->pool) p->pool = r->pool;
         if (!(cl = ngx_chain_get_free_buf(p->pool, &p->free))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_chain_get_free_buf"); return NGX_ERROR; }
@@ -257,10 +258,9 @@ static int ngx_pg_fsm_command_complete_val(ngx_pg_save_t *s, size_t len, const u
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_http_request_t *r = d->request;
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (plcf->query.output || d->row) return s->rc;
-    if ((s->rc = ngx_pg_output_handler(r, len, data)) != NGX_OK) return s->rc;
+    ngx_pg_query_t *query = d->query;
+    if (query->output || d->row) return s->rc;
+    if ((s->rc = ngx_pg_output_handler(d, len, data)) != NGX_OK) return s->rc;
     return s->rc;
 }
 
@@ -293,11 +293,10 @@ static int ngx_pg_fsm_data_row(ngx_pg_save_t *s, uint32_t len) {
     if (!d) return s->rc;
     d->col = 0;
     d->row++;
-    ngx_http_request_t *r = d->request;
     if (!d->filter++) s->rc = NGX_DONE;
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->query.output) return s->rc;
-    if (d->row > 1 || plcf->query.header) if (ngx_pg_output_handler(r, sizeof("\n") - 1, (uint8_t *)"\n") == NGX_ERROR) { s->rc = NGX_ERROR; return s->rc; }
+    ngx_pg_query_t *query = d->query;
+    if (!query->output) return s->rc;
+    if (d->row > 1 || query->header) if (ngx_pg_output_handler(d, sizeof("\n") - 1, (uint8_t *)"\n") == NGX_ERROR) { s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
@@ -524,10 +523,9 @@ static int ngx_pg_fsm_result_done(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_http_request_t *r = d->request;
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->query.output) return s->rc;
-    if (plcf->query.string && plcf->query.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.quote), &plcf->query.quote)) != NGX_OK) return s->rc;
+    ngx_pg_query_t *query = d->query;
+    if (!query->output) return s->rc;
+    if (query->string && query->quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->quote), &query->quote)) != NGX_OK) return s->rc;
     return s->rc;
 }
 
@@ -537,14 +535,13 @@ static int ngx_pg_fsm_result_len(ngx_pg_save_t *s, uint32_t len) {
     if (!d) return s->rc;
     d->col++;
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d:%d", d->col, d->row);
-    ngx_http_request_t *r = d->request;
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->query.output) return s->rc;
-    if (d->col > 1) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.delimiter), &plcf->query.delimiter)) != NGX_OK) return s->rc;
+    ngx_pg_query_t *query = d->query;
+    if (!query->output) return s->rc;
+    if (d->col > 1) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->delimiter), &query->delimiter)) != NGX_OK) return s->rc;
     if (len == (uint32_t)-1) {
-        if (plcf->query.null.len) if ((s->rc = ngx_pg_output_handler(r, plcf->query.null.len, plcf->query.null.data)) != NGX_OK) return s->rc;
+        if (query->null.len) if ((s->rc = ngx_pg_output_handler(d, query->null.len, query->null.data)) != NGX_OK) return s->rc;
     } else {
-        if (plcf->query.string && plcf->query.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.quote), &plcf->query.quote)) != NGX_OK) return s->rc;
+        if (query->string && query->quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->quote), &query->quote)) != NGX_OK) return s->rc;
     }
     return s->rc;
 }
@@ -554,12 +551,11 @@ static int ngx_pg_fsm_result_val(ngx_pg_save_t *s, size_t len, const uint8_t *da
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d:%d", d->col, d->row);
-    ngx_http_request_t *r = d->request;
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (plcf->query.output && plcf->query.string && plcf->query.quote && plcf->query.escape) for (ngx_uint_t k = 0; k < len; k++) {
-        if (data[k] == plcf->query.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.escape), &plcf->query.escape)) != NGX_OK) return s->rc;
-        if ((s->rc = ngx_pg_output_handler(r, sizeof(data[k]), &data[k])) != NGX_OK) return s->rc;
-    } else if ((s->rc = ngx_pg_output_handler(r, len, data)) != NGX_OK) return s->rc;
+    ngx_pg_query_t *query = d->query;
+    if (query->output && query->string && query->quote && query->escape) for (ngx_uint_t k = 0; k < len; k++) {
+        if (data[k] == query->quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->escape), &query->escape)) != NGX_OK) return s->rc;
+        if ((s->rc = ngx_pg_output_handler(d, sizeof(data[k]), &data[k])) != NGX_OK) return s->rc;
+    } else if ((s->rc = ngx_pg_output_handler(d, len, data)) != NGX_OK) return s->rc;
     return s->rc;
 }
 
@@ -570,9 +566,8 @@ static int ngx_pg_fsm_row_description(ngx_pg_save_t *s, uint32_t len) {
     if (!d) return s->rc;
     d->col = 0;
     d->row = 0;
-    ngx_http_request_t *r = d->request;
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->query.output || !plcf->query.header) return s->rc;
+    ngx_pg_query_t *query = d->query;
+    if (!query->output || !query->header) return s->rc;
     if (!d->filter++) s->rc = NGX_DONE;
     return s->rc;
 }
@@ -582,11 +577,10 @@ static int ngx_pg_fsm_row_description_beg(ngx_pg_save_t *s) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     d->col++;
-    ngx_http_request_t *r = d->request;
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->query.output || !plcf->query.header) return s->rc;
-    if (d->col > 1) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.delimiter), &plcf->query.delimiter)) != NGX_OK) return s->rc;
-    if (plcf->query.string && plcf->query.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.quote), &plcf->query.quote)) != NGX_OK) return s->rc;
+    ngx_pg_query_t *query = d->query;
+    if (!query->output || !query->header) return s->rc;
+    if (d->col > 1) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->delimiter), &query->delimiter)) != NGX_OK) return s->rc;
+    if (query->string && query->quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->quote), &query->quote)) != NGX_OK) return s->rc;
     return s->rc;
 }
 
@@ -620,13 +614,12 @@ static int ngx_pg_fsm_row_description_name(ngx_pg_save_t *s, size_t len, const u
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", d->col);
-    ngx_http_request_t *r = d->request;
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->query.output || !plcf->query.header) return s->rc;
-    if (plcf->query.string && plcf->query.quote && plcf->query.escape) for (ngx_uint_t k = 0; k < len; k++) {
-        if (data[k] == plcf->query.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.escape), &plcf->query.escape)) != NGX_OK) return s->rc;
-        if ((s->rc = ngx_pg_output_handler(r, sizeof(data[k]), &data[k])) != NGX_OK) return s->rc;
-    } else if ((s->rc = ngx_pg_output_handler(r, len, data)) != NGX_OK) return s->rc;
+    ngx_pg_query_t *query = d->query;
+    if (!query->output || !query->header) return s->rc;
+    if (query->string && query->quote && query->escape) for (ngx_uint_t k = 0; k < len; k++) {
+        if (data[k] == query->quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->escape), &query->escape)) != NGX_OK) return s->rc;
+        if ((s->rc = ngx_pg_output_handler(d, sizeof(data[k]), &data[k])) != NGX_OK) return s->rc;
+    } else if ((s->rc = ngx_pg_output_handler(d, len, data)) != NGX_OK) return s->rc;
     return s->rc;
 }
 
@@ -639,10 +632,9 @@ static int ngx_pg_fsm_row_description_table(ngx_pg_save_t *s, uint32_t table) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", table);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_http_request_t *r = d->request;
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->query.output) return s->rc;
-    if (plcf->query.string && plcf->query.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.quote), &plcf->query.quote)) != NGX_OK) return s->rc;
+    ngx_pg_query_t *query = d->query;
+    if (!query->output) return s->rc;
+    if (query->string && query->quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->quote), &query->quote)) != NGX_OK) return s->rc;
     return s->rc;
 }
 
@@ -881,6 +873,9 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         default: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = %d", rc); return rc;
     }
     ngx_pg_save_t *s;
+    ngx_http_request_t *r = d->request;
+    ngx_http_upstream_t *u = r->upstream;
+    ngx_chain_t *cl = u->request_bufs;
     if (pc->connection) s = d->save = (ngx_pg_save_t *)((char *)pc->connection->pool + sizeof(*pc->connection->pool)); else {
         pc->get = ngx_event_get_peer;
         switch ((rc = ngx_event_connect_peer(pc))) {
@@ -904,21 +899,22 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!(s->fsm = ngx_pcalloc(c->pool, pg_fsm_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         pg_fsm_init(s->fsm);
         s->connection = c;
-        ngx_chain_t *cl, *connect;
-        ngx_http_request_t *r = d->request;
-        ngx_http_upstream_t *u = r->upstream;
+        ngx_chain_t *connect;
         ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
         ngx_pg_srv_conf_t *pscf = d->conf;
         if (!(cl = connect = ngx_pg_startup_message(r->pool, pscf ? pscf->options : plcf->options))) return NGX_ERROR;
         while (cl->next) cl = cl->next;
-//        if (!(cl->next = ngx_pg_flush(r->pool))) return NGX_ERROR;
-//        while (cl->next) cl = cl->next;
         cl->next = u->request_bufs;
         u->request_bufs = connect;
         d->busy++;
     }
-    d->busy++;
     s->data = d;
+    while (cl->next) cl = cl->next;
+    if (!(cl->next = ngx_pg_sync(r->pool))) return NGX_ERROR;
+    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
+    ngx_pg_query_t *query = plcf->queries->elts;
+    d->query = &query[0];
+    d->busy += plcf->queries->nelts;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%d:%d:%c", i++, *p, *p);
     return NGX_DONE;
 }
@@ -1104,53 +1100,50 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     }
     u->headers_in.status_n = NGX_HTTP_OK;
     u->keepalive = !u->headers_in.connection_close;
-    switch (plcf->query.output) {
-        case ngx_pg_output_csv: ngx_str_set(&r->headers_out.content_type, "text/csv"); break;
-        case ngx_pg_output_plain: ngx_str_set(&r->headers_out.content_type, "text/plain"); break;
-    }
-    r->headers_out.content_type_len = r->headers_out.content_type.len;
+    if (!plcf->queries->nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!queries"); return NGX_ERROR; }
+    ngx_pg_query_t *query = plcf->queries->elts;
     ngx_chain_t *cl;
-    ngx_array_t arguments = {0};
-    if (plcf->query.arguments) {
-        ngx_pg_value_t *value;
-        if (ngx_array_init(&arguments, r->pool, plcf->query.arguments->nelts, sizeof(*value)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
-        ngx_pg_argument_t *argument = plcf->query.arguments->elts;
-        for (ngx_uint_t i = 0; i < plcf->query.arguments->nelts; i++) {
-            if (!(value = ngx_array_push(&arguments))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
-            ngx_memzero(value, sizeof(*value));
-            if (argument[i].type.value.data) {
-                ngx_str_t str;
-                if (ngx_http_complex_value(r, &argument[i].type, &str) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
-                ngx_int_t n = ngx_atoi(str.data, str.len);
-                if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
-                value->type = n;
+    for (ngx_uint_t i = 0; i < plcf->queries->nelts; i++) {
+        ngx_array_t arguments = {0};
+        if (query[i].arguments) {
+            ngx_pg_value_t *value;
+            if (ngx_array_init(&arguments, r->pool, query[i].arguments->nelts, sizeof(*value)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
+            ngx_pg_argument_t *argument = query[i].arguments->elts;
+            for (ngx_uint_t j = 0; j < query[i].arguments->nelts; j++) {
+                if (!(value = ngx_array_push(&arguments))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
+                ngx_memzero(value, sizeof(*value));
+                if (argument[j].type.value.data) {
+                    ngx_str_t str;
+                    if (ngx_http_complex_value(r, &argument[j].type, &str) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
+                    ngx_int_t n = ngx_atoi(str.data, str.len);
+                    if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
+                    value->type = n;
+                }
+                if (argument[j].argument.value.data) if (ngx_http_complex_value(r, &argument[j].argument, &value->argument) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
             }
-            if (argument[i].argument.value.data) if (ngx_http_complex_value(r, &argument[i].argument, &value->argument) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
         }
+        if (query[i].function.value.data) {
+            ngx_str_t value;
+            if (ngx_http_complex_value(r, &query[i].function, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
+            ngx_int_t oid = ngx_atoi(value.data, value.len);
+            if (oid == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
+            if (!(cl = ngx_pg_function_call(r->pool, oid, &arguments))) return NGX_ERROR;
+            if (!u->request_bufs) u->request_bufs = cl;
+            while (cl->next) cl = cl->next;
+        } else if (query[i].sql.data) {
+            if (!(cl = ngx_pg_parse(r->pool, query[i].sql.len, query[i].sql.data, &arguments))) return NGX_ERROR;
+            if (!u->request_bufs) u->request_bufs = cl;
+            while (cl->next) cl = cl->next;
+            if (!(cl->next = ngx_pg_bind(r->pool, &arguments))) return NGX_ERROR;
+            while (cl->next) cl = cl->next;
+            if (!(cl->next = ngx_pg_describe(r->pool))) return NGX_ERROR;
+            while (cl->next) cl = cl->next;
+            if (!(cl->next = ngx_pg_execute(r->pool))) return NGX_ERROR;
+            while (cl->next) cl = cl->next;
+            if (!(cl->next = ngx_pg_close(r->pool))) return NGX_ERROR;
+            while (cl->next) cl = cl->next;
+        } else { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!pg_function && !pg_query"); return NGX_ERROR; }
     }
-    if (plcf->query.function.value.data) {
-        ngx_str_t value;
-        if (ngx_http_complex_value(r, &plcf->query.function, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
-        ngx_int_t oid = ngx_atoi(value.data, value.len);
-        if (oid == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
-        if (!(cl = u->request_bufs = ngx_pg_function_call(r->pool, oid, &arguments))) return NGX_ERROR;
-        while (cl->next) cl = cl->next;
-    } else if (plcf->query.sql.data) {
-        if (!(cl = u->request_bufs = ngx_pg_parse(r->pool, plcf->query.sql.len, plcf->query.sql.data, &arguments))) return NGX_ERROR;
-        while (cl->next) cl = cl->next;
-        if (!(cl->next = ngx_pg_bind(r->pool, &arguments))) return NGX_ERROR;
-        while (cl->next) cl = cl->next;
-        if (!(cl->next = ngx_pg_describe(r->pool))) return NGX_ERROR;
-        while (cl->next) cl = cl->next;
-        if (!(cl->next = ngx_pg_execute(r->pool))) return NGX_ERROR;
-        while (cl->next) cl = cl->next;
-        if (!(cl->next = ngx_pg_close(r->pool))) return NGX_ERROR;
-        while (cl->next) cl = cl->next;
-        if (!(cl->next = ngx_pg_sync(r->pool))) return NGX_ERROR;
-        while (cl->next) cl = cl->next;
-    } else { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!pg_function && !pg_query"); return NGX_ERROR; }
-//    if (!(cl->next = ngx_pg_flush(r->pool))) return NGX_ERROR;
-//    while (cl->next) cl = cl->next;
     return NGX_OK;
 }
 
@@ -1498,19 +1491,21 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
 
 static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
+    ngx_pg_query_t *query = plcf->queries->elts;
+    query = &query[plcf->queries->nelts - 1];
     ngx_str_t *str = cf->args->elts;
-    plcf->query.header = 1;
+    query->header = 1;
     for (ngx_uint_t i = 2; i < cf->args->nelts; i++) {
         if (str[i].len > sizeof("delimiter=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"delimiter=", sizeof("delimiter=") - 1)) {
             if (!(str[i].len - (sizeof("delimiter=") - 1))) return "empty \"delimiter\" value";
             if (str[i].len - (sizeof("delimiter=") - 1) > 1) return "\"delimiter\" value must be one character";
-            plcf->query.delimiter = str[i].data[sizeof("delimiter=") - 1];
+            query->delimiter = str[i].data[sizeof("delimiter=") - 1];
             continue;
         }
         if (str[i].len >= sizeof("escape=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"escape=", sizeof("escape=") - 1)) {
-            if (!(str[i].len - (sizeof("escape=") - 1))) { plcf->query.escape = '\0'; continue; }
+            if (!(str[i].len - (sizeof("escape=") - 1))) { query->escape = '\0'; continue; }
             else if (str[i].len > 1) return "\"escape\" value must be one character";
-            plcf->query.escape = str[i].data[sizeof("escape=") - 1];
+            query->escape = str[i].data[sizeof("escape=") - 1];
             continue;
         }
         if (str[i].len > sizeof("header=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"header=", sizeof("header=") - 1)) {
@@ -1518,7 +1513,7 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
             static const ngx_conf_enum_t e[] = { { ngx_string("off"), 0 }, { ngx_string("no"), 0 }, { ngx_string("false"), 0 }, { ngx_string("on"), 1 }, { ngx_string("yes"), 1 }, { ngx_string("true"), 1 }, { ngx_null_string, 0 } };
             for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("header=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("header=") - 1], str[i].len - (sizeof("header=") - 1))) break;
             if (!e[j].name.len) return "\"header\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
-            plcf->query.header = e[j].value;
+            query->header = e[j].value;
             continue;
         }
         if (str[i].len > sizeof("output=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"output=", sizeof("output=") - 1)) {
@@ -1526,29 +1521,29 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
             static const ngx_conf_enum_t e[] = { { ngx_string("csv"), ngx_pg_output_csv }, { ngx_string("plain"), ngx_pg_output_plain }, { ngx_null_string, 0 } };
             for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("output=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("output=") - 1], str[i].len - (sizeof("output=") - 1))) break;
             if (!e[j].name.len) return "\"output\" value must be \"csv\" or \"plain\"";
-            switch ((plcf->query.output = e[j].value)) {
+            switch ((query->output = e[j].value)) {
                 case ngx_pg_output_csv: {
-                    ngx_str_set(&plcf->query.null, "");
-                    plcf->query.delimiter = ',';
-                    plcf->query.escape = '"';
-                    plcf->query.quote = '"';
+                    ngx_str_set(&query->null, "");
+                    query->delimiter = ',';
+                    query->escape = '"';
+                    query->quote = '"';
                 } break;
                 case ngx_pg_output_plain: {
-                    ngx_str_set(&plcf->query.null, "\\N");
-                    plcf->query.delimiter = '\t';
+                    ngx_str_set(&query->null, "\\N");
+                    query->delimiter = '\t';
                 } break;
             }
             continue;
         }
         if (str[i].len > sizeof("null=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"null=", sizeof("null=") - 1)) {
-            if (!(plcf->query.null.len = str[i].len - (sizeof("null=") - 1))) return "empty \"null\" value";
-            plcf->query.null.data = &str[i].data[sizeof("null=") - 1];
+            if (!(query->null.len = str[i].len - (sizeof("null=") - 1))) return "empty \"null\" value";
+            query->null.data = &str[i].data[sizeof("null=") - 1];
             continue;
         }
         if (str[i].len >= sizeof("quote=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"quote=", sizeof("quote=") - 1)) {
-            if (!(str[i].len - (sizeof("quote=") - 1))) { plcf->query.quote = '\0'; continue; }
+            if (!(str[i].len - (sizeof("quote=") - 1))) { query->quote = '\0'; continue; }
             else if (str[i].len - (sizeof("quote=") - 1) > 1) return "\"quote\" value must be one character";
-            plcf->query.quote = str[i].data[sizeof("quote=") - 1];
+            query->quote = str[i].data[sizeof("quote=") - 1];
             continue;
         }
         if (str[i].len > sizeof("string=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"string=", sizeof("string=") - 1)) {
@@ -1556,12 +1551,12 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
             static const ngx_conf_enum_t e[] = { { ngx_string("off"), 0 }, { ngx_string("no"), 0 }, { ngx_string("false"), 0 }, { ngx_string("on"), 1 }, { ngx_string("yes"), 1 }, { ngx_string("true"), 1 }, { ngx_null_string, 0 } };
             for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("string=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("string=") - 1], str[i].len - (sizeof("string=") - 1))) break;
             if (!e[j].name.len) return "\"string\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
-            plcf->query.string = e[j].value;
+            query->string = e[j].value;
             continue;
         }
         ngx_pg_argument_t *argument;
-        if (!plcf->query.arguments && !(plcf->query.arguments = ngx_array_create(cf->pool, 1, sizeof(*argument)))) return "!ngx_array_create";
-        if (!(argument = ngx_array_push(plcf->query.arguments))) return "!ngx_array_push";
+        if (!query->arguments && !(query->arguments = ngx_array_create(cf->pool, 1, sizeof(*argument)))) return "!ngx_array_create";
+        if (!(argument = ngx_array_push(query->arguments))) return "!ngx_array_push";
         ngx_memzero(argument, sizeof(*argument));
         u_char *colon;
         ngx_str_t name = str[i];
@@ -1584,10 +1579,12 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
 
 static char *ngx_pg_function_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->query.function.value.data) return "duplicate";
-    if (plcf->query.sql.data) return "conflicts with \"pg_query\" directive";
+    ngx_pg_query_t *query;
+    if (!plcf->queries && !(plcf->queries = ngx_array_create(cf->pool, 1, sizeof(*query)))) return "!ngx_array_create";
+    if (!(query = ngx_array_push(plcf->queries))) return "!ngx_array_push";
+    ngx_memzero(query, sizeof(*query));
     ngx_str_t *str = cf->args->elts;
-    ngx_http_compile_complex_value_t ccv = {cf, &str[1], &plcf->query.function, 0, 0, 0};
+    ngx_http_compile_complex_value_t ccv = {cf, &str[1], &query->function, 0, 0, 0};
     if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     return ngx_pg_argument_output_loc_conf(cf, cmd, conf);
 }
@@ -1651,10 +1648,12 @@ static char *ngx_pg_pass_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
 
 static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->query.sql.data) return "duplicate";
-    if (plcf->query.function.value.data) return "conflicts with \"pg_function\" directive";
+    ngx_pg_query_t *query;
+    if (!plcf->queries && !(plcf->queries = ngx_array_create(cf->pool, 1, sizeof(*query)))) return "!ngx_array_create";
+    if (!(query = ngx_array_push(plcf->queries))) return "!ngx_array_push";
+    ngx_memzero(query, sizeof(*query));
     ngx_str_t *str = cf->args->elts;
-    plcf->query.sql = str[1];
+    query->sql = str[1];
     return ngx_pg_argument_output_loc_conf(cf, cmd, conf);
 }
 
