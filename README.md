@@ -104,20 +104,20 @@ upstream pg {
     server unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
 }
 ```
-pg_out
+pg_output
 -------------
-* Syntax: **pg_out** *csv* | *plain*
+* Syntax: **pg_output** *csv* | *plain*
 * Default: --
 * Context: location, if in location
 
 Configures output type (no nginx variables allowed):
 ```nginx
 location =/ {
-    pg_out csv; # set csv output
+    pg_output csv; # set csv output
 }
 # or
 location =/ {
-    pg_out plain; # set plain output
+    pg_output plain; # set plain output
 }
 ```
 pg_pas

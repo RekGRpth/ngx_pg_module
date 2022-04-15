@@ -91,7 +91,7 @@ error-sqlstate: 22012
         pg_option application_name=location;
         pg_option database=postgres;
         pg_option user=postgres;
-        pg_out plain;
+        pg_output plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde";
     }
@@ -131,7 +131,7 @@ option-standard-conforming-strings: on
         pg_option application_name=location;
         pg_option database=postgres;
         pg_option user=postgres;
-        pg_out plain;
+        pg_output plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab union select $2 order by 1";
     }
@@ -173,7 +173,7 @@ option-standard-conforming-strings: on
         pg_option application_name=location;
         pg_option database=postgres;
         pg_option user=postgres;
-        pg_out plain;
+        pg_output plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
     }
@@ -215,7 +215,7 @@ option-standard-conforming-strings: on
         pg_option application_name=location;
         pg_option database=postgres;
         pg_option user=postgres;
-        pg_out plain;
+        pg_output plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 2";
     }
@@ -257,7 +257,7 @@ option-standard-conforming-strings: on
         pg_option application_name=location;
         pg_option database=postgres;
         pg_option user=postgres;
-        pg_out plain;
+        pg_output plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
     }
@@ -299,7 +299,7 @@ option-standard-conforming-strings: on
         pg_option application_name=location;
         pg_option database=postgres;
         pg_option user=postgres;
-        pg_out plain;
+        pg_output plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
     }
@@ -339,7 +339,7 @@ option-standard-conforming-strings: on
         pg_option application_name=location;
         pg_option database=postgres;
         pg_option user=postgres;
-        pg_out csv;
+        pg_output csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde";
     }
@@ -379,7 +379,7 @@ option-standard-conforming-strings: on
         pg_option application_name=location;
         pg_option database=postgres;
         pg_option user=postgres;
-        pg_out csv;
+        pg_output csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab union select $2 order by 1";
     }
@@ -421,7 +421,7 @@ option-standard-conforming-strings: on
         pg_option application_name=location;
         pg_option database=postgres;
         pg_option user=postgres;
-        pg_out csv;
+        pg_output csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
     }
@@ -463,7 +463,7 @@ option-standard-conforming-strings: on
         pg_option application_name=location;
         pg_option database=postgres;
         pg_option user=postgres;
-        pg_out csv;
+        pg_output csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 2";
     }
@@ -505,7 +505,7 @@ option-standard-conforming-strings: on
         pg_option application_name=location;
         pg_option database=postgres;
         pg_option user=postgres;
-        pg_out csv;
+        pg_output csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
     }
@@ -547,7 +547,7 @@ option-standard-conforming-strings: on
         pg_option application_name=location;
         pg_option database=postgres;
         pg_option user=postgres;
-        pg_out csv;
+        pg_output csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
     }
