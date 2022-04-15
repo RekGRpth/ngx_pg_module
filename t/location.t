@@ -19,9 +19,9 @@ __DATA__
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select 1";
     }
@@ -54,9 +54,9 @@ option-standard-conforming-strings: on
         add_header error-primary $pg_error_primary always;
         add_header error-severity $pg_error_severity always;
         add_header error-sqlstate $pg_error_sqlstate always;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select 1/0";
     }
@@ -88,9 +88,9 @@ error-sqlstate: 22012
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_out plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde";
@@ -128,9 +128,9 @@ option-standard-conforming-strings: on
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_out plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab union select $2 order by 1";
@@ -170,9 +170,9 @@ option-standard-conforming-strings: on
         pg_arg $arg_b 23;
         pg_arg $arg_c 23;
         pg_arg $arg_d 23;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_out plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
@@ -212,9 +212,9 @@ option-standard-conforming-strings: on
         pg_arg $arg_a 23;
         pg_arg $arg_b;
         pg_arg $arg_c 23;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_out plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 2";
@@ -254,9 +254,9 @@ option-standard-conforming-strings: on
         pg_arg NULL 25;
         pg_arg $arg_b 23;
         pg_arg $arg_c;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_out plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
@@ -296,9 +296,9 @@ option-standard-conforming-strings: on
         pg_arg $arg_b;
         pg_arg $arg_c 23;
         pg_arg NULL 25;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_out plain;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
@@ -336,9 +336,9 @@ option-standard-conforming-strings: on
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_out csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde";
@@ -376,9 +376,9 @@ option-standard-conforming-strings: on
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         pg_arg $arg_a 23;
         pg_arg $arg_b 23;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_out csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab union select $2 order by 1";
@@ -418,9 +418,9 @@ option-standard-conforming-strings: on
         pg_arg $arg_b 23;
         pg_arg $arg_c 23;
         pg_arg $arg_d 23;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_out csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
@@ -460,9 +460,9 @@ option-standard-conforming-strings: on
         pg_arg $arg_a 23;
         pg_arg $arg_b;
         pg_arg $arg_c 23;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_out csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 2";
@@ -502,9 +502,9 @@ option-standard-conforming-strings: on
         pg_arg NULL 25;
         pg_arg $arg_b 23;
         pg_arg $arg_c;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_out csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
@@ -544,9 +544,9 @@ option-standard-conforming-strings: on
         pg_arg $arg_b;
         pg_arg $arg_c 23;
         pg_arg NULL 25;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_out csv;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
@@ -588,9 +588,9 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "do $$begin raise info '%', 1;end;$$";
     }
@@ -629,9 +629,9 @@ option-standard-conforming-strings: on
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         default_type text/csv;
-        pg_opt application_name=location;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=location;
+        pg_option database=postgres;
+        pg_option user=postgres;
         pg_pas unix:///run/postgresql/.s.PGSQL.5432;
         pg_sql "copy (select 34 as ab, 'qwe' as cde union select 89, null order by 1) to stdout with (format csv, header true)";
     }

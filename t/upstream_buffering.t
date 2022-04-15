@@ -11,9 +11,9 @@ __DATA__
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -53,9 +53,9 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -88,9 +88,9 @@ error-sqlstate: 22012
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -133,9 +133,9 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -178,9 +178,9 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -225,9 +225,9 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -272,9 +272,9 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -319,9 +319,9 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -366,9 +366,9 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -411,9 +411,9 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -456,9 +456,9 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -503,9 +503,9 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -550,9 +550,9 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -597,9 +597,9 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -644,9 +644,9 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -695,9 +695,9 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_opt application_name=upstream;
-        pg_opt database=postgres;
-        pg_opt user=postgres;
+        pg_option application_name=upstream;
+        pg_option database=postgres;
+        pg_option user=postgres;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
