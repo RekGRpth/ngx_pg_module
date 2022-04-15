@@ -568,9 +568,9 @@ static int ngx_pg_fsm_row_description(ngx_pg_save_t *s, uint32_t len) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     d->col = 0;
-    d->row = 0;
     ngx_pg_query_t *query = d->query;
     if (!query->output || !query->header) return s->rc;
+    if (d->row > 1) if (ngx_pg_output_handler(d, sizeof("\n") - 1, (uint8_t *)"\n") == NGX_ERROR) { s->rc = NGX_ERROR; return s->rc; }
     if (!d->filter++) s->rc = NGX_DONE;
     return s->rc;
 }
