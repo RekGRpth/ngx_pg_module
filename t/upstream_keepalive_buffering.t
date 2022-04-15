@@ -347,6 +347,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
+        default_type text/csv;
         pg_pass pg;
         pg_query "select $1 as ab, $2 as cde" $arg_a::23 $arg_b::23 output=csv;
         pg_buffering off;
@@ -388,6 +389,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
+        default_type text/csv;
         pg_pass pg;
         pg_query "select $1 as ab union select $2 order by 1" $arg_a::23 $arg_b::23 output=csv;
         pg_buffering off;
@@ -429,6 +431,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
+        default_type text/csv;
         pg_pass pg;
         pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1" $arg_a::23 $arg_b::23 $arg_c::23 $arg_d::23 output=csv;
         pg_buffering off;
@@ -470,6 +473,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
+        default_type text/csv;
         pg_pass pg;
         pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 2" NULL::25 $arg_a::23 $arg_b $arg_c::23 output=csv;
         pg_buffering off;
@@ -511,6 +515,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
+        default_type text/csv;
         pg_pass pg;
         pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1" $arg_a::23 NULL::25 $arg_b::23 $arg_c output=csv;
         pg_buffering off;
@@ -552,6 +557,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
+        default_type text/csv;
         pg_pass pg;
         pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1" $arg_a::23 $arg_b $arg_c::23 NULL::25 output=csv;
         pg_buffering off;
