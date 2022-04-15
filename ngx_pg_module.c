@@ -98,9 +98,9 @@ typedef struct ngx_pg_data_t {
     ngx_pg_save_t *save;
     ngx_pg_srv_conf_t *conf;
     ngx_str_t error;
-    ngx_uint_t busy;
     ngx_uint_t col;
     ngx_uint_t filter;
+    ngx_uint_t nqueries;
     ngx_uint_t row;
 } ngx_pg_data_t;
 
@@ -515,7 +515,10 @@ static int ngx_pg_fsm_ready_for_query_state(ngx_pg_save_t *s, uint16_t state) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", state);
     s->state = state;
     ngx_pg_data_t *d = s->data;
-    if (d && d->busy) d->busy--;
+    if (d && d->filter && d->nqueries) {
+        d->nqueries--;
+        d->query++;
+    }
     return s->rc;
 }
 
@@ -906,7 +909,6 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         while (cl->next) cl = cl->next;
         cl->next = u->request_bufs;
         u->request_bufs = connect;
-        d->busy++;
     }
     s->data = d;
     while (cl->next) cl = cl->next;
@@ -914,7 +916,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     ngx_pg_query_t *query = plcf->queries->elts;
     d->query = &query[0];
-    d->busy += plcf->queries->nelts;
+    d->nqueries = plcf->queries->nelts;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%d:%d:%c", i++, *p, *p);
     return NGX_DONE;
 }
@@ -1000,7 +1002,7 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     ngx_pg_save_t *s = d->save;
     d->save = NULL;
     s->data = NULL;
-    if (d->busy) {
+    if (d->nqueries) {
         ngx_int_t rc;
         ngx_peer_connection_t *pc_;
         if (!(pc_ = ngx_pcalloc(s->connection->pool, sizeof(*pc_)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return; }
@@ -1172,7 +1174,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     if (s->rc == NGX_OK) {
         char buf[1];
         ngx_connection_t *c = s->connection;
-        s->rc = d->busy || s->state == pg_ready_for_query_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
+        s->rc = d->nqueries || s->state == pg_ready_for_query_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
     }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %d", s->rc);
     if (s->rc == NGX_OK && u->headers_in.status_n == NGX_HTTP_INTERNAL_SERVER_ERROR && d->errors && d->errors->nelts) s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
@@ -1197,7 +1199,7 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *b) {
     while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->pos, b->last, b->end);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "s->rc = %d", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
-    if (!d->busy && s->state != pg_ready_for_query_state_unknown) p->length = 0;
+    if (!d->nqueries && s->state != pg_ready_for_query_state_unknown) p->length = 0;
     return s->rc;
 }
 
@@ -1208,7 +1210,7 @@ static ngx_int_t ngx_pg_input_filter_init(ngx_http_request_t *r) {
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
-    if (!d->busy && s->state != pg_ready_for_query_state_unknown) {
+    if (!d->nqueries && s->state != pg_ready_for_query_state_unknown) {
         u->length = 0;
         p->length = 0;
     } else p->length = 1;
@@ -1228,7 +1230,7 @@ static ngx_int_t ngx_pg_input_filter(ngx_http_request_t *r, ssize_t bytes) {
     while (b->last < last && s->rc == NGX_OK) b->last += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->last, last, b->end);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %d", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
-    if (!d->busy && s->state != pg_ready_for_query_state_unknown) u->length = 0;
+    if (!d->nqueries && s->state != pg_ready_for_query_state_unknown) u->length = 0;
     return s->rc;
 }
 
