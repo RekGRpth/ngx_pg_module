@@ -18,9 +18,9 @@ location =/ {
     pg_arg NULL; # argument is NULL and type is auto detect
 }
 ```
-pg_fun
+pg_function
 -------------
-* Syntax: **pg_fun** *$oid*
+* Syntax: **pg_function** *$oid*
 * Default: --
 * Context: location, if in location
 
@@ -34,7 +34,7 @@ location =/function {
 }
 location =/now {
     evaluate $now_oid /function?schema=pg_catalog&name=now;
-    pg_fun $now_oid;
+    pg_function $now_oid;
     pg_pas pg;
 }
 ```

@@ -1146,7 +1146,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
         while (cl->next) cl = cl->next;
         if (!(cl->next = ngx_pg_sync(r->pool))) return NGX_ERROR;
         while (cl->next) cl = cl->next;
-    } else { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!pg_fun && !pg_sql"); return NGX_ERROR; }
+    } else { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!pg_function && !pg_sql"); return NGX_ERROR; }
 //    if (!(cl->next = ngx_pg_flush(r->pool))) return NGX_ERROR;
 //    while (cl->next) cl = cl->next;
     return NGX_OK;
@@ -1513,7 +1513,7 @@ static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     return NGX_CONF_OK;
 }
 
-static char *ngx_pg_fun_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+static char *ngx_pg_function_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->sql.data) return "conflicts with \"pg_sql\" directive";
     return ngx_http_set_complex_value_slot(cf, cmd, conf);
@@ -1638,7 +1638,7 @@ static char *ngx_pg_pas_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 static char *ngx_pg_sql_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->function) return "conflicts with \"pg_fun\" directive";
+    if (plcf->function) return "conflicts with \"pg_function\" directive";
     return ngx_conf_set_str_slot(cf, cmd, conf);
 }
 
@@ -1695,7 +1695,7 @@ static ngx_conf_bitmask_t ngx_pg_next_upstream_masks[] = {
 
 static ngx_command_t ngx_pg_commands[] = {
   { ngx_string("pg_arg"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_arg_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
-  { ngx_string("pg_fun"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_fun_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, function), NULL },
+  { ngx_string("pg_function"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_function_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, function), NULL },
   { ngx_string("pg_log"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_log_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_option"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_option_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, options), NULL },
   { ngx_string("pg_option"), NGX_HTTP_UPS_CONF|NGX_CONF_TAKE1, ngx_pg_option_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, offsetof(ngx_pg_srv_conf_t, options), NULL },
