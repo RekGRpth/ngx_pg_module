@@ -30,7 +30,7 @@ location =/function {
     pg_arg $arg_name;
     pg_arg $arg_schema;
     pg_pass pg;
-    pg_sql "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2";
+    pg_query "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2";
 }
 location =/now {
     evaluate $now_oid /function?schema=pg_catalog&name=now;
@@ -144,26 +144,26 @@ location =/ {
     pg_pass $postgres; # upstream is taken from $postgres variable
 }
 ```
-pg_sql
+pg_query
 -------------
-* Syntax: **pg_sql** *sql*
+* Syntax: **pg_query** *sql*
 * Default: --
 * Context: location, if in location
 
 Sets SQL query (no nginx variables allowed):
 ```nginx
 location =/ {
-    pg_sql "SELECT now()"; # simple query
+    pg_query "SELECT now()"; # simple query
 }
 # or
 location =/ {
-    pg_sql "SELECT 1/0"; # simple query with error
+    pg_query "SELECT 1/0"; # simple query with error
 }
 # or
 location =/ {
     pg_arg NULL 25; # first query argument is NULL and type of TEXTOID
     pg_arg $arg; # second query argument is taken from $arg variable and auto type
-    pg_sql "SELECT $1, $2::text"; # extended query with 2 arguments
+    pg_query "SELECT $1, $2::text"; # extended query with 2 arguments
 }
 ```
 # Embedded Variables

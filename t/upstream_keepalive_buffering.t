@@ -29,7 +29,7 @@ __DATA__
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         pg_pass pg;
-        pg_sql "select 1";
+        pg_query "select 1";
         pg_buffering off;
     }
 --- request
@@ -70,7 +70,7 @@ option-standard-conforming-strings: on
         add_header error-severity $pg_error_severity always;
         add_header error-sqlstate $pg_error_sqlstate always;
         pg_pass pg;
-        pg_sql "select 1/0";
+        pg_query "select 1/0";
         pg_buffering off;
     }
 --- request
@@ -111,7 +111,7 @@ error-sqlstate: 22012
         pg_arg $arg_b 23;
         pg_output plain;
         pg_pass pg;
-        pg_sql "select $1 as ab, $2 as cde";
+        pg_query "select $1 as ab, $2 as cde";
         pg_buffering off;
     }
 --- request
@@ -157,7 +157,7 @@ option-standard-conforming-strings: on
         pg_arg $arg_b 23;
         pg_output plain;
         pg_pass pg;
-        pg_sql "select $1 as ab union select $2 order by 1";
+        pg_query "select $1 as ab union select $2 order by 1";
         pg_buffering off;
     }
 --- request
@@ -205,7 +205,7 @@ option-standard-conforming-strings: on
         pg_arg $arg_d 23;
         pg_output plain;
         pg_pass pg;
-        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
+        pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_buffering off;
     }
 --- request
@@ -253,7 +253,7 @@ option-standard-conforming-strings: on
         pg_arg $arg_c 23;
         pg_output plain;
         pg_pass pg;
-        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 2";
+        pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 2";
         pg_buffering off;
     }
 --- request
@@ -301,7 +301,7 @@ option-standard-conforming-strings: on
         pg_arg $arg_c;
         pg_output plain;
         pg_pass pg;
-        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
+        pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_buffering off;
     }
 --- request
@@ -349,7 +349,7 @@ option-standard-conforming-strings: on
         pg_arg NULL 25;
         pg_output plain;
         pg_pass pg;
-        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
+        pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_buffering off;
     }
 --- request
@@ -395,7 +395,7 @@ option-standard-conforming-strings: on
         pg_arg $arg_b 23;
         pg_output csv;
         pg_pass pg;
-        pg_sql "select $1 as ab, $2 as cde";
+        pg_query "select $1 as ab, $2 as cde";
         pg_buffering off;
     }
 --- request
@@ -441,7 +441,7 @@ option-standard-conforming-strings: on
         pg_arg $arg_b 23;
         pg_output csv;
         pg_pass pg;
-        pg_sql "select $1 as ab union select $2 order by 1";
+        pg_query "select $1 as ab union select $2 order by 1";
         pg_buffering off;
     }
 --- request
@@ -489,7 +489,7 @@ option-standard-conforming-strings: on
         pg_arg $arg_d 23;
         pg_output csv;
         pg_pass pg;
-        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
+        pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_buffering off;
     }
 --- request
@@ -537,7 +537,7 @@ option-standard-conforming-strings: on
         pg_arg $arg_c 23;
         pg_output csv;
         pg_pass pg;
-        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 2";
+        pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 2";
         pg_buffering off;
     }
 --- request
@@ -585,7 +585,7 @@ option-standard-conforming-strings: on
         pg_arg $arg_c;
         pg_output csv;
         pg_pass pg;
-        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
+        pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_buffering off;
     }
 --- request
@@ -633,7 +633,7 @@ option-standard-conforming-strings: on
         pg_arg NULL 25;
         pg_output csv;
         pg_pass pg;
-        pg_sql "select $1 as ab, $2 as cde union select $3, $4 order by 1";
+        pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1";
         pg_buffering off;
     }
 --- request
@@ -682,7 +682,7 @@ option-standard-conforming-strings: on
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         pg_pass pg;
-        pg_sql "do $$begin raise info '%', 1;end;$$";
+        pg_query "do $$begin raise info '%', 1;end;$$";
         pg_buffering off;
     }
 --- request
@@ -729,7 +729,7 @@ option-standard-conforming-strings: on
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         default_type text/csv;
         pg_pass pg;
-        pg_sql "copy (select 34 as ab, 'qwe' as cde union select 89, null order by 1) to stdout with (format csv, header true)";
+        pg_query "copy (select 34 as ab, 'qwe' as cde union select 89, null order by 1) to stdout with (format csv, header true)";
         pg_buffering off;
     }
 --- request
