@@ -14,7 +14,7 @@ typedef enum {
 typedef struct {
     ngx_http_complex_value_t argument;
     ngx_http_complex_value_t type;
-} ngx_pg_arg_t;
+} ngx_pg_argument_t;
 
 typedef struct {
     ngx_str_t argument;
@@ -1112,7 +1112,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     if (plcf->arguments) {
         ngx_pg_value_t *value;
         if (ngx_array_init(&arguments, r->pool, plcf->arguments->nelts, sizeof(*value)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
-        ngx_pg_arg_t *arg = plcf->arguments->elts;
+        ngx_pg_argument_t *arg = plcf->arguments->elts;
         for (ngx_uint_t i = 0; i < plcf->arguments->nelts; i++) {
             if (!(value = ngx_array_push(&arguments))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
             ngx_memzero(value, sizeof(*value));
@@ -1496,9 +1496,9 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
     return NGX_OK;
 }
 
-static char *ngx_pg_arg_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+static char *ngx_pg_argument_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    ngx_pg_arg_t *arg;
+    ngx_pg_argument_t *arg;
     if (!plcf->arguments && !(plcf->arguments = ngx_array_create(cf->pool, 1, sizeof(*arg)))) return "!ngx_array_create";
     if (!(arg = ngx_array_push(plcf->arguments))) return "!ngx_array_push";
     ngx_memzero(arg, sizeof(*arg));
@@ -1694,7 +1694,7 @@ static ngx_conf_bitmask_t ngx_pg_next_upstream_masks[] = {
 };
 
 static ngx_command_t ngx_pg_commands[] = {
-  { ngx_string("pg_arg"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_arg_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
+  { ngx_string("pg_argument"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_argument_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_function"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_function_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, function), NULL },
   { ngx_string("pg_log"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_log_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_option"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_option_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, options), NULL },

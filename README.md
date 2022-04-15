@@ -3,19 +3,19 @@ it uses ragel-based PostgreSQL connection parser with zero-alloc and zero-copy
 
 # Directives
 
-pg_arg
+pg_argument
 -------------
-* Syntax: **pg_arg** NULL | *$arg* [ *$type* ]
+* Syntax: **pg_argument** NULL | *$arg* [ *$type* ]
 * Default: --
 * Context: location, if in location
 
 Sets query argument (nginx variables allowed) and type (nginx variables allowed), can be several:
 ```nginx
 location =/ {
-    pg_arg $argument $type; # argument is taken from $argument variable and type is taken from $type variable
-    pg_arg $argument; # argument is taken from $argument variable and type is auto detect
-    pg_arg NULL $type; # argument is NULL and type is taken from $type variable
-    pg_arg NULL; # argument is NULL and type is auto detect
+    pg_argument $argument $type; # argument is taken from $argument variable and type is taken from $type variable
+    pg_argument $argument; # argument is taken from $argument variable and type is auto detect
+    pg_argument NULL $type; # argument is NULL and type is taken from $type variable
+    pg_argument NULL; # argument is NULL and type is auto detect
 }
 ```
 pg_function
@@ -27,8 +27,8 @@ pg_function
 Sets function oid (nginx variables allowed) (with using [evaluate](https://github.com/RekGRpth/ngx_http_evaluate_module)):
 ```nginx
 location =/function {
-    pg_arg $arg_name;
-    pg_arg $arg_schema;
+    pg_argument $arg_name;
+    pg_argument $arg_schema;
     pg_pass pg;
     pg_query "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2";
 }
@@ -161,8 +161,8 @@ location =/ {
 }
 # or
 location =/ {
-    pg_arg NULL 25; # first query argument is NULL and type of TEXTOID
-    pg_arg $arg; # second query argument is taken from $arg variable and auto type
+    pg_argument NULL 25; # first query argument is NULL and type of TEXTOID
+    pg_argument $arg; # second query argument is taken from $arg variable and auto type
     pg_query "SELECT $1, $2::text"; # extended query with 2 arguments
 }
 ```
