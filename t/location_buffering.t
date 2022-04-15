@@ -19,7 +19,7 @@ __DATA__
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "select 1";
         pg_buffering off;
@@ -30,7 +30,7 @@ GET /
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/plain
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -53,7 +53,7 @@ option-standard-conforming-strings: on
         add_header error-primary $pg_error_primary always;
         add_header error-severity $pg_error_severity always;
         add_header error-sqlstate $pg_error_sqlstate always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "select 1/0";
         pg_buffering off;
@@ -84,7 +84,7 @@ error-sqlstate: 22012
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "select $1 as ab, $2 as cde" $arg_a::23 $arg_b::23 output=plain;
         pg_buffering off;
@@ -95,7 +95,7 @@ GET /?a=12&b=345
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/plain
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -120,7 +120,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "select $1 as ab union select $2 order by 1" $arg_a::23 $arg_b::23 output=plain;
         pg_buffering off;
@@ -131,7 +131,7 @@ GET /?a=12&b=345
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/plain
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -156,7 +156,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1" $arg_a::23 $arg_b::23 $arg_c::23 $arg_d::23 output=plain;
         pg_buffering off;
@@ -167,7 +167,7 @@ GET /?a=12&b=345&c=67&d=89
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/plain
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -192,7 +192,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 2" NULL::25 $arg_a::23 $arg_b $arg_c::23 output=plain;
         pg_buffering off;
@@ -203,7 +203,7 @@ GET /?a=34&b=qwe&c=89
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/plain
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -228,7 +228,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1" $arg_a::23 NULL::25 $arg_b::23 $arg_c output=plain;
         pg_buffering off;
@@ -239,7 +239,7 @@ GET /?a=34&b=89&c=qwe
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/plain
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -264,7 +264,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1" $arg_a::23 $arg_b $arg_c::23 NULL::25 output=plain;
         pg_buffering off;
@@ -275,7 +275,7 @@ GET /?a=34&b=qwe&c=89
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/plain
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -300,7 +300,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "select $1 as ab, $2 as cde" $arg_a::23 $arg_b::23 output=csv;
         pg_buffering off;
@@ -311,7 +311,7 @@ GET /?a=12&b=345
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/csv
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -336,7 +336,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "select $1 as ab union select $2 order by 1" $arg_a::23 $arg_b::23 output=csv;
         pg_buffering off;
@@ -347,7 +347,7 @@ GET /?a=12&b=345
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/csv
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -372,7 +372,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1" $arg_a::23 $arg_b::23 $arg_c::23 $arg_d::23 output=csv;
         pg_buffering off;
@@ -383,7 +383,7 @@ GET /?a=12&b=345&c=67&d=89
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/csv
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -408,7 +408,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 2" NULL::25 $arg_a::23 $arg_b $arg_c::23 output=csv;
         pg_buffering off;
@@ -419,7 +419,7 @@ GET /?a=34&b=qwe&c=89
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/csv
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -444,7 +444,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1" $arg_a::23 NULL::25 $arg_b::23 $arg_c output=csv;
         pg_buffering off;
@@ -455,7 +455,7 @@ GET /?a=34&b=89&c=qwe
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/csv
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -480,7 +480,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1" $arg_a::23 $arg_b $arg_c::23 NULL::25 output=csv;
         pg_buffering off;
@@ -491,7 +491,7 @@ GET /?a=34&b=qwe&c=89
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/csv
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -522,7 +522,7 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "do $$begin raise info '%', 1;end;$$";
         pg_buffering off;
@@ -538,7 +538,7 @@ error-nonlocalized: INFO
 error-primary: 1
 error-severity: INFO
 error-sqlstate: 00000
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -562,7 +562,7 @@ option-standard-conforming-strings: on
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         default_type text/csv;
-        pg_option user=postgres database=postgres application_name=location;
+        pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_query "copy (select 34 as ab, 'qwe' as cde union select 89, null order by 1) to stdout with (format csv, header true)";
         pg_buffering off;
@@ -573,7 +573,7 @@ GET /?a=34&b=qwe&c=89
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/csv
-option-application-name: location
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres

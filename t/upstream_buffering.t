@@ -11,7 +11,7 @@ __DATA__
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -34,7 +34,7 @@ GET /
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/plain
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -51,7 +51,7 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -84,7 +84,7 @@ error-sqlstate: 22012
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -107,7 +107,7 @@ GET /?a=12&b=345
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/plain
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -124,7 +124,7 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -147,7 +147,7 @@ GET /?a=12&b=345
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/plain
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -164,7 +164,7 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -187,7 +187,7 @@ GET /?a=12&b=345&c=67&d=89
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/plain
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -204,7 +204,7 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -227,7 +227,7 @@ GET /?a=34&b=qwe&c=89
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/plain
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -244,7 +244,7 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -267,7 +267,7 @@ GET /?a=34&b=89&c=qwe
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/plain
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -284,7 +284,7 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -307,7 +307,7 @@ GET /?a=34&b=qwe&c=89
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/plain
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -324,7 +324,7 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -347,7 +347,7 @@ GET /?a=12&b=345
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/csv
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -364,7 +364,7 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -387,7 +387,7 @@ GET /?a=12&b=345
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/csv
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -404,7 +404,7 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -427,7 +427,7 @@ GET /?a=12&b=345&c=67&d=89
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/csv
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -444,7 +444,7 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -467,7 +467,7 @@ GET /?a=34&b=qwe&c=89
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/csv
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -484,7 +484,7 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -507,7 +507,7 @@ GET /?a=34&b=89&c=qwe
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/csv
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -524,7 +524,7 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -547,7 +547,7 @@ GET /?a=34&b=qwe&c=89
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/csv
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -564,7 +564,7 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -598,7 +598,7 @@ error-nonlocalized: INFO
 error-primary: 1
 error-severity: INFO
 error-sqlstate: 00000
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
@@ -613,7 +613,7 @@ option-standard-conforming-strings: on
     load_module /etc/nginx/modules/ngx_pg_module.so;
 --- http_config
     upstream pg {
-        pg_option user=postgres database=postgres application_name=upstream;
+        pg_option user=postgres database=postgres application_name=nginx;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -637,7 +637,7 @@ GET /?a=34&b=qwe&c=89
 --- response_headers
 Transfer-Encoding: chunked
 Content-Type: text/csv
-option-application-name: upstream
+option-application-name: nginx
 option-client-encoding: UTF8
 option-integer-datetimes: on
 option-intervalstyle: postgres
