@@ -12,13 +12,13 @@ pg_function
 Sets function(s) oid (nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) type(s) (nginx variables allowed) and output type (no nginx variables allowed) (with using [evaluate](https://github.com/RekGRpth/ngx_http_evaluate_module)):
 ```nginx
 location =/function {
-    pg_pass pg;
-    pg_query "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2" $arg_name $arg_schema;
+    pg_pass postgres; # upstream is postgres
+    pg_query "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2" $arg_name $arg_schema; # extended query with two arguments: first query argument is taken from $arg_name variable and auto type and second query argument is taken from $arg_schema variable and auto type
 }
 location =/now {
-    evaluate $now_oid /function?schema=pg_catalog&name=now;
-    pg_function $now_oid;
-    pg_pass pg;
+    evaluate $now_oid /function?schema=pg_catalog&name=now; # evaluate subrequest to variable
+    pg_function $now_oid; # call function by its oid
+    pg_pass postgres; # upstream is postgres
 }
 ```
 pg_log
@@ -27,10 +27,10 @@ pg_log
 * Default: error_log logs/error.log error;
 * Context: upstream
 
-Configures logging (used when keepalive):
+Sets logging (used when keepalive):
 ```nginx
-upstream pg {
-    pg_log /var/log/nginx/pg.err info;
+upstream postgres {
+    pg_log /var/log/nginx/pg.err info; # set log level
 }
 ```
 pg_option
@@ -41,35 +41,35 @@ pg_option
 
 Sets connection option(s) (no nginx variables allowed), can be several:
 ```nginx
-upstream pg {
+upstream postgres {
     pg_option user=user database=database application_name=application_name; # set user, database and application_name
     server postgres:5432; # host is postgres and port is 5432
 }
 # or
-upstream pg {
+upstream postgres {
     pg_option user=user database=database application_name=application_name; # set user, database and application_name
     server unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
 }
 # or
-location =/ {
+location =/postgres {
     pg_option user=user database=database application_name=application_name; # set user, database and application_name
     pg_pass postgres:5432; # host is postgres and port is 5432
 }
 # or
-location =/ {
+location =/postgres {
     pg_option user=user database=database application_name=application_name; # set user, database and application_name
     pg_pass unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
 }
 ```
 In upstream also may use nginx keepalive module:
 ```nginx
-upstream pg {
+upstream postgres {
     keepalive 8;
     pg_option user=user database=database application_name=application_name; # set user, database and application_name
     server postgres:5432; # host is postgres and port is 5432
 }
 # or
-upstream pg {
+upstream postgres {
     keepalive 8;
     pg_option user=user database=database application_name=application_name; # set user, database and application_name
     server unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
@@ -83,19 +83,19 @@ pg_pass
 
 Sets host (no nginx variables allowed) and port (no nginx variables allowed) or unix socket (no nginx variables allowed) or upstream (nginx variables allowed):
 ```nginx
-location =/ {
+location =/postgres {
     pg_pass postgres:5432; # host is postgres and port is 5432
 }
 # or
-location =/ {
+location =/postgres {
     pg_pass unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
 }
 # or
-location =/ {
+location =/postgres {
     pg_pass postgres; # upstream is postgres
 }
 # or
-location =/ {
+location =/postgres {
     pg_pass $postgres; # upstream is taken from $postgres variable
 }
 ```
@@ -105,17 +105,20 @@ pg_query
 * Default: --
 * Context: location, if in location
 
-Sets SQL query (queries) (no nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) type(s) (nginx variables allowed) and output type (no nginx variables allowed):
+Sets query(queries) sql(s) (no nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) type(s) (nginx variables allowed) and output type (no nginx variables allowed):
 ```nginx
-location =/ {
+location =/postgres {
+    pg_pass postgres; # upstream is postgres
     pg_query "SELECT now()" output=csv; # simple query and csv output type
 }
 # or
-location =/ {
+location =/postgres {
+    pg_pass postgres; # upstream is postgres
     pg_query "SELECT 1/0"; # simple query with error
 }
 # or
-location =/ {
+location =/postgres {
+    pg_pass postgres; # upstream is postgres
     pg_query "SELECT $1, $2::text" NULL::25 $arg output=plain; # extended query with two arguments: first query argument is NULL and type of 25 (TEXTOID) and second query argument is taken from $arg variable and auto type and plain output type
 }
 ```
