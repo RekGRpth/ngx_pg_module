@@ -1217,7 +1217,10 @@ static ngx_int_t ngx_pg_input_filter_init(ngx_http_request_t *r) {
     if (!d->nqueries && s->state != pg_ready_for_query_state_unknown) {
         u->length = 0;
         p->length = 0;
-    } else p->length = 1;
+    } else {
+        u->length = 1;
+        p->length = 1;
+    }
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->out_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%d:%d:%c", i++, *p, *p);
     return NGX_OK;
 }
