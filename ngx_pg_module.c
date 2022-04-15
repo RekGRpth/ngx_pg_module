@@ -1112,18 +1112,18 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     if (plcf->arguments) {
         ngx_pg_value_t *value;
         if (ngx_array_init(&arguments, r->pool, plcf->arguments->nelts, sizeof(*value)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
-        ngx_pg_argument_t *arg = plcf->arguments->elts;
+        ngx_pg_argument_t *argument = plcf->arguments->elts;
         for (ngx_uint_t i = 0; i < plcf->arguments->nelts; i++) {
             if (!(value = ngx_array_push(&arguments))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
             ngx_memzero(value, sizeof(*value));
-            if (arg[i].type.value.data) {
+            if (argument[i].type.value.data) {
                 ngx_str_t str;
-                if (ngx_http_complex_value(r, &arg[i].type, &str) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
+                if (ngx_http_complex_value(r, &argument[i].type, &str) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
                 ngx_int_t n = ngx_atoi(str.data, str.len);
                 if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
                 value->type = n;
             }
-            if (arg[i].argument.value.data) if (ngx_http_complex_value(r, &arg[i].argument, &value->argument) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
+            if (argument[i].argument.value.data) if (ngx_http_complex_value(r, &argument[i].argument, &value->argument) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
         }
     }
     if (plcf->function) {
@@ -1498,17 +1498,17 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
 
 static char *ngx_pg_argument_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    ngx_pg_argument_t *arg;
-    if (!plcf->arguments && !(plcf->arguments = ngx_array_create(cf->pool, 1, sizeof(*arg)))) return "!ngx_array_create";
-    if (!(arg = ngx_array_push(plcf->arguments))) return "!ngx_array_push";
-    ngx_memzero(arg, sizeof(*arg));
+    ngx_pg_argument_t *argument;
+    if (!plcf->arguments && !(plcf->arguments = ngx_array_create(cf->pool, 1, sizeof(*argument)))) return "!ngx_array_create";
+    if (!(argument = ngx_array_push(plcf->arguments))) return "!ngx_array_push";
+    ngx_memzero(argument, sizeof(*argument));
     ngx_str_t *str = cf->args->elts;
     if (str[1].len != sizeof("NULL") - 1 || ngx_strncasecmp(str[1].data, "NULL", sizeof("NULL") - 1)) {
-        ngx_http_compile_complex_value_t ccv = {cf, &str[1], &arg->argument, 0, 0, 0};
+        ngx_http_compile_complex_value_t ccv = {cf, &str[1], &argument->argument, 0, 0, 0};
         if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     }
     if (cf->args->nelts <= 2) return NGX_CONF_OK;
-    ngx_http_compile_complex_value_t ccv = {cf, &str[2], &arg->type, 0, 0, 0};
+    ngx_http_compile_complex_value_t ccv = {cf, &str[2], &argument->type, 0, 0, 0};
     if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     return NGX_CONF_OK;
 }
