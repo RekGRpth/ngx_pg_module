@@ -1499,6 +1499,7 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
 static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     ngx_str_t *str = cf->args->elts;
+    plcf->out.header = 1;
     for (ngx_uint_t i = 2; i < cf->args->nelts; i++) {
         if (str[i].len > sizeof("delimiter=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"delimiter=", sizeof("delimiter=") - 1)) {
             if (!(str[i].len - (sizeof("delimiter=") - 1))) return "empty \"delimiter\" value";
