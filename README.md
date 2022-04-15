@@ -9,7 +9,7 @@ pg_function
 * Default: --
 * Context: location, if in location
 
-Sets function oid (nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) type(s) (nginx variables allowed) and output type (no nginx variables allowed) (with using [evaluate](https://github.com/RekGRpth/ngx_http_evaluate_module)):
+Sets function(s) oid (nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) type(s) (nginx variables allowed) and output type (no nginx variables allowed) (with using [evaluate](https://github.com/RekGRpth/ngx_http_evaluate_module)):
 ```nginx
 location =/function {
     pg_pass pg;
@@ -105,7 +105,7 @@ pg_query
 * Default: --
 * Context: location, if in location
 
-Sets SQL query (no nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) type(s) (nginx variables allowed) and output type (no nginx variables allowed):
+Sets SQL query (queries) (no nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) type(s) (nginx variables allowed) and output type (no nginx variables allowed):
 ```nginx
 location =/ {
     pg_query "SELECT now()" output=csv; # simple query and csv output type
