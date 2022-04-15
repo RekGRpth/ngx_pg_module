@@ -7,9 +7,9 @@ extern ngx_int_t ngx_http_push_stream_delete_channel_my(ngx_log_t *log, ngx_str_
 ngx_module_t ngx_pg_module;
 
 typedef enum {
-    ngx_pg_output_type_csv = 1,
-    ngx_pg_output_type_plain,
-} ngx_pg_output_type_t;
+    ngx_pg_output_csv = 1,
+    ngx_pg_output_plain,
+} ngx_pg_output_t;
 
 typedef struct {
     ngx_http_complex_value_t argument;
@@ -31,7 +31,7 @@ typedef struct {
     struct {
         ngx_flag_t header;
         ngx_flag_t string;
-        ngx_pg_output_type_t type;
+        ngx_pg_output_t type;
         ngx_str_t null;
         u_char delimiter;
         u_char escape;
@@ -1105,8 +1105,8 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     u->headers_in.status_n = NGX_HTTP_OK;
     u->keepalive = !u->headers_in.connection_close;
     switch (plcf->out.type) {
-        case ngx_pg_output_type_csv: ngx_str_set(&r->headers_out.content_type, "text/csv"); break;
-        case ngx_pg_output_type_plain: ngx_str_set(&r->headers_out.content_type, "text/plain"); break;
+        case ngx_pg_output_csv: ngx_str_set(&r->headers_out.content_type, "text/csv"); break;
+        case ngx_pg_output_plain: ngx_str_set(&r->headers_out.content_type, "text/plain"); break;
     }
     r->headers_out.content_type_len = r->headers_out.content_type.len;
     ngx_chain_t *cl;
@@ -1523,17 +1523,17 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
         }
         if (str[i].len > sizeof("output=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"output=", sizeof("output=") - 1)) {
             ngx_uint_t j;
-            static const ngx_conf_enum_t e[] = { { ngx_string("csv"), ngx_pg_output_type_csv }, { ngx_string("plain"), ngx_pg_output_type_plain }, { ngx_null_string, 0 } };
+            static const ngx_conf_enum_t e[] = { { ngx_string("csv"), ngx_pg_output_csv }, { ngx_string("plain"), ngx_pg_output_plain }, { ngx_null_string, 0 } };
             for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("output=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("output=") - 1], str[i].len - (sizeof("output=") - 1))) break;
             if (!e[j].name.len) return "\"output\" value must be \"csv\" or \"plain\"";
             switch ((plcf->out.type = e[j].value)) {
-                case ngx_pg_output_type_csv: {
+                case ngx_pg_output_csv: {
                     ngx_str_set(&plcf->out.null, "");
                     plcf->out.delimiter = ',';
                     plcf->out.escape = '"';
                     plcf->out.quote = '"';
                 } break;
-                case ngx_pg_output_type_plain: {
+                case ngx_pg_output_plain: {
                     ngx_str_set(&plcf->out.null, "\\N");
                     plcf->out.delimiter = '\t';
                 } break;
