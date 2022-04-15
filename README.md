@@ -29,13 +29,13 @@ Sets function oid (nginx variables allowed) (with using [evaluate](https://githu
 location =/function {
     pg_arg $arg_name;
     pg_arg $arg_schema;
-    pg_pas pg;
+    pg_pass pg;
     pg_sql "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2";
 }
 location =/now {
     evaluate $now_oid /function?schema=pg_catalog&name=now;
     pg_function $now_oid;
-    pg_pas pg;
+    pg_pass pg;
 }
 ```
 pg_log
@@ -76,14 +76,14 @@ location =/ {
     pg_option application_name=application_name; # set application_name
     pg_option database=database; # set database
     pg_option user=user; # set user
-    pg_pas postgres:5432; # host is postgres and port is 5432
+    pg_pass postgres:5432; # host is postgres and port is 5432
 }
 # or
 location =/ {
     pg_option application_name=application_name; # set application_name
     pg_option database=database; # set database
     pg_option user=user; # set user
-    pg_pas unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
+    pg_pass unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
 }
 ```
 In upstream also may use nginx keepalive module:
@@ -120,28 +120,28 @@ location =/ {
     pg_output plain; # set plain output
 }
 ```
-pg_pas
+pg_pass
 -------------
-* Syntax: **pg_pas** *host*:*port* | unix://*socket* | *$upstream*
+* Syntax: **pg_pass** *host*:*port* | unix://*socket* | *$upstream*
 * Default: --
 * Context: location, if in location
 
 Sets host (no nginx variables allowed) and port (no nginx variables allowed) or unix socket (no nginx variables allowed) or upstream (nginx variables allowed):
 ```nginx
 location =/ {
-    pg_pas postgres:5432; # host is postgres and port is 5432
+    pg_pass postgres:5432; # host is postgres and port is 5432
 }
 # or
 location =/ {
-    pg_pas unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
+    pg_pass unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
 }
 # or
 location =/ {
-    pg_pas postgres; # upstream is postgres
+    pg_pass postgres; # upstream is postgres
 }
 # or
 location =/ {
-    pg_pas $postgres; # upstream is taken from $postgres variable
+    pg_pass $postgres; # upstream is taken from $postgres variable
 }
 ```
 pg_sql

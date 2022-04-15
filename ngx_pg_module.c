@@ -1095,7 +1095,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     if (plcf->complex.value.data) {
         ngx_str_t host;
         if (ngx_http_complex_value(r, &plcf->complex, &host) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
-        if (!host.len) { ngx_http_core_loc_conf_t *clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module); ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "empty \"pg_pas\" (was: \"%V\") in location \"%V\"", &plcf->complex.value, &clcf->name); return NGX_ERROR; }
+        if (!host.len) { ngx_http_core_loc_conf_t *clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module); ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "empty \"pg_pass\" (was: \"%V\") in location \"%V\"", &plcf->complex.value, &clcf->name); return NGX_ERROR; }
         if (!(u->resolved = ngx_pcalloc(r->pool, sizeof(*u->resolved)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         u->resolved->host = host;
         u->resolved->no_port = 1;
@@ -1615,7 +1615,7 @@ static char *ngx_pg_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *co
     return NGX_CONF_OK;
 }
 
-static char *ngx_pg_pas_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+static char *ngx_pg_pass_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     if (plcf->upstream.upstream || plcf->complex.value.data) return "duplicate";
     ngx_http_core_loc_conf_t *clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
@@ -1700,7 +1700,7 @@ static ngx_command_t ngx_pg_commands[] = {
   { ngx_string("pg_option"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_option_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, options), NULL },
   { ngx_string("pg_option"), NGX_HTTP_UPS_CONF|NGX_CONF_TAKE1, ngx_pg_option_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, offsetof(ngx_pg_srv_conf_t, options), NULL },
   { ngx_string("pg_output"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_output_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
-  { ngx_string("pg_pas"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_pas_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
+  { ngx_string("pg_pass"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_pass_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_sql"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_sql_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, sql), NULL },
   { ngx_string("pg_buffering"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG, ngx_conf_set_flag_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.buffering), NULL },
   { ngx_string("pg_buffer_size"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_conf_set_size_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.buffer_size), NULL },
