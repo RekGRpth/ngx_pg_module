@@ -1455,9 +1455,8 @@ static ngx_int_t ngx_pg_pid_get_handler(ngx_http_request_t *r, ngx_http_variable
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
     if (!s) return NGX_OK;
-    v->len = snprintf(NULL, 0, "%d", s->pid);
-    if (!(v->data = ngx_pnalloc(r->pool, v->len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    v->len = ngx_snprintf(v->data, v->len, "%d", s->pid) - v->data;
+    if (!(v->data = ngx_pnalloc(r->pool, NGX_INT32_LEN))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
+    v->len = ngx_sprintf(v->data, "%d", s->pid) - v->data;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
