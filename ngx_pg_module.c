@@ -252,7 +252,8 @@ static int ngx_pg_fsm_command_complete(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", len);
     s->command = pg_command_state_command_complete;
     ngx_pg_data_t *d = s->data;
-    if (d && d->nqueries) {
+    if (!d) return s->rc;
+    if (d->nqueries) {
         d->nqueries--;
         d->query++;
     }
@@ -335,6 +336,10 @@ static int ngx_pg_fsm_error_response(ngx_pg_save_t *s, uint32_t len) {
     s->command = pg_command_state_error_response;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
+    if (d->nqueries) {
+        d->nqueries--;
+        d->query++;
+    }
     ngx_pg_error_t *error;
     ngx_http_request_t *r = d->request;
     if (!(d->errors = ngx_array_create(r->pool, 1, sizeof(*error)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
