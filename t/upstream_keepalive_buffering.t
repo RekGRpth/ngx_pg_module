@@ -13,9 +13,7 @@ __DATA__
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -56,9 +54,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -92,9 +88,7 @@ error-sqlstate: 22012
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -135,9 +129,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -178,9 +170,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -221,9 +211,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -264,9 +252,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -307,9 +293,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -350,9 +334,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -393,9 +375,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -436,9 +416,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -479,9 +457,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -522,9 +498,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -565,9 +539,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -608,9 +580,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -660,9 +630,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         keepalive 1;
-        pg_option application_name=upstream;
-        pg_option database=postgres;
-        pg_option user=postgres;
+        pg_option user=postgres database=postgres application_name=upstream;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
