@@ -29,18 +29,16 @@ typedef struct {
     ngx_http_complex_value_t cache_key;
 #endif
     struct {
+        ngx_array_t *arguments;
         ngx_flag_t header;
         ngx_flag_t string;
+        ngx_http_complex_value_t function;
         ngx_pg_output_t output;
         ngx_str_t null;
+        ngx_str_t sql;
         u_char delimiter;
         u_char escape;
         u_char quote;
-    } out;
-    struct {
-        ngx_array_t *arguments;
-        ngx_http_complex_value_t function;
-        ngx_str_t sql;
     } query;
 } ngx_pg_loc_conf_t;
 
@@ -259,7 +257,7 @@ static int ngx_pg_fsm_command_complete_val(ngx_pg_save_t *s, size_t len, const u
     if (!d) return s->rc;
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (plcf->out.output || d->row) return s->rc;
+    if (plcf->query.output || d->row) return s->rc;
     if ((s->rc = ngx_pg_output_handler(r, len, data)) != NGX_OK) return s->rc;
     return s->rc;
 }
@@ -296,8 +294,8 @@ static int ngx_pg_fsm_data_row(ngx_pg_save_t *s, uint32_t len) {
     ngx_http_request_t *r = d->request;
     if (!d->filter++) s->rc = NGX_DONE;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->out.output) return s->rc;
-    if (d->row > 1 || plcf->out.header) if (ngx_pg_output_handler(r, sizeof("\n") - 1, (uint8_t *)"\n") == NGX_ERROR) { s->rc = NGX_ERROR; return s->rc; }
+    if (!plcf->query.output) return s->rc;
+    if (d->row > 1 || plcf->query.header) if (ngx_pg_output_handler(r, sizeof("\n") - 1, (uint8_t *)"\n") == NGX_ERROR) { s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
@@ -526,8 +524,8 @@ static int ngx_pg_fsm_result_done(ngx_pg_save_t *s) {
     if (!d) return s->rc;
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->out.output) return s->rc;
-    if (plcf->out.string && plcf->out.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->out.quote), &plcf->out.quote)) != NGX_OK) return s->rc;
+    if (!plcf->query.output) return s->rc;
+    if (plcf->query.string && plcf->query.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.quote), &plcf->query.quote)) != NGX_OK) return s->rc;
     return s->rc;
 }
 
@@ -539,12 +537,12 @@ static int ngx_pg_fsm_result_len(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d:%d", d->col, d->row);
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->out.output) return s->rc;
-    if (d->col > 1) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->out.delimiter), &plcf->out.delimiter)) != NGX_OK) return s->rc;
+    if (!plcf->query.output) return s->rc;
+    if (d->col > 1) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.delimiter), &plcf->query.delimiter)) != NGX_OK) return s->rc;
     if (len == (uint32_t)-1) {
-        if (plcf->out.null.len) if ((s->rc = ngx_pg_output_handler(r, plcf->out.null.len, plcf->out.null.data)) != NGX_OK) return s->rc;
+        if (plcf->query.null.len) if ((s->rc = ngx_pg_output_handler(r, plcf->query.null.len, plcf->query.null.data)) != NGX_OK) return s->rc;
     } else {
-        if (plcf->out.string && plcf->out.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->out.quote), &plcf->out.quote)) != NGX_OK) return s->rc;
+        if (plcf->query.string && plcf->query.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.quote), &plcf->query.quote)) != NGX_OK) return s->rc;
     }
     return s->rc;
 }
@@ -556,8 +554,8 @@ static int ngx_pg_fsm_result_val(ngx_pg_save_t *s, size_t len, const uint8_t *da
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d:%d", d->col, d->row);
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (plcf->out.output && plcf->out.string && plcf->out.quote && plcf->out.escape) for (ngx_uint_t k = 0; k < len; k++) {
-        if (data[k] == plcf->out.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->out.escape), &plcf->out.escape)) != NGX_OK) return s->rc;
+    if (plcf->query.output && plcf->query.string && plcf->query.quote && plcf->query.escape) for (ngx_uint_t k = 0; k < len; k++) {
+        if (data[k] == plcf->query.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.escape), &plcf->query.escape)) != NGX_OK) return s->rc;
         if ((s->rc = ngx_pg_output_handler(r, sizeof(data[k]), &data[k])) != NGX_OK) return s->rc;
     } else if ((s->rc = ngx_pg_output_handler(r, len, data)) != NGX_OK) return s->rc;
     return s->rc;
@@ -572,7 +570,7 @@ static int ngx_pg_fsm_row_description(ngx_pg_save_t *s, uint32_t len) {
     d->row = 0;
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->out.output || !plcf->out.header) return s->rc;
+    if (!plcf->query.output || !plcf->query.header) return s->rc;
     if (!d->filter++) s->rc = NGX_DONE;
     return s->rc;
 }
@@ -584,9 +582,9 @@ static int ngx_pg_fsm_row_description_beg(ngx_pg_save_t *s) {
     d->col++;
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->out.output || !plcf->out.header) return s->rc;
-    if (d->col > 1) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->out.delimiter), &plcf->out.delimiter)) != NGX_OK) return s->rc;
-    if (plcf->out.string && plcf->out.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->out.quote), &plcf->out.quote)) != NGX_OK) return s->rc;
+    if (!plcf->query.output || !plcf->query.header) return s->rc;
+    if (d->col > 1) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.delimiter), &plcf->query.delimiter)) != NGX_OK) return s->rc;
+    if (plcf->query.string && plcf->query.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.quote), &plcf->query.quote)) != NGX_OK) return s->rc;
     return s->rc;
 }
 
@@ -622,9 +620,9 @@ static int ngx_pg_fsm_row_description_name(ngx_pg_save_t *s, size_t len, const u
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", d->col);
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->out.output || !plcf->out.header) return s->rc;
-    if (plcf->out.string && plcf->out.quote && plcf->out.escape) for (ngx_uint_t k = 0; k < len; k++) {
-        if (data[k] == plcf->out.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->out.escape), &plcf->out.escape)) != NGX_OK) return s->rc;
+    if (!plcf->query.output || !plcf->query.header) return s->rc;
+    if (plcf->query.string && plcf->query.quote && plcf->query.escape) for (ngx_uint_t k = 0; k < len; k++) {
+        if (data[k] == plcf->query.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.escape), &plcf->query.escape)) != NGX_OK) return s->rc;
         if ((s->rc = ngx_pg_output_handler(r, sizeof(data[k]), &data[k])) != NGX_OK) return s->rc;
     } else if ((s->rc = ngx_pg_output_handler(r, len, data)) != NGX_OK) return s->rc;
     return s->rc;
@@ -641,8 +639,8 @@ static int ngx_pg_fsm_row_description_table(ngx_pg_save_t *s, uint32_t table) {
     if (!d) return s->rc;
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    if (!plcf->out.output) return s->rc;
-    if (plcf->out.string && plcf->out.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->out.quote), &plcf->out.quote)) != NGX_OK) return s->rc;
+    if (!plcf->query.output) return s->rc;
+    if (plcf->query.string && plcf->query.quote) if ((s->rc = ngx_pg_output_handler(r, sizeof(plcf->query.quote), &plcf->query.quote)) != NGX_OK) return s->rc;
     return s->rc;
 }
 
@@ -1104,7 +1102,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     }
     u->headers_in.status_n = NGX_HTTP_OK;
     u->keepalive = !u->headers_in.connection_close;
-    switch (plcf->out.output) {
+    switch (plcf->query.output) {
         case ngx_pg_output_csv: ngx_str_set(&r->headers_out.content_type, "text/csv"); break;
         case ngx_pg_output_plain: ngx_str_set(&r->headers_out.content_type, "text/plain"); break;
     }
@@ -1499,18 +1497,18 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
 static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     ngx_str_t *str = cf->args->elts;
-    plcf->out.header = 1;
+    plcf->query.header = 1;
     for (ngx_uint_t i = 2; i < cf->args->nelts; i++) {
         if (str[i].len > sizeof("delimiter=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"delimiter=", sizeof("delimiter=") - 1)) {
             if (!(str[i].len - (sizeof("delimiter=") - 1))) return "empty \"delimiter\" value";
             if (str[i].len - (sizeof("delimiter=") - 1) > 1) return "\"delimiter\" value must be one character";
-            plcf->out.delimiter = str[i].data[sizeof("delimiter=") - 1];
+            plcf->query.delimiter = str[i].data[sizeof("delimiter=") - 1];
             continue;
         }
         if (str[i].len >= sizeof("escape=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"escape=", sizeof("escape=") - 1)) {
-            if (!(str[i].len - (sizeof("escape=") - 1))) { plcf->out.escape = '\0'; continue; }
+            if (!(str[i].len - (sizeof("escape=") - 1))) { plcf->query.escape = '\0'; continue; }
             else if (str[i].len > 1) return "\"escape\" value must be one character";
-            plcf->out.escape = str[i].data[sizeof("escape=") - 1];
+            plcf->query.escape = str[i].data[sizeof("escape=") - 1];
             continue;
         }
         if (str[i].len > sizeof("header=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"header=", sizeof("header=") - 1)) {
@@ -1518,7 +1516,7 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
             static const ngx_conf_enum_t e[] = { { ngx_string("off"), 0 }, { ngx_string("no"), 0 }, { ngx_string("false"), 0 }, { ngx_string("on"), 1 }, { ngx_string("yes"), 1 }, { ngx_string("true"), 1 }, { ngx_null_string, 0 } };
             for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("header=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("header=") - 1], str[i].len - (sizeof("header=") - 1))) break;
             if (!e[j].name.len) return "\"header\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
-            plcf->out.header = e[j].value;
+            plcf->query.header = e[j].value;
             continue;
         }
         if (str[i].len > sizeof("output=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"output=", sizeof("output=") - 1)) {
@@ -1526,29 +1524,29 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
             static const ngx_conf_enum_t e[] = { { ngx_string("csv"), ngx_pg_output_csv }, { ngx_string("plain"), ngx_pg_output_plain }, { ngx_null_string, 0 } };
             for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("output=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("output=") - 1], str[i].len - (sizeof("output=") - 1))) break;
             if (!e[j].name.len) return "\"output\" value must be \"csv\" or \"plain\"";
-            switch ((plcf->out.output = e[j].value)) {
+            switch ((plcf->query.output = e[j].value)) {
                 case ngx_pg_output_csv: {
-                    ngx_str_set(&plcf->out.null, "");
-                    plcf->out.delimiter = ',';
-                    plcf->out.escape = '"';
-                    plcf->out.quote = '"';
+                    ngx_str_set(&plcf->query.null, "");
+                    plcf->query.delimiter = ',';
+                    plcf->query.escape = '"';
+                    plcf->query.quote = '"';
                 } break;
                 case ngx_pg_output_plain: {
-                    ngx_str_set(&plcf->out.null, "\\N");
-                    plcf->out.delimiter = '\t';
+                    ngx_str_set(&plcf->query.null, "\\N");
+                    plcf->query.delimiter = '\t';
                 } break;
             }
             continue;
         }
         if (str[i].len > sizeof("null=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"null=", sizeof("null=") - 1)) {
-            if (!(plcf->out.null.len = str[i].len - (sizeof("null=") - 1))) return "empty \"null\" value";
-            plcf->out.null.data = &str[i].data[sizeof("null=") - 1];
+            if (!(plcf->query.null.len = str[i].len - (sizeof("null=") - 1))) return "empty \"null\" value";
+            plcf->query.null.data = &str[i].data[sizeof("null=") - 1];
             continue;
         }
         if (str[i].len >= sizeof("quote=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"quote=", sizeof("quote=") - 1)) {
-            if (!(str[i].len - (sizeof("quote=") - 1))) { plcf->out.quote = '\0'; continue; }
+            if (!(str[i].len - (sizeof("quote=") - 1))) { plcf->query.quote = '\0'; continue; }
             else if (str[i].len - (sizeof("quote=") - 1) > 1) return "\"quote\" value must be one character";
-            plcf->out.quote = str[i].data[sizeof("quote=") - 1];
+            plcf->query.quote = str[i].data[sizeof("quote=") - 1];
             continue;
         }
         if (str[i].len > sizeof("string=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"string=", sizeof("string=") - 1)) {
@@ -1556,7 +1554,7 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
             static const ngx_conf_enum_t e[] = { { ngx_string("off"), 0 }, { ngx_string("no"), 0 }, { ngx_string("false"), 0 }, { ngx_string("on"), 1 }, { ngx_string("yes"), 1 }, { ngx_string("true"), 1 }, { ngx_null_string, 0 } };
             for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("string=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("string=") - 1], str[i].len - (sizeof("string=") - 1))) break;
             if (!e[j].name.len) return "\"string\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
-            plcf->out.string = e[j].value;
+            plcf->query.string = e[j].value;
             continue;
         }
         ngx_pg_argument_t *argument;
