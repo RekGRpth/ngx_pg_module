@@ -1107,7 +1107,8 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     u->keepalive = !u->headers_in.connection_close;
     if (!plcf->queries->nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!queries"); return NGX_ERROR; }
     ngx_pg_query_t *query = plcf->queries->elts;
-    ngx_chain_t *cl;
+    ngx_chain_t *cl = NULL;
+    u->request_bufs = NULL;
     for (ngx_uint_t i = 0; i < plcf->queries->nelts; i++) {
         ngx_array_t arguments = {0};
         if (query[i].arguments) {
@@ -1132,12 +1133,20 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
             if (ngx_http_complex_value(r, &query[i].function, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
             ngx_int_t oid = ngx_atoi(value.data, value.len);
             if (oid == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
-            if (!(cl = ngx_pg_function_call(r->pool, oid, &arguments))) return NGX_ERROR;
-            if (!u->request_bufs) u->request_bufs = cl;
+            if (cl) {
+                if (!(cl->next = ngx_pg_function_call(r->pool, oid, &arguments))) return NGX_ERROR;
+            } else {
+                if (!(cl = ngx_pg_function_call(r->pool, oid, &arguments))) return NGX_ERROR;
+                if (!u->request_bufs) u->request_bufs = cl;
+            }
             while (cl->next) cl = cl->next;
         } else if (query[i].sql.data) {
-            if (!(cl = ngx_pg_parse(r->pool, query[i].sql.len, query[i].sql.data, &arguments))) return NGX_ERROR;
-            if (!u->request_bufs) u->request_bufs = cl;
+            if (cl) {
+                if (!(cl->next = ngx_pg_parse(r->pool, query[i].sql.len, query[i].sql.data, &arguments))) return NGX_ERROR;
+            } else {
+                if (!(cl = ngx_pg_parse(r->pool, query[i].sql.len, query[i].sql.data, &arguments))) return NGX_ERROR;
+                if (!u->request_bufs) u->request_bufs = cl;
+            }
             while (cl->next) cl = cl->next;
             if (!(cl->next = ngx_pg_bind(r->pool, &arguments))) return NGX_ERROR;
             while (cl->next) cl = cl->next;
@@ -1149,6 +1158,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
             while (cl->next) cl = cl->next;
         } else { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!pg_function && !pg_query"); return NGX_ERROR; }
     }
+    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%d:%d:%c", i++, *p, *p);
     return NGX_OK;
 }
 
