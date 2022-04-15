@@ -39,33 +39,25 @@ pg_option
 * Default: --
 * Context: location, if in location, upstream
 
-Sets connection option (no nginx variables allowed), can be several:
+Sets connection option(s) (no nginx variables allowed), can be several:
 ```nginx
 upstream pg {
-    pg_option application_name=application_name; # set application_name
-    pg_option database=database; # set database
-    pg_option user=user; # set user
+    pg_option user=user database=database application_name=application_name; # set user, database and application_name
     server postgres:5432; # host is postgres and port is 5432
 }
 # or
 upstream pg {
-    pg_option application_name=application_name; # set application_name
-    pg_option database=database; # set database
-    pg_option user=user; # set user
+    pg_option user=user database=database application_name=application_name; # set user, database and application_name
     server unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
 }
 # or
 location =/ {
-    pg_option application_name=application_name; # set application_name
-    pg_option database=database; # set database
-    pg_option user=user; # set user
+    pg_option user=user database=database application_name=application_name; # set user, database and application_name
     pg_pass postgres:5432; # host is postgres and port is 5432
 }
 # or
 location =/ {
-    pg_option application_name=application_name; # set application_name
-    pg_option database=database; # set database
-    pg_option user=user; # set user
+    pg_option user=user database=database application_name=application_name; # set user, database and application_name
     pg_pass unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
 }
 ```
@@ -73,17 +65,13 @@ In upstream also may use nginx keepalive module:
 ```nginx
 upstream pg {
     keepalive 8;
-    pg_option application_name=application_name; # set application_name
-    pg_option database=database; # set database
-    pg_option user=user; # set user
+    pg_option user=user database=database application_name=application_name; # set user, database and application_name
     server postgres:5432; # host is postgres and port is 5432
 }
 # or
 upstream pg {
     keepalive 8;
-    pg_option application_name=application_name; # set application_name
-    pg_option database=database; # set database
-    pg_option user=user; # set user
+    pg_option user=user database=database application_name=application_name; # set user, database and application_name
     server unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
 }
 ```
