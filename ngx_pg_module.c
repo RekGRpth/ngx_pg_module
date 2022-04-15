@@ -1203,7 +1203,10 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *b) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "s->rc = %d", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "d->nqueries = %d", d->nqueries);
-    if (!d->nqueries && s->state != pg_ready_for_query_state_unknown) p->length = 0;
+    if (!d->nqueries && s->state != pg_ready_for_query_state_unknown) {
+        p->length = 0;
+        u->length = 0;
+    }
     return s->rc;
 }
 
@@ -1215,11 +1218,11 @@ static ngx_int_t ngx_pg_input_filter_init(ngx_http_request_t *r) {
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
     if (!d->nqueries && s->state != pg_ready_for_query_state_unknown) {
+        if (u->buffering) p->length = 0;
         u->length = 0;
-        p->length = 0;
     } else {
+        if (u->buffering) p->length = 1;
         u->length = 1;
-        p->length = 1;
     }
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->out_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%d:%d:%c", i++, *p, *p);
     return NGX_OK;
