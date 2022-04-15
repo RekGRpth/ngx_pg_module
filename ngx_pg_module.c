@@ -321,7 +321,7 @@ static int ngx_pg_fsm_error(ngx_pg_save_t *s) {
         b = &u->buffer;
     }
     ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%d:%d:%c", i++, *p, *p);
-    s->rc = d->filter ? NGX_ERROR : NGX_HTTP_UPSTREAM_INVALID_HEADER;
+    s->rc = d && d->filter ? NGX_ERROR : NGX_HTTP_UPSTREAM_INVALID_HEADER;
     return s->rc;
 }
 
