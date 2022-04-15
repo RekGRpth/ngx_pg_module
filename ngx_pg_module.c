@@ -1568,8 +1568,8 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
         ngx_str_t type = ngx_null_string;
         if ((colon = ngx_strstrn(name.data, "::", sizeof("::") - 1 - 1))) {
             name.len = colon - name.data;
-            type.data = colon;
-            type.len = str[i].len - name.len;
+            type.data = colon + sizeof("::") - 1;
+            type.len = str[i].len - name.len - sizeof("::") + 1;
         }
         if (name.len != sizeof("NULL") - 1 || ngx_strncasecmp(name.data, "NULL", sizeof("NULL") - 1)) {
             ngx_http_compile_complex_value_t ccv = {cf, &name, &argument->argument, 0, 0, 0};
