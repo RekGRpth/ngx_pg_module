@@ -254,7 +254,7 @@ static int ngx_pg_fsm_command_complete(ngx_pg_save_t *s, uint32_t len) {
     ngx_pg_data_t *d = s->data;
     if (d && d->nqueries) {
         d->nqueries--;
-        if (d->filter) d->query++;
+        d->query++;
     }
     return s->rc;
 }
