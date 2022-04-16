@@ -186,16 +186,6 @@ inline static ngx_chain_t *ngx_pg_write_int4(ngx_pool_t *p, uint32_t *size, uint
     return cl;
 }
 
-inline static ngx_chain_t *ngx_pg_write_opt(ngx_pool_t *p, uint32_t *size, size_t len, const uint8_t *data) {
-    ngx_chain_t *cl;
-    if (!(cl = ngx_alloc_chain_link(p))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_alloc_chain_link"); return NULL; }
-    if (!(cl->buf = ngx_create_temp_buf(p, len + sizeof(uint8_t)))) { ngx_log_error(NGX_LOG_ERR, p->log, 0, "!ngx_create_temp_buf"); return NULL; }
-    for (ngx_uint_t i = 0; i < len; i++) *cl->buf->last++ = data[i] == '=' ? 0 : data[i];
-    *cl->buf->last++ = 0;
-    if (size) *size += len + sizeof(uint8_t);
-    return cl;
-}
-
 inline static ngx_chain_t *ngx_pg_write_size(ngx_chain_t *cl, uint32_t size) {
     for (uint8_t m = sizeof(uint32_t); m; *cl->buf->last++ = size >> (2 << 2) * --m);
     return NULL;
@@ -354,7 +344,10 @@ inline static ngx_chain_t *ngx_pg_startup_message(ngx_pool_t *p, ngx_array_t *op
     if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 0x00030000))) return NULL;
     if (options) {
         ngx_str_t *str = options->elts;
-        for (ngx_uint_t i = 0; i < options->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(p, &size, str[i].len, str[i].data))) return NULL;
+        for (ngx_uint_t i = 0; i < options->nelts; i++) {
+            if (!(cl = cl->next = ngx_pg_write_str(p, &size, str[i].len, str[i].data))) return NULL;
+            if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
+        }
     }
     if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
     cl->next = ngx_pg_write_size(cl_size, size);
@@ -1663,6 +1656,7 @@ static char *ngx_pg_option_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *co
     for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
         if (!(option = ngx_array_push(&plcf->options))) return "!ngx_array_push";
         *option = str[i];
+        for (ngx_uint_t j = 0; j < option->len; j++) if (option->data[j] == '=') option->data[j] = '\0';
     }
     return NGX_CONF_OK;
 }
@@ -1676,6 +1670,7 @@ static char *ngx_pg_option_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *co
     for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
         if (!(option = ngx_array_push(&pscf->options))) return "!ngx_array_push";
         *option = str[i];
+        for (ngx_uint_t j = 0; j < option->len; j++) if (option->data[j] == '=') option->data[j] = '\0';
     }
     ngx_http_upstream_srv_conf_t *uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
     if (uscf->peer.init_upstream != ngx_pg_peer_init_upstream) {
