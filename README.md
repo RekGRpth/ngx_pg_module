@@ -5,15 +5,15 @@ it uses ragel-based PostgreSQL connection parser with zero-alloc and zero-copy
 
 pg_function
 -------------
-* Syntax: **pg_function** *$oid* [ NULL | NULL::*$type* | *$arg* | *$arg*::*$type* ] [ output=*csv* | output=*plain* ]
+* Syntax: **pg_function** *$oid* [ NULL | NULL::*$oid* | *$arg* | *$arg*::*$oid* ] [ output=*csv* | output=*plain* ]
 * Default: --
 * Context: location, if in location
 
-Sets function(s) oid (nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) type(s) (nginx variables allowed) and output type (no nginx variables allowed) (with using [evaluate](https://github.com/RekGRpth/ngx_http_evaluate_module)):
+Sets function(s) oid (nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) oid(s) (nginx variables allowed) and output type (no nginx variables allowed) (with using [evaluate](https://github.com/RekGRpth/ngx_http_evaluate_module)):
 ```nginx
 location =/function {
     pg_pass postgres; # upstream is postgres
-    pg_query "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2" $arg_name $arg_schema; # extended query with two arguments: first query argument is taken from $arg_name variable and auto type and second query argument is taken from $arg_schema variable and auto type
+    pg_query "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2" $arg_name $arg_schema; # extended query with two arguments: first query argument is taken from $arg_name variable and auto oid and second query argument is taken from $arg_schema variable and auto oid
 }
 location =/now {
     evaluate $now_oid /function?schema=pg_catalog&name=now; # evaluate subrequest to variable
@@ -101,11 +101,11 @@ location =/postgres {
 ```
 pg_query
 -------------
-* Syntax: **pg_query** *sql* [ NULL | NULL::*$type* | *$arg* | *$arg*::*$type* ] [ output=*csv* | output=*plain* ]
+* Syntax: **pg_query** *sql* [ NULL | NULL::*$oid* | *$arg* | *$arg*::*$oid* ] [ output=*csv* | output=*plain* ]
 * Default: --
 * Context: location, if in location
 
-Sets query(queries) sql(s) (no nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) type(s) (nginx variables allowed) and output type (no nginx variables allowed):
+Sets query(queries) sql(s) (no nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) oid(s) (nginx variables allowed) and output type (no nginx variables allowed):
 ```nginx
 location =/postgres {
     pg_pass postgres; # upstream is postgres
@@ -119,7 +119,7 @@ location =/postgres {
 # or
 location =/postgres {
     pg_pass postgres; # upstream is postgres
-    pg_query "SELECT $1, $2::text" NULL::25 $arg output=plain; # extended query with two arguments: first query argument is NULL and type of 25 (TEXTOID) and second query argument is taken from $arg variable and auto type and plain output type
+    pg_query "SELECT $1, $2::text" NULL::25 $arg output=plain; # extended query with two arguments: first query argument is NULL and its oid is 25 (TEXTOID) and second query argument is taken from $arg variable and auto oid and plain output type
 }
 ```
 # Embedded Variables
