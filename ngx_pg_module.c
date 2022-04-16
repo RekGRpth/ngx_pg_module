@@ -249,21 +249,6 @@ inline static ngx_chain_t *ngx_pg_close(ngx_pool_t *p) {
     return close;
 }
 
-inline static ngx_chain_t *ngx_pg_startup_message(ngx_pool_t *p, ngx_array_t *options) {
-    ngx_chain_t *cl, *cl_size, *connect;
-    uint32_t size = 0;
-    if (!(cl = cl_size = connect = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 0x00030000))) return NULL;
-    if (options) {
-        ngx_str_t *str = options->elts;
-        for (ngx_uint_t i = 0; i < options->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(p, &size, str[i].len, str[i].data))) return NULL;
-    }
-    if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = *connect; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%ui:%d:%c", i++, *p, *p);
-    return connect;
-}
-
 inline static ngx_chain_t *ngx_pg_describe(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *describe;
     uint32_t size = 0;
@@ -360,6 +345,21 @@ inline static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, ngx_array_t *commands) {
     cl->next = ngx_pg_write_size(cl_size, size);
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = query; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
     return query;
+}
+
+inline static ngx_chain_t *ngx_pg_startup_message(ngx_pool_t *p, ngx_array_t *options) {
+    ngx_chain_t *cl, *cl_size, *connect;
+    uint32_t size = 0;
+    if (!(cl = cl_size = connect = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 0x00030000))) return NULL;
+    if (options) {
+        ngx_str_t *str = options->elts;
+        for (ngx_uint_t i = 0; i < options->nelts; i++) if (!(cl = cl->next = ngx_pg_write_opt(p, &size, str[i].len, str[i].data))) return NULL;
+    }
+    if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = *connect; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_error(NGX_LOG_ERR, cf->log, 0, "%ui:%d:%c", i++, *p, *p);
+    return connect;
 }
 
 inline static ngx_chain_t *ngx_pg_sync(ngx_pool_t *p) {
