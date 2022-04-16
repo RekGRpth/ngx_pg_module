@@ -39,7 +39,7 @@ typedef struct {
 } ngx_pg_query_t;
 
 typedef struct {
-    ngx_array_t *options;
+    ngx_array_t options;
     ngx_array_t queries;
     ngx_http_complex_value_t complex;
     ngx_http_upstream_conf_t upstream;
@@ -53,7 +53,7 @@ typedef struct {
 } ngx_pg_main_conf_t;
 
 typedef struct {
-    ngx_array_t *options;
+    ngx_array_t options;
     ngx_http_upstream_peer_t peer;
     ngx_log_t *log;
 } ngx_pg_srv_conf_t;
@@ -918,7 +918,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         s->connection = c;
         ngx_chain_t *connect;
         ngx_pg_srv_conf_t *pscf = d->conf;
-        if (!(cl = connect = ngx_pg_startup_message(r->pool, pscf ? pscf->options : plcf->options))) return NGX_ERROR;
+        if (!(cl = connect = ngx_pg_startup_message(r->pool, pscf ? &pscf->options : &plcf->options))) return NGX_ERROR;
         while (cl->next) cl = cl->next;
         cl->next = u->request_bufs;
         u->request_bufs = connect;
@@ -1656,12 +1656,12 @@ static char *ngx_pg_log_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 static char *ngx_pg_option_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->options) return "duplicate";
+    if (plcf->options.elts) return "duplicate";
     ngx_str_t *option;
-    if (!(plcf->options = ngx_array_create(cf->pool, 1, sizeof(*option)))) return "!ngx_array_create";
+    if (ngx_array_init(&plcf->options, cf->pool, 1, sizeof(*option)) != NGX_OK) return "ngx_array_init != NGX_OK";
     ngx_str_t *str = cf->args->elts;
     for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
-        if (!(option = ngx_array_push(plcf->options))) return "!ngx_array_push";
+        if (!(option = ngx_array_push(&plcf->options))) return "!ngx_array_push";
         *option = str[i];
     }
     return NGX_CONF_OK;
@@ -1669,12 +1669,12 @@ static char *ngx_pg_option_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *co
 
 static char *ngx_pg_option_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_srv_conf_t *pscf = conf;
-    if (pscf->options) return "duplicate";
+    if (pscf->options.elts) return "duplicate";
     ngx_str_t *option;
-    if (!(pscf->options = ngx_array_create(cf->pool, 1, sizeof(*option)))) return "!ngx_array_create";
+    if (ngx_array_init(&pscf->options, cf->pool, 1, sizeof(*option)) != NGX_OK) return "ngx_array_init != NGX_OK";
     ngx_str_t *str = cf->args->elts;
     for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
-        if (!(option = ngx_array_push(pscf->options))) return "!ngx_array_push";
+        if (!(option = ngx_array_push(&pscf->options))) return "!ngx_array_push";
         *option = str[i];
     }
     ngx_http_upstream_srv_conf_t *uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
@@ -1698,7 +1698,7 @@ static char *ngx_pg_pass_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
         return NGX_CONF_OK;
     }
     ngx_url_t url = {0};
-    if (!plcf->options) url.no_resolve = 1;
+    if (!plcf->options.elts) url.no_resolve = 1;
     url.url = str[1];
     if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &url, 0))) return NGX_CONF_ERROR;
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
