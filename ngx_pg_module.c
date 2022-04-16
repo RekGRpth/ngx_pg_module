@@ -1621,8 +1621,14 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
             } else argument->value = value;
         }
         if (!oid.data) continue;
-        ngx_http_compile_complex_value_t ccv = {cf, &oid, &argument->complex.oid, 0, 0, 0};
-        if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+        if (ngx_http_script_variables_count(&oid)) {
+            ngx_http_compile_complex_value_t ccv = {cf, &oid, &argument->complex.oid, 0, 0, 0};
+            if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+        } else {
+            ngx_int_t n = ngx_atoi(oid.data, oid.len);
+            if (n == NGX_ERROR) return "ngx_atoi == NGX_ERROR";
+            argument->oid = n;
+        }
     }
     return NGX_CONF_OK;
 }
