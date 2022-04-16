@@ -385,19 +385,6 @@ inline static ngx_chain_t *ngx_pg_sync(ngx_pool_t *p) {
     return sync;
 }
 
-inline static ngx_chain_t *ngx_pg_unlisten(ngx_pool_t *p, size_t len, const uint8_t *data) {
-    ngx_chain_t *cl, *cl_size, *unlisten;
-    uint32_t size = 0;
-    if (!(cl = unlisten = ngx_pg_write_int1(p, NULL, 'Q'))) return NULL;
-    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("UNLISTEN ") - 1, (uint8_t *)"UNLISTEN "))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = parse; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
-    return unlisten;
-}
-
 static int ngx_pg_fsm_all(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d:%c", *data, *data);
     return s->rc;
@@ -618,8 +605,17 @@ static int ngx_pg_fsm_notification_response_done(ngx_pg_save_t *s) {
     switch ((s->rc = ngx_http_push_stream_add_msg_to_channel_my(s->connection->log, &s->notification.relname, &s->notification.extra, NULL, NULL, 1, p))) {
         case NGX_ERROR: ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_ERROR"); break;
         case NGX_DECLINED: ngx_log_error(NGX_LOG_WARN, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_DECLINED"); {
+            ngx_array_t sqls;
+            ngx_pg_sql_t *sql;
+            if (ngx_array_init(&sqls, p, 2, sizeof(*sql)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_array_init != NGX_OK"); goto destroy; }
+            if (!(sql = ngx_array_push(&sqls))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); goto destroy; }
+            ngx_memzero(sql, sizeof(*sql));
+            ngx_str_set(&sql->value, "UNLISTEN ");
+            if (!(sql = ngx_array_push(&sqls))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); goto destroy; }
+            ngx_memzero(sql, sizeof(*sql));
+            sql->value = s->notification.relname;
             ngx_chain_t *out, *last;
-            if (!(out = ngx_pg_unlisten(p, s->notification.relname.len, s->notification.relname.data))) goto destroy;
+            if (!(out = ngx_pg_query(p, &sqls))) goto destroy;
             ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = p, .limit = 0 };
             ngx_chain_writer(&ctx, NULL);
         } break;
