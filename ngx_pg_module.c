@@ -17,7 +17,7 @@ typedef struct {
 } ngx_pg_argument_t;
 
 typedef struct {
-    ngx_str_t str;
+    ngx_str_t value;
     ngx_uint_t oid;
 } ngx_pg_value_t;
 
@@ -213,9 +213,9 @@ inline static ngx_chain_t *ngx_pg_bind(ngx_pool_t *p, ngx_array_t *arguments) {
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arguments->nelts))) return NULL;
     ngx_pg_value_t *value = arguments->elts;
     for (ngx_uint_t i = 0; i < arguments->nelts; i++) {
-        if (value[i].str.data) {
-            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].str.len))) return NULL;
-            if (!(cl = cl->next = ngx_pg_write_str(p, &size, value[i].str.len, value[i].str.data))) return NULL;
+        if (value[i].value.data) {
+            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].value.len))) return NULL;
+            if (!(cl = cl->next = ngx_pg_write_str(p, &size, value[i].value.len, value[i].value.data))) return NULL;
         } else {
             if (!(cl = cl->next = ngx_pg_write_int4(p, &size, -1))) return NULL;
         }
@@ -320,9 +320,9 @@ inline static ngx_chain_t *ngx_pg_function_call(ngx_pool_t *p, uint32_t oid, ngx
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arguments->nelts))) return NULL;
     ngx_pg_value_t *value = arguments->elts;
     for (ngx_uint_t i = 0; i < arguments->nelts; i++) {
-        if (value[i].str.data) {
-            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].str.len))) return NULL;
-            if (!(cl = cl->next = ngx_pg_write_str(p, &size, value[i].str.len, value[i].str.data))) return NULL;
+        if (value[i].value.data) {
+            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, value[i].value.len))) return NULL;
+            if (!(cl = cl->next = ngx_pg_write_str(p, &size, value[i].value.len, value[i].value.data))) return NULL;
         } else {
             if (!(cl = cl->next = ngx_pg_write_int4(p, &size, -1))) return NULL;
         }
@@ -1134,7 +1134,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
                     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
                     value->oid = n;
                 }
-                if (argument[j].argument.value.data) if (ngx_http_complex_value(r, &argument[j].argument, &value->str) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
+                if (argument[j].argument.value.data) if (ngx_http_complex_value(r, &argument[j].argument, &value->value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
             }
         }
         if (query[i].function.value.data) {
