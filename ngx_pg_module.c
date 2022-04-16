@@ -1647,37 +1647,32 @@ static char *ngx_pg_log_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     return ngx_log_set_log(cf, &pscf->log);
 }
 
-static char *ngx_pg_option_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    ngx_pg_loc_conf_t *plcf = conf;
-    if (plcf->options.elts) return "duplicate";
+static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_array_t *options) {
+    if (options->elts) return "duplicate";
     ngx_str_t *option;
-    if (ngx_array_init(&plcf->options, cf->pool, 1, sizeof(*option)) != NGX_OK) return "ngx_array_init != NGX_OK";
+    if (ngx_array_init(options, cf->pool, 1, sizeof(*option)) != NGX_OK) return "ngx_array_init != NGX_OK";
     ngx_str_t *str = cf->args->elts;
     for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
-        if (!(option = ngx_array_push(&plcf->options))) return "!ngx_array_push";
+        if (!(option = ngx_array_push(options))) return "!ngx_array_push";
         *option = str[i];
         for (ngx_uint_t j = 0; j < option->len; j++) if (option->data[j] == '=') option->data[j] = '\0';
     }
     return NGX_CONF_OK;
 }
 
+static char *ngx_pg_option_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_loc_conf_t *plcf = conf;
+    return ngx_pg_option_loc_ups_conf(cf, &plcf->options);
+}
+
 static char *ngx_pg_option_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_srv_conf_t *pscf = conf;
-    if (pscf->options.elts) return "duplicate";
-    ngx_str_t *option;
-    if (ngx_array_init(&pscf->options, cf->pool, 1, sizeof(*option)) != NGX_OK) return "ngx_array_init != NGX_OK";
-    ngx_str_t *str = cf->args->elts;
-    for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
-        if (!(option = ngx_array_push(&pscf->options))) return "!ngx_array_push";
-        *option = str[i];
-        for (ngx_uint_t j = 0; j < option->len; j++) if (option->data[j] == '=') option->data[j] = '\0';
-    }
     ngx_http_upstream_srv_conf_t *uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
     if (uscf->peer.init_upstream != ngx_pg_peer_init_upstream) {
         pscf->peer.init_upstream = uscf->peer.init_upstream ? uscf->peer.init_upstream : ngx_http_upstream_init_round_robin;
         uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
     }
-    return NGX_CONF_OK;
+    return ngx_pg_option_loc_ups_conf(cf, &pscf->options);
 }
 
 static char *ngx_pg_pass_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
