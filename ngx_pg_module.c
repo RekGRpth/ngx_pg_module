@@ -1383,11 +1383,28 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     d->option = s->option;
-    if (s->rc == NGX_OK && u->headers_in.status_n == NGX_HTTP_INTERNAL_SERVER_ERROR && s->error.all.data) {
-        d->error = s->error;
-        if (!(d->error.all.data = ngx_pstrdup(r->pool, &s->error.all))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+    if (s->rc == NGX_OK && u->headers_in.status_n == NGX_HTTP_INTERNAL_SERVER_ERROR) {
+        if (s->error.column.data && !(d->error.column.data = ngx_pstrdup(r->pool, &s->error.column))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.constraint.data && !(d->error.constraint.data = ngx_pstrdup(r->pool, &s->error.constraint))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.context.data && !(d->error.context.data = ngx_pstrdup(r->pool, &s->error.context))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.datatype.data && !(d->error.datatype.data = ngx_pstrdup(r->pool, &s->error.datatype))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.detail.data && !(d->error.detail.data = ngx_pstrdup(r->pool, &s->error.detail))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.file.data && !(d->error.file.data = ngx_pstrdup(r->pool, &s->error.file))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.function.data && !(d->error.function.data = ngx_pstrdup(r->pool, &s->error.function))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.hint.data && !(d->error.hint.data = ngx_pstrdup(r->pool, &s->error.hint))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.internal.data && !(d->error.internal.data = ngx_pstrdup(r->pool, &s->error.internal))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.line.data && !(d->error.line.data = ngx_pstrdup(r->pool, &s->error.line))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.nonlocalized.data && !(d->error.nonlocalized.data = ngx_pstrdup(r->pool, &s->error.nonlocalized))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.primary.data && !(d->error.primary.data = ngx_pstrdup(r->pool, &s->error.primary))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.query.data && !(d->error.query.data = ngx_pstrdup(r->pool, &s->error.query))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.schema.data && !(d->error.schema.data = ngx_pstrdup(r->pool, &s->error.schema))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.severity.data && !(d->error.severity.data = ngx_pstrdup(r->pool, &s->error.severity))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.sqlstate.data && !(d->error.sqlstate.data = ngx_pstrdup(r->pool, &s->error.sqlstate))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.statement.data && !(d->error.statement.data = ngx_pstrdup(r->pool, &s->error.statement))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        if (s->error.table.data && !(d->error.table.data = ngx_pstrdup(r->pool, &s->error.table))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
         s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
     }
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     return s->rc;
 }
 
