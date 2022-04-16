@@ -1650,7 +1650,7 @@ static char *ngx_pg_log_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_array_t *options) {
     if (options->elts) return "duplicate";
     ngx_str_t *option;
-    if (ngx_array_init(options, cf->pool, 1, sizeof(*option)) != NGX_OK) return "ngx_array_init != NGX_OK";
+    if (ngx_array_init(options, cf->pool, cf->args->nelts - 1, sizeof(*option)) != NGX_OK) return "ngx_array_init != NGX_OK";
     ngx_str_t *str = cf->args->elts;
     for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
         if (!(option = ngx_array_push(options))) return "!ngx_array_push";
