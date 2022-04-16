@@ -43,7 +43,6 @@ typedef struct {
     pg_fsm_cb close_complete;
     pg_fsm_cb copy_done;
     pg_fsm_cb empty_query_response;
-    pg_fsm_cb error;
     pg_fsm_cb no_data;
     pg_fsm_cb notification_response_done;
     pg_fsm_cb parse_complete;
@@ -75,6 +74,7 @@ typedef struct {
     pg_fsm_int4_cb row_description_table;
     pg_fsm_str_cb all;
     pg_fsm_str_cb command_complete_val;
+    pg_fsm_str_cb error;
     pg_fsm_str_cb error_response_column;
     pg_fsm_str_cb error_response_constraint;
     pg_fsm_str_cb error_response_context;
@@ -95,8 +95,19 @@ typedef struct {
     pg_fsm_str_cb error_response_table;
     pg_fsm_str_cb notification_response_extra;
     pg_fsm_str_cb notification_response_relname;
-    pg_fsm_str_cb parameter_status_key;
-    pg_fsm_str_cb parameter_status_val;
+    pg_fsm_str_cb parameter_status_application_name;
+    pg_fsm_str_cb parameter_status_client_encoding;
+    pg_fsm_str_cb parameter_status_datestyle;
+    pg_fsm_str_cb parameter_status_default_transaction_read_only;
+    pg_fsm_str_cb parameter_status_in_hot_standby;
+    pg_fsm_str_cb parameter_status_integer_datetimes;
+    pg_fsm_str_cb parameter_status_intervalstyle;
+    pg_fsm_str_cb parameter_status_is_superuser;
+    pg_fsm_str_cb parameter_status_server_encoding;
+    pg_fsm_str_cb parameter_status_server_version;
+    pg_fsm_str_cb parameter_status_session_authorization;
+    pg_fsm_str_cb parameter_status_standard_conforming_strings;
+    pg_fsm_str_cb parameter_status_timezone;
     pg_fsm_str_cb result_val;
     pg_fsm_str_cb row_description_name;
 } pg_fsm_cb_t;

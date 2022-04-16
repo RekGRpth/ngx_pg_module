@@ -81,23 +81,35 @@ typedef struct {
 } ngx_pg_error_t;
 
 typedef struct {
-    ngx_str_t key;
-    ngx_str_t val;
+    ngx_str_t application_name;
+    ngx_str_t client_encoding;
+    ngx_str_t datestyle;
+    ngx_str_t default_transaction_read_only;
+    ngx_str_t in_hot_standby;
+    ngx_str_t integer_datetimes;
+    ngx_str_t intervalstyle;
+    ngx_str_t is_superuser;
+    ngx_str_t server_encoding;
+    ngx_str_t server_version;
+    ngx_str_t session_authorization;
+    ngx_str_t standard_conforming_strings;
+    ngx_str_t timezone;
 } ngx_pg_option_t;
 
 typedef struct ngx_pg_data_t ngx_pg_data_t;
 
 typedef struct {
-    ngx_array_t *options;
     ngx_buf_t buffer;
     ngx_connection_t *connection;
     ngx_pg_data_t *data;
     ngx_pg_error_t error;
+    ngx_pg_option_t option;
     ngx_uint_t rc;
     pg_command_state_t command;
     pg_fsm_t *fsm;
     pg_ready_for_query_state_t state;
     uint32_t key;
+    uint32_t len;
     uint32_t pid;
     struct {
         ngx_event_handler_pt read_handler;
@@ -116,6 +128,7 @@ typedef struct ngx_pg_data_t {
     ngx_http_request_t *request;
     ngx_peer_connection_t peer;
     ngx_pg_error_t error;
+    ngx_pg_option_t option;
     ngx_pg_query_t *query;
     ngx_pg_save_t *save;
     ngx_pg_srv_conf_t *conf;
@@ -426,6 +439,7 @@ static int ngx_pg_fsm_close_complete(ngx_pg_save_t *s) {
 static int ngx_pg_fsm_command_complete(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     s->command = pg_command_state_command_complete;
+    s->len = len;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     if (!d->filter && d->nqueries) {
@@ -448,6 +462,7 @@ static int ngx_pg_fsm_command_complete_val(ngx_pg_save_t *s, size_t len, const u
 static int ngx_pg_fsm_copy_data(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     s->command = pg_command_state_copy_data;
+    s->len = len;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     d->row++;
@@ -464,12 +479,14 @@ static int ngx_pg_fsm_copy_done(ngx_pg_save_t *s) {
 static int ngx_pg_fsm_copy_out_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     s->command = pg_command_state_copy_out_response;
+    s->len = len;
     return s->rc;
 }
 
 static int ngx_pg_fsm_data_row(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     s->command = pg_command_state_data_row;
+    s->len = len;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     d->col = 0;
@@ -492,16 +509,10 @@ static int ngx_pg_fsm_empty_query_response(ngx_pg_save_t *s) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_error(ngx_pg_save_t *s) {
+static int ngx_pg_fsm_error(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    ngx_buf_t *b = &s->buffer;
     ngx_pg_data_t *d = s->data;
-    if (d) {
-        ngx_http_request_t *r = d->request;
-        ngx_http_upstream_t *u = r->upstream;
-        b = &u->buffer;
-    }
-    ngx_uint_t i = 0; for (u_char *p = b->pos; p < b->last; p++) ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%ui:%d:%c", i++, *p, *p);
+    ngx_uint_t i = 0; for (u_char *p = data; p < data + len; p++) ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%ui:%d:%c", i++, *p, *p);
     s->rc = d && d->filter ? NGX_ERROR : NGX_HTTP_UPSTREAM_INVALID_HEADER;
     return s->rc;
 }
@@ -509,6 +520,7 @@ static int ngx_pg_fsm_error(ngx_pg_save_t *s) {
 static int ngx_pg_fsm_error_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     s->command = pg_command_state_error_response;
+    s->len = len;
     ngx_memzero(&s->error, sizeof(s->error));
     ngx_connection_t *c = s->connection;
     if (s->error.all.data) ngx_pfree(c->pool, s->error.all.data);
@@ -629,6 +641,7 @@ static int ngx_pg_fsm_error_response_table(ngx_pg_save_t *s, size_t len, const u
 static int ngx_pg_fsm_function_call_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     s->command = pg_command_state_function_call_response;
+    s->len = len;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     if (d->nqueries) {
@@ -649,6 +662,7 @@ static int ngx_pg_fsm_no_data(ngx_pg_save_t *s) {
 static int ngx_pg_fsm_notice_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     s->command = pg_command_state_error_response;
+    s->len = len;
     ngx_memzero(&s->error, sizeof(s->error));
     ngx_connection_t *c = s->connection;
     if (s->error.all.data) ngx_pfree(c->pool, s->error.all.data);
@@ -659,6 +673,7 @@ static int ngx_pg_fsm_notice_response(ngx_pg_save_t *s, uint32_t len) {
 static int ngx_pg_fsm_notification_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     s->command = pg_command_state_notification_response;
+    s->len = len;
     ngx_connection_t *c = s->connection;
     if (!(s->notification.relname.data = ngx_pnalloc(c->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
@@ -731,34 +746,81 @@ static int ngx_pg_fsm_notification_response_relname(ngx_pg_save_t *s, size_t len
 static int ngx_pg_fsm_parameter_status(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     s->command = pg_command_state_parameter_status;
-    ngx_pg_option_t *option;
-    if (!(option = ngx_array_push(s->options))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
-    ngx_memzero(option, sizeof(*option));
+    s->len = len;
+    return s->rc;
+}
+
+static int ngx_pg_fsm_parameter_status_value(ngx_pg_save_t *s, size_t len, const uint8_t *data, ngx_str_t *value) {
     ngx_connection_t *c = s->connection;
-    if (!(option->key.data = ngx_pnalloc(c->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
+    if (!value->data && !(value->data = ngx_pnalloc(c->pool, s->len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
+    ngx_memcpy(value->data + value->len, data, len);
+    value->len += len;
     return s->rc;
 }
 
-static int ngx_pg_fsm_parameter_status_key(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+static int ngx_pg_fsm_parameter_status_application_name(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
-    if (!s->options->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_option_t *option = s->options->elts;
-    option = &option[s->options->nelts - 1];
-    ngx_memcpy(option->key.data + option->key.len, data, len);
-    option->key.len += len;
-    return s->rc;
+    return ngx_pg_fsm_parameter_status_value(s, len, data, &s->option.application_name);
 }
 
-static int ngx_pg_fsm_parameter_status_val(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+static int ngx_pg_fsm_parameter_status_client_encoding(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
-    if (!s->options->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_option_t *option = s->options->elts;
-    option = &option[s->options->nelts - 1];
-    if (!option->val.data) option->val.data = option->key.data + option->key.len;
-    ngx_memcpy(option->val.data + option->val.len, data, len);
-    option->val.len += len;
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V = %V", &option->key, &option->val);
-    return s->rc;
+    return ngx_pg_fsm_parameter_status_value(s, len, data, &s->option.client_encoding);
+}
+
+static int ngx_pg_fsm_parameter_status_datestyle(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_parameter_status_value(s, len, data, &s->option.datestyle);
+}
+
+static int ngx_pg_fsm_parameter_status_default_transaction_read_only(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_parameter_status_value(s, len, data, &s->option.default_transaction_read_only);
+}
+
+static int ngx_pg_fsm_parameter_status_in_hot_standby(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_parameter_status_value(s, len, data, &s->option.in_hot_standby);
+}
+
+static int ngx_pg_fsm_parameter_status_integer_datetimes(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_parameter_status_value(s, len, data, &s->option.integer_datetimes);
+}
+
+static int ngx_pg_fsm_parameter_status_intervalstyle(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_parameter_status_value(s, len, data, &s->option.intervalstyle);
+}
+
+static int ngx_pg_fsm_parameter_status_is_superuser(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_parameter_status_value(s, len, data, &s->option.is_superuser);
+}
+
+static int ngx_pg_fsm_parameter_status_server_encoding(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_parameter_status_value(s, len, data, &s->option.server_encoding);
+}
+
+static int ngx_pg_fsm_parameter_status_server_version(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_parameter_status_value(s, len, data, &s->option.server_version);
+}
+
+static int ngx_pg_fsm_parameter_status_session_authorization(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_parameter_status_value(s, len, data, &s->option.session_authorization);
+}
+
+static int ngx_pg_fsm_parameter_status_standard_conforming_strings(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_parameter_status_value(s, len, data, &s->option.standard_conforming_strings);
+}
+
+static int ngx_pg_fsm_parameter_status_timezone(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_parameter_status_value(s, len, data, &s->option.timezone);
 }
 
 static int ngx_pg_fsm_parse_complete(ngx_pg_save_t *s) {
@@ -826,6 +888,7 @@ static int ngx_pg_fsm_result_val(ngx_pg_save_t *s, size_t len, const uint8_t *da
 static int ngx_pg_fsm_row_description(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     s->command = pg_command_state_row_description;
+    s->len = len;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     d->col = 0;
@@ -918,7 +981,7 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .data_row_count = (pg_fsm_int2_cb)ngx_pg_fsm_data_row_count,
     .data_row = (pg_fsm_int4_cb)ngx_pg_fsm_data_row,
     .empty_query_response = (pg_fsm_cb)ngx_pg_fsm_empty_query_response,
-    .error = (pg_fsm_cb)ngx_pg_fsm_error,
+    .error = (pg_fsm_str_cb)ngx_pg_fsm_error,
     .error_response_column = (pg_fsm_str_cb)ngx_pg_fsm_error_response_column,
     .error_response_constraint = (pg_fsm_str_cb)ngx_pg_fsm_error_response_constraint,
     .error_response_context = (pg_fsm_str_cb)ngx_pg_fsm_error_response_context,
@@ -946,9 +1009,20 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .notification_response = (pg_fsm_int4_cb)ngx_pg_fsm_notification_response,
     .notification_response_pid = (pg_fsm_int4_cb)ngx_pg_fsm_notification_response_pid,
     .notification_response_relname = (pg_fsm_str_cb)ngx_pg_fsm_notification_response_relname,
-    .parameter_status_key = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_key,
+    .parameter_status_application_name = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_application_name,
+    .parameter_status_client_encoding = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_client_encoding,
+    .parameter_status_datestyle = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_datestyle,
+    .parameter_status_default_transaction_read_only = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_default_transaction_read_only,
+    .parameter_status_in_hot_standby = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_in_hot_standby,
+    .parameter_status_integer_datetimes = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_integer_datetimes,
+    .parameter_status_intervalstyle = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_intervalstyle,
+    .parameter_status_is_superuser = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_is_superuser,
     .parameter_status = (pg_fsm_int4_cb)ngx_pg_fsm_parameter_status,
-    .parameter_status_val = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_val,
+    .parameter_status_server_encoding = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_server_encoding,
+    .parameter_status_server_version = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_server_version,
+    .parameter_status_session_authorization = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_session_authorization,
+    .parameter_status_standard_conforming_strings = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_standard_conforming_strings,
+    .parameter_status_timezone = (pg_fsm_str_cb)ngx_pg_fsm_parameter_status_timezone,
     .parse_complete = (pg_fsm_cb)ngx_pg_fsm_parse_complete,
     .ready_for_query = (pg_fsm_cb)ngx_pg_fsm_ready_for_query,
     .ready_for_query_state = (pg_fsm_int2_cb)ngx_pg_fsm_ready_for_query_state,
@@ -1012,7 +1086,6 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
         cln->data = s;
         cln->handler = (ngx_pool_cleanup_pt)ngx_pg_save_cln_handler;
-        if (!(s->options = ngx_array_create(c->pool, 1, sizeof(ngx_pg_option_t)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_array_create"); return NGX_ERROR; }
         if (!(s->fsm = ngx_pcalloc(c->pool, pg_fsm_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         pg_fsm_init(s->fsm);
         s->connection = c;
@@ -1551,17 +1624,11 @@ static ngx_int_t ngx_pg_option_get_handler(ngx_http_request_t *r, ngx_http_varia
     if (!u) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
     ngx_pg_data_t *d = u->peer.data;
-    ngx_pg_save_t *s = d->save;
-    if (!s) return NGX_OK;
-    if (!s->options) return NGX_OK;
-    ngx_pg_option_t *option = s->options->elts;
-    ngx_str_t *name = (ngx_str_t *)data;
-    ngx_uint_t i;
-    for (i = 0; i < s->options->nelts; i++) if (name->len - sizeof("pg_option_") + 1 == option[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_option_") - 1, option[i].key.data, option[i].key.len)) break;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", i == s->options->nelts ? "true" : "false");
-    if (i == s->options->nelts) return NGX_OK;
-    v->data = option[i].val.data;
-    v->len = option[i].val.len;
+    ngx_uint_t offset = data;
+    ngx_str_t *option = (ngx_str_t *)((u_char *)&d->option + offset);
+    if (!option->len) return NGX_OK;
+    v->data = option->data;
+    v->len = option->len;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
@@ -1604,7 +1671,19 @@ static const ngx_http_variable_t ngx_pg_variables[] = {
   { ngx_string("pg_error_sqlstate"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, sqlstate), NGX_HTTP_VAR_CHANGEABLE, 0 },
   { ngx_string("pg_error_statement"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, statement), NGX_HTTP_VAR_CHANGEABLE, 0 },
   { ngx_string("pg_error_table"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, table), NGX_HTTP_VAR_CHANGEABLE, 0 },
-  { ngx_string("pg_option_"), NULL, ngx_pg_option_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_option_application_name"), NULL, ngx_pg_option_get_handler, offsetof(ngx_pg_option_t, application_name), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_option_client_encoding"), NULL, ngx_pg_option_get_handler, offsetof(ngx_pg_option_t, client_encoding), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_option_datestyle"), NULL, ngx_pg_option_get_handler, offsetof(ngx_pg_option_t, datestyle), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_option_default_transaction_read_only"), NULL, ngx_pg_option_get_handler, offsetof(ngx_pg_option_t, default_transaction_read_only), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_option_in_hot_standby"), NULL, ngx_pg_option_get_handler, offsetof(ngx_pg_option_t, in_hot_standby), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_option_integer_datetimes"), NULL, ngx_pg_option_get_handler, offsetof(ngx_pg_option_t, integer_datetimes), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_option_intervalstyle"), NULL, ngx_pg_option_get_handler, offsetof(ngx_pg_option_t, intervalstyle), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_option_is_superuser"), NULL, ngx_pg_option_get_handler, offsetof(ngx_pg_option_t, is_superuser), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_option_server_encoding"), NULL, ngx_pg_option_get_handler, offsetof(ngx_pg_option_t, server_encoding), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_option_server_version"), NULL, ngx_pg_option_get_handler, offsetof(ngx_pg_option_t, server_version), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_option_session_authorization"), NULL, ngx_pg_option_get_handler, offsetof(ngx_pg_option_t, session_authorization), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_option_standard_conforming_strings"), NULL, ngx_pg_option_get_handler, offsetof(ngx_pg_option_t, standard_conforming_strings), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_option_timezone"), NULL, ngx_pg_option_get_handler, offsetof(ngx_pg_option_t, timezone), NGX_HTTP_VAR_CHANGEABLE, 0 },
   { ngx_string("pg_pid"), NULL, ngx_pg_pid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
     ngx_http_null_variable
 };

@@ -62,9 +62,20 @@ typedef struct pg_fsm_t {
     action notification_response { if (cb->notification_response(user, fsm->int4 - 4)) fbreak; }
     action notification_response_pid { if (cb->notification_response_pid(user, fsm->int4)) fbreak; }
     action notification_response_relname { if (fsm->string && p - fsm->string > 0 && cb->notification_response_relname(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_application_name { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_application_name(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_client_encoding { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_client_encoding(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_datestyle { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_datestyle(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_default_transaction_read_only { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_default_transaction_read_only(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parameter_status { if (cb->parameter_status(user, fsm->int4 - 4)) fbreak; }
-    action parameter_status_key { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_key(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status_val { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_in_hot_standby { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_in_hot_standby(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_integer_datetimes { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_integer_datetimes(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_intervalstyle { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_intervalstyle(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_is_superuser { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_is_superuser(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_server_encoding { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_server_encoding(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_server_version { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_server_version(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_session_authorization { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_session_authorization(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_standard_conforming_strings { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_standard_conforming_strings(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_timezone { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_timezone(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action parse_complete { if (cb->parse_complete(user)) fbreak; }
     action ready_for_query_idle { if (cb->ready_for_query_state(user, pg_ready_for_query_state_idle)) fbreak; }
     action ready_for_query { if (cb->ready_for_query(user)) fbreak; }
@@ -110,6 +121,22 @@ typedef struct pg_fsm_t {
     | "W" str0 @error_response_context @/error_response_context
     );
 
+    parameter_status =
+    ( "application_name" 0 str0 @parameter_status_application_name @/parameter_status_application_name
+    | "client_encoding" 0 str0 @parameter_status_client_encoding @/parameter_status_client_encoding
+    | "DateStyle" 0 str0 @parameter_status_datestyle @/parameter_status_datestyle
+    | "default_transaction_read_only" 0 str0 @parameter_status_default_transaction_read_only @/parameter_status_default_transaction_read_only
+    | "in_hot_standby" 0 str0 @parameter_status_in_hot_standby @/parameter_status_in_hot_standby
+    | "integer_datetimes" 0 str0 @parameter_status_integer_datetimes @/parameter_status_integer_datetimes
+    | "IntervalStyle" 0 str0 @parameter_status_intervalstyle @/parameter_status_intervalstyle
+    | "is_superuser" 0 str0 @parameter_status_is_superuser @/parameter_status_is_superuser
+    | "server_encoding" 0 str0 @parameter_status_server_encoding @/parameter_status_server_encoding
+    | "server_version" 0 str0 @parameter_status_server_version @/parameter_status_server_version
+    | "session_authorization" 0 str0 @parameter_status_session_authorization @/parameter_status_session_authorization
+    | "standard_conforming_strings" 0 str0 @parameter_status_standard_conforming_strings @/parameter_status_standard_conforming_strings
+    | "TimeZone" 0 str0 @parameter_status_timezone @/parameter_status_timezone
+    );
+
     ready_for_query_idle = "I" @ready_for_query_idle;
     ready_for_query_inerror = "E" @ready_for_query_inerror;
     ready_for_query_intrans = "T" @ready_for_query_intrans;
@@ -135,7 +162,7 @@ typedef struct pg_fsm_t {
     | "n" 0 0 0 4 @no_data
     | "N" int4 @notice_response error_response ** 0
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0
-    | "S" int4 @parameter_status str0 @parameter_status_key @/parameter_status_key str0 @parameter_status_val @/parameter_status_val
+    | "S" int4 @parameter_status parameter_status
     | "T" int4 @row_description int2 @row_description_count row_description **
     | "V" int4 @function_call_response int4 @result_len result
     | "Z" 0 0 0 5 @ready_for_query ready_for_query
@@ -147,7 +174,7 @@ typedef struct pg_fsm_t {
 size_t pg_fsm_execute(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *user, const unsigned char *p, const unsigned char *pe, const unsigned char *eof) {
     const unsigned char *b = p;
     %% write exec;
-    if (fsm->cs == pg_fsm_error) (void)cb->error(user);
+    if (fsm->cs == pg_fsm_error) (void)cb->error(user, p - b, p);
     return p - b;
 }
 
