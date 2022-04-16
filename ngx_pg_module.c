@@ -26,7 +26,7 @@ typedef struct {
 
 typedef struct {
     ngx_array_t arguments;
-    ngx_array_t *commands;
+    ngx_array_t commands;
     ngx_flag_t header;
     ngx_flag_t string;
     ngx_http_complex_value_t function;
@@ -1158,11 +1158,11 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
                 if (!u->request_bufs) u->request_bufs = cl;
             }
             while (cl->next) cl = cl->next;
-        } else if (query[i].commands) {
+        } else if (query[i].commands.elts) {
             if (cl) {
-                if (!(cl->next = ngx_pg_parse(r->pool, query[i].commands, &query[i].arguments))) return NGX_ERROR;
+                if (!(cl->next = ngx_pg_parse(r->pool, &query[i].commands, &query[i].arguments))) return NGX_ERROR;
             } else {
-                if (!(cl = ngx_pg_parse(r->pool, query[i].commands, &query[i].arguments))) return NGX_ERROR;
+                if (!(cl = ngx_pg_parse(r->pool, &query[i].commands, &query[i].arguments))) return NGX_ERROR;
                 if (!u->request_bufs) u->request_bufs = cl;
             }
             while (cl->next) cl = cl->next;
@@ -1713,8 +1713,8 @@ static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *con
     if (!(query = ngx_array_push(plcf->queries))) return "!ngx_array_push";
     ngx_memzero(query, sizeof(*query));
     ngx_pg_command_t *command;
-    if (!(query->commands = ngx_array_create(cf->pool, 1, sizeof(*command)))) return "!ngx_array_create";
-    if (!(command = ngx_array_push(query->commands))) return "!ngx_array_push";
+    if (ngx_array_init(&query->commands, cf->pool, 1, sizeof(*command)) != NGX_OK) return "ngx_array_init != NGX_OK";
+    if (!(command = ngx_array_push(&query->commands))) return "!ngx_array_push";
     ngx_memzero(command, sizeof(*command));
     ngx_str_t *str = cf->args->elts;
     command->str = str[1];
