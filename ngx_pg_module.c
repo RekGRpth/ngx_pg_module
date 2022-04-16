@@ -334,16 +334,16 @@ inline static ngx_chain_t *ngx_pg_function_call(ngx_pool_t *p, uint32_t oid, ngx
 }
 
 inline static ngx_chain_t *ngx_pg_listen(ngx_pool_t *p, size_t len, const uint8_t *data) {
-    ngx_chain_t *cl, *cl_size, *unlisten;
+    ngx_chain_t *cl, *cl_size, *listen;
     uint32_t size = 0;
-    if (!(cl = unlisten = ngx_pg_write_int1(p, NULL, 'Q'))) return NULL;
+    if (!(cl = listen = ngx_pg_write_int1(p, NULL, 'Q'))) return NULL;
     if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("LISTEN ") - 1, (uint8_t *)"LISTEN "))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
     cl->next = ngx_pg_write_size(cl_size, size);
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = parse; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
-    return unlisten;
+    return listen;
 }
 
 inline static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, size_t len, const uint8_t *data, ngx_array_t *arguments) {
