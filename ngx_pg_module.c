@@ -22,6 +22,10 @@ typedef struct {
 } ngx_pg_value_t;
 
 typedef struct {
+    ngx_str_t value;
+} ngx_pg_sql_t;
+
+typedef struct {
     ngx_array_t *arguments;
     ngx_flag_t header;
     ngx_flag_t string;
@@ -358,12 +362,13 @@ inline static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, size_t len, const uint8_t
     return parse;
 }
 
-inline static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, size_t len, const uint8_t *data) {
+inline static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, ngx_array_t *sqls) {
     ngx_chain_t *cl, *cl_size, *query;
     uint32_t size = 0;
     if (!(cl = query = ngx_pg_write_int1(p, NULL, 'Q'))) return NULL;
     if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
+    ngx_pg_sql_t *sql = sqls->elts;
+    for (ngx_uint_t i = 0; i < sqls->nelts; i++) if (!(cl = cl->next = ngx_pg_write_str(p, &size, sql[i].value.len, sql[i].value.data))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
     cl->next = ngx_pg_write_size(cl_size, size);
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = query; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
