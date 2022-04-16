@@ -40,7 +40,7 @@ typedef struct {
 
 typedef struct {
     ngx_array_t *options;
-    ngx_array_t *queries;
+    ngx_array_t queries;
     ngx_http_complex_value_t complex;
     ngx_http_upstream_conf_t upstream;
 #if (NGX_HTTP_CACHE)
@@ -888,9 +888,9 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_pg_save_t *s;
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
-    ngx_pg_query_t *query = plcf->queries->elts;
+    ngx_pg_query_t *query = plcf->queries.elts;
     d->query = &query[-1];
-    d->nqueries = plcf->queries->nelts;
+    d->nqueries = plcf->queries.nelts;
     ngx_http_upstream_t *u = r->upstream;
     ngx_chain_t *cl = u->request_bufs;
     if (pc->connection) s = d->save = (ngx_pg_save_t *)((char *)pc->connection->pool + sizeof(*pc->connection->pool)); else {
@@ -1113,11 +1113,11 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     }
     u->headers_in.status_n = NGX_HTTP_OK;
     u->keepalive = !u->headers_in.connection_close;
-    if (!plcf->queries->nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!queries"); return NGX_ERROR; }
-    ngx_pg_query_t *query = plcf->queries->elts;
+    if (!plcf->queries.nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!queries"); return NGX_ERROR; }
+    ngx_pg_query_t *query = plcf->queries.elts;
     ngx_chain_t *cl = NULL;
     u->request_bufs = NULL;
-    for (ngx_uint_t i = 0; i < plcf->queries->nelts; i++) {
+    for (ngx_uint_t i = 0; i < plcf->queries.nelts; i++) {
         ngx_pg_argument_t *argument = query[i].arguments.elts;
         for (ngx_uint_t j = 0; j < query[i].arguments.nelts; j++) {
             if (argument[j].complex.oid.value.data) {
@@ -1531,8 +1531,8 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
 
 static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    ngx_pg_query_t *query = plcf->queries->elts;
-    query = &query[plcf->queries->nelts - 1];
+    ngx_pg_query_t *query = plcf->queries.elts;
+    query = &query[plcf->queries.nelts - 1];
     ngx_str_t *str = cf->args->elts;
     query->header = 1;
     for (ngx_uint_t i = 2; i < cf->args->nelts; i++) {
@@ -1628,8 +1628,8 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
 static char *ngx_pg_function_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     ngx_pg_query_t *query;
-    if (!plcf->queries && !(plcf->queries = ngx_array_create(cf->pool, 1, sizeof(*query)))) return "!ngx_array_create";
-    if (!(query = ngx_array_push(plcf->queries))) return "!ngx_array_push";
+    if (!plcf->queries.elts && ngx_array_init(&plcf->queries, cf->pool, 1, sizeof(*query)) != NGX_OK) return "ngx_array_init != NGX_OK";
+    if (!(query = ngx_array_push(&plcf->queries))) return "!ngx_array_push";
     ngx_memzero(query, sizeof(*query));
     ngx_str_t *str = cf->args->elts;
     ngx_http_compile_complex_value_t ccv = {cf, &str[1], &query->function, 0, 0, 0};
@@ -1640,8 +1640,8 @@ static char *ngx_pg_function_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *
 static char *ngx_pg_listen_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     ngx_pg_query_t *query;
-    if (!plcf->queries && !(plcf->queries = ngx_array_create(cf->pool, 1, sizeof(*query)))) return "!ngx_array_create";
-    if (!(query = ngx_array_push(plcf->queries))) return "!ngx_array_push";
+    if (!plcf->queries.elts && ngx_array_init(&plcf->queries, cf->pool, 1, sizeof(*query)) != NGX_OK) return "ngx_array_init != NGX_OK";
+    if (!(query = ngx_array_push(&plcf->queries))) return "!ngx_array_push";
     ngx_memzero(query, sizeof(*query));
     ngx_str_t *str = cf->args->elts;
     ngx_http_compile_complex_value_t ccv = {cf, &str[1], &query->listen, 0, 0, 0};
@@ -1709,8 +1709,8 @@ static char *ngx_pg_pass_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
 static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     ngx_pg_query_t *query;
-    if (!plcf->queries && !(plcf->queries = ngx_array_create(cf->pool, 1, sizeof(*query)))) return "!ngx_array_create";
-    if (!(query = ngx_array_push(plcf->queries))) return "!ngx_array_push";
+    if (!plcf->queries.elts && ngx_array_init(&plcf->queries, cf->pool, 1, sizeof(*query)) != NGX_OK) return "ngx_array_init != NGX_OK";
+    if (!(query = ngx_array_push(&plcf->queries))) return "!ngx_array_push";
     ngx_memzero(query, sizeof(*query));
     ngx_pg_command_t *command;
     if (ngx_array_init(&query->commands, cf->pool, 1, sizeof(*command)) != NGX_OK) return "ngx_array_init != NGX_OK";
