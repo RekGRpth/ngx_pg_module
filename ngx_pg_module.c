@@ -1382,7 +1382,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         s->rc = d->nqueries || s->state == pg_ready_for_query_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
     }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
-    if (s->rc == NGX_OK) d->option = s->option;
+    d->option = s->option;
     if (s->rc == NGX_OK && u->headers_in.status_n == NGX_HTTP_INTERNAL_SERVER_ERROR && s->error.all.data) {
         d->error = s->error;
         if (!(d->error.all.data = ngx_pstrdup(r->pool, &s->error.all))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
