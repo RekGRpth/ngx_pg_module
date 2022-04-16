@@ -12,8 +12,10 @@ typedef enum {
 } ngx_pg_output_t;
 
 typedef struct {
-    ngx_http_complex_value_t oid;
-    ngx_http_complex_value_t value;
+    struct {
+        ngx_http_complex_value_t oid;
+        ngx_http_complex_value_t value;
+    } complex;
 } ngx_pg_argument_t;
 
 typedef struct {
@@ -1127,14 +1129,14 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
             for (ngx_uint_t j = 0; j < query[i].arguments->nelts; j++) {
                 if (!(value = ngx_array_push(&arguments))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
                 ngx_memzero(value, sizeof(*value));
-                if (argument[j].oid.value.data) {
+                if (argument[j].complex.oid.value.data) {
                     ngx_str_t str;
-                    if (ngx_http_complex_value(r, &argument[j].oid, &str) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
+                    if (ngx_http_complex_value(r, &argument[j].complex.oid, &str) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
                     ngx_int_t n = ngx_atoi(str.data, str.len);
                     if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
                     value->oid = n;
                 }
-                if (argument[j].value.value.data) if (ngx_http_complex_value(r, &argument[j].value, &value->value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
+                if (argument[j].complex.value.value.data) if (ngx_http_complex_value(r, &argument[j].complex.value, &value->value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
             }
         }
         if (query[i].function.value.data) {
@@ -1615,11 +1617,11 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
             type.len = str[i].len - name.len - sizeof("::") + 1;
         }
         if (name.len != sizeof("NULL") - 1 || ngx_strncasecmp(name.data, "NULL", sizeof("NULL") - 1)) {
-            ngx_http_compile_complex_value_t ccv = {cf, &name, &argument->value, 0, 0, 0};
+            ngx_http_compile_complex_value_t ccv = {cf, &name, &argument->complex.value, 0, 0, 0};
             if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
         }
         if (!type.data) continue;
-        ngx_http_compile_complex_value_t ccv = {cf, &type, &argument->oid, 0, 0, 0};
+        ngx_http_compile_complex_value_t ccv = {cf, &type, &argument->complex.oid, 0, 0, 0};
         if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     }
     return NGX_CONF_OK;
