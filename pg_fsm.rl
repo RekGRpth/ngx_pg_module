@@ -34,26 +34,25 @@ typedef struct pg_fsm_t {
     action data_row_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->data_row_count) fnext data_row; }
     action data_row_val_next { if (!fsm->string && p - fsm->string > 0 && --fsm->data_row_count) fnext data_row; }
     action empty_query_response { if (cb->empty_query_response(user)) fbreak; }
-    action error_response_column { if (cb->error_response_key(user, sizeof("column") - 1, (const unsigned char *)"column")) fbreak; }
-    action error_response_constraint { if (cb->error_response_key(user, sizeof("constraint") - 1, (const unsigned char *)"constraint")) fbreak; }
-    action error_response_context { if (cb->error_response_key(user, sizeof("context") - 1, (const unsigned char *)"context")) fbreak; }
-    action error_response_datatype { if (cb->error_response_key(user, sizeof("datatype") - 1, (const unsigned char *)"datatype")) fbreak; }
-    action error_response_detail { if (cb->error_response_key(user, sizeof("detail") - 1, (const unsigned char *)"detail")) fbreak; }
-    action error_response_file { if (cb->error_response_key(user, sizeof("file") - 1, (const unsigned char *)"file")) fbreak; }
-    action error_response_function { if (cb->error_response_key(user, sizeof("function") - 1, (const unsigned char *)"function")) fbreak; }
-    action error_response_hint { if (cb->error_response_key(user, sizeof("hint") - 1, (const unsigned char *)"hint")) fbreak; }
+    action error_response_column { if (fsm->string && p - fsm->string > 0 && cb->error_response_column(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_constraint { if (fsm->string && p - fsm->string > 0 && cb->error_response_constraint(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_context { if (fsm->string && p - fsm->string > 0 && cb->error_response_context(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_datatype { if (fsm->string && p - fsm->string > 0 && cb->error_response_datatype(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_detail { if (fsm->string && p - fsm->string > 0 && cb->error_response_detail(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_file { if (fsm->string && p - fsm->string > 0 && cb->error_response_file(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_function { if (fsm->string && p - fsm->string > 0 && cb->error_response_function(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_hint { if (fsm->string && p - fsm->string > 0 && cb->error_response_hint(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action error_response { if (cb->error_response(user, fsm->int4 - 4)) fbreak; }
-    action error_response_internal { if (cb->error_response_key(user, sizeof("internal") - 1, (const unsigned char *)"internal")) fbreak; }
-    action error_response_line { if (cb->error_response_key(user, sizeof("line") - 1, (const unsigned char *)"line")) fbreak; }
-    action error_response_nonlocalized { if (cb->error_response_key(user, sizeof("nonlocalized") - 1, (const unsigned char *)"nonlocalized")) fbreak; }
-    action error_response_primary { if (cb->error_response_key(user, sizeof("primary") - 1, (const unsigned char *)"primary")) fbreak; }
-    action error_response_query { if (cb->error_response_key(user, sizeof("query") - 1, (const unsigned char *)"query")) fbreak; }
-    action error_response_schema { if (cb->error_response_key(user, sizeof("schema") - 1, (const unsigned char *)"schema")) fbreak; }
-    action error_response_severity { if (cb->error_response_key(user, sizeof("severity") - 1, (const unsigned char *)"severity")) fbreak; }
-    action error_response_sqlstate { if (cb->error_response_key(user, sizeof("sqlstate") - 1, (const unsigned char *)"sqlstate")) fbreak; }
-    action error_response_statement { if (cb->error_response_key(user, sizeof("statement") - 1, (const unsigned char *)"statement")) fbreak; }
-    action error_response_table { if (cb->error_response_key(user, sizeof("table") - 1, (const unsigned char *)"table")) fbreak; }
-    action error_response_val { if (fsm->string && p - fsm->string > 0 && cb->error_response_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_internal { if (fsm->string && p - fsm->string > 0 && cb->error_response_internal(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_line { if (fsm->string && p - fsm->string > 0 && cb->error_response_line(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_nonlocalized { if (fsm->string && p - fsm->string > 0 && cb->error_response_nonlocalized(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_primary { if (fsm->string && p - fsm->string > 0 && cb->error_response_primary(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_query { if (fsm->string && p - fsm->string > 0 && cb->error_response_query(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_schema { if (fsm->string && p - fsm->string > 0 && cb->error_response_schema(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_severity { if (fsm->string && p - fsm->string > 0 && cb->error_response_severity(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_sqlstate { if (fsm->string && p - fsm->string > 0 && cb->error_response_sqlstate(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_statement { if (fsm->string && p - fsm->string > 0 && cb->error_response_statement(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_table { if (fsm->string && p - fsm->string > 0 && cb->error_response_table(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action function_call_response { if (cb->function_call_response(user, fsm->int4 - 4)) fbreak; }
     action int2 { if (!fsm->i) { fsm->i = sizeof(fsm->int2); fsm->int2 = 0; } fsm->int2 |= *p << ((2 << 2) * --fsm->i); }
     action int4 { if (!fsm->i) { fsm->i = sizeof(fsm->int4); fsm->int4 = 0; } fsm->int4 |= *p << ((2 << 2) * --fsm->i); }
@@ -90,25 +89,25 @@ typedef struct pg_fsm_t {
     int4 = any{4} $int4;
     str0 = char ** $string 0;
 
-    error_response_key =
-    ( "c" @error_response_column
-    | "C" @error_response_sqlstate
-    | "d" @error_response_datatype
-    | "D" @error_response_detail
-    | "F" @error_response_file
-    | "H" @error_response_hint
-    | "L" @error_response_line
-    | "M" @error_response_primary
-    | "n" @error_response_constraint
-    | "p" @error_response_internal
-    | "P" @error_response_statement
-    | "q" @error_response_query
-    | "R" @error_response_function
-    | "s" @error_response_schema
-    | "S" @error_response_severity
-    | "t" @error_response_table
-    | "V" @error_response_nonlocalized
-    | "W" @error_response_context
+    error_response =
+    ( "c" str0 @error_response_column @/error_response_column
+    | "C" str0 @error_response_sqlstate @/error_response_sqlstate
+    | "d" str0 @error_response_datatype @/error_response_datatype
+    | "D" str0 @error_response_detail @/error_response_detail
+    | "F" str0 @error_response_file @/error_response_file
+    | "H" str0 @error_response_hint @/error_response_hint
+    | "L" str0 @error_response_line @/error_response_line
+    | "M" str0 @error_response_primary @/error_response_primary
+    | "n" str0 @error_response_constraint @/error_response_constraint
+    | "p" str0 @error_response_internal @/error_response_internal
+    | "P" str0 @error_response_statement @/error_response_statement
+    | "q" str0 @error_response_query @/error_response_query
+    | "R" str0 @error_response_function @/error_response_function
+    | "s" str0 @error_response_schema @/error_response_schema
+    | "S" str0 @error_response_severity @/error_response_severity
+    | "t" str0 @error_response_table @/error_response_table
+    | "V" str0 @error_response_nonlocalized @/error_response_nonlocalized
+    | "W" str0 @error_response_context @/error_response_context
     );
 
     ready_for_query_idle = "I" @ready_for_query_idle;
@@ -117,7 +116,6 @@ typedef struct pg_fsm_t {
     result = any ** $string $result_val $/result_val;
 
     data_row = int4 @result_len @data_row_len_next result @data_row_val_next;
-    error_response = error_response_key str0 @error_response_val @/error_response_val;
     ready_for_query = ready_for_query_inerror | ready_for_query_idle | ready_for_query_intrans;
     row_description = str0 >row_description_beg @row_description_name @/row_description_name int4 @row_description_table int2 @row_description_column int4 @row_description_oid int2 @row_description_length int4 @row_description_mod 0 0 @row_description_format;
 

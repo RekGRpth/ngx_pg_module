@@ -59,8 +59,25 @@ typedef struct {
 } ngx_pg_srv_conf_t;
 
 typedef struct {
-    ngx_str_t key;
-    ngx_str_t val;
+    ngx_str_t all;
+    ngx_str_t column;
+    ngx_str_t constraint;
+    ngx_str_t context;
+    ngx_str_t datatype;
+    ngx_str_t detail;
+    ngx_str_t file;
+    ngx_str_t function;
+    ngx_str_t hint;
+    ngx_str_t internal;
+    ngx_str_t line;
+    ngx_str_t nonlocalized;
+    ngx_str_t primary;
+    ngx_str_t query;
+    ngx_str_t schema;
+    ngx_str_t severity;
+    ngx_str_t sqlstate;
+    ngx_str_t statement;
+    ngx_str_t table;
 } ngx_pg_error_t;
 
 typedef struct {
@@ -75,6 +92,7 @@ typedef struct {
     ngx_buf_t buffer;
     ngx_connection_t *connection;
     ngx_pg_data_t *data;
+    ngx_pg_error_t error;
     ngx_uint_t rc;
     pg_command_state_t command;
     pg_fsm_t *fsm;
@@ -94,14 +112,13 @@ typedef struct {
 } ngx_pg_save_t;
 
 typedef struct ngx_pg_data_t {
-    ngx_array_t *errors;
     ngx_buf_t *shadow;
     ngx_http_request_t *request;
     ngx_peer_connection_t peer;
+    ngx_pg_error_t error;
     ngx_pg_query_t *query;
     ngx_pg_save_t *save;
     ngx_pg_srv_conf_t *conf;
-    ngx_str_t error;
     ngx_uint_t col;
     ngx_uint_t filter;
     ngx_uint_t nqueries;
@@ -492,46 +509,121 @@ static int ngx_pg_fsm_error(ngx_pg_save_t *s) {
 static int ngx_pg_fsm_error_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     s->command = pg_command_state_error_response;
+    ngx_memzero(&s->error, sizeof(s->error));
+    ngx_connection_t *c = s->connection;
+    if (s->error.all.data) ngx_pfree(c->pool, s->error.all.data);
+    if (!(s->error.all.data = ngx_pnalloc(c->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     d->nqueries = 0;
     ngx_http_request_t *r = d->request;
-    if (!(d->errors = ngx_array_create(r->pool, 1, sizeof(ngx_pg_error_t)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
     ngx_http_upstream_t *u = r->upstream;
     u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
-    if (!(d->error.data = ngx_pnalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
-static int ngx_pg_fsm_error_response_key(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+static int ngx_pg_fsm_error_response_value(ngx_pg_save_t *s, size_t len, const uint8_t *data, const char *key, ngx_str_t *value) {
+    if (!value->data) value->data = s->error.all.data + s->error.all.len;
+    ngx_memcpy(value->data + value->len, data, len);
+    value->len += len;
+    s->error.all.len += len;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_pg_error_t *error;
-    if (!d->errors) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!errors"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    if (!(error = ngx_array_push(d->errors))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
-    ngx_memzero(error, sizeof(*error));
-    error->key.data = data;
-    error->key.len = len;
-    return s->rc;
-}
-
-static int ngx_pg_fsm_error_response_val(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
-    ngx_pg_data_t *d = s->data;
-    if (!d) return s->rc;
-    if (!d->errors->nelts) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!nelts"); s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER; return s->rc; }
-    ngx_pg_error_t *error = d->errors->elts;
-    error = &error[d->errors->nelts - 1];
-    if (!error->val.data) error->val.data = d->error.data + d->error.len;
-    ngx_memcpy(error->val.data + error->val.len, data, len);
-    error->val.len += len;
-    d->error.len += len;
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
-    if (u->headers_in.status_n == NGX_HTTP_INTERNAL_SERVER_ERROR) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%V = %V", &error->key, &error->val); }
-    else { ngx_log_error(NGX_LOG_NOTICE, s->connection->log, 0, "%V = %V", &error->key, &error->val); }
+    if (u->headers_in.status_n == NGX_HTTP_INTERNAL_SERVER_ERROR) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "%s = %V", key, value); }
+    else { ngx_log_error(NGX_LOG_NOTICE, s->connection->log, 0, "%s = %V", key, value); }
     return s->rc;
+}
+
+static int ngx_pg_fsm_error_response_column(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "column", &s->error.column);
+}
+
+static int ngx_pg_fsm_error_response_constraint(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "constraint", &s->error.constraint);
+}
+
+static int ngx_pg_fsm_error_response_context(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "context", &s->error.context);
+}
+
+static int ngx_pg_fsm_error_response_datatype(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "datatype", &s->error.datatype);
+}
+
+static int ngx_pg_fsm_error_response_detail(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "detail", &s->error.detail);
+}
+
+static int ngx_pg_fsm_error_response_file(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "file", &s->error.file);
+}
+
+static int ngx_pg_fsm_error_response_function(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "function", &s->error.function);
+}
+
+static int ngx_pg_fsm_error_response_hint(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "hint", &s->error.hint);
+}
+
+static int ngx_pg_fsm_error_response_internal(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "internal", &s->error.internal);
+}
+
+static int ngx_pg_fsm_error_response_line(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "line", &s->error.line);
+}
+
+static int ngx_pg_fsm_error_response_nonlocalized(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "nonlocalized", &s->error.nonlocalized);
+}
+
+static int ngx_pg_fsm_error_response_primary(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "primary", &s->error.primary);
+}
+
+static int ngx_pg_fsm_error_response_query(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "query", &s->error.query);
+}
+
+static int ngx_pg_fsm_error_response_schema(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "schema", &s->error.schema);
+}
+
+static int ngx_pg_fsm_error_response_severity(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "severity", &s->error.severity);
+}
+
+static int ngx_pg_fsm_error_response_sqlstate(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "sqlstate", &s->error.sqlstate);
+}
+
+static int ngx_pg_fsm_error_response_statement(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "statement", &s->error.statement);
+}
+
+static int ngx_pg_fsm_error_response_table(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
+    return ngx_pg_fsm_error_response_value(s, len, data, "table", &s->error.table);
 }
 
 static int ngx_pg_fsm_function_call_response(ngx_pg_save_t *s, uint32_t len) {
@@ -556,12 +648,11 @@ static int ngx_pg_fsm_no_data(ngx_pg_save_t *s) {
 
 static int ngx_pg_fsm_notice_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
-    s->command = pg_command_state_notice_response;
-    ngx_pg_data_t *d = s->data;
-    if (!d) return s->rc;
-    ngx_http_request_t *r = d->request;
-    if (!(d->errors = ngx_array_create(r->pool, 1, sizeof(ngx_pg_error_t)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_create"); s->rc = NGX_ERROR; return s->rc; }
-    if (!(d->error.data = ngx_pnalloc(r->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
+    s->command = pg_command_state_error_response;
+    ngx_memzero(&s->error, sizeof(s->error));
+    ngx_connection_t *c = s->connection;
+    if (s->error.all.data) ngx_pfree(c->pool, s->error.all.data);
+    if (!(s->error.all.data = ngx_pnalloc(c->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     return s->rc;
 }
 
@@ -828,9 +919,25 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .data_row = (pg_fsm_int4_cb)ngx_pg_fsm_data_row,
     .empty_query_response = (pg_fsm_cb)ngx_pg_fsm_empty_query_response,
     .error = (pg_fsm_cb)ngx_pg_fsm_error,
-    .error_response_key = (pg_fsm_str_cb)ngx_pg_fsm_error_response_key,
+    .error_response_column = (pg_fsm_str_cb)ngx_pg_fsm_error_response_column,
+    .error_response_constraint = (pg_fsm_str_cb)ngx_pg_fsm_error_response_constraint,
+    .error_response_context = (pg_fsm_str_cb)ngx_pg_fsm_error_response_context,
+    .error_response_datatype = (pg_fsm_str_cb)ngx_pg_fsm_error_response_datatype,
+    .error_response_detail = (pg_fsm_str_cb)ngx_pg_fsm_error_response_detail,
+    .error_response_file = (pg_fsm_str_cb)ngx_pg_fsm_error_response_file,
+    .error_response_function = (pg_fsm_str_cb)ngx_pg_fsm_error_response_function,
+    .error_response_hint = (pg_fsm_str_cb)ngx_pg_fsm_error_response_hint,
+    .error_response_internal = (pg_fsm_str_cb)ngx_pg_fsm_error_response_internal,
+    .error_response_line = (pg_fsm_str_cb)ngx_pg_fsm_error_response_line,
+    .error_response_nonlocalized = (pg_fsm_str_cb)ngx_pg_fsm_error_response_nonlocalized,
     .error_response = (pg_fsm_int4_cb)ngx_pg_fsm_error_response,
-    .error_response_val = (pg_fsm_str_cb)ngx_pg_fsm_error_response_val,
+    .error_response_primary = (pg_fsm_str_cb)ngx_pg_fsm_error_response_primary,
+    .error_response_query = (pg_fsm_str_cb)ngx_pg_fsm_error_response_query,
+    .error_response_schema = (pg_fsm_str_cb)ngx_pg_fsm_error_response_schema,
+    .error_response_severity = (pg_fsm_str_cb)ngx_pg_fsm_error_response_severity,
+    .error_response_sqlstate = (pg_fsm_str_cb)ngx_pg_fsm_error_response_sqlstate,
+    .error_response_statement = (pg_fsm_str_cb)ngx_pg_fsm_error_response_statement,
+    .error_response_table = (pg_fsm_str_cb)ngx_pg_fsm_error_response_table,
     .function_call_response = (pg_fsm_int4_cb)ngx_pg_fsm_function_call_response,
     .no_data = (pg_fsm_cb)ngx_pg_fsm_no_data,
     .notice_response = (pg_fsm_int4_cb)ngx_pg_fsm_notice_response,
@@ -1040,9 +1147,11 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     if (pc->connection) return;
     ngx_pg_srv_conf_t *pscf = d->conf;
     if (!pscf) return;
+    ngx_memzero(&s->error, sizeof(s->error));
+    ngx_connection_t *c = s->connection;
+    if (s->error.all.data) ngx_pfree(c->pool, s->error.all.data);
     s->command = pg_command_state_unknown;
     if (!s->buffer.start) {
-        ngx_connection_t *c = s->connection;
         ngx_http_request_t *r = d->request;
         ngx_http_upstream_t *u = r->upstream;
         if (!(s->buffer.start = ngx_palloc(c->pool, u->conf->buffer_size))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_palloc"); return; }
@@ -1052,7 +1161,6 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     }
     s->buffer.last = s->buffer.start;
     s->buffer.pos = s->buffer.start;
-    ngx_connection_t *c = s->connection;
     s->keep.data = c->data;
     s->keep.read_handler = c->read->handler;
     s->keep.write_handler = c->write->handler;
@@ -1201,7 +1309,11 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         s->rc = d->nqueries || s->state == pg_ready_for_query_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
     }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
-    if (s->rc == NGX_OK && u->headers_in.status_n == NGX_HTTP_INTERNAL_SERVER_ERROR && d->errors && d->errors->nelts) s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
+    if (s->rc == NGX_OK && u->headers_in.status_n == NGX_HTTP_INTERNAL_SERVER_ERROR && s->error.all.data) {
+        d->error = s->error;
+        if (!(d->error.all.data = ngx_pstrdup(r->pool, &s->error.all))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; }
+        s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
+    }
     return s->rc;
 }
 
@@ -1421,14 +1533,11 @@ static ngx_int_t ngx_pg_error_get_handler(ngx_http_request_t *r, ngx_http_variab
     if (!u) return NGX_OK;
     if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
     ngx_pg_data_t *d = u->peer.data;
-    if (!d->errors) return NGX_OK;
-    ngx_pg_error_t *error = d->errors->elts;
-    ngx_str_t *name = (ngx_str_t *)data;
-    ngx_uint_t i;
-    for (i = 0; i < d->errors->nelts; i++) if (name->len - sizeof("pg_error_") + 1 == error[i].key.len && !ngx_strncasecmp(name->data + sizeof("pg_error_") - 1, error[i].key.data, error[i].key.len)) break;
-    if (i == d->errors->nelts) return NGX_OK;
-    v->data = error[i].val.data;
-    v->len = error[i].val.len;
+    ngx_uint_t offset = data;
+    ngx_str_t *error = (ngx_str_t *)((u_char *)&d->error + offset);
+    if (!error->len) return NGX_OK;
+    v->data = error->data;
+    v->len = error->len;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
@@ -1477,7 +1586,24 @@ static ngx_int_t ngx_pg_pid_get_handler(ngx_http_request_t *r, ngx_http_variable
 }
 
 static const ngx_http_variable_t ngx_pg_variables[] = {
-  { ngx_string("pg_error_"), NULL, ngx_pg_error_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
+  { ngx_string("pg_error_column"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, column), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_constraint"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, constraint), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_context"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, context), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_datatype"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, datatype), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_detail"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, detail), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_file"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, file), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_function"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, function), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_hint"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, hint), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_internal"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, internal), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_line"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, line), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_nonlocalized"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, nonlocalized), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_primary"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, primary), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_query"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, query), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_schema"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, schema), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_severity"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, severity), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_sqlstate"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, sqlstate), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_statement"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, statement), NGX_HTTP_VAR_CHANGEABLE, 0 },
+  { ngx_string("pg_error_table"), NULL, ngx_pg_error_get_handler, offsetof(ngx_pg_error_t, table), NGX_HTTP_VAR_CHANGEABLE, 0 },
   { ngx_string("pg_option_"), NULL, ngx_pg_option_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_PREFIX, 0 },
   { ngx_string("pg_pid"), NULL, ngx_pg_pid_get_handler, 0, NGX_HTTP_VAR_CHANGEABLE, 0 },
     ngx_http_null_variable
