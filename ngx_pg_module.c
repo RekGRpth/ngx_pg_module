@@ -333,19 +333,6 @@ inline static ngx_chain_t *ngx_pg_function_call(ngx_pool_t *p, uint32_t oid, ngx
     return function;
 }
 
-inline static ngx_chain_t *ngx_pg_listen(ngx_pool_t *p, size_t len, const uint8_t *data) {
-    ngx_chain_t *cl, *cl_size, *listen;
-    uint32_t size = 0;
-    if (!(cl = listen = ngx_pg_write_int1(p, NULL, 'Q'))) return NULL;
-    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("LISTEN ") - 1, (uint8_t *)"LISTEN "))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
-    cl->next = ngx_pg_write_size(cl_size, size);
-//    ngx_uint_t i = 0; for (ngx_chain_t *cl = parse; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
-    return listen;
-}
-
 inline static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, size_t len, const uint8_t *data, ngx_array_t *arguments) {
     ngx_chain_t *cl, *cl_size, *parse;
     uint32_t size = 0;
@@ -1164,10 +1151,19 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
         } else if (query[i].listen.value.data) {
             ngx_str_t value;
             if (ngx_http_complex_value(r, &query[i].listen, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
+            ngx_array_t sqls;
+            ngx_pg_sql_t *sql;
+            if (ngx_array_init(&sqls, r->pool, 2, sizeof(*sql)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
+            if (!(sql = ngx_array_push(&sqls))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
+            ngx_memzero(sql, sizeof(*sql));
+            ngx_str_set(&sql->value, "LISTEN ");
+            if (!(sql = ngx_array_push(&sqls))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
+            ngx_memzero(sql, sizeof(*sql));
+            sql->value = value;
             if (cl) {
-                if (!(cl->next = ngx_pg_listen(r->pool, value.len, value.data))) return NGX_ERROR;
+                if (!(cl->next = ngx_pg_query(r->pool, &sqls))) return NGX_ERROR;
             } else {
-                if (!(cl = ngx_pg_listen(r->pool, value.len, value.data))) return NGX_ERROR;
+                if (!(cl = ngx_pg_query(r->pool, &sqls))) return NGX_ERROR;
                 if (!u->request_bufs) u->request_bufs = cl;
             }
             while (cl->next) cl = cl->next;
