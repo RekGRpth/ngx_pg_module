@@ -1607,19 +1607,21 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
         if (!(argument = ngx_array_push(query->arguments))) return "!ngx_array_push";
         ngx_memzero(argument, sizeof(*argument));
         u_char *colon;
-        ngx_str_t name = str[i];
-        ngx_str_t type = ngx_null_string;
-        if ((colon = ngx_strstrn(name.data, "::", sizeof("::") - 1 - 1))) {
-            name.len = colon - name.data;
-            type.data = colon + sizeof("::") - 1;
-            type.len = str[i].len - name.len - sizeof("::") + 1;
+        ngx_str_t value = str[i];
+        ngx_str_t oid = ngx_null_string;
+        if ((colon = ngx_strstrn(value.data, "::", sizeof("::") - 1 - 1))) {
+            value.len = colon - value.data;
+            oid.data = colon + sizeof("::") - 1;
+            oid.len = str[i].len - value.len - sizeof("::") + 1;
         }
-        if (name.len != sizeof("NULL") - 1 || ngx_strncasecmp(name.data, "NULL", sizeof("NULL") - 1)) {
-            ngx_http_compile_complex_value_t ccv = {cf, &name, &argument->complex.value, 0, 0, 0};
-            if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+        if (value.len != sizeof("NULL") - 1 || ngx_strncasecmp(value.data, "NULL", sizeof("NULL") - 1)) {
+            if (ngx_http_script_variables_count(&value)) {
+                ngx_http_compile_complex_value_t ccv = {cf, &value, &argument->complex.value, 0, 0, 0};
+                if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+            } else argument->value = value;
         }
-        if (!type.data) continue;
-        ngx_http_compile_complex_value_t ccv = {cf, &type, &argument->complex.oid, 0, 0, 0};
+        if (!oid.data) continue;
+        ngx_http_compile_complex_value_t ccv = {cf, &oid, &argument->complex.oid, 0, 0, 0};
         if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     }
     return NGX_CONF_OK;
