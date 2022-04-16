@@ -62,6 +62,14 @@ option-standard-conforming-strings: on
         add_header error-primary $pg_error_primary always;
         add_header error-severity $pg_error_severity always;
         add_header error-sqlstate $pg_error_sqlstate always;
+        add_header option-application-name $pg_option_application_name always;
+        add_header option-client-encoding $pg_option_client_encoding always;
+        add_header option-integer-datetimes $pg_option_integer_datetimes always;
+        add_header option-intervalstyle $pg_option_intervalstyle always;
+        add_header option-is-superuser $pg_option_is_superuser always;
+        add_header option-server-encoding $pg_option_server_encoding always;
+        add_header option-session-authorization $pg_option_session_authorization always;
+        add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         pg_pass pg;
         pg_query "select 1/0";
         pg_buffering off;
@@ -77,6 +85,14 @@ error-nonlocalized: ERROR
 error-primary: division by zero
 error-severity: ERROR
 error-sqlstate: 22012
+option-application-name: nginx
+option-client-encoding: UTF8
+option-integer-datetimes: on
+option-intervalstyle: postgres
+option-is-superuser: on
+option-server-encoding: UTF8
+option-session-authorization: postgres
+option-standard-conforming-strings: on
 --- timeout: 60
 
 === TEST 3:
