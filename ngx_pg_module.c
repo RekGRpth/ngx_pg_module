@@ -1862,8 +1862,10 @@ static char *ngx_pg_listen_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *co
     if (!(command = ngx_array_push(&query->commands))) return "!ngx_array_push";
     ngx_memzero(command, sizeof(*command));
     ngx_str_t *str = cf->args->elts;
-    ngx_http_compile_complex_value_t ccv = {cf, &str[1], &command->complex, 0, 0, 0};
-    if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+    if (ngx_http_script_variables_count(&str[1])) {
+        ngx_http_compile_complex_value_t ccv = {cf, &str[1], &command->complex, 0, 0, 0};
+        if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+    } else command->str = str[1];
     return NGX_CONF_OK;
 }
 
