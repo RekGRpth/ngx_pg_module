@@ -349,17 +349,8 @@ static ngx_chain_t *ngx_pg_command(ngx_pool_t *p, uint32_t *size, ngx_chain_t *c
             if (!num_quotes) {
                 if (!(cl = cl->next = ngx_pg_write_str(p, size, command[i].str.len, command[i].str.data))) return NULL;
             } else for (u_char *s = b; s < e; s++) {
-                if (*s == '"') {
-                    if (!(cl = cl->next = ngx_pg_write_int1(p, size, '"'))) return NULL;
-                    if (!(cl = cl->next = ngx_pg_write_int1(p, size, '"'))) return NULL;
-                } else {
-                    size_t len = 1;
-                    if (*s & 0x80) {
-                        if ((*s & 0xe0) == 0xc0) len = 2; else if ((*s & 0xf0) == 0xe0) len = 3; else if ((*s & 0xf8) == 0xf0) len = 4; else if ((*s & 0xfc) == 0xf8) len = 5; else if ((*s & 0xfe) == 0xfc) len = 6;
-                    }
-                    if (!(cl = cl->next = ngx_pg_write_str(p, size, len, s))) return NULL;
-                    s += len - 1;
-                }
+                if (*s == '"') if (!(cl = cl->next = ngx_pg_write_int1(p, size, *s))) return NULL;
+                if (!(cl = cl->next = ngx_pg_write_int1(p, size, *s))) return NULL;
             }
             if (!(cl = cl->next = ngx_pg_write_int1(p, size, '"'))) return NULL;
         } else {
