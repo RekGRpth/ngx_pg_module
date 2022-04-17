@@ -1333,7 +1333,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
             if (argument[j].complex.value.value.data) if (ngx_http_complex_value(r, &argument[j].complex.value, &argument[j].value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
         }
         ngx_pg_command_t *command = query[i].commands.elts;
-        for (ngx_uint_t j = 0; j < query[i].commands.nelts; j++) if (command[j].complex.value.data) if (ngx_http_complex_value(r, &argument[j].complex.oid, &command[j].str) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
+        for (ngx_uint_t j = 0; j < query[i].commands.nelts; j++) if (command[j].complex.value.data) if (ngx_http_complex_value(r, &command[j].complex, &command[j].str) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
         if (query[i].function.value.data) {
             ngx_str_t value;
             if (ngx_http_complex_value(r, &query[i].function, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
