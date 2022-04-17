@@ -337,15 +337,20 @@ static ngx_chain_t *ngx_pg_function_call(ngx_pool_t *p, uint32_t oid, ngx_array_
     return function;
 }
 
+static ngx_chain_t *ngx_pg_command(ngx_pool_t *p, uint32_t *size, ngx_chain_t *cl, ngx_array_t *commands) {
+    ngx_pg_command_t *command = commands->elts;
+    for (ngx_uint_t i = 0; i < commands->nelts; i++) if (!(cl = cl->next = ngx_pg_write_str(p, size, command[i].str.len, command[i].str.data))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int1(p, size, 0))) return NULL;
+    return cl;
+}
+
 static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, ngx_array_t *commands, ngx_array_t *arguments) {
     ngx_chain_t *cl, *cl_size, *parse;
     uint32_t size = 0;
     if (!(cl = parse = ngx_pg_write_int1(p, NULL, 'P'))) return NULL;
     if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
-    ngx_pg_command_t *command = commands->elts;
-    for (ngx_uint_t i = 0; i < commands->nelts; i++) if (!(cl = cl->next = ngx_pg_write_str(p, &size, command[i].str.len, command[i].str.data))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
+    if (!(cl = ngx_pg_command(p, &size, cl, commands))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arguments->nelts))) return NULL;
     ngx_pg_argument_t *argument = arguments->elts;
     for (ngx_uint_t i = 0; i < arguments->nelts; i++) if (!(cl = cl->next = ngx_pg_write_int4(p, &size, argument[i].oid))) return NULL;
@@ -359,9 +364,7 @@ static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, ngx_array_t *commands) {
     uint32_t size = 0;
     if (!(cl = query = ngx_pg_write_int1(p, NULL, 'Q'))) return NULL;
     if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
-    ngx_pg_command_t *command = commands->elts;
-    for (ngx_uint_t i = 0; i < commands->nelts; i++) if (!(cl = cl->next = ngx_pg_write_str(p, &size, command[i].str.len, command[i].str.data))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
+    if (!(cl = ngx_pg_command(p, &size, cl, commands))) return NULL;
     cl->next = ngx_pg_write_size(cl_size, size);
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = query; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_error(NGX_LOG_ERR, p->log, 0, "%ui:%d:%c", i++, *c, *c);
     return query;
