@@ -339,7 +339,36 @@ static ngx_chain_t *ngx_pg_function_call(ngx_pool_t *p, uint32_t oid, ngx_array_
 
 static ngx_chain_t *ngx_pg_command(ngx_pool_t *p, uint32_t *size, ngx_chain_t *cl, ngx_array_t *commands) {
     ngx_pg_command_t *command = commands->elts;
-    for (ngx_uint_t i = 0; i < commands->nelts; i++) if (!(cl = cl->next = ngx_pg_write_str(p, size, command[i].str.len, command[i].str.data))) return NULL;
+    for (ngx_uint_t i = 0; i < commands->nelts; i++) {
+        if (command[i].complex.value.data) {
+            if (!(cl = cl->next = ngx_pg_write_int1(p, size, '"'))) return NULL;
+            ngx_uint_t num_quotes = 0;
+            u_char *e = command[i].str.data + command[i].str.len;
+            u_char *s = command[i].str.data;
+            for (u_char *c = s; c < e; c++) if (*c == '"') num_quotes++;
+            if (!num_quotes) {
+                if (!(cl = cl->next = ngx_pg_write_str(p, size, command[i].str.len, command[i].str.data))) return NULL;
+            } else for (u_char *c = s; c < e; c++) {
+                if (*c == '"') {
+                    if (!(cl = cl->next = ngx_pg_write_str(p, size, sizeof("\"\"") - 1, (uint8_t *)"\"\""))) return NULL;
+                } else {
+                    size_t len;
+                    if ((*c & 0x80) == 0) len = 1;
+                    else if ((*c & 0xe0) == 0xc0) len = 2;
+                    else if ((*c & 0xf0) == 0xe0) len = 3;
+                    else if ((*c & 0xf8) == 0xf0) len = 4;
+                    else if ((*c & 0xfc) == 0xf8) len = 5;
+                    else if ((*c & 0xfe) == 0xfc) len = 6;
+                    else len = 1;
+                    if (!(cl = cl->next = ngx_pg_write_str(p, size, len, c))) return NULL;
+                    c += len;
+                }
+            }
+            if (!(cl = cl->next = ngx_pg_write_int1(p, size, '"'))) return NULL;
+        } else {
+            if (!(cl = cl->next = ngx_pg_write_str(p, size, command[i].str.len, command[i].str.data))) return NULL;
+        }
+    }
     if (!(cl = cl->next = ngx_pg_write_int1(p, size, 0))) return NULL;
     return cl;
 }
