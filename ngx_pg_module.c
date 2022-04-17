@@ -21,6 +21,7 @@ typedef struct {
 } ngx_pg_argument_t;
 
 typedef struct {
+    ngx_http_complex_value_t complex;
     ngx_str_t str;
 } ngx_pg_command_t;
 
@@ -30,7 +31,6 @@ typedef struct {
     ngx_flag_t header;
     ngx_flag_t string;
     ngx_http_complex_value_t function;
-    ngx_http_complex_value_t listen;
     ngx_pg_output_t output;
     ngx_str_t null;
     u_char delimiter;
@@ -440,12 +440,6 @@ static int ngx_pg_fsm_command_complete(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     s->command = pg_command_state_command_complete;
     s->len = len;
-    ngx_pg_data_t *d = s->data;
-    if (!d) return s->rc;
-    if (!d->filter && d->nqueries) {
-        d->nqueries--;
-        d->query++;
-    }
     return s->rc;
 }
 
@@ -1305,6 +1299,8 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
             }
             if (argument[j].complex.value.value.data) if (ngx_http_complex_value(r, &argument[j].complex.value, &argument[j].value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
         }
+        ngx_pg_command_t *command = query[i].commands.elts;
+        for (ngx_uint_t j = 0; j < query[i].commands.nelts; j++) if (command[j].complex.value.data) if (ngx_http_complex_value(r, &argument[j].complex.oid, &command[j].str) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
         if (query[i].function.value.data) {
             ngx_str_t value;
             if (ngx_http_complex_value(r, &query[i].function, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
@@ -1314,23 +1310,6 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
                 if (!(cl->next = ngx_pg_function_call(r->pool, oid, &query[i].arguments))) return NGX_ERROR;
             } else {
                 if (!(cl = ngx_pg_function_call(r->pool, oid, &query[i].arguments))) return NGX_ERROR;
-                if (!u->request_bufs) u->request_bufs = cl;
-            }
-            while (cl->next) cl = cl->next;
-        } else if (query[i].listen.value.data) {
-            ngx_array_t commands;
-            ngx_pg_command_t *command;
-            if (ngx_array_init(&commands, r->pool, 2, sizeof(*command)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_array_init != NGX_OK"); return NGX_ERROR; }
-            if (!(command = ngx_array_push(&commands))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
-            ngx_memzero(command, sizeof(*command));
-            ngx_str_set(&command->str, "LISTEN ");
-            if (!(command = ngx_array_push(&commands))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_array_push"); return NGX_ERROR; }
-            ngx_memzero(command, sizeof(*command));
-            if (ngx_http_complex_value(r, &query[i].listen, &command->str) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
-            if (cl) {
-                if (!(cl->next = ngx_pg_query(r->pool, &commands))) return NGX_ERROR;
-            } else {
-                if (!(cl = ngx_pg_query(r->pool, &commands))) return NGX_ERROR;
                 if (!u->request_bufs) u->request_bufs = cl;
             }
             while (cl->next) cl = cl->next;
@@ -1872,11 +1851,18 @@ static char *ngx_pg_function_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *
 static char *ngx_pg_listen_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
     ngx_pg_query_t *query;
-    if (!plcf->queries.elts && ngx_array_init(&plcf->queries, cf->pool, 1, sizeof(*query)) != NGX_OK) return "ngx_array_init != NGX_OK";
+    if (!plcf->queries.elts && ngx_array_init(&plcf->queries, cf->pool, 2, sizeof(*query)) != NGX_OK) return "ngx_array_init != NGX_OK";
     if (!(query = ngx_array_push(&plcf->queries))) return "!ngx_array_push";
     ngx_memzero(query, sizeof(*query));
+    ngx_pg_command_t *command;
+    if (ngx_array_init(&query->commands, cf->pool, 1, sizeof(*command)) != NGX_OK) return "ngx_array_init != NGX_OK";
+    if (!(command = ngx_array_push(&query->commands))) return "!ngx_array_push";
+    ngx_memzero(command, sizeof(*command));
+    ngx_str_set(&command->str, "LISTEN ");
+    if (!(command = ngx_array_push(&query->commands))) return "!ngx_array_push";
+    ngx_memzero(command, sizeof(*command));
     ngx_str_t *str = cf->args->elts;
-    ngx_http_compile_complex_value_t ccv = {cf, &str[1], &query->listen, 0, 0, 0};
+    ngx_http_compile_complex_value_t ccv = {cf, &str[1], &command->complex, 0, 0, 0};
     if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
     return NGX_CONF_OK;
 }
@@ -1893,6 +1879,7 @@ static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_array_t *options) {
     ngx_str_t *str = cf->args->elts;
     for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
         if (!(option = ngx_array_push(options))) return "!ngx_array_push";
+        ngx_memzero(option, sizeof(*option));
         *option = str[i];
         for (ngx_uint_t j = 0; j < option->len; j++) if (option->data[j] == '=') option->data[j] = '\0';
     }
