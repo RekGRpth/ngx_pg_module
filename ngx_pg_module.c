@@ -725,6 +725,7 @@ static int ngx_pg_fsm_notification_response_done(ngx_pg_save_t *s) {
             ngx_str_set(&command->str, "UNLISTEN ");
             if (!(command = ngx_array_push(&commands))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); goto destroy; }
             ngx_memzero(command, sizeof(*command));
+            command->complex.value = s->notification.relname;
             command->str = s->notification.relname;
             ngx_chain_t *out, *last;
             if (!(out = ngx_pg_query(p, &commands))) goto destroy;
