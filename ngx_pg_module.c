@@ -470,7 +470,8 @@ static int ngx_pg_fsm_command_complete_val(ngx_pg_save_t *s, size_t len, const u
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_query_t *query = d->query;
-    if (query->output || d->row) return s->rc;
+    if (!query->output) return s->rc;
+    if (query->output > 1 || d->row) return s->rc;
     if ((s->rc = ngx_pg_output_handler(d, len, data)) != NGX_OK) return s->rc;
     return s->rc;
 }

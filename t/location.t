@@ -21,7 +21,7 @@ __DATA__
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
-        pg_query "select 1";
+        pg_query "select 1" output=value;
     }
 --- request
 GET /
@@ -571,7 +571,7 @@ option-standard-conforming-strings: on
         default_type text/csv;
         pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
-        pg_query "copy (select 34 as ab, 'qwe' as cde union select 89, null order by 1) to stdout with (format csv, header true)";
+        pg_query "copy (select 34 as ab, 'qwe' as cde union select 89, null order by 1) to stdout with (format csv, header true)" output=value;
     }
 --- request
 GET /?a=34&b=qwe&c=89
