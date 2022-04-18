@@ -895,10 +895,10 @@ static int ngx_pg_fsm_result_val(ngx_pg_save_t *s, size_t len, const uint8_t *da
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_query_t *query = d->query;
-    if (query->output && query->string && query->quote && query->escape) for (ngx_uint_t k = 0; k < len; k++) {
+    if (query->output > 1 && query->string && query->quote && query->escape) for (ngx_uint_t k = 0; k < len; k++) {
         if (data[k] == query->quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->escape), &query->escape)) != NGX_OK) return s->rc;
         if ((s->rc = ngx_pg_output_handler(d, sizeof(data[k]), &data[k])) != NGX_OK) return s->rc;
-    } else if ((s->rc = ngx_pg_output_handler(d, len, data)) != NGX_OK) return s->rc;
+    } else if (query->output) if ((s->rc = ngx_pg_output_handler(d, len, data)) != NGX_OK) return s->rc;
     return s->rc;
 }
 
