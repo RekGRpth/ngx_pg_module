@@ -2,7 +2,7 @@
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 
 typedef struct pg_fsm_t {
-    const unsigned char *string;
+    const uint8_t *string;
     uint16_t cs;
     uint16_t data_row_count;
     uint16_t int2;
@@ -171,7 +171,7 @@ typedef struct pg_fsm_t {
     write data;
 }%%
 
-size_t pg_fsm_execute(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *user, const unsigned char *p, const unsigned char *pe, const unsigned char *eof) {
+size_t pg_fsm_execute(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *user, const uint8_t *p, const uint8_t *pe, const uint8_t *eof) {
     const unsigned char *b = p;
     %% write exec;
     if (fsm->cs == pg_fsm_error) (void)cb->error(user, p - b, p);
