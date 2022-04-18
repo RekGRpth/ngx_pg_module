@@ -101,7 +101,7 @@ location =/postgres {
 ```
 pg_query
 -------------
-* Syntax: **pg_query** *sql* [ NULL | NULL::*$oid* | *$arg* | *$arg*::*$oid* ] [ output=*csv* | output=*plain* ]
+* Syntax: **pg_query** *sql* [ NULL | NULL::*$oid* | *$arg* | *$arg*::*$oid* ] [ output=*csv* | output=*plain* | output=*value* ]
 * Default: --
 * Context: location, if in location
 
