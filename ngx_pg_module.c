@@ -1949,14 +1949,12 @@ static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *con
                 ngx_memzero(command, sizeof(*command));
                 command->str.data = n;
                 command->str.len = s - n - 1;
-                ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "`%V`", &command->str);
                 n = s;
                 while (s < e && ((*s >= '0' && *s <= '9') || (*s >= 'a' && *s <= 'z') || (*s >= 'A' && *s <= 'Z') || *s == '_')) s++;
                 if (!(command = ngx_array_push(&query->commands))) return "!ngx_array_push";
                 ngx_memzero(command, sizeof(*command));
                 command->str.data = n;
                 command->str.len = s - n;
-                ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "`%V`", &command->str);
                 n = s;
                 if (*s != '$') if ((command->index = ngx_http_get_variable_index(cf, &command->str)) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
             } else {
@@ -1964,7 +1962,6 @@ static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *con
                 ngx_memzero(command, sizeof(*command));
                 command->str.data = n;
                 command->str.len = s - n;
-                ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "`%V`", &command->str);
                 n = s;
             }
         }
@@ -1974,7 +1971,6 @@ static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *con
         ngx_memzero(command, sizeof(*command));
         command->str.data = n;
         command->str.len = s - n;
-        ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "`%V`", &command->str);
     }
     return ngx_pg_argument_output_loc_conf(cf, cmd, conf);
 }

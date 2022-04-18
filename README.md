@@ -105,11 +105,16 @@ pg_query
 * Default: --
 * Context: location, if in location
 
-Sets query(queries) sql(s) (no nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) oid(s) (nginx variables allowed) and output type (no nginx variables allowed):
+Sets query(queries) sql(s) (named only nginx variables allowed as identifier only), optional argument(s) (nginx variables allowed) and it(s) oid(s) (nginx variables allowed) and output type (no nginx variables allowed):
 ```nginx
 location =/postgres {
     pg_pass postgres; # upstream is postgres
     pg_query "SELECT now()" output=csv; # simple query and csv output type
+}
+# or
+location =/postgres {
+    pg_pass postgres; # upstream is postgres
+    pg_query "listen $channel"; # listen channel from variable $channel
 }
 # or
 location =/postgres {
