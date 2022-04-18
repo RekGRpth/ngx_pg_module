@@ -608,7 +608,7 @@ option-standard-conforming-strings: on
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         pg_pass pg;
-        pg_query "do $$begin raise info '%', 1;end;$$";
+        pg_query "do $$ begin raise info '%', 1;end;$$";
     }
 --- request
 GET /
