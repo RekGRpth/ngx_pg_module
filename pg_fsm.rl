@@ -31,8 +31,6 @@ typedef struct pg_fsm_t {
     action copy_out_response { if (cb->copy_out_response(user, fsm->int4 - 4)) fbreak; }
     action data_row_count { fsm->data_row_count = fsm->int2; if (cb->data_row_count(user, fsm->data_row_count)) fbreak; if (!fsm->data_row_count) fnext main; }
     action data_row { if (cb->data_row(user, fsm->int4 - 4)) fbreak; }
-    action data_row_len_next { if (!fsm->result_len || fsm->result_len == (uint32_t)-1) if (--fsm->data_row_count) fnext data_row; }
-    action data_row_val_next { if (!fsm->string && p - fsm->string > 0 && --fsm->data_row_count) fnext data_row; }
     action empty_query_response { if (cb->empty_query_response(user)) fbreak; }
     action error_response_column { if (fsm->string && p - fsm->string > 0 && cb->error_response_column(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
     action error_response_constraint { if (fsm->string && p - fsm->string > 0 && cb->error_response_constraint(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
@@ -81,8 +79,8 @@ typedef struct pg_fsm_t {
     action ready_for_query { if (cb->ready_for_query(user)) fbreak; }
     action ready_for_query_inerror { if (cb->ready_for_query_state(user, pg_ready_for_query_state_inerror)) fbreak; }
     action ready_for_query_intrans { if (cb->ready_for_query_state(user, pg_ready_for_query_state_intrans)) fbreak; }
-    action result_len { fsm->result_len = fsm->int4; if (cb->result_len(user, fsm->result_len)) fbreak; if (!fsm->result_len || fsm->result_len == (uint32_t)-1) fnext main; }
-    action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && p - fsm->string > 0 && cb->result_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (fsm->result_len == (uint32_t)-1) { if (cb->result_done(user)) fbreak; fhold; fnext main; } } }
+    action result_len { fsm->result_len = fsm->int4; if (cb->result_len(user, fsm->result_len)) fbreak; if (!fsm->result_len || fsm->result_len == (uint32_t)-1) { if (!fsm->data_row_count || !--fsm->data_row_count) fnext main; else fnext data_row; } }
+    action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && p - fsm->string > 0 && cb->result_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (fsm->result_len == (uint32_t)-1) { if (cb->result_done(user)) fbreak; fhold; if (!fsm->data_row_count || !--fsm->data_row_count) fnext main; else fnext data_row; } } }
     action row_description_beg { if (cb->row_description_beg(user)) fbreak; }
     action row_description_column { if (cb->row_description_column(user, fsm->int2)) fbreak; }
     action row_description_count { fsm->row_description_count = fsm->int2; if (cb->row_description_count(user, fsm->row_description_count)) fbreak; if (!fsm->row_description_count) fnext main; }
@@ -142,7 +140,7 @@ typedef struct pg_fsm_t {
     ready_for_query_intrans = "T" @ready_for_query_intrans;
     result = any ** $string $result_val $/result_val;
 
-    data_row = int4 @result_len @data_row_len_next result @data_row_val_next;
+    data_row = int4 @result_len result;
     ready_for_query = ready_for_query_inerror | ready_for_query_idle | ready_for_query_intrans;
     row_description = str0 >row_description_beg @row_description_name @/row_description_name int4 @row_description_table int2 @row_description_column int4 @row_description_oid int2 @row_description_length int4 @row_description_mod 0 0 @row_description_format;
 
