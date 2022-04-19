@@ -544,7 +544,6 @@ static int ngx_pg_fsm_error_response(ngx_pg_save_t *s, uint32_t len) {
     if (!(s->error.all.data = ngx_pnalloc(c->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    d->nqueries = 0;
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
     u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
@@ -661,10 +660,7 @@ static int ngx_pg_fsm_function_call_response(ngx_pg_save_t *s, uint32_t len) {
     s->len = len;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (d->nqueries) {
-        d->nqueries--;
-        d->query++;
-    }
+    d->query++;
     d->row++;
     if (!d->filter++) s->rc = NGX_DONE;
     return s->rc;
@@ -846,10 +842,7 @@ static int ngx_pg_fsm_parse_complete(ngx_pg_save_t *s) {
     s->command = pg_command_state_parse_complete;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (d->nqueries) {
-        d->nqueries--;
-        d->query++;
-    }
+    d->query++;
     return s->rc;
 }
 
@@ -862,6 +855,9 @@ static int ngx_pg_fsm_ready_for_query(ngx_pg_save_t *s) {
 static int ngx_pg_fsm_ready_for_query_state(ngx_pg_save_t *s, uint16_t state) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", state);
     s->state = state;
+    ngx_pg_data_t *d = s->data;
+    if (!d) return s->rc;
+    if (d->nqueries) d->nqueries--;
     return s->rc;
 }
 
@@ -1082,7 +1078,6 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
     ngx_pg_query_t *query = plcf->queries.elts;
     d->query = &query[-1];
-    d->nqueries = plcf->queries.nelts;
     ngx_http_upstream_t *u = r->upstream;
     ngx_chain_t *cl = u->request_bufs;
     if (pc->connection) s = d->save = (ngx_pg_save_t *)((char *)pc->connection->pool + sizeof(*pc->connection->pool)); else {
@@ -1113,7 +1108,9 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         while (cl->next) cl = cl->next;
         cl->next = u->request_bufs;
         u->request_bufs = connect;
+        d->nqueries++;
     }
+    d->nqueries++;
     s->data = d;
     while (cl->next) cl = cl->next;
     if (!(cl->next = ngx_pg_close(r->pool))) return NGX_ERROR;
