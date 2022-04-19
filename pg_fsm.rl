@@ -84,7 +84,7 @@ typedef struct pg_fsm_t {
     action row_description_beg { if (cb->row_description_beg(user)) fbreak; }
     action row_description_column { if (cb->row_description_column(user, fsm->int2)) fbreak; }
     action row_description_count { fsm->row_description_count = fsm->int2; if (cb->row_description_count(user, fsm->row_description_count)) fbreak; if (!fsm->row_description_count) fnext main; }
-    action row_description_format { if (cb->row_description_format(user, 0)) fbreak; if (!--fsm->row_description_count) fnext main; }
+    action row_description_format { if (cb->row_description_format(user, 0)) fbreak; if (!--fsm->row_description_count) fnext main; else fnext row_description; }
     action row_description { if (cb->row_description(user, fsm->int4 - 4)) fbreak; }
     action row_description_length { if (cb->row_description_length(user, fsm->int2)) fbreak; }
     action row_description_mod { if (cb->row_description_mod(user, fsm->int4)) fbreak; }
@@ -161,7 +161,7 @@ typedef struct pg_fsm_t {
     | "N" int4 @notice_response error_response ** 0
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0
     | "S" int4 @parameter_status parameter_status
-    | "T" int4 @row_description int2 @row_description_count row_description **
+    | "T" int4 @row_description int2 @row_description_count row_description
     | "V" int4 @function_call_response int4 @result_len result
     | "Z" 0 0 0 5 @ready_for_query ready_for_query
     ) **;
