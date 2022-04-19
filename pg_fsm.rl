@@ -153,12 +153,12 @@ typedef struct pg_fsm_t {
     | "C" int4 @command_complete str0 @command_complete_val @/command_complete_val
     | "d" int4 @copy_data result
     | "D" int4 @data_row int2 @data_row_count data_row
-    | "E" int4 @error_response error_response * 0
+    | "E" int4 @error_response error_response + 0
     | "H" int4 @copy_out_response 0 any{2} ( 0 0 ) *
     | "I" 0 0 0 4 @empty_query_response
     | "K" 0 0 0 12 @backend_key_data int4 @backend_key_data_pid int4 @backend_key_data_key
     | "n" 0 0 0 4 @no_data
-    | "N" int4 @notice_response error_response * 0
+    | "N" int4 @notice_response error_response + 0
     | "R" 0 0 0 8 @authentication_ok 0 0 0 0
     | "S" int4 @parameter_status parameter_status
     | "T" int4 @row_description int2 @row_description_count row_description
