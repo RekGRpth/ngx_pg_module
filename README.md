@@ -13,7 +13,7 @@ Sets function(s) oid (nginx variables allowed), optional argument(s) (nginx vari
 ```nginx
 location =/function {
     pg_pass postgres; # upstream is postgres
-    pg_query "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2" $arg_name $arg_schema; # extended query with two arguments: first query argument is taken from $arg_name variable and auto oid and second query argument is taken from $arg_schema variable and auto oid
+    pg_query "SELECT p.oid FROM pg_catalog.pg_proc AS p INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace WHERE proname = $1 AND nspname = $2" $arg_name $arg_schema output=value; # extended query with two arguments: first query argument is taken from $arg_name variable and auto oid and second query argument is taken from $arg_schema variable and auto oid
 }
 location =/now {
     evaluate $now_oid /function?schema=pg_catalog&name=now; # evaluate subrequest to variable
