@@ -152,7 +152,7 @@ typedef struct pg_fsm_t {
     | "c" 0 0 0 4 @copy_done
     | "C" int4 @command_complete str0 @command_complete_val @/command_complete_val
     | "d" int4 @copy_data result
-    | "D" int4 @data_row int2 @data_row_count data_row **
+    | "D" int4 @data_row int2 @data_row_count data_row
     | "E" int4 @error_response error_response ** 0
     | "H" int4 @copy_out_response 0 any{2} ( 0 0 ) **
     | "I" 0 0 0 4 @empty_query_response
