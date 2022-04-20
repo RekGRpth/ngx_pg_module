@@ -1170,18 +1170,6 @@ static void ngx_pg_write_handler(ngx_event_t *ev) {
 
 static void ngx_pg_cancel_request_read_handler(ngx_event_t *ev) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
-/*    ngx_connection_t *c = ev->data;
-    if (c->close || c->read->timedout) goto close;
-    char buf[1];
-    int n = recv(c->fd, buf, 1, MSG_PEEK);
-    if (n == -1 && ngx_socket_errno == NGX_EAGAIN) {
-        ev->ready = 0;
-        if (ngx_handle_read_event(c->read, 0) != NGX_OK) goto close;
-        return;
-    }
-close:
-    ngx_destroy_pool(c->pool);
-    ngx_close_connection(c);*/
 }
 
 static void ngx_pg_cancel_request_write_handler(ngx_event_t *ev) {
@@ -1381,11 +1369,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->pos, b->last);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
-    if (s->rc == NGX_OK) {
-        char buf[1];
-        ngx_connection_t *c = s->connection;
-        s->rc = d->nqueries || s->state == pg_ready_for_query_state_unknown || recv(c->fd, buf, 1, MSG_PEEK) > 0 ? NGX_AGAIN : NGX_OK;
-    }
+    if (s->rc == NGX_OK) s->rc = d->nqueries || s->state == pg_ready_for_query_state_unknown ? NGX_AGAIN : NGX_OK;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     d->error = s->error;
     d->option = s->option;
