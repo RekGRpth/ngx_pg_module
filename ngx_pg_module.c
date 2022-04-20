@@ -1514,21 +1514,19 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     u->caches = &pmcf->caches;
     u->create_key = ngx_pg_create_key;
 #endif
+    r->state = 0;
     u->abort_request = ngx_pg_abort_request;
     u->create_request = ngx_pg_create_request;
     u->finalize_request = ngx_pg_finalize_request;
     u->process_header = ngx_pg_process_header;
     u->reinit_request = ngx_pg_reinit_request;
-    r->state = 0;
+    u->buffering = u->conf->buffering;
+    u->input_filter_ctx = r;
     u->input_filter_init = (ngx_int_t (*)(void *data))ngx_pg_input_filter_init;
-    if ((u->buffering = u->conf->buffering)) {
-        if (!(u->pipe = ngx_pcalloc(r->pool, sizeof(*u->pipe)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_HTTP_INTERNAL_SERVER_ERROR; }
-        u->pipe->input_ctx = r;
-        u->pipe->input_filter = ngx_pg_pipe_input_filter;
-    } else {
-        u->input_filter = (ngx_int_t (*)(void *data, ssize_t bytes))ngx_pg_input_filter;
-        u->input_filter_ctx = r;
-    }
+    u->input_filter = (ngx_int_t (*)(void *data, ssize_t bytes))ngx_pg_input_filter;
+    if (!(u->pipe = ngx_pcalloc(r->pool, sizeof(*u->pipe)))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pcalloc"); return NGX_HTTP_INTERNAL_SERVER_ERROR; }
+    u->pipe->input_ctx = r;
+    u->pipe->input_filter = ngx_pg_pipe_input_filter;
     if (!u->conf->request_buffering && u->conf->pass_request_body && !r->headers_in.chunked) r->request_body_no_buffering = 1;
     if ((rc = ngx_http_read_client_request_body(r, ngx_http_upstream_init)) >= NGX_HTTP_SPECIAL_RESPONSE) return rc;
     return NGX_DONE;
