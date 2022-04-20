@@ -171,8 +171,9 @@ typedef struct pg_fsm_t {
     write data;
 }%%
 
-size_t pg_fsm_execute(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *user, const uint8_t *p, const uint8_t *pe, const uint8_t *eof) {
-    const unsigned char *b = p;
+size_t pg_fsm_execute(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *user, const uint8_t *p, const uint8_t *pe) {
+    const uint8_t *b = p;
+    const uint8_t *eof = pe;
     %% write exec;
     if (fsm->cs == pg_fsm_error) (void)cb->error(user, p - b, p);
     return p - b;
