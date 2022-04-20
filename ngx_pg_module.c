@@ -101,6 +101,7 @@ typedef struct {
 typedef struct ngx_pg_data_t ngx_pg_data_t;
 
 typedef struct {
+    ngx_array_t channels;
     ngx_buf_t buffer;
     ngx_connection_t *connection;
     ngx_pg_data_t *data;
@@ -470,6 +471,18 @@ static int ngx_pg_fsm_command_complete_val(ngx_pg_save_t *s, size_t len, const u
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_query_t *query = d->query;
+    if (ngx_http_push_stream_delete_channel_my && query->commands.nelts == 2 && len == sizeof("LISTEN") - 1 && !ngx_strncasecmp(data, (u_char *)"LISTEN", sizeof("LISTEN") - 1)) {
+        ngx_pg_command_t *command = query->commands.elts;
+        command = &command[1];
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V", &command->str);
+        ngx_str_t *channel;
+        ngx_connection_t *c = s->connection;
+        if (!s->channels.elts && ngx_array_init(&s->channels, c->pool, 1, sizeof(*channel)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_array_init != NGX_OK"); s->rc = NGX_ERROR; return s->rc; }
+        if (!(channel = ngx_array_push(&s->channels))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
+        ngx_memzero(channel, sizeof(*channel));
+        if (!(channel->data = ngx_pstrdup(c->pool, &command->str))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pstrdup"); s->rc = NGX_ERROR; return s->rc; }
+        channel->len = command->str.len;
+    }
     if (!query->output) return s->rc;
     if (query->output > 1 || d->row) return s->rc;
     if ((s->rc = ngx_pg_output_handler(d, len, data)) != NGX_OK) return s->rc;
@@ -1058,6 +1071,11 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
 static void ngx_pg_save_cln_handler(ngx_pg_save_t *s) {
     ngx_connection_t *c = s->connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
+    ngx_str_t *channel = s->channels.elts;
+    for (ngx_uint_t i = 0; i < s->channels.nelts; i++) {
+        ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0, "channel[%ui] = %V", i, &channel[i]);
+        ngx_http_push_stream_delete_channel_my(c->log, &channel[i], channel[i].data, channel[i].len, c->pool);
+    }
     ngx_chain_t *out, *last;
     if (!(out = ngx_pg_terminate(c->pool))) return;
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
