@@ -104,6 +104,7 @@ typedef struct {
     ngx_array_t channels;
     ngx_buf_t buffer;
     ngx_connection_t *connection;
+    ngx_msec_t timeout;
     ngx_pg_data_t *data;
     ngx_pg_error_t error;
     ngx_pg_option_t option;
@@ -1171,7 +1172,7 @@ static void ngx_pg_read_handler(ngx_event_t *ev) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
     ngx_connection_t *c = ev->data;
     ngx_pg_save_t *s = c->data;
-    if (!ngx_terminate && !ngx_exiting && !c->error && !ev->error && !ev->timedout && ngx_pg_process(s) == NGX_OK) return;
+    if (!ngx_terminate && !ngx_exiting && !c->error && !ev->error && !ev->timedout && ngx_pg_process(s) == NGX_OK) { ngx_add_timer(c->read, s->timeout); return; }
     c->data = s->keep.data;
     s->keep.read_handler(ev);
     if (c->data == s->keep.data) c->data = s;
@@ -1243,6 +1244,7 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     if (!pscf) return;
     ngx_memzero(&s->error, sizeof(s->error));
     ngx_connection_t *c = s->connection;
+    if (c->read->timer_set) s->timeout = c->read->timer.key - ngx_current_msec;
     if (s->error.all.data) ngx_pfree(c->pool, s->error.all.data);
     s->command = pg_command_state_unknown;
     if (!s->buffer.start) {
