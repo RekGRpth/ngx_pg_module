@@ -168,14 +168,14 @@ typedef struct pg_fsm_t {
     | "Z" 0 0 0 5 @ready_for_query ready_for_query
     ) **;
 
-    write data;
+    write data noentry noerror nofinal;
 }%%
 
 size_t pg_fsm_execute(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *user, const uint8_t *p, const uint8_t *pe) {
     const uint8_t *b = p;
     const uint8_t *eof = pe;
     %% write exec;
-    if (fsm->cs == pg_fsm_error) (void)cb->error(user, p - b, p);
+    if (!fsm->cs) (void)cb->error(user, p - b, p);
     return p - b;
 }
 
