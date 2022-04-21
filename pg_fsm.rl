@@ -99,40 +99,40 @@ typedef struct pg_fsm_t {
     str0 = char * $string 0;
 
     error_response =
-    ( "c" str0 @error_response_column @/error_response_column
-    | "C" str0 @error_response_sqlstate @/error_response_sqlstate
-    | "d" str0 @error_response_datatype @/error_response_datatype
-    | "D" str0 @error_response_detail @/error_response_detail
-    | "F" str0 @error_response_file @/error_response_file
-    | "H" str0 @error_response_hint @/error_response_hint
-    | "L" str0 @error_response_line @/error_response_line
-    | "M" str0 @error_response_primary @/error_response_primary
-    | "n" str0 @error_response_constraint @/error_response_constraint
-    | "p" str0 @error_response_internal @/error_response_internal
-    | "P" str0 @error_response_statement @/error_response_statement
-    | "q" str0 @error_response_query @/error_response_query
-    | "R" str0 @error_response_function @/error_response_function
-    | "s" str0 @error_response_schema @/error_response_schema
-    | "S" str0 @error_response_severity @/error_response_severity
-    | "t" str0 @error_response_table @/error_response_table
-    | "V" str0 @error_response_nonlocalized @/error_response_nonlocalized
-    | "W" str0 @error_response_context @/error_response_context
+    ( "c" str0 @error_response_column @eof(error_response_column)
+    | "C" str0 @error_response_sqlstate @eof(error_response_sqlstate)
+    | "d" str0 @error_response_datatype @eof(error_response_datatype)
+    | "D" str0 @error_response_detail @eof(error_response_detail)
+    | "F" str0 @error_response_file @eof(error_response_file)
+    | "H" str0 @error_response_hint @eof(error_response_hint)
+    | "L" str0 @error_response_line @eof(error_response_line)
+    | "M" str0 @error_response_primary @eof(error_response_primary)
+    | "n" str0 @error_response_constraint @eof(error_response_constraint)
+    | "p" str0 @error_response_internal @eof(error_response_internal)
+    | "P" str0 @error_response_statement @eof(error_response_statement)
+    | "q" str0 @error_response_query @eof(error_response_query)
+    | "R" str0 @error_response_function @eof(error_response_function)
+    | "s" str0 @error_response_schema @eof(error_response_schema)
+    | "S" str0 @error_response_severity @eof(error_response_severity)
+    | "t" str0 @error_response_table @eof(error_response_table)
+    | "V" str0 @error_response_nonlocalized @eof(error_response_nonlocalized)
+    | "W" str0 @error_response_context @eof(error_response_context)
     );
 
     parameter_status =
-    ( "application_name" 0 str0 @parameter_status_application_name @/parameter_status_application_name
-    | "client_encoding" 0 str0 @parameter_status_client_encoding @/parameter_status_client_encoding
-    | "DateStyle" 0 str0 @parameter_status_datestyle @/parameter_status_datestyle
-    | "default_transaction_read_only" 0 str0 @parameter_status_default_transaction_read_only @/parameter_status_default_transaction_read_only
-    | "in_hot_standby" 0 str0 @parameter_status_in_hot_standby @/parameter_status_in_hot_standby
-    | "integer_datetimes" 0 str0 @parameter_status_integer_datetimes @/parameter_status_integer_datetimes
-    | "IntervalStyle" 0 str0 @parameter_status_intervalstyle @/parameter_status_intervalstyle
-    | "is_superuser" 0 str0 @parameter_status_is_superuser @/parameter_status_is_superuser
-    | "server_encoding" 0 str0 @parameter_status_server_encoding @/parameter_status_server_encoding
-    | "server_version" 0 str0 @parameter_status_server_version @/parameter_status_server_version
-    | "session_authorization" 0 str0 @parameter_status_session_authorization @/parameter_status_session_authorization
-    | "standard_conforming_strings" 0 str0 @parameter_status_standard_conforming_strings @/parameter_status_standard_conforming_strings
-    | "TimeZone" 0 str0 @parameter_status_timezone @/parameter_status_timezone
+    ( "application_name" 0 str0 @parameter_status_application_name @eof(parameter_status_application_name)
+    | "client_encoding" 0 str0 @parameter_status_client_encoding @eof(parameter_status_client_encoding)
+    | "DateStyle" 0 str0 @parameter_status_datestyle @eof(parameter_status_datestyle)
+    | "default_transaction_read_only" 0 str0 @parameter_status_default_transaction_read_only @eof(parameter_status_default_transaction_read_only)
+    | "in_hot_standby" 0 str0 @parameter_status_in_hot_standby @eof(parameter_status_in_hot_standby)
+    | "integer_datetimes" 0 str0 @parameter_status_integer_datetimes @eof(parameter_status_integer_datetimes)
+    | "IntervalStyle" 0 str0 @parameter_status_intervalstyle @eof(parameter_status_intervalstyle)
+    | "is_superuser" 0 str0 @parameter_status_is_superuser @eof(parameter_status_is_superuser)
+    | "server_encoding" 0 str0 @parameter_status_server_encoding @eof(parameter_status_server_encoding)
+    | "server_version" 0 str0 @parameter_status_server_version @eof(parameter_status_server_version)
+    | "session_authorization" 0 str0 @parameter_status_session_authorization @eof(parameter_status_session_authorization)
+    | "standard_conforming_strings" 0 str0 @parameter_status_standard_conforming_strings @eof(parameter_status_standard_conforming_strings)
+    | "TimeZone" 0 str0 @parameter_status_timezone @eof(parameter_status_timezone)
     );
 
     ready_for_query_idle = "I" @ready_for_query_idle;
@@ -144,15 +144,15 @@ typedef struct pg_fsm_t {
 
     data_row = function_call_response;
     ready_for_query = ready_for_query_inerror | ready_for_query_idle | ready_for_query_intrans;
-    row_description = str0 >row_description_beg @row_description_name @/row_description_name int4 @row_description_table int2 @row_description_column int4 @row_description_oid int2 @row_description_length int4 @row_description_mod 0 0 @row_description_format;
+    row_description = str0 >row_description_beg @row_description_name @eof(row_description_name) int4 @row_description_table int2 @row_description_column int4 @row_description_oid int2 @row_description_length int4 @row_description_mod 0 0 @row_description_format;
 
     main :=
     ( "1" 0 0 0 4 @parse_complete
     | "2" 0 0 0 4 @bind_complete
     | "3" 0 0 0 4 @close_complete
-    | "A" int4 @notification_response int4 @notification_response_pid str0 @notification_response_relname @/notification_response_relname str0 @notification_response_extra @/notification_response_extra
+    | "A" int4 @notification_response int4 @notification_response_pid str0 @notification_response_relname @eof(notification_response_relname) str0 @notification_response_extra @eof(notification_response_extra)
     | "c" 0 0 0 4 @copy_done
-    | "C" int4 @command_complete str0 @command_complete_val @/command_complete_val
+    | "C" int4 @command_complete str0 @command_complete_val @eof(command_complete_val)
     | "d" int4 @copy_data result
     | "D" int4 @data_row int2 @data_row_count data_row
     | "E" int4 @error_response error_response + 0
