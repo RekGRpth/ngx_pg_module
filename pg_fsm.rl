@@ -17,80 +17,80 @@ typedef struct pg_fsm_t {
     access fsm->;
     alphtype unsigned char;
 
-    action all { if (cb->all(user, 0, p)) fbreak; }
-    action authentication_ok { if (cb->authentication_ok(user)) fbreak; }
-    action backend_key_data { if (cb->backend_key_data(user)) fbreak; }
-    action backend_key_data_key { if (cb->backend_key_data_key(user, fsm->int4)) fbreak; }
-    action backend_key_data_pid { if (cb->backend_key_data_pid(user, fsm->int4)) fbreak; }
-    action bind_complete { if (cb->bind_complete(user)) fbreak; }
-    action close_complete { if (cb->close_complete(user)) fbreak; }
-    action command_complete { if (cb->command_complete(user, fsm->int4 - 4)) fbreak; }
-    action command_complete_val { if (fsm->string && p - fsm->string > 0 && cb->command_complete_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action copy_data { fsm->result_len = fsm->int4 - 4; if (cb->copy_data(user, fsm->result_len)) fbreak; }
-    action copy_done { if (cb->copy_done(user)) fbreak; }
-    action copy_out_response { if (cb->copy_out_response(user, fsm->int4 - 4)) fbreak; }
-    action data_row_count { fsm->data_row_count = fsm->int2; if (cb->data_row_count(user, fsm->data_row_count)) fbreak; if (!fsm->data_row_count) fnext main; }
-    action data_row { if (cb->data_row(user, fsm->int4 - 4)) fbreak; }
-    action empty_query_response { if (cb->empty_query_response(user)) fbreak; }
-    action error_response_column { if (fsm->string && p - fsm->string > 0 && cb->error_response_column(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_constraint { if (fsm->string && p - fsm->string > 0 && cb->error_response_constraint(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_context { if (fsm->string && p - fsm->string > 0 && cb->error_response_context(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_datatype { if (fsm->string && p - fsm->string > 0 && cb->error_response_datatype(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_detail { if (fsm->string && p - fsm->string > 0 && cb->error_response_detail(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_file { if (fsm->string && p - fsm->string > 0 && cb->error_response_file(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_function { if (fsm->string && p - fsm->string > 0 && cb->error_response_function(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_hint { if (fsm->string && p - fsm->string > 0 && cb->error_response_hint(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response { if (cb->error_response(user, fsm->int4 - 4)) fbreak; }
-    action error_response_internal { if (fsm->string && p - fsm->string > 0 && cb->error_response_internal(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_line { if (fsm->string && p - fsm->string > 0 && cb->error_response_line(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_nonlocalized { if (fsm->string && p - fsm->string > 0 && cb->error_response_nonlocalized(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_primary { if (fsm->string && p - fsm->string > 0 && cb->error_response_primary(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_query { if (fsm->string && p - fsm->string > 0 && cb->error_response_query(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_schema { if (fsm->string && p - fsm->string > 0 && cb->error_response_schema(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_severity { if (fsm->string && p - fsm->string > 0 && cb->error_response_severity(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_sqlstate { if (fsm->string && p - fsm->string > 0 && cb->error_response_sqlstate(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_statement { if (fsm->string && p - fsm->string > 0 && cb->error_response_statement(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action error_response_table { if (fsm->string && p - fsm->string > 0 && cb->error_response_table(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action function_call_response { if (cb->function_call_response(user, fsm->int4 - 4)) fbreak; }
+    action all { if (cb->all(u, 0, p)) fbreak; }
+    action authentication_ok { if (cb->authentication_ok(u)) fbreak; }
+    action backend_key_data { if (cb->backend_key_data(u)) fbreak; }
+    action backend_key_data_key { if (cb->backend_key_data_key(u, fsm->int4)) fbreak; }
+    action backend_key_data_pid { if (cb->backend_key_data_pid(u, fsm->int4)) fbreak; }
+    action bind_complete { if (cb->bind_complete(u)) fbreak; }
+    action close_complete { if (cb->close_complete(u)) fbreak; }
+    action command_complete { if (cb->command_complete(u, fsm->int4 - 4)) fbreak; }
+    action command_complete_val { if (fsm->string && p - fsm->string > 0 && cb->command_complete_val(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action copy_data { fsm->result_len = fsm->int4 - 4; if (cb->copy_data(u, fsm->result_len)) fbreak; }
+    action copy_done { if (cb->copy_done(u)) fbreak; }
+    action copy_out_response { if (cb->copy_out_response(u, fsm->int4 - 4)) fbreak; }
+    action data_row_count { fsm->data_row_count = fsm->int2; if (cb->data_row_count(u, fsm->data_row_count)) fbreak; if (!fsm->data_row_count) fnext main; }
+    action data_row { if (cb->data_row(u, fsm->int4 - 4)) fbreak; }
+    action empty_query_response { if (cb->empty_query_response(u)) fbreak; }
+    action error_response_column { if (fsm->string && p - fsm->string > 0 && cb->error_response_column(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_constraint { if (fsm->string && p - fsm->string > 0 && cb->error_response_constraint(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_context { if (fsm->string && p - fsm->string > 0 && cb->error_response_context(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_datatype { if (fsm->string && p - fsm->string > 0 && cb->error_response_datatype(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_detail { if (fsm->string && p - fsm->string > 0 && cb->error_response_detail(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_file { if (fsm->string && p - fsm->string > 0 && cb->error_response_file(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_function { if (fsm->string && p - fsm->string > 0 && cb->error_response_function(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_hint { if (fsm->string && p - fsm->string > 0 && cb->error_response_hint(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response { if (cb->error_response(u, fsm->int4 - 4)) fbreak; }
+    action error_response_internal { if (fsm->string && p - fsm->string > 0 && cb->error_response_internal(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_line { if (fsm->string && p - fsm->string > 0 && cb->error_response_line(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_nonlocalized { if (fsm->string && p - fsm->string > 0 && cb->error_response_nonlocalized(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_primary { if (fsm->string && p - fsm->string > 0 && cb->error_response_primary(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_query { if (fsm->string && p - fsm->string > 0 && cb->error_response_query(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_schema { if (fsm->string && p - fsm->string > 0 && cb->error_response_schema(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_severity { if (fsm->string && p - fsm->string > 0 && cb->error_response_severity(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_sqlstate { if (fsm->string && p - fsm->string > 0 && cb->error_response_sqlstate(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_statement { if (fsm->string && p - fsm->string > 0 && cb->error_response_statement(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action error_response_table { if (fsm->string && p - fsm->string > 0 && cb->error_response_table(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action function_call_response { if (cb->function_call_response(u, fsm->int4 - 4)) fbreak; }
     action int2 { if (!fsm->i) { fsm->i = sizeof(fsm->int2); fsm->int2 = 0; } fsm->int2 |= *p << ((2 << 2) * --fsm->i); }
     action int4 { if (!fsm->i) { fsm->i = sizeof(fsm->int4); fsm->int4 = 0; } fsm->int4 |= *p << ((2 << 2) * --fsm->i); }
-    action no_data { if (cb->no_data(user)) fbreak; }
-    action notice_response { if (cb->notice_response(user, fsm->int4 - 4)) fbreak; }
-    action notification_response_extra { if (fsm->string && p - fsm->string > 0 && cb->notification_response_extra(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) if (cb->notification_response_done(user)) fbreak; }
-    action notification_response { if (cb->notification_response(user, fsm->int4 - 4)) fbreak; }
-    action notification_response_pid { if (cb->notification_response_pid(user, fsm->int4)) fbreak; }
-    action notification_response_relname { if (fsm->string && p - fsm->string > 0 && cb->notification_response_relname(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status_application_name { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_application_name(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status_client_encoding { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_client_encoding(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status_datestyle { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_datestyle(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status_default_transaction_read_only { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_default_transaction_read_only(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status { if (cb->parameter_status(user, fsm->int4 - 4)) fbreak; }
-    action parameter_status_in_hot_standby { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_in_hot_standby(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status_integer_datetimes { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_integer_datetimes(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status_intervalstyle { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_intervalstyle(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status_is_superuser { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_is_superuser(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status_server_encoding { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_server_encoding(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status_server_version { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_server_version(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status_session_authorization { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_session_authorization(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status_standard_conforming_strings { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_standard_conforming_strings(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parameter_status_timezone { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_timezone(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action parse_complete { if (cb->parse_complete(user)) fbreak; }
-    action ready_for_query_idle { if (cb->ready_for_query_state(user, pg_ready_for_query_state_idle)) fbreak; }
-    action ready_for_query { if (cb->ready_for_query(user)) fbreak; }
-    action ready_for_query_inerror { if (cb->ready_for_query_state(user, pg_ready_for_query_state_inerror)) fbreak; }
-    action ready_for_query_intrans { if (cb->ready_for_query_state(user, pg_ready_for_query_state_intrans)) fbreak; }
-    action result_len { fsm->result_len = fsm->int4; if (cb->result_len(user, fsm->result_len)) fbreak; if (!fsm->result_len || fsm->result_len == (uint32_t)-1) { if (!fsm->data_row_count || !--fsm->data_row_count) fnext main; else fnext data_row; } }
-    action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && p - fsm->string > 0 && cb->result_val(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (fsm->result_len == (uint32_t)-1) { if (cb->result_done(user)) fbreak; fhold; if (!fsm->data_row_count || !--fsm->data_row_count) fnext main; else fnext data_row; } } }
-    action row_description_beg { if (cb->row_description_beg(user)) fbreak; }
-    action row_description_column { if (cb->row_description_column(user, fsm->int2)) fbreak; }
-    action row_description_count { fsm->row_description_count = fsm->int2; if (cb->row_description_count(user, fsm->row_description_count)) fbreak; if (!fsm->row_description_count) fnext main; }
-    action row_description_format { if (cb->row_description_format(user, 0)) fbreak; if (!--fsm->row_description_count) fnext main; else fnext row_description; }
-    action row_description { if (cb->row_description(user, fsm->int4 - 4)) fbreak; }
-    action row_description_length { if (cb->row_description_length(user, fsm->int2)) fbreak; }
-    action row_description_mod { if (cb->row_description_mod(user, fsm->int4)) fbreak; }
-    action row_description_name { if (fsm->string && p - fsm->string > 0 && cb->row_description_name(user, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
-    action row_description_oid { if (cb->row_description_oid(user, fsm->int4)) fbreak; }
-    action row_description_table { if (cb->row_description_table(user, fsm->int4)) fbreak; }
+    action no_data { if (cb->no_data(u)) fbreak; }
+    action notice_response { if (cb->notice_response(u, fsm->int4 - 4)) fbreak; }
+    action notification_response_extra { if (fsm->string && p - fsm->string > 0 && cb->notification_response_extra(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (p != eof) if (cb->notification_response_done(u)) fbreak; }
+    action notification_response { if (cb->notification_response(u, fsm->int4 - 4)) fbreak; }
+    action notification_response_pid { if (cb->notification_response_pid(u, fsm->int4)) fbreak; }
+    action notification_response_relname { if (fsm->string && p - fsm->string > 0 && cb->notification_response_relname(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_application_name { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_application_name(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_client_encoding { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_client_encoding(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_datestyle { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_datestyle(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_default_transaction_read_only { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_default_transaction_read_only(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status { if (cb->parameter_status(u, fsm->int4 - 4)) fbreak; }
+    action parameter_status_in_hot_standby { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_in_hot_standby(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_integer_datetimes { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_integer_datetimes(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_intervalstyle { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_intervalstyle(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_is_superuser { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_is_superuser(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_server_encoding { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_server_encoding(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_server_version { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_server_version(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_session_authorization { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_session_authorization(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_standard_conforming_strings { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_standard_conforming_strings(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parameter_status_timezone { if (fsm->string && p - fsm->string > 0 && cb->parameter_status_timezone(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action parse_complete { if (cb->parse_complete(u)) fbreak; }
+    action ready_for_query_idle { if (cb->ready_for_query_state(u, pg_ready_for_query_state_idle)) fbreak; }
+    action ready_for_query { if (cb->ready_for_query(u)) fbreak; }
+    action ready_for_query_inerror { if (cb->ready_for_query_state(u, pg_ready_for_query_state_inerror)) fbreak; }
+    action ready_for_query_intrans { if (cb->ready_for_query_state(u, pg_ready_for_query_state_intrans)) fbreak; }
+    action result_len { fsm->result_len = fsm->int4; if (cb->result_len(u, fsm->result_len)) fbreak; if (!fsm->result_len || fsm->result_len == (uint32_t)-1) { if (!fsm->data_row_count || !--fsm->data_row_count) fnext main; else fnext data_row; } }
+    action result_val { if (p == eof || !fsm->result_len--) { if (fsm->string && p - fsm->string > 0 && cb->result_val(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; if (fsm->result_len == (uint32_t)-1) { if (cb->result_done(u)) fbreak; fhold; if (!fsm->data_row_count || !--fsm->data_row_count) fnext main; else fnext data_row; } } }
+    action row_description_beg { if (cb->row_description_beg(u)) fbreak; }
+    action row_description_column { if (cb->row_description_column(u, fsm->int2)) fbreak; }
+    action row_description_count { fsm->row_description_count = fsm->int2; if (cb->row_description_count(u, fsm->row_description_count)) fbreak; if (!fsm->row_description_count) fnext main; }
+    action row_description_format { if (cb->row_description_format(u, 0)) fbreak; if (!--fsm->row_description_count) fnext main; else fnext row_description; }
+    action row_description { if (cb->row_description(u, fsm->int4 - 4)) fbreak; }
+    action row_description_length { if (cb->row_description_length(u, fsm->int2)) fbreak; }
+    action row_description_mod { if (cb->row_description_mod(u, fsm->int4)) fbreak; }
+    action row_description_name { if (fsm->string && p - fsm->string > 0 && cb->row_description_name(u, p - fsm->string, fsm->string)) fbreak; fsm->string = NULL; }
+    action row_description_oid { if (cb->row_description_oid(u, fsm->int4)) fbreak; }
+    action row_description_table { if (cb->row_description_table(u, fsm->int4)) fbreak; }
     action string { if (!fsm->string) fsm->string = p; }
 
     char = any - 0;
@@ -171,11 +171,11 @@ typedef struct pg_fsm_t {
     write data noentry noerror nofinal;
 }%%
 
-size_t pg_fsm_execute(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *user, const uint8_t *p, const uint8_t *pe) {
+size_t pg_fsm_execute(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *u, const uint8_t *p, const uint8_t *pe) {
     const uint8_t *b = p;
     const uint8_t *eof = pe;
     %% write exec;
-    if (!fsm->cs) (void)cb->error(user, p - b, p);
+    if (!fsm->cs) (void)cb->error(u, p - b, p);
     return p - b;
 }
 

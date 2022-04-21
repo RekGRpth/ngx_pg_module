@@ -31,10 +31,10 @@ typedef enum {
     pg_command_state_row_description,
 } pg_command_state_t;
 
-typedef int (*pg_fsm_cb) (void *user);
-typedef int (*pg_fsm_int2_cb) (void *user, uint16_t n);
-typedef int (*pg_fsm_int4_cb) (void *user, uint32_t n);
-typedef int (*pg_fsm_str_cb) (void *user, size_t len, const uint8_t *data);
+typedef int (*pg_fsm_cb) (void *u);
+typedef int (*pg_fsm_int2_cb) (void *u, uint16_t n);
+typedef int (*pg_fsm_int4_cb) (void *u, uint32_t n);
+typedef int (*pg_fsm_str_cb) (void *u, size_t len, const uint8_t *data);
 
 typedef struct {
     pg_fsm_cb authentication_ok;
@@ -114,7 +114,7 @@ typedef struct {
 
 typedef struct pg_fsm_t pg_fsm_t;
 
-size_t pg_fsm_execute(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *user, const uint8_t *p, const uint8_t *pe);
+size_t pg_fsm_execute(pg_fsm_t *fsm, const pg_fsm_cb_t *cb, const void *u, const uint8_t *p, const uint8_t *pe);
 size_t pg_fsm_size(void);
 size_t pg_fsm_stack(void);
 void pg_fsm_init(pg_fsm_t *fsm);
