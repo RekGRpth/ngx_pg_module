@@ -94,9 +94,9 @@ typedef struct pg_fsm_t {
     action string { if (!m->string) m->string = p; }
 
     char = any - 0;
-    int2 = any{2} $int2;
-    int4 = any{4} $int4;
-    str0 = char * $string 0;
+    int2 = any{2} $(int2);
+    int4 = any{4} $(int4);
+    str0 = char * $(string) 0;
 
     error_response =
     ( "c" str0 @(error_response_column) @eof(error_response_column)
@@ -138,7 +138,7 @@ typedef struct pg_fsm_t {
     ready_for_query_idle = "I" @(ready_for_query_idle);
     ready_for_query_inerror = "E" @(ready_for_query_inerror);
     ready_for_query_intrans = "T" @(ready_for_query_intrans);
-    result = any * $string $result_val $/result_val;
+    result = any * $(string) $(result_val) $eof(result_val);
 
     function_call_response = int4 @(result_len) result;
 
