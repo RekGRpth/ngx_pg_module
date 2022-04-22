@@ -166,9 +166,9 @@ typedef struct pg_fsm_t {
     | "K" 0 0 0 12 @(backend_key_data) int4 @(backend_key_data_pid) int4 @(backend_key_data_key)
     | "n" 0 0 0 4 @(no_data)
     | "N" int4 @(notice_response) error_response + 0
-    | "R" 0 0 0 12 5 int4 @(authentication_md5_password)
+    | "R" 0 0 0 12 0 0 0 5 int4 @(authentication_md5_password)
     | "R" 0 0 0 8 0 0 0 ( 0 @(authentication_ok) | 3 @(authentication_cleartext_password) )
-    | "R" int4 @(authentication_sasl) 0 0 0 10 authentication_sasl_name + 0
+    | "R" int4 0 0 0 10 @(authentication_sasl) authentication_sasl_name + 0
     | "S" int4 @(parameter_status) parameter_status
     | "T" int4 @(row_description) int2 @(row_description_count) row_description
     | "V" int4 @(function_call_response) function_call_response
