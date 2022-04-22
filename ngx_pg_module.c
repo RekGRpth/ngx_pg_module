@@ -1829,8 +1829,7 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
     return NGX_OK;
 }
 
-static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    ngx_pg_loc_conf_t *plcf = conf;
+static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_pg_loc_conf_t *plcf) {
     ngx_pg_query_t *query = plcf->queries.elts;
     query = &query[plcf->queries.nelts - 1];
     ngx_str_t *str = cf->args->elts;
@@ -1936,7 +1935,7 @@ static char *ngx_pg_function_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *
     ngx_str_t *str = cf->args->elts;
     ngx_http_compile_complex_value_t ccv = {cf, &str[1], &query->function, 0, 0, 0};
     if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
-    return ngx_pg_argument_output_loc_conf(cf, cmd, conf);
+    return ngx_pg_argument_output_loc_conf(cf, conf);
 }
 
 static char *ngx_pg_log_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
@@ -2042,7 +2041,7 @@ static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *con
         command->str.data = n;
         command->str.len = s - n;
     }
-    return ngx_pg_argument_output_loc_conf(cf, cmd, conf);
+    return ngx_pg_argument_output_loc_conf(cf, conf);
 }
 
 #if (NGX_HTTP_CACHE)
