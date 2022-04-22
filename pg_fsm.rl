@@ -99,6 +99,11 @@ typedef struct pg_fsm_t {
     int4 = any{4} $(int4);
     str0 = char * $(string) 0;
 
+    authentication =
+    ( 0 0 0 0 @(authentication_ok)
+    | 0 0 0 3 @(authentication_cleartext_password)
+    );
+
     error_response =
     ( "c" str0 @(error_response_column) @eof(error_response_column)
     | "C" str0 @(error_response_sqlstate) @eof(error_response_sqlstate)
@@ -162,8 +167,7 @@ typedef struct pg_fsm_t {
     | "K" 0 0 0 12 @(backend_key_data) int4 @(backend_key_data_pid) int4 @(backend_key_data_key)
     | "n" 0 0 0 4 @(no_data)
     | "N" int4 @(notice_response) error_response + 0
-    | "R" 0 0 0 8 @(authentication_cleartext_password) 0 0 0 3
-    | "R" 0 0 0 8 @(authentication_ok) 0 0 0 0
+    | "R" 0 0 0 8 authentication
     | "S" int4 @(parameter_status) parameter_status
     | "T" int4 @(row_description) int2 @(row_description_count) row_description
     | "V" int4 @(function_call_response) function_call_response
