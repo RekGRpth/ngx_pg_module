@@ -913,6 +913,7 @@ static int ngx_pg_fsm_parse_complete(ngx_pg_save_t *s) {
     s->command = pg_command_state_parse_complete;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
+    if (d->nqueries != 1) return s->rc;
     d->query++;
     return s->rc;
 }
