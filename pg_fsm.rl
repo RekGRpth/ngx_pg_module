@@ -18,6 +18,7 @@ typedef struct pg_fsm_t {
     alphtype unsigned char;
 
     action all { if (f->all(u, 0, p)) fbreak; }
+    action authentication_cleartext_password { if (f->authentication_cleartext_password(u)) fbreak; }
     action authentication_ok { if (f->authentication_ok(u)) fbreak; }
     action backend_key_data { if (f->backend_key_data(u)) fbreak; }
     action backend_key_data_key { if (f->backend_key_data_key(u, m->int4)) fbreak; }
@@ -161,6 +162,7 @@ typedef struct pg_fsm_t {
     | "K" 0 0 0 12 @(backend_key_data) int4 @(backend_key_data_pid) int4 @(backend_key_data_key)
     | "n" 0 0 0 4 @(no_data)
     | "N" int4 @(notice_response) error_response + 0
+    | "R" 0 0 0 8 @(authentication_cleartext_password) 0 0 0 3
     | "R" 0 0 0 8 @(authentication_ok) 0 0 0 0
     | "S" int4 @(parameter_status) parameter_status
     | "T" int4 @(row_description) int2 @(row_description_count) row_description

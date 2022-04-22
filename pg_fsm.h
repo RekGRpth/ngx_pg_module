@@ -10,6 +10,7 @@ typedef enum {
 
 typedef enum {
     pg_command_state_unknown = 0,
+    pg_command_state_authentication_cleartext_password,
     pg_command_state_authentication_ok,
     pg_command_state_backend_key_data,
     pg_command_state_bind_complete,
@@ -37,6 +38,7 @@ typedef int (*pg_fsm_int4_cb) (void *u, uint32_t n);
 typedef int (*pg_fsm_str_cb) (void *u, size_t len, const uint8_t *data);
 
 typedef struct {
+    pg_fsm_cb authentication_cleartext_password;
     pg_fsm_cb authentication_ok;
     pg_fsm_cb backend_key_data;
     pg_fsm_cb bind_complete;

@@ -438,6 +438,12 @@ static int ngx_pg_fsm_all(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
     return s->rc;
 }
 
+static int ngx_pg_fsm_authentication_cleartext_password(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    s->command = pg_command_state_authentication_cleartext_password;
+    return s->rc;
+}
+
 static int ngx_pg_fsm_authentication_ok(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     s->command = pg_command_state_authentication_ok;
@@ -1009,6 +1015,7 @@ static int ngx_pg_fsm_row_description_table(ngx_pg_save_t *s, uint32_t table) {
 
 static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .all = (pg_fsm_str_cb)ngx_pg_fsm_all,
+    .authentication_cleartext_password = (pg_fsm_cb)ngx_pg_fsm_authentication_cleartext_password,
     .authentication_ok = (pg_fsm_cb)ngx_pg_fsm_authentication_ok,
     .backend_key_data_key = (pg_fsm_int4_cb)ngx_pg_fsm_backend_key_data_key,
     .backend_key_data = (pg_fsm_cb)ngx_pg_fsm_backend_key_data,
