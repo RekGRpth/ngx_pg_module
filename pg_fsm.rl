@@ -21,7 +21,7 @@ typedef struct pg_fsm_t {
     action authentication_cleartext_password { if (f->authentication_cleartext_password(u)) fbreak; }
     action authentication_md5_password { if (f->authentication_md5_password(u, m->int4)) fbreak; }
     action authentication_ok { if (f->authentication_ok(u)) fbreak; }
-    action authentication_sasl { if (f->authentication_sasl(u, m->int4)) fbreak; }
+    action authentication_sasl { if (f->authentication_sasl(u, m->int4 - 4)) fbreak; }
     action authentication_sasl_name { if (m->string && p - m->string > 0 && f->authentication_sasl_name(u, p - m->string, m->string)) fbreak; m->string = NULL; }
     action backend_key_data { if (f->backend_key_data(u)) fbreak; }
     action backend_key_data_key { if (f->backend_key_data_key(u, m->int4)) fbreak; }
@@ -100,7 +100,7 @@ typedef struct pg_fsm_t {
     char = any - 0;
     int2 = any{2} $(int2);
     int4 = any{4} $(int4);
-    str0 = char * $(string) 0;
+    str0 = char + $(string) 0;
 
     error_response =
     ( "c" str0 @(error_response_column) @eof(error_response_column)
@@ -146,6 +146,7 @@ typedef struct pg_fsm_t {
 
     function_call_response = int4 @(result_len) result;
 
+    authentication_sasl_name = str0 @(authentication_sasl_name) @eof(authentication_sasl_name);
     data_row = function_call_response;
     ready_for_query = ready_for_query_inerror | ready_for_query_idle | ready_for_query_intrans;
     row_description = str0 >row_description_beg @(row_description_name) @eof(row_description_name) int4 @(row_description_table) int2 @(row_description_column) int4 @(row_description_oid) int2 @(row_description_length) int4 @(row_description_mod) 0 0 @(row_description_format);
@@ -167,7 +168,7 @@ typedef struct pg_fsm_t {
     | "N" int4 @(notice_response) error_response + 0
     | "R" 0 0 0 12 5 int4 @(authentication_md5_password)
     | "R" 0 0 0 8 0 0 0 ( 0 @(authentication_ok) | 3 @(authentication_cleartext_password) )
-    | "R" int4 @(authentication_sasl) 0 0 0 10 str0 @(authentication_sasl_name) @eof(authentication_sasl_name)
+    | "R" int4 @(authentication_sasl) 0 0 0 10 authentication_sasl_name + 0
     | "S" int4 @(parameter_status) parameter_status
     | "T" int4 @(row_description) int2 @(row_description_count) row_description
     | "V" int4 @(function_call_response) function_call_response
