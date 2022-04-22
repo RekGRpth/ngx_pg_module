@@ -11,6 +11,7 @@ typedef enum {
 typedef enum {
     pg_command_state_unknown = 0,
     pg_command_state_authentication_cleartext_password,
+    pg_command_state_authentication_md5_password,
     pg_command_state_authentication_ok,
     pg_command_state_backend_key_data,
     pg_command_state_bind_complete,
@@ -57,6 +58,7 @@ typedef struct {
     pg_fsm_int2_cb row_description_count;
     pg_fsm_int2_cb row_description_format;
     pg_fsm_int2_cb row_description_length;
+    pg_fsm_int4_cb authentication_md5_password;
     pg_fsm_int4_cb backend_key_data_key;
     pg_fsm_int4_cb backend_key_data_pid;
     pg_fsm_int4_cb command_complete;

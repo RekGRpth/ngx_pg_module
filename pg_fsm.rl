@@ -19,6 +19,7 @@ typedef struct pg_fsm_t {
 
     action all { if (f->all(u, 0, p)) fbreak; }
     action authentication_cleartext_password { if (f->authentication_cleartext_password(u)) fbreak; }
+    action authentication_md5_password { if (f->authentication_md5_password(u, m->int4)) fbreak; }
     action authentication_ok { if (f->authentication_ok(u)) fbreak; }
     action backend_key_data { if (f->backend_key_data(u)) fbreak; }
     action backend_key_data_key { if (f->backend_key_data_key(u, m->int4)) fbreak; }
@@ -99,11 +100,6 @@ typedef struct pg_fsm_t {
     int4 = any{4} $(int4);
     str0 = char * $(string) 0;
 
-    authentication =
-    ( 0 0 0 0 @(authentication_ok)
-    | 0 0 0 3 @(authentication_cleartext_password)
-    );
-
     error_response =
     ( "c" str0 @(error_response_column) @eof(error_response_column)
     | "C" str0 @(error_response_sqlstate) @eof(error_response_sqlstate)
@@ -167,7 +163,8 @@ typedef struct pg_fsm_t {
     | "K" 0 0 0 12 @(backend_key_data) int4 @(backend_key_data_pid) int4 @(backend_key_data_key)
     | "n" 0 0 0 4 @(no_data)
     | "N" int4 @(notice_response) error_response + 0
-    | "R" 0 0 0 8 authentication
+    | "R" 0 0 0 12 5 int4 @(authentication_md5_password)
+    | "R" 0 0 0 8 0 0 0 ( 0 @(authentication_ok) | 3 @(authentication_cleartext_password) )
     | "S" int4 @(parameter_status) parameter_status
     | "T" int4 @(row_description) int2 @(row_description_count) row_description
     | "V" int4 @(function_call_response) function_call_response
