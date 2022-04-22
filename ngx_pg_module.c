@@ -1234,28 +1234,33 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         ngx_chain_t *connect;
         ngx_pg_srv_conf_t *pscf = d->conf;
         if (!(cl = connect = ngx_pg_startup_message(r->pool, pscf ? &pscf->connect.options : &plcf->connect.options))) return NGX_ERROR;
-        while (cl->next) cl = cl->next;
         ngx_str_t password = pscf ? pscf->connect.password : plcf->connect.password;
         if (password.data) {
-            if (!(cl->next = ngx_pg_password_message(r->pool, password.len, password.data))) return NGX_ERROR;
             while (cl->next) cl = cl->next;
+            if (!(cl->next = ngx_pg_password_message(r->pool, password.len, password.data))) return NGX_ERROR;
         }
         if (pscf && pscf->queries.elts) {
+            while (cl->next) cl = cl->next;
             if (!(cl->next = ngx_pg_queries(r, &pscf->queries))) return NGX_ERROR;
             while (cl->next) cl = cl->next;
+            if (!(cl->next = ngx_pg_close(r->pool))) return NGX_ERROR;
+            while (cl->next) cl = cl->next;
+            if (!(cl->next = ngx_pg_sync(r->pool))) return NGX_ERROR;
+            d->nqueries++;
         }
+        while (cl->next) cl = cl->next;
         cl->next = u->request_bufs;
         u->request_bufs = connect;
         d->nqueries++;
     }
-    d->nqueries++;
-    s->data = d;
     while (cl->next) cl = cl->next;
     if (!(cl->next = ngx_pg_close(r->pool))) return NGX_ERROR;
     while (cl->next) cl = cl->next;
     if (!(cl->next = ngx_pg_sync(r->pool))) return NGX_ERROR;
     while (cl->next) cl = cl->next;
     if (!(cl->next = ngx_pg_flush(r->pool))) return NGX_ERROR;
+    d->nqueries++;
+    s->data = d;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%ui:%d:%c", i++, *p, *p);
     return NGX_DONE;
 }
