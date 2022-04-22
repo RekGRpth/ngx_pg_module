@@ -1944,18 +1944,18 @@ static char *ngx_pg_log_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     return ngx_log_set_log(cf, &pscf->log);
 }
 
-static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_array_t *options, ngx_str_t *password) {
-    if (options->elts) return "duplicate";
+static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_pg_connect_t *connect) {
+    if (connect->options.elts) return "duplicate";
     ngx_str_t *option;
-    if (ngx_array_init(options, cf->pool, cf->args->nelts - 1, sizeof(*option)) != NGX_OK) return "ngx_array_init != NGX_OK";
+    if (ngx_array_init(&connect->options, cf->pool, cf->args->nelts - 1, sizeof(*option)) != NGX_OK) return "ngx_array_init != NGX_OK";
     ngx_str_t *str = cf->args->elts;
     for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
         if (str[i].len > sizeof("password=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"password=", sizeof("password=") - 1)) {
-            if (!(password->len = str[i].len - (sizeof("password=") - 1))) return "empty \"password\" value";
-            password->data = &str[i].data[sizeof("password=") - 1];
+            if (!(connect->password.len = str[i].len - (sizeof("password=") - 1))) return "empty \"password\" value";
+            connect->password.data = &str[i].data[sizeof("password=") - 1];
             continue;
         }
-        if (!(option = ngx_array_push(options))) return "!ngx_array_push";
+        if (!(option = ngx_array_push(&connect->options))) return "!ngx_array_push";
         ngx_memzero(option, sizeof(*option));
         *option = str[i];
         for (ngx_uint_t j = 0; j < option->len; j++) if (option->data[j] == '=') option->data[j] = '\0';
@@ -1965,7 +1965,7 @@ static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_array_t *options, ng
 
 static char *ngx_pg_option_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    return ngx_pg_option_loc_ups_conf(cf, &plcf->connect.options, &plcf->connect.password);
+    return ngx_pg_option_loc_ups_conf(cf, &plcf->connect);
 }
 
 static char *ngx_pg_option_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
@@ -1975,7 +1975,7 @@ static char *ngx_pg_option_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *co
         pscf->peer.init_upstream = uscf->peer.init_upstream ? uscf->peer.init_upstream : ngx_http_upstream_init_round_robin;
         uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
     }
-    return ngx_pg_option_loc_ups_conf(cf, &pscf->connect.options, &pscf->connect.password);
+    return ngx_pg_option_loc_ups_conf(cf, &pscf->connect);
 }
 
 static char *ngx_pg_pass_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
