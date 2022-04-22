@@ -48,6 +48,7 @@ typedef struct {
 #if (NGX_HTTP_CACHE)
     ngx_http_complex_value_t cache_key;
 #endif
+    ngx_str_t password;
 } ngx_pg_loc_conf_t;
 
 typedef struct {
@@ -58,6 +59,7 @@ typedef struct {
     ngx_array_t options;
     ngx_http_upstream_peer_t peer;
     ngx_log_t *log;
+    ngx_str_t password;
 } ngx_pg_srv_conf_t;
 
 typedef struct {
@@ -378,6 +380,18 @@ static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, ngx_array_t *commands, ngx_array
     cl->next = ngx_pg_write_size(cl_size, size);
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = parse; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
     return parse;
+}
+
+static ngx_chain_t *ngx_pg_password_message(ngx_pool_t *p, size_t len, const uint8_t *data) {
+    ngx_chain_t *cl, *cl_size, *password;
+    uint32_t size = 0;
+    if (!(cl = password = ngx_pg_write_int1(p, NULL, 'p'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = password; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return password;
 }
 
 static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, ngx_array_t *commands) {
@@ -1125,6 +1139,11 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         ngx_pg_srv_conf_t *pscf = d->conf;
         if (!(cl = connect = ngx_pg_startup_message(r->pool, pscf ? &pscf->options : &plcf->options))) return NGX_ERROR;
         while (cl->next) cl = cl->next;
+        ngx_str_t password = pscf ? pscf->password : plcf->password;
+        if (password.data) {
+            if (!(cl->next = ngx_pg_password_message(r->pool, password.len, password.data))) return NGX_ERROR;
+            while (cl->next) cl = cl->next;
+        }
         cl->next = u->request_bufs;
         u->request_bufs = connect;
         d->nqueries++;
@@ -1883,12 +1902,17 @@ static char *ngx_pg_log_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     return ngx_log_set_log(cf, &pscf->log);
 }
 
-static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_array_t *options) {
+static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_array_t *options, ngx_str_t *password) {
     if (options->elts) return "duplicate";
     ngx_str_t *option;
     if (ngx_array_init(options, cf->pool, cf->args->nelts - 1, sizeof(*option)) != NGX_OK) return "ngx_array_init != NGX_OK";
     ngx_str_t *str = cf->args->elts;
     for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
+        if (str[i].len > sizeof("password=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"password=", sizeof("password=") - 1)) {
+            if (!(password->len = str[i].len - (sizeof("password=") - 1))) return "empty \"password\" value";
+            password->data = &str[i].data[sizeof("password=") - 1];
+            continue;
+        }
         if (!(option = ngx_array_push(options))) return "!ngx_array_push";
         ngx_memzero(option, sizeof(*option));
         *option = str[i];
@@ -1899,7 +1923,7 @@ static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_array_t *options) {
 
 static char *ngx_pg_option_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    return ngx_pg_option_loc_ups_conf(cf, &plcf->options);
+    return ngx_pg_option_loc_ups_conf(cf, &plcf->options, &plcf->password);
 }
 
 static char *ngx_pg_option_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
@@ -1909,7 +1933,7 @@ static char *ngx_pg_option_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *co
         pscf->peer.init_upstream = uscf->peer.init_upstream ? uscf->peer.init_upstream : ngx_http_upstream_init_round_robin;
         uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
     }
-    return ngx_pg_option_loc_ups_conf(cf, &pscf->options);
+    return ngx_pg_option_loc_ups_conf(cf, &pscf->options, &pscf->password);
 }
 
 static char *ngx_pg_pass_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
