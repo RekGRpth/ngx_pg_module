@@ -1845,68 +1845,73 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
     query = &query[queries->nelts - 1];
     ngx_str_t *str = cf->args->elts;
     for (ngx_uint_t i = 2; i < cf->args->nelts; i++) {
-        if (cmd->offset) {
-            if (str[i].len > sizeof("delimiter=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"delimiter=", sizeof("delimiter=") - 1)) {
-                if (!(str[i].len - (sizeof("delimiter=") - 1))) return "empty \"delimiter\" value";
-                if (str[i].len - (sizeof("delimiter=") - 1) > 1) return "\"delimiter\" value must be one character";
-                query->delimiter = str[i].data[sizeof("delimiter=") - 1];
-                continue;
+        if (str[i].len > sizeof("delimiter=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"delimiter=", sizeof("delimiter=") - 1)) {
+            if (!cmd->offset) return "output not allowed";
+            if (!(str[i].len - (sizeof("delimiter=") - 1))) return "empty \"delimiter\" value";
+            if (str[i].len - (sizeof("delimiter=") - 1) > 1) return "\"delimiter\" value must be one character";
+            query->delimiter = str[i].data[sizeof("delimiter=") - 1];
+            continue;
+        }
+        if (str[i].len >= sizeof("escape=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"escape=", sizeof("escape=") - 1)) {
+            if (!cmd->offset) return "output not allowed";
+            if (!(str[i].len - (sizeof("escape=") - 1))) { query->escape = '\0'; continue; }
+            else if (str[i].len > 1) return "\"escape\" value must be one character";
+            query->escape = str[i].data[sizeof("escape=") - 1];
+            continue;
+        }
+        if (str[i].len > sizeof("header=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"header=", sizeof("header=") - 1)) {
+            if (!cmd->offset) return "output not allowed";
+            ngx_uint_t j;
+            static const ngx_conf_enum_t e[] = { { ngx_string("off"), 0 }, { ngx_string("no"), 0 }, { ngx_string("false"), 0 }, { ngx_string("on"), 1 }, { ngx_string("yes"), 1 }, { ngx_string("true"), 1 }, { ngx_null_string, 0 } };
+            for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("header=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("header=") - 1], str[i].len - (sizeof("header=") - 1))) break;
+            if (!e[j].name.len) return "\"header\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
+            query->header = e[j].value;
+            continue;
+        }
+        if (str[i].len > sizeof("output=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"output=", sizeof("output=") - 1)) {
+            if (!cmd->offset) return "output not allowed";
+            ngx_uint_t j;
+            static const ngx_conf_enum_t e[] = { { ngx_string("csv"), ngx_pg_output_csv }, { ngx_string("plain"), ngx_pg_output_plain }, { ngx_string("value"), ngx_pg_output_value }, { ngx_null_string, 0 } };
+            for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("output=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("output=") - 1], str[i].len - (sizeof("output=") - 1))) break;
+            if (!e[j].name.len) return "\"output\" value must be \"csv\", \"plain\" or \"value\"";
+            switch ((query->output = e[j].value)) {
+                case ngx_pg_output_csv: {
+                    ngx_str_set(&query->null, "");
+                    query->delimiter = ',';
+                    query->escape = '"';
+                    query->header = 1;
+                    query->quote = '"';
+                } break;
+                case ngx_pg_output_plain: {
+                    ngx_str_set(&query->null, "\\N");
+                    query->delimiter = '\t';
+                    query->header = 1;
+                } break;
+                default: break;
             }
-            if (str[i].len >= sizeof("escape=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"escape=", sizeof("escape=") - 1)) {
-                if (!(str[i].len - (sizeof("escape=") - 1))) { query->escape = '\0'; continue; }
-                else if (str[i].len > 1) return "\"escape\" value must be one character";
-                query->escape = str[i].data[sizeof("escape=") - 1];
-                continue;
-            }
-            if (str[i].len > sizeof("header=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"header=", sizeof("header=") - 1)) {
-                ngx_uint_t j;
-                static const ngx_conf_enum_t e[] = { { ngx_string("off"), 0 }, { ngx_string("no"), 0 }, { ngx_string("false"), 0 }, { ngx_string("on"), 1 }, { ngx_string("yes"), 1 }, { ngx_string("true"), 1 }, { ngx_null_string, 0 } };
-                for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("header=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("header=") - 1], str[i].len - (sizeof("header=") - 1))) break;
-                if (!e[j].name.len) return "\"header\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
-                query->header = e[j].value;
-                continue;
-            }
-            if (str[i].len > sizeof("output=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"output=", sizeof("output=") - 1)) {
-                ngx_uint_t j;
-                static const ngx_conf_enum_t e[] = { { ngx_string("csv"), ngx_pg_output_csv }, { ngx_string("plain"), ngx_pg_output_plain }, { ngx_string("value"), ngx_pg_output_value }, { ngx_null_string, 0 } };
-                for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("output=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("output=") - 1], str[i].len - (sizeof("output=") - 1))) break;
-                if (!e[j].name.len) return "\"output\" value must be \"csv\", \"plain\" or \"value\"";
-                switch ((query->output = e[j].value)) {
-                    case ngx_pg_output_csv: {
-                        ngx_str_set(&query->null, "");
-                        query->delimiter = ',';
-                        query->escape = '"';
-                        query->header = 1;
-                        query->quote = '"';
-                    } break;
-                    case ngx_pg_output_plain: {
-                        ngx_str_set(&query->null, "\\N");
-                        query->delimiter = '\t';
-                        query->header = 1;
-                    } break;
-                    default: break;
-                }
-                continue;
-            }
-            if (str[i].len > sizeof("null=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"null=", sizeof("null=") - 1)) {
-                if (!(query->null.len = str[i].len - (sizeof("null=") - 1))) return "empty \"null\" value";
-                query->null.data = &str[i].data[sizeof("null=") - 1];
-                continue;
-            }
-            if (str[i].len >= sizeof("quote=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"quote=", sizeof("quote=") - 1)) {
-                if (!(str[i].len - (sizeof("quote=") - 1))) { query->quote = '\0'; continue; }
-                else if (str[i].len - (sizeof("quote=") - 1) > 1) return "\"quote\" value must be one character";
-                query->quote = str[i].data[sizeof("quote=") - 1];
-                continue;
-            }
-            if (str[i].len > sizeof("string=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"string=", sizeof("string=") - 1)) {
-                ngx_uint_t j;
-                static const ngx_conf_enum_t e[] = { { ngx_string("off"), 0 }, { ngx_string("no"), 0 }, { ngx_string("false"), 0 }, { ngx_string("on"), 1 }, { ngx_string("yes"), 1 }, { ngx_string("true"), 1 }, { ngx_null_string, 0 } };
-                for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("string=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("string=") - 1], str[i].len - (sizeof("string=") - 1))) break;
-                if (!e[j].name.len) return "\"string\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
-                query->string = e[j].value;
-                continue;
-            }
+            continue;
+        }
+        if (str[i].len > sizeof("null=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"null=", sizeof("null=") - 1)) {
+            if (!cmd->offset) return "output not allowed";
+            if (!(query->null.len = str[i].len - (sizeof("null=") - 1))) return "empty \"null\" value";
+            query->null.data = &str[i].data[sizeof("null=") - 1];
+            continue;
+        }
+        if (str[i].len >= sizeof("quote=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"quote=", sizeof("quote=") - 1)) {
+            if (!cmd->offset) return "output not allowed";
+            if (!(str[i].len - (sizeof("quote=") - 1))) { query->quote = '\0'; continue; }
+            else if (str[i].len - (sizeof("quote=") - 1) > 1) return "\"quote\" value must be one character";
+            query->quote = str[i].data[sizeof("quote=") - 1];
+            continue;
+        }
+        if (str[i].len > sizeof("string=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"string=", sizeof("string=") - 1)) {
+            if (!cmd->offset) return "output not allowed";
+            ngx_uint_t j;
+            static const ngx_conf_enum_t e[] = { { ngx_string("off"), 0 }, { ngx_string("no"), 0 }, { ngx_string("false"), 0 }, { ngx_string("on"), 1 }, { ngx_string("yes"), 1 }, { ngx_string("true"), 1 }, { ngx_null_string, 0 } };
+            for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("string=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("string=") - 1], str[i].len - (sizeof("string=") - 1))) break;
+            if (!e[j].name.len) return "\"string\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
+            query->string = e[j].value;
+            continue;
         }
         ngx_pg_argument_t *argument;
         if (!query->arguments.elts && ngx_array_init(&query->arguments, cf->pool, 1, sizeof(*argument)) != NGX_OK) return "ngx_array_init != NGX_OK";
