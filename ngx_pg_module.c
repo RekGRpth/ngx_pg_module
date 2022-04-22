@@ -537,7 +537,7 @@ static int ngx_pg_fsm_command_complete_val(ngx_pg_save_t *s, size_t len, const u
         if (!(channel->data = ngx_pstrdup(c->pool, &command->str))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pstrdup"); s->rc = NGX_ERROR; return s->rc; }
         channel->len = command->str.len;
     }
-    if (d->nqueries != 1) return s->rc;
+    if (d->nqueries > 1) return s->rc;
     if (!query->output) return s->rc;
     if (query->output > 1 || d->row) return s->rc;
     if ((s->rc = ngx_pg_output_handler(d, len, data)) != NGX_OK) return s->rc;
@@ -551,7 +551,7 @@ static int ngx_pg_fsm_copy_data(ngx_pg_save_t *s, uint32_t len) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     if (!d->filter++) s->rc = NGX_DONE;
-    if (d->nqueries != 1) return s->rc;
+    if (d->nqueries > 1) return s->rc;
     d->row++;
     return s->rc;
 }
@@ -576,7 +576,7 @@ static int ngx_pg_fsm_data_row(ngx_pg_save_t *s, uint32_t len) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     if (!d->filter++) s->rc = NGX_DONE;
-    if (d->nqueries != 1) return s->rc;
+    if (d->nqueries > 1) return s->rc;
     d->col = 0;
     d->row++;
     ngx_pg_query_t *query = d->query;
@@ -731,7 +731,7 @@ static int ngx_pg_fsm_function_call_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     if (!d->filter++) s->rc = NGX_DONE;
-    if (d->nqueries != 1) return s->rc;
+    if (d->nqueries > 1) return s->rc;
     d->query++;
     d->row++;
     return s->rc;
@@ -913,7 +913,7 @@ static int ngx_pg_fsm_parse_complete(ngx_pg_save_t *s) {
     s->command = pg_command_state_parse_complete;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (d->nqueries != 1) return s->rc;
+    if (d->nqueries > 1) return s->rc;
     d->query++;
     return s->rc;
 }
@@ -937,7 +937,7 @@ static int ngx_pg_fsm_result_done(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (d->nqueries != 1) return s->rc;
+    if (d->nqueries > 1) return s->rc;
     ngx_pg_query_t *query = d->query;
     if (!query->output) return s->rc;
     if (query->string && query->quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->quote), &query->quote)) != NGX_OK) return s->rc;
@@ -948,7 +948,7 @@ static int ngx_pg_fsm_result_len(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (d->nqueries != 1) return s->rc;
+    if (d->nqueries > 1) return s->rc;
     d->col++;
     ngx_pg_query_t *query = d->query;
     if (!query->output) return s->rc;
@@ -965,7 +965,7 @@ static int ngx_pg_fsm_result_val(ngx_pg_save_t *s, size_t len, const uint8_t *da
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (d->nqueries != 1) return s->rc;
+    if (d->nqueries > 1) return s->rc;
     ngx_pg_query_t *query = d->query;
     if (query->output > 1 && query->string && query->quote && query->escape) for (ngx_uint_t k = 0; k < len; k++) {
         if (data[k] == query->quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->escape), &query->escape)) != NGX_OK) return s->rc;
@@ -981,7 +981,7 @@ static int ngx_pg_fsm_row_description(ngx_pg_save_t *s, uint32_t len) {
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     if (!d->filter++) s->rc = NGX_DONE;
-    if (d->nqueries != 1) return s->rc;
+    if (d->nqueries > 1) return s->rc;
     d->col = 0;
     ngx_pg_query_t *query = d->query;
     if (!query->output || !query->header) return s->rc;
@@ -993,7 +993,7 @@ static int ngx_pg_fsm_row_description_beg(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (d->nqueries != 1) return s->rc;
+    if (d->nqueries > 1) return s->rc;
     d->col++;
     ngx_pg_query_t *query = d->query;
     if (!query->output || !query->header) return s->rc;
@@ -1031,7 +1031,7 @@ static int ngx_pg_fsm_row_description_name(ngx_pg_save_t *s, size_t len, const u
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (d->nqueries != 1) return s->rc;
+    if (d->nqueries > 1) return s->rc;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%ui", d->col);
     ngx_pg_query_t *query = d->query;
     if (!query->output || !query->header) return s->rc;
@@ -1051,7 +1051,7 @@ static int ngx_pg_fsm_row_description_table(ngx_pg_save_t *s, uint32_t table) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", table);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (d->nqueries != 1) return s->rc;
+    if (d->nqueries > 1) return s->rc;
     ngx_pg_query_t *query = d->query;
     if (!query->output) return s->rc;
     if (query->string && query->quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->quote), &query->quote)) != NGX_OK) return s->rc;
