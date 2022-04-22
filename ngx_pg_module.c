@@ -1240,6 +1240,10 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             if (!(cl->next = ngx_pg_password_message(r->pool, password.len, password.data))) return NGX_ERROR;
             while (cl->next) cl = cl->next;
         }
+        if (pscf && pscf->queries.elts) {
+            if (!(cl->next = ngx_pg_queries(r, &pscf->queries))) return NGX_ERROR;
+            while (cl->next) cl = cl->next;
+        }
         cl->next = u->request_bufs;
         u->request_bufs = connect;
         d->nqueries++;
