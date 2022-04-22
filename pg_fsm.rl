@@ -21,6 +21,8 @@ typedef struct pg_fsm_t {
     action authentication_cleartext_password { if (f->authentication_cleartext_password(u)) fbreak; }
     action authentication_md5_password { if (f->authentication_md5_password(u, m->int4)) fbreak; }
     action authentication_ok { if (f->authentication_ok(u)) fbreak; }
+    action authentication_sasl { if (f->authentication_sasl(u, m->int4)) fbreak; }
+    action authentication_sasl_name { if (m->string && p - m->string > 0 && f->authentication_sasl_name(u, p - m->string, m->string)) fbreak; m->string = NULL; }
     action backend_key_data { if (f->backend_key_data(u)) fbreak; }
     action backend_key_data_key { if (f->backend_key_data_key(u, m->int4)) fbreak; }
     action backend_key_data_pid { if (f->backend_key_data_pid(u, m->int4)) fbreak; }
@@ -165,6 +167,7 @@ typedef struct pg_fsm_t {
     | "N" int4 @(notice_response) error_response + 0
     | "R" 0 0 0 12 5 int4 @(authentication_md5_password)
     | "R" 0 0 0 8 0 0 0 ( 0 @(authentication_ok) | 3 @(authentication_cleartext_password) )
+    | "R" int4 @(authentication_sasl) 0 0 0 10 str0 @(authentication_sasl_name) @eof(authentication_sasl_name)
     | "S" int4 @(parameter_status) parameter_status
     | "T" int4 @(row_description) int2 @(row_description_count) row_description
     | "V" int4 @(function_call_response) function_call_response

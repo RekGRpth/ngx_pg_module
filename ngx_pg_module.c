@@ -458,6 +458,17 @@ static int ngx_pg_fsm_authentication_ok(ngx_pg_save_t *s) {
     return s->rc;
 }
 
+static int ngx_pg_fsm_authentication_sasl(ngx_pg_save_t *s, uint32_t len) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
+    s->command = pg_command_state_authentication_sasl;
+    return s->rc;
+}
+
+static int ngx_pg_fsm_authentication_sasl_name(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d:%c", *data, *data);
+    return s->rc;
+}
+
 static int ngx_pg_fsm_backend_key_data(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     s->command = pg_command_state_authentication_ok;
@@ -1026,6 +1037,8 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .authentication_cleartext_password = (pg_fsm_cb)ngx_pg_fsm_authentication_cleartext_password,
     .authentication_md5_password = (pg_fsm_int4_cb)ngx_pg_fsm_authentication_md5_password,
     .authentication_ok = (pg_fsm_cb)ngx_pg_fsm_authentication_ok,
+    .authentication_sasl_name = (pg_fsm_str_cb)ngx_pg_fsm_authentication_sasl_name,
+    .authentication_sasl = (pg_fsm_int4_cb)ngx_pg_fsm_authentication_sasl,
     .backend_key_data_key = (pg_fsm_int4_cb)ngx_pg_fsm_backend_key_data_key,
     .backend_key_data = (pg_fsm_cb)ngx_pg_fsm_backend_key_data,
     .backend_key_data_pid = (pg_fsm_int4_cb)ngx_pg_fsm_backend_key_data_pid,
