@@ -406,6 +406,16 @@ static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, ngx_array_t *commands) {
     return query;
 }
 
+/*static ngx_chain_t *ngx_pg_ssl_request(ngx_pool_t *p) {
+    ngx_chain_t *cl, *cl_size, *ssl;
+    uint32_t size = 0;
+    if (!(cl = cl_size = ssl = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 80877103))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = ssl; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return ssl;
+}*/
+
 static ngx_chain_t *ngx_pg_startup_message(ngx_pool_t *p, ngx_array_t *options) {
     ngx_chain_t *cl, *cl_size, *connect;
     uint32_t size = 0;
