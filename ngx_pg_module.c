@@ -1140,6 +1140,59 @@ static void ngx_pg_save_cln_handler(ngx_pg_save_t *s) {
     ngx_chain_writer(&ctx, NULL);
 }
 
+static ngx_chain_t *ngx_pg_queries(ngx_http_request_t *r, ngx_array_t *queries) {
+    ngx_chain_t *cl = NULL, *cl_query = NULL;
+    ngx_pg_query_t *query = queries->elts;
+    for (ngx_uint_t i = 0; i < queries->nelts; i++) {
+        ngx_pg_argument_t *argument = query[i].arguments.elts;
+        for (ngx_uint_t j = 0; j < query[i].arguments.nelts; j++) {
+            if (argument[j].complex.oid.value.data) {
+                ngx_str_t str;
+                if (ngx_http_complex_value(r, &argument[j].complex.oid, &str) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NULL; }
+                ngx_int_t n = ngx_atoi(str.data, str.len);
+                if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NULL; }
+                argument[j].oid = n;
+            }
+            if (argument[j].complex.value.value.data) if (ngx_http_complex_value(r, &argument[j].complex.value, &argument[j].value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NULL; }
+        }
+        ngx_pg_command_t *command = query[i].commands.elts;
+        for (ngx_uint_t j = 0; j < query[i].commands.nelts; j++) if (command[j].index) {
+            ngx_http_variable_value_t *value;
+            if (!(value = ngx_http_get_indexed_variable(r, command[j].index))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_http_get_indexed_variable"); return NULL; }
+            command[j].str.data = value->data;
+            command[j].str.len = value->len;
+        }
+        if (query[i].function.value.data) {
+            ngx_str_t value;
+            if (ngx_http_complex_value(r, &query[i].function, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NULL; }
+            ngx_int_t oid = ngx_atoi(value.data, value.len);
+            if (oid == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NULL; }
+            if (cl) {
+                if (!(cl->next = ngx_pg_function_call(r->pool, oid, &query[i].arguments))) return NULL;
+            } else {
+                if (!(cl = ngx_pg_function_call(r->pool, oid, &query[i].arguments))) return NULL;
+                if (!cl_query) cl_query = cl;
+            }
+            while (cl->next) cl = cl->next;
+        } else if (query[i].commands.elts) {
+            if (cl) {
+                if (!(cl->next = ngx_pg_parse(r->pool, &query[i].commands, &query[i].arguments))) return NULL;
+            } else {
+                if (!(cl = ngx_pg_parse(r->pool, &query[i].commands, &query[i].arguments))) return NULL;
+                if (!cl_query) cl_query = cl;
+            }
+            while (cl->next) cl = cl->next;
+            if (!(cl->next = ngx_pg_bind(r->pool, &query[i].arguments))) return NULL;
+            while (cl->next) cl = cl->next;
+            if (!(cl->next = ngx_pg_describe(r->pool))) return NULL;
+            while (cl->next) cl = cl->next;
+            if (!(cl->next = ngx_pg_execute(r->pool))) return NULL;
+            while (cl->next) cl = cl->next;
+        } else { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!pg_function && !pg_query"); return NULL; }
+    }
+    return cl_query;
+}
+
 static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%s", __func__);
     ngx_pg_data_t *d = data;
@@ -1375,56 +1428,7 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     u->headers_in.status_n = NGX_HTTP_OK;
     u->keepalive = !u->headers_in.connection_close;
     if (!plcf->queries.nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!queries"); return NGX_ERROR; }
-    ngx_pg_query_t *query = plcf->queries.elts;
-    ngx_chain_t *cl = NULL;
-    u->request_bufs = NULL;
-    for (ngx_uint_t i = 0; i < plcf->queries.nelts; i++) {
-        ngx_pg_argument_t *argument = query[i].arguments.elts;
-        for (ngx_uint_t j = 0; j < query[i].arguments.nelts; j++) {
-            if (argument[j].complex.oid.value.data) {
-                ngx_str_t str;
-                if (ngx_http_complex_value(r, &argument[j].complex.oid, &str) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
-                ngx_int_t n = ngx_atoi(str.data, str.len);
-                if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
-                argument[j].oid = n;
-            }
-            if (argument[j].complex.value.value.data) if (ngx_http_complex_value(r, &argument[j].complex.value, &argument[j].value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
-        }
-        ngx_pg_command_t *command = query[i].commands.elts;
-        for (ngx_uint_t j = 0; j < query[i].commands.nelts; j++) if (command[j].index) {
-            ngx_http_variable_value_t *value;
-            if (!(value = ngx_http_get_indexed_variable(r, command[j].index))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_http_get_indexed_variable"); return NGX_ERROR; }
-            command[j].str.data = value->data;
-            command[j].str.len = value->len;
-        }
-        if (query[i].function.value.data) {
-            ngx_str_t value;
-            if (ngx_http_complex_value(r, &query[i].function, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); return NGX_ERROR; }
-            ngx_int_t oid = ngx_atoi(value.data, value.len);
-            if (oid == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NGX_ERROR; }
-            if (cl) {
-                if (!(cl->next = ngx_pg_function_call(r->pool, oid, &query[i].arguments))) return NGX_ERROR;
-            } else {
-                if (!(cl = ngx_pg_function_call(r->pool, oid, &query[i].arguments))) return NGX_ERROR;
-                if (!u->request_bufs) u->request_bufs = cl;
-            }
-            while (cl->next) cl = cl->next;
-        } else if (query[i].commands.elts) {
-            if (cl) {
-                if (!(cl->next = ngx_pg_parse(r->pool, &query[i].commands, &query[i].arguments))) return NGX_ERROR;
-            } else {
-                if (!(cl = ngx_pg_parse(r->pool, &query[i].commands, &query[i].arguments))) return NGX_ERROR;
-                if (!u->request_bufs) u->request_bufs = cl;
-            }
-            while (cl->next) cl = cl->next;
-            if (!(cl->next = ngx_pg_bind(r->pool, &query[i].arguments))) return NGX_ERROR;
-            while (cl->next) cl = cl->next;
-            if (!(cl->next = ngx_pg_describe(r->pool))) return NGX_ERROR;
-            while (cl->next) cl = cl->next;
-            if (!(cl->next = ngx_pg_execute(r->pool))) return NGX_ERROR;
-            while (cl->next) cl = cl->next;
-        } else { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!pg_function && !pg_query"); return NGX_ERROR; }
-    }
+    if (!(u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%ui:%d:%c", i++, *p, *p);
     return NGX_OK;
 }
