@@ -42,13 +42,17 @@ typedef struct {
 
 typedef struct {
     ngx_array_t options;
+    ngx_str_t password;
+} ngx_pg_connect_t;
+
+typedef struct {
     ngx_array_t queries;
     ngx_http_complex_value_t complex;
     ngx_http_upstream_conf_t upstream;
 #if (NGX_HTTP_CACHE)
     ngx_http_complex_value_t cache_key;
 #endif
-    ngx_str_t password;
+    ngx_pg_connect_t connect;
 } ngx_pg_loc_conf_t;
 
 typedef struct {
@@ -56,10 +60,9 @@ typedef struct {
 } ngx_pg_main_conf_t;
 
 typedef struct {
-    ngx_array_t options;
     ngx_http_upstream_peer_t peer;
     ngx_log_t *log;
-    ngx_str_t password;
+    ngx_pg_connect_t connect;
 } ngx_pg_srv_conf_t;
 
 typedef struct {
@@ -1176,9 +1179,9 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         s->connection = c;
         ngx_chain_t *connect;
         ngx_pg_srv_conf_t *pscf = d->conf;
-        if (!(cl = connect = ngx_pg_startup_message(r->pool, pscf ? &pscf->options : &plcf->options))) return NGX_ERROR;
+        if (!(cl = connect = ngx_pg_startup_message(r->pool, pscf ? &pscf->connect.options : &plcf->connect.options))) return NGX_ERROR;
         while (cl->next) cl = cl->next;
-        ngx_str_t password = pscf ? pscf->password : plcf->password;
+        ngx_str_t password = pscf ? pscf->connect.password : plcf->connect.password;
         if (password.data) {
             if (!(cl->next = ngx_pg_password_message(r->pool, password.len, password.data))) return NGX_ERROR;
             while (cl->next) cl = cl->next;
@@ -1962,7 +1965,7 @@ static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_array_t *options, ng
 
 static char *ngx_pg_option_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    return ngx_pg_option_loc_ups_conf(cf, &plcf->options, &plcf->password);
+    return ngx_pg_option_loc_ups_conf(cf, &plcf->connect.options, &plcf->connect.password);
 }
 
 static char *ngx_pg_option_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
@@ -1972,7 +1975,7 @@ static char *ngx_pg_option_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *co
         pscf->peer.init_upstream = uscf->peer.init_upstream ? uscf->peer.init_upstream : ngx_http_upstream_init_round_robin;
         uscf->peer.init_upstream = ngx_pg_peer_init_upstream;
     }
-    return ngx_pg_option_loc_ups_conf(cf, &pscf->options, &pscf->password);
+    return ngx_pg_option_loc_ups_conf(cf, &pscf->connect.options, &pscf->connect.password);
 }
 
 static char *ngx_pg_pass_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
@@ -1988,7 +1991,7 @@ static char *ngx_pg_pass_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
         return NGX_CONF_OK;
     }
     ngx_url_t url = {0};
-    if (!plcf->options.elts) url.no_resolve = 1;
+    if (!plcf->connect.options.elts) url.no_resolve = 1;
     url.url = str[1];
     if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &url, 0))) return NGX_CONF_ERROR;
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
