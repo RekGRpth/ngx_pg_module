@@ -7,7 +7,7 @@ pg_function
 -------------
 * Syntax: **pg_function** *$oid* [ NULL | NULL::*$oid* | *$arg* | *$arg*::*$oid* ] [ output=*csv* | output=*plain* ]
 * Default: --
-* Context: location, if in location
+* Context: location, if in location, upstream
 
 Sets function(s) oid (nginx variables allowed), optional argument(s) (nginx variables allowed) and it(s) oid(s) (nginx variables allowed) and output type (no nginx variables allowed) (with using [evaluate](https://github.com/RekGRpth/ngx_http_evaluate_module)):
 ```nginx
@@ -103,7 +103,7 @@ pg_query
 -------------
 * Syntax: **pg_query** *sql* [ NULL | NULL::*$oid* | *$arg* | *$arg*::*$oid* ] [ output=*csv* | output=*plain* | output=*value* ]
 * Default: --
-* Context: location, if in location
+* Context: location, if in location, upstream
 
 Sets query(queries) sql(s) (named only nginx variables allowed as identifier only), optional argument(s) (nginx variables allowed) and it(s) oid(s) (nginx variables allowed) and output type (no nginx variables allowed):
 ```nginx
