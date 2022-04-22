@@ -465,7 +465,7 @@ static int ngx_pg_fsm_authentication_sasl(ngx_pg_save_t *s, uint32_t len) {
 }
 
 static int ngx_pg_fsm_authentication_sasl_name(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d:%c", *data, *data);
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", (int)len, data);
     return s->rc;
 }
 
