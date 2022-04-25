@@ -1232,7 +1232,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_pg_loc_conf_t *plcf = d->plcf;
     d->query = -1;
     ngx_http_upstream_t *u = r->upstream;
-    ngx_chain_t *cl = u->request_bufs;
+    ngx_chain_t *cl;
+    if (!(cl = u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
     if (pc->connection) s = d->save = (ngx_pg_save_t *)((char *)pc->connection->pool + sizeof(*pc->connection->pool)); else {
         pc->get = ngx_event_get_peer;
         switch ((rc = ngx_event_connect_peer(pc))) {
@@ -1460,7 +1461,6 @@ static ngx_int_t ngx_pg_create_request(ngx_http_request_t *r) {
     u->headers_in.status_n = NGX_HTTP_OK;
     u->keepalive = !u->headers_in.connection_close;
     if (!plcf->queries.nelts) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!queries"); return NGX_ERROR; }
-    if (!(u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%ui:%d:%c", i++, *p, *p);
     return NGX_OK;
 }
