@@ -116,7 +116,6 @@ typedef struct {
     ngx_pg_option_t option;
     ngx_uint_t rc;
     pg_fsm_t *fsm;
-    pg_ready_for_query_state_t state;
     uint32_t key;
     uint32_t len;
     uint32_t pid;
@@ -904,7 +903,6 @@ static int ngx_pg_fsm_ready_for_query(ngx_pg_save_t *s) {
 
 static int ngx_pg_fsm_ready_for_query_state(ngx_pg_save_t *s, uint16_t state) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", state);
-    s->state = state;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     if (d->nqueries) d->nqueries--;
@@ -1452,7 +1450,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->pos, b->last);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
-    if (s->rc == NGX_OK) s->rc = d->nqueries || s->state == pg_ready_for_query_state_unknown ? NGX_AGAIN : NGX_OK;
+    if (s->rc == NGX_OK) s->rc = d->nqueries ? NGX_AGAIN : NGX_OK;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     d->error = s->error;
     d->option = s->option;
@@ -1513,7 +1511,7 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *b) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "s->rc = %i", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "d->nqueries = %ui", d->nqueries);
-    if (!d->nqueries && s->state != pg_ready_for_query_state_unknown) {
+    if (!d->nqueries) {
         p->length = 0;
         u->length = 0;
     }
@@ -1527,8 +1525,7 @@ static ngx_int_t ngx_pg_input_filter_init(void *data) {
     ngx_event_pipe_t *p = u->pipe;
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
-    ngx_pg_save_t *s = d->save;
-    if (!d->nqueries && s->state != pg_ready_for_query_state_unknown) {
+    if (!d->nqueries) {
         if (u->buffering) p->length = 0;
         u->length = 0;
     } else {
@@ -1553,7 +1550,7 @@ static ngx_int_t ngx_pg_input_filter(void *data, ssize_t bytes) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->last == last = %s", b->last == last ? "true" : "false");
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "d->nqueries = %ui", d->nqueries);
-    if (!d->nqueries && s->state != pg_ready_for_query_state_unknown) u->length = 0;
+    if (!d->nqueries) u->length = 0;
     return s->rc;
 }
 
