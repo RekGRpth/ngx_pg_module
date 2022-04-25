@@ -1213,6 +1213,11 @@ static ngx_chain_t *ngx_pg_queries(ngx_http_request_t *r, ngx_array_t *queries) 
             while (cl->next) cl = cl->next;
         } else { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!pg_function && !pg_query"); return NULL; }
     }
+    if (!(cl->next = ngx_pg_close(r->pool))) return NULL;
+    while (cl->next) cl = cl->next;
+    if (!(cl->next = ngx_pg_sync(r->pool))) return NULL;
+    while (cl->next) cl = cl->next;
+    if (!(cl->next = ngx_pg_flush(r->pool))) return NULL;
     return cl_query;
 }
 
@@ -1264,10 +1269,6 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (pscf && pscf->queries.elts) {
             if (!(cl->next = ngx_pg_queries(r, &pscf->queries))) return NGX_ERROR;
             while (cl->next) cl = cl->next;
-            if (!(cl->next = ngx_pg_close(r->pool))) return NGX_ERROR;
-            while (cl->next) cl = cl->next;
-            if (!(cl->next = ngx_pg_sync(r->pool))) return NGX_ERROR;
-            while (cl->next) cl = cl->next;
         }
     }
     if (cl) {
@@ -1275,12 +1276,6 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     } else {
         if (!(cl = u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
     }
-    while (cl->next) cl = cl->next;
-    if (!(cl->next = ngx_pg_close(r->pool))) return NGX_ERROR;
-    while (cl->next) cl = cl->next;
-    if (!(cl->next = ngx_pg_sync(r->pool))) return NGX_ERROR;
-    while (cl->next) cl = cl->next;
-    if (!(cl->next = ngx_pg_flush(r->pool))) return NGX_ERROR;
     s->data = d;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%ui:%d:%c", i++, *p, *p);
     return NGX_DONE;
