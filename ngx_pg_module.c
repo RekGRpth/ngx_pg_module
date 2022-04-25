@@ -137,10 +137,11 @@ typedef struct ngx_pg_data_t {
     ngx_http_request_t *request;
     ngx_peer_connection_t peer;
     ngx_pg_error_t error;
+    ngx_pg_loc_conf_t *plcf;
     ngx_pg_option_t option;
     ngx_pg_query_t *query;
     ngx_pg_save_t *save;
-    ngx_pg_srv_conf_t *conf;
+    ngx_pg_srv_conf_t *pscf;
     ngx_uint_t col;
     ngx_uint_t filter;
     ngx_uint_t nqueries;
@@ -1219,7 +1220,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         pg_fsm_init(s->fsm);
         s->connection = c;
         ngx_chain_t *connect;
-        ngx_pg_srv_conf_t *pscf = d->conf;
+        ngx_pg_srv_conf_t *pscf = d->pscf;
         if (!(cl = connect = ngx_pg_startup_message(r->pool, pscf ? &pscf->connect.options : &plcf->connect.options))) return NGX_ERROR;
         ngx_str_t password = pscf ? pscf->connect.password : plcf->connect.password;
         if (password.data) {
@@ -1351,7 +1352,7 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
         if (rc == NGX_OK) ngx_pg_cancel_request_write_handler(c->write);
     }
     if (pc->connection) return;
-    ngx_pg_srv_conf_t *pscf = d->conf;
+    ngx_pg_srv_conf_t *pscf = d->pscf;
     if (!pscf) return;
     ngx_memzero(&s->error, sizeof(s->error));
     ngx_connection_t *c = s->connection;
@@ -1387,10 +1388,12 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
     if (uscf->srv_conf) {
         ngx_pg_srv_conf_t *pscf = ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module);
         if (pscf->peer.init(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer.init != NGX_OK"); return NGX_ERROR; }
-        d->conf = pscf;
+        d->pscf = pscf;
     } else {
         if (ngx_http_upstream_init_round_robin_peer(r, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_upstream_init_round_robin_peer != NGX_OK"); return NGX_ERROR; }
     }
+    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
+    d->plcf = plcf;
     ngx_http_upstream_t *u = r->upstream;
     d->peer = u->peer;
     d->request = r;
