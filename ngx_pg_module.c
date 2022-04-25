@@ -543,8 +543,8 @@ static int ngx_pg_fsm_copy_data(ngx_pg_save_t *s, uint32_t len) {
     s->len = len;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (!d->filter++) s->rc = NGX_DONE;
     if (!d->location) return s->rc;
+    if (!d->filter++) s->rc = NGX_DONE;
     ngx_pg_loc_conf_t *plcf = d->plcf;
     ngx_pg_query_t *query = plcf->queries.elts;
     query = &query[d->query];
@@ -569,8 +569,8 @@ static int ngx_pg_fsm_data_row(ngx_pg_save_t *s, uint32_t len) {
     s->len = len;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (!d->filter++) s->rc = NGX_DONE;
     if (!d->location) return s->rc;
+    if (!d->filter++) s->rc = NGX_DONE;
     ngx_pg_loc_conf_t *plcf = d->plcf;
     ngx_pg_query_t *query = plcf->queries.elts;
     query = &query[d->query];
@@ -723,7 +723,6 @@ static int ngx_pg_fsm_function_call_response(ngx_pg_save_t *s, uint32_t len) {
     s->len = len;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (!d->filter++) s->rc = NGX_DONE;
     d->query++;
     ngx_pg_loc_conf_t *plcf = d->plcf;
     ngx_pg_srv_conf_t *pscf = d->pscf;
@@ -732,6 +731,7 @@ static int ngx_pg_fsm_function_call_response(ngx_pg_save_t *s, uint32_t len) {
         d->query = 0;
     }
     if (!d->location) return s->rc;
+    if (!d->filter++) s->rc = NGX_DONE;
     ngx_pg_query_t *query = plcf->queries.elts;
     query = &query[d->query];
     if (!query->output) return s->rc;
@@ -982,8 +982,8 @@ static int ngx_pg_fsm_row_description(ngx_pg_save_t *s, uint32_t len) {
     s->len = len;
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    if (!d->filter++) s->rc = NGX_DONE;
     if (!d->location) return s->rc;
+    if (!d->filter++) s->rc = NGX_DONE;
     ngx_pg_loc_conf_t *plcf = d->plcf;
     ngx_pg_query_t *query = plcf->queries.elts;
     query = &query[d->query];
