@@ -1192,7 +1192,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     }
     ngx_pg_save_t *s;
     ngx_http_request_t *r = d->request;
-    ngx_pg_loc_conf_t *plcf = ngx_http_get_module_loc_conf(r, ngx_pg_module);
+    ngx_pg_loc_conf_t *plcf = d->plcf;
     ngx_pg_query_t *query = plcf->queries.elts;
     d->query = &query[-1];
     ngx_http_upstream_t *u = r->upstream;
