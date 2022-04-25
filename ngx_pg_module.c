@@ -1232,8 +1232,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_pg_loc_conf_t *plcf = d->plcf;
     d->query = -1;
     ngx_http_upstream_t *u = r->upstream;
-    ngx_chain_t *cl;
-    if (!(cl = u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
+    ngx_chain_t *cl = NULL;
     if (pc->connection) s = d->save = (ngx_pg_save_t *)((char *)pc->connection->pool + sizeof(*pc->connection->pool)); else {
         pc->get = ngx_event_get_peer;
         switch ((rc = ngx_event_connect_peer(pc))) {
@@ -1256,9 +1255,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!(s->fsm = ngx_pcalloc(c->pool, pg_fsm_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         pg_fsm_init(s->fsm);
         s->connection = c;
-        ngx_chain_t *connect;
         ngx_pg_srv_conf_t *pscf = d->pscf;
-        if (!(cl = connect = ngx_pg_startup_message(r->pool, pscf ? &pscf->connect.options : &plcf->connect.options))) return NGX_ERROR;
+        if (!(cl = u->request_bufs = ngx_pg_startup_message(r->pool, pscf ? &pscf->connect.options : &plcf->connect.options))) return NGX_ERROR;
         ngx_str_t password = pscf ? pscf->connect.password : plcf->connect.password;
         if (password.data) {
             while (cl->next) cl = cl->next;
@@ -1272,9 +1270,12 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             while (cl->next) cl = cl->next;
             if (!(cl->next = ngx_pg_sync(r->pool))) return NGX_ERROR;
         }
+    }
+    if (cl) {
         while (cl->next) cl = cl->next;
-        cl->next = u->request_bufs;
-        u->request_bufs = connect;
+        if (!(cl->next = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
+    } else {
+        if (!(cl = u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
     }
     while (cl->next) cl = cl->next;
     if (!(cl->next = ngx_pg_close(r->pool))) return NGX_ERROR;
