@@ -1195,16 +1195,14 @@ static ngx_chain_t *ngx_pg_queries(ngx_http_request_t *r, ngx_array_t *queries) 
             if (cl) {
                 if (!(cl->next = ngx_pg_function_call(r->pool, oid, &query[i].arguments))) return NULL;
             } else {
-                if (!(cl = ngx_pg_function_call(r->pool, oid, &query[i].arguments))) return NULL;
-                if (!cl_query) cl_query = cl;
+                if (!(cl = cl_query = ngx_pg_function_call(r->pool, oid, &query[i].arguments))) return NULL;
             }
             while (cl->next) cl = cl->next;
         } else if (query[i].commands.elts) {
             if (cl) {
                 if (!(cl->next = ngx_pg_parse(r->pool, &query[i].commands, &query[i].arguments))) return NULL;
             } else {
-                if (!(cl = ngx_pg_parse(r->pool, &query[i].commands, &query[i].arguments))) return NULL;
-                if (!cl_query) cl_query = cl;
+                if (!(cl = cl_query = ngx_pg_parse(r->pool, &query[i].commands, &query[i].arguments))) return NULL;
             }
             while (cl->next) cl = cl->next;
             if (!(cl->next = ngx_pg_bind(r->pool, &query[i].arguments))) return NULL;
