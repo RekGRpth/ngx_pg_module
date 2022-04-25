@@ -1255,22 +1255,22 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         s->connection = c;
         ngx_pg_srv_conf_t *pscf = d->pscf;
         if (!(cl = u->request_bufs = ngx_pg_startup_message(r->pool, pscf ? &pscf->connect.options : &plcf->connect.options))) return NGX_ERROR;
+        while (cl->next) cl = cl->next;
         ngx_str_t password = pscf ? pscf->connect.password : plcf->connect.password;
         if (password.data) {
-            while (cl->next) cl = cl->next;
             if (!(cl->next = ngx_pg_password_message(r->pool, password.len, password.data))) return NGX_ERROR;
+            while (cl->next) cl = cl->next;
         }
         if (pscf && pscf->queries.elts) {
-            while (cl->next) cl = cl->next;
             if (!(cl->next = ngx_pg_queries(r, &pscf->queries))) return NGX_ERROR;
             while (cl->next) cl = cl->next;
             if (!(cl->next = ngx_pg_close(r->pool))) return NGX_ERROR;
             while (cl->next) cl = cl->next;
             if (!(cl->next = ngx_pg_sync(r->pool))) return NGX_ERROR;
+            while (cl->next) cl = cl->next;
         }
     }
     if (cl) {
-        while (cl->next) cl = cl->next;
         if (!(cl->next = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
     } else {
         if (!(cl = u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
