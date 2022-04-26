@@ -54,6 +54,15 @@ typedef struct {
 #if (NGX_HTTP_CACHE)
     ngx_http_complex_value_t cache_key;
 #endif
+#if (NGX_HTTP_SSL)
+    ngx_array_t *ssl_conf_commands;
+    ngx_flag_t ssl;
+    ngx_str_t ssl_ciphers;
+    ngx_str_t ssl_crl;
+    ngx_str_t ssl_trusted_certificate;
+    ngx_uint_t ssl_protocols;
+    ngx_uint_t ssl_verify_depth;
+#endif
     ngx_pg_connect_t connect;
 } ngx_pg_loc_conf_t;
 
@@ -1485,6 +1494,20 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     c->write->log = c->log;
 }
 
+#if (NGX_HTTP_SSL)
+static ngx_int_t ngx_pg_peer_set_session(ngx_peer_connection_t *pc, void *data) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%s", __func__);
+    ngx_pg_data_t *d = data;
+    return d->peer.set_session(pc, d->peer.data);
+}
+
+static void ngx_pg_peer_save_session(ngx_peer_connection_t *pc, void *data) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%s", __func__);
+    ngx_pg_data_t *d = data;
+    d->peer.save_session(pc, d->peer.data);
+}
+#endif
+
 static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_conf_t *uscf) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "srv_conf = %s", uscf->srv_conf ? "true" : "false");
     ngx_pg_data_t *d;
@@ -1505,6 +1528,10 @@ static ngx_int_t ngx_pg_peer_init(ngx_http_request_t *r, ngx_http_upstream_srv_c
     u->peer.data = d;
     u->peer.free = ngx_pg_peer_free;
     u->peer.get = ngx_pg_peer_get;
+#if (NGX_HTTP_SSL)
+    u->peer.save_session = ngx_pg_peer_save_session;
+    u->peer.set_session = ngx_pg_peer_set_session;
+#endif
     return NGX_OK;
 }
 
@@ -1685,7 +1712,10 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     if (ngx_http_set_content_type(r) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_set_content_type != NGX_OK"); return NGX_HTTP_INTERNAL_SERVER_ERROR; }
     if (ngx_http_upstream_create(r) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_upstream_create != NGX_OK"); return NGX_HTTP_INTERNAL_SERVER_ERROR; }
     ngx_http_upstream_t *u = r->upstream;
-    ngx_str_set(&u->schema, "pg://");
+#if (NGX_HTTP_SSL)
+    if ((u->ssl = plcf->upstream.ssl != NULL)) { ngx_str_set(&u->schema, "pgs://"); } else
+#endif
+    { ngx_str_set(&u->schema, "pg://"); }
     u->output.tag = (ngx_buf_tag_t)&ngx_pg_module;
     u->conf = &plcf->upstream;
 #if (NGX_HTTP_CACHE)
@@ -1747,12 +1777,81 @@ static void *ngx_pg_create_loc_conf(ngx_conf_t *cf) {
     conf->upstream.cache_valid = NGX_CONF_UNSET_PTR;
     conf->upstream.no_cache = NGX_CONF_UNSET_PTR;
 #endif
+#if (NGX_HTTP_SSL)
+    conf->ssl_conf_commands = NGX_CONF_UNSET_PTR;
+    conf->ssl = NGX_CONF_UNSET;
+    conf->ssl_verify_depth = NGX_CONF_UNSET_UINT;
+    conf->upstream.ssl_certificate_key = NGX_CONF_UNSET_PTR;
+    conf->upstream.ssl_certificate = NGX_CONF_UNSET_PTR;
+    conf->upstream.ssl_name = NGX_CONF_UNSET_PTR;
+    conf->upstream.ssl_passwords = NGX_CONF_UNSET_PTR;
+    conf->upstream.ssl_server_name = NGX_CONF_UNSET;
+    conf->upstream.ssl_session_reuse = NGX_CONF_UNSET;
+    conf->upstream.ssl_verify = NGX_CONF_UNSET;
+#endif
     return conf;
 }
 
 static ngx_path_init_t ngx_pg_temp_path = {
     ngx_string("/var/tmp/nginx/pg_temp"), { 1, 2, 0 }
 };
+
+#if (NGX_HTTP_SSL)
+static char *ngx_pg_ssl_password_file(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_loc_conf_t *plcf = conf;
+    if (plcf->upstream.ssl_passwords != NGX_CONF_UNSET_PTR) return "is duplicate";
+    ngx_str_t *value = cf->args->elts;
+    if (!(plcf->upstream.ssl_passwords = ngx_ssl_read_password_file(cf, &value[1]))) return "!ngx_ssl_read_password_file";
+    return NGX_CONF_OK;
+}
+
+static char *ngx_pg_ssl_conf_command_check(ngx_conf_t *cf, void *post, void *data) {
+#ifndef SSL_CONF_FLAG_FILE
+    return "is not supported on this platform";
+#else
+    return NGX_CONF_OK;
+#endif
+}
+
+static ngx_int_t ngx_pg_set_ssl(ngx_conf_t *cf, ngx_pg_loc_conf_t *plcf) {
+    if (!(plcf->upstream.ssl = ngx_pcalloc(cf->pool, sizeof(ngx_ssl_t)))) return NGX_ERROR;
+    plcf->upstream.ssl->log = cf->log;
+    if (ngx_ssl_create(plcf->upstream.ssl, plcf->ssl_protocols, NULL) != NGX_OK) return NGX_ERROR;
+    ngx_pool_cleanup_t *cln;
+    if (!(cln = ngx_pool_cleanup_add(cf->pool, 0))) { ngx_ssl_cleanup_ctx(plcf->upstream.ssl); return NGX_ERROR; }
+    cln->handler = ngx_ssl_cleanup_ctx;
+    cln->data = plcf->upstream.ssl;
+    if (ngx_ssl_ciphers(cf, plcf->upstream.ssl, &plcf->ssl_ciphers, 0) != NGX_OK) return NGX_ERROR;
+    if (plcf->upstream.ssl_certificate) {
+        if (!plcf->upstream.ssl_certificate_key) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "no \"pg_ssl_certificate_key\" is defined for certificate \"%V\"", &plcf->upstream.ssl_certificate->value); return NGX_ERROR; }
+        if (plcf->upstream.ssl_certificate->lengths || plcf->upstream.ssl_certificate_key->lengths) {
+            if (!(plcf->upstream.ssl_passwords = ngx_ssl_preserve_passwords(cf, plcf->upstream.ssl_passwords))) return NGX_ERROR;
+        } else {
+            if (ngx_ssl_certificate(cf, plcf->upstream.ssl, &plcf->upstream.ssl_certificate->value, &plcf->upstream.ssl_certificate_key->value, plcf->upstream.ssl_passwords) != NGX_OK) return NGX_ERROR;
+        }
+    }
+    if (plcf->upstream.ssl_verify) {
+        if (!plcf->ssl_trusted_certificate.len) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "no pg_ssl_trusted_certificate for pg_ssl_verify"); return NGX_ERROR; }
+        if (ngx_ssl_trusted_certificate(cf, plcf->upstream.ssl, &plcf->ssl_trusted_certificate, plcf->ssl_verify_depth) != NGX_OK) return NGX_ERROR;
+        if (ngx_ssl_crl(cf, plcf->upstream.ssl, &plcf->ssl_crl) != NGX_OK) return NGX_ERROR;
+    }
+    if (ngx_ssl_client_session_cache(cf, plcf->upstream.ssl, plcf->upstream.ssl_session_reuse) != NGX_OK) return NGX_ERROR;
+    if (ngx_ssl_conf_commands(cf, plcf->upstream.ssl, plcf->ssl_conf_commands) != NGX_OK) return NGX_ERROR;
+    return NGX_OK;
+}
+
+static ngx_conf_bitmask_t ngx_pg_ssl_protocols[] = {
+  { ngx_string("SSLv2"), NGX_SSL_SSLv2 },
+  { ngx_string("SSLv3"), NGX_SSL_SSLv3 },
+  { ngx_string("TLSv1"), NGX_SSL_TLSv1 },
+  { ngx_string("TLSv1.1"), NGX_SSL_TLSv1_1 },
+  { ngx_string("TLSv1.2"), NGX_SSL_TLSv1_2 },
+  { ngx_string("TLSv1.3"), NGX_SSL_TLSv1_3 },
+  { ngx_null_string, 0 }
+};
+
+static ngx_conf_post_t ngx_pg_ssl_conf_command_post = { ngx_pg_ssl_conf_command_check };
+#endif
 
 static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     ngx_pg_loc_conf_t *prev = parent;
@@ -1809,6 +1908,23 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     ngx_conf_merge_msec_value(conf->upstream.cache_lock_age, prev->upstream.cache_lock_age, 5000);
     ngx_conf_merge_value(conf->upstream.cache_revalidate, prev->upstream.cache_revalidate, 0);
     ngx_conf_merge_value(conf->upstream.cache_background_update, prev->upstream.cache_background_update, 0);
+#endif
+#if (NGX_HTTP_SSL)
+    ngx_conf_merge_bitmask_value(conf->ssl_protocols, prev->ssl_protocols, NGX_CONF_BITMASK_SET|NGX_SSL_TLSv1|NGX_SSL_TLSv1_1|NGX_SSL_TLSv1_2);
+    ngx_conf_merge_ptr_value(conf->ssl_conf_commands, prev->ssl_conf_commands, NULL);
+    ngx_conf_merge_ptr_value(conf->upstream.ssl_certificate_key, prev->upstream.ssl_certificate_key, NULL);
+    ngx_conf_merge_ptr_value(conf->upstream.ssl_certificate, prev->upstream.ssl_certificate, NULL);
+    ngx_conf_merge_ptr_value(conf->upstream.ssl_name, prev->upstream.ssl_name, NULL);
+    ngx_conf_merge_ptr_value(conf->upstream.ssl_passwords, prev->upstream.ssl_passwords, NULL);
+    ngx_conf_merge_str_value(conf->ssl_ciphers, prev->ssl_ciphers, "DEFAULT");
+    ngx_conf_merge_str_value(conf->ssl_crl, prev->ssl_crl, "");
+    ngx_conf_merge_str_value(conf->ssl_trusted_certificate, prev->ssl_trusted_certificate, "");
+    ngx_conf_merge_uint_value(conf->ssl_verify_depth, prev->ssl_verify_depth, 1);
+    ngx_conf_merge_value(conf->ssl, prev->ssl, 0);
+    ngx_conf_merge_value(conf->upstream.ssl_server_name, prev->upstream.ssl_server_name, 0);
+    ngx_conf_merge_value(conf->upstream.ssl_session_reuse, prev->upstream.ssl_session_reuse, 1);
+    ngx_conf_merge_value(conf->upstream.ssl_verify, prev->upstream.ssl_verify, 0);
+    if (conf->ssl && ngx_pg_set_ssl(cf, conf) != NGX_OK) return "ngx_pg_set_ssl != NGX_OK";
 #endif
     return NGX_CONF_OK;
 }
@@ -2278,6 +2394,22 @@ static ngx_command_t ngx_pg_commands[] = {
   { ngx_string("pg_cache_use_stale"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_1MORE, ngx_conf_set_bitmask_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.cache_use_stale), &ngx_pg_next_upstream_masks },
   { ngx_string("pg_cache_valid"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_1MORE, ngx_http_file_cache_valid_set_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.cache_valid), NULL },
   { ngx_string("pg_no_cache"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_1MORE, ngx_http_set_predicate_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.no_cache), NULL },
+#endif
+#if (NGX_HTTP_SSL)
+  { ngx_string("pg_ssl_certificate_key"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_http_set_complex_value_zero_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.ssl_certificate_key), NULL },
+  { ngx_string("pg_ssl_certificate"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_http_set_complex_value_zero_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.ssl_certificate), NULL },
+  { ngx_string("pg_ssl_ciphers"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_conf_set_str_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, ssl_ciphers), NULL },
+  { ngx_string("pg_ssl_conf_command"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE2, ngx_conf_set_keyval_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, ssl_conf_commands), &ngx_pg_ssl_conf_command_post },
+  { ngx_string("pg_ssl_crl"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_conf_set_str_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, ssl_crl), NULL },
+  { ngx_string("pg_ssl_name"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_http_set_complex_value_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.ssl_name), NULL },
+  { ngx_string("pg_ssl"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG, ngx_conf_set_flag_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, ssl), NULL },
+  { ngx_string("pg_ssl_password_file"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_pg_ssl_password_file, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
+  { ngx_string("pg_ssl_protocols"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_1MORE, ngx_conf_set_bitmask_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, ssl_protocols), &ngx_pg_ssl_protocols },
+  { ngx_string("pg_ssl_server_name"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG, ngx_conf_set_flag_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.ssl_server_name), NULL },
+  { ngx_string("pg_ssl_session_reuse"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG, ngx_conf_set_flag_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.ssl_session_reuse), NULL },
+  { ngx_string("pg_ssl_trusted_certificate"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_conf_set_str_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, ssl_trusted_certificate), NULL },
+  { ngx_string("pg_ssl_verify_depth"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_conf_set_num_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, ssl_verify_depth), NULL },
+  { ngx_string("pg_ssl_verify"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG, ngx_conf_set_flag_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.ssl_verify), NULL },
 #endif
     ngx_null_command
 };
