@@ -410,6 +410,20 @@ static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, ngx_array_t *commands) {
     return query;
 }
 
+static ngx_chain_t *ngx_pg_sasl_initial_response_scram_sha_256(ngx_pool_t *p, uint32_t len, const uint8_t *data) {
+    ngx_chain_t *cl, *cl_size, *sasl;
+    uint32_t size = 0;
+    if (!(cl = sasl = ngx_pg_write_int1(p, NULL, 'p'))) return NULL;
+    if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_str(p, &size, sizeof("SCRAM-SHA-256") - 1, (uint8_t *)"SCRAM-SHA-256"))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, len))) return NULL;
+    if (len != (uint32_t)-1) if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
+    cl->next = ngx_pg_write_size(cl_size, size);
+//    ngx_uint_t i = 0; for (ngx_chain_t *cl = sasl; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
+    return sasl;
+}
+
 /*static ngx_chain_t *ngx_pg_ssl_request(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *ssl;
     uint32_t size = 0;
@@ -591,6 +605,14 @@ static int ngx_pg_fsm_authentication_sasl(ngx_pg_save_t *s, uint32_t len) {
 
 static int ngx_pg_fsm_authentication_sasl_scram_sha_256(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    ngx_pg_data_t *d = s->data;
+    if (!d) return s->rc;
+    ngx_chain_t *out, *last;
+    ngx_http_request_t *r = d->request;
+    if (!(out = ngx_pg_sasl_initial_response_scram_sha_256(r->pool, -1, NULL))) { s->rc = NGX_ERROR; return s->rc; }
+    ngx_connection_t *c = s->connection;
+    ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
+    ngx_chain_writer(&ctx, NULL);
     return s->rc;
 }
 
