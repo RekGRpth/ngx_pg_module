@@ -1,4 +1,5 @@
 #include <ngx_http.h>
+#include <ngx_md5.h>
 #include "pg_fsm.h"
 
 extern ngx_int_t ngx_http_push_stream_add_msg_to_channel_my(ngx_log_t *log, ngx_str_t *id, ngx_str_t *text, ngx_str_t *event_id, ngx_str_t *event_type, ngx_flag_t store_messages, ngx_pool_t *temp_pool) __attribute__((weak));
@@ -43,6 +44,7 @@ typedef struct {
 typedef struct {
     ngx_array_t options;
     ngx_str_t password;
+    ngx_str_t username;
 } ngx_pg_connect_t;
 
 typedef struct {
@@ -119,7 +121,6 @@ typedef struct {
     uint32_t key;
     uint32_t len;
     uint32_t pid;
-    uint32_t salt;
     struct {
         ngx_event_handler_pt read_handler;
         ngx_event_handler_pt write_handler;
@@ -512,14 +513,13 @@ static int ngx_pg_fsm_authentication_cleartext_password(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_chain_t *out, *last;
-    ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = d->plcf;
     ngx_pg_srv_conf_t *pscf = d->pscf;
     ngx_str_t password = pscf ? pscf->connect.password : plcf->connect.password;
-    if (password.data) {
-        if (!(out = ngx_pg_password_message(r->pool, password.len, password.data))) { s->rc = NGX_ERROR; return s->rc; }
-    } else { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!password"); s->rc = NGX_ERROR; return s->rc; }
+    if (!password.data) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!password"); s->rc = NGX_ERROR; return s->rc; }
+    ngx_chain_t *out, *last;
+    ngx_http_request_t *r = d->request;
+    if (!(out = ngx_pg_password_message(r->pool, password.len, password.data))) { s->rc = NGX_ERROR; return s->rc; }
     ngx_connection_t *c = s->connection;
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
     ngx_chain_writer(&ctx, NULL);
@@ -528,7 +528,30 @@ static int ngx_pg_fsm_authentication_cleartext_password(ngx_pg_save_t *s) {
 
 static int ngx_pg_fsm_authentication_md5_password(ngx_pg_save_t *s, uint32_t salt) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", salt);
-    s->salt = salt;
+//    NGX_HTTP_UPSTREAM_INVALID_HEADER
+    ngx_pg_data_t *d = s->data;
+    if (!d) return s->rc;
+    ngx_pg_loc_conf_t *plcf = d->plcf;
+    ngx_pg_srv_conf_t *pscf = d->pscf;
+    ngx_str_t password = pscf ? pscf->connect.password : plcf->connect.password;
+    ngx_str_t username = pscf ? pscf->connect.username : plcf->connect.username;
+    if (!password.data) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!password"); s->rc = NGX_ERROR; return s->rc; }
+    ngx_http_request_t *r = d->request;
+    ngx_str_t str;
+    if (!(str.data = ngx_pnalloc(r->pool, NGX_INT32_LEN))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
+    str.len = ngx_sprintf(str.data, "%uD", salt) - str.data;
+    ngx_md5_t md5;
+    ngx_md5_init(&md5);
+    ngx_md5_update(&md5, password.data, password.len);
+    ngx_md5_update(&md5, username.data, username.len);
+    ngx_md5_update(&md5, str.data, str.len);
+    u_char buf[16];
+    ngx_md5_final(buf, &md5);
+    ngx_chain_t *out, *last;
+    if (!(out = ngx_pg_password_message(r->pool, 16, buf))) { s->rc = NGX_ERROR; return s->rc; }
+    ngx_connection_t *c = s->connection;
+    ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
+    ngx_chain_writer(&ctx, NULL);
     return s->rc;
 }
 
@@ -2026,6 +2049,10 @@ static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_pg_connect_t *connec
             if (!(connect->password.len = str[i].len - (sizeof("password=") - 1))) return "empty \"password\" value";
             connect->password.data = &str[i].data[sizeof("password=") - 1];
             continue;
+        }
+        if (str[i].len > sizeof("user=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"user=", sizeof("user=") - 1)) {
+            if (!(connect->username.len = str[i].len - (sizeof("user=") - 1))) return "empty \"user\" value";
+            connect->username.data = &str[i].data[sizeof("user=") - 1];
         }
         if (!(option = ngx_array_push(&connect->options))) return "!ngx_array_push";
         ngx_memzero(option, sizeof(*option));
