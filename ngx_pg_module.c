@@ -530,7 +530,7 @@ static int ngx_pg_fsm_authentication_cleartext_password(ngx_pg_save_t *s) {
 #define MD5_HEX_LENGTH 32
 
 static int ngx_pg_fsm_authentication_md5_password(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
-    ngx_uint_t i = 0; for (u_char *p = data; p < data + len; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%ui:%d:%c", i++, *p, *p);
+    for (u_char *p = data; p < data + len; p++) ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d:%c", *p, *p);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_loc_conf_t *plcf = d->plcf;
