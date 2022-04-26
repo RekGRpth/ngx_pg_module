@@ -614,7 +614,7 @@ static int ngx_pg_fsm_authentication_sasl_scram_sha_256(ngx_pg_save_t *s) {
     if (!d) return s->rc;
     ngx_chain_t *out, *last;
     ngx_http_request_t *r = d->request;
-    if (!(out = ngx_pg_sasl_initial_response_scram_sha_256(r->pool, -1, NULL))) { s->rc = NGX_ERROR; return s->rc; }
+    if (!(out = ngx_pg_sasl_initial_response_scram_sha_256(r->pool, sizeof("n,,n=,r=") - 1, (uint8_t *)"n,,n=,r="))) { s->rc = NGX_ERROR; return s->rc; }
     ngx_connection_t *c = s->connection;
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
     ngx_chain_writer(&ctx, NULL);
