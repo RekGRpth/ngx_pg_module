@@ -1299,7 +1299,6 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         s = d->save = (ngx_pg_save_t *)((char *)pc->connection->pool + sizeof(*pc->connection->pool));
         if (!(u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
     } else {
-        ngx_chain_t *cl;
         pc->get = ngx_event_get_peer;
         switch ((rc = ngx_event_connect_peer(pc))) {
             case NGX_AGAIN: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = NGX_AGAIN"); break;
@@ -1322,7 +1321,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         pg_fsm_init(s->fsm);
         s->connection = c;
         ngx_pg_srv_conf_t *pscf = d->pscf;
-        if (!(cl = u->request_bufs = ngx_pg_startup_message(r->pool, pscf ? &pscf->connect.options : &plcf->connect.options))) return NGX_ERROR;
+        if (!(u->request_bufs = ngx_pg_startup_message(r->pool, pscf ? &pscf->connect.options : &plcf->connect.options))) return NGX_ERROR;
     }
     s->data = d;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%ui:%d:%c", i++, *p, *p);
