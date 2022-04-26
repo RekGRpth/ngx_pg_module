@@ -21,9 +21,9 @@ typedef struct pg_fsm_t {
     action authentication_cleartext_password { if (f->authentication_cleartext_password(u)) fbreak; }
     action authentication_md5_password { if (m->string && p - m->string > 0 && f->authentication_md5_password(u, p - m->string, m->string)) fbreak; m->string = NULL; }
     action authentication_ok { if (f->authentication_ok(u)) fbreak; }
-    action authentication_sasl { if (f->authentication_sasl(u, m->int4 - 4)) fbreak; }
-    action authentication_sasl_continue { m->result_len = m->int4 - 4; if (f->authentication_sasl_continue(u, m->result_len)) fbreak; }
-    action authentication_sasl_scram_sha_256 { if (f->authentication_sasl_scram_sha_256(u)) fbreak; }
+#    action authentication_sasl { if (f->authentication_sasl(u, m->int4 - 4)) fbreak; }
+#    action authentication_sasl_continue { m->result_len = m->int4 - 4; if (f->authentication_sasl_continue(u, m->result_len)) fbreak; }
+#    action authentication_sasl_scram_sha_256 { if (f->authentication_sasl_scram_sha_256(u)) fbreak; }
     action backend_key_data { if (f->backend_key_data(u)) fbreak; }
     action backend_key_data_key { if (f->backend_key_data_key(u, m->int4)) fbreak; }
     action backend_key_data_pid { if (f->backend_key_data_pid(u, m->int4)) fbreak; }
@@ -148,7 +148,7 @@ typedef struct pg_fsm_t {
 
     function_call_response = int4 @(result_len) result;
 
-    authentication_sasl = "SCRAM-SHA-256" 0 @(authentication_sasl_scram_sha_256);
+#    authentication_sasl = "SCRAM-SHA-256" 0 @(authentication_sasl_scram_sha_256);
     data_row = function_call_response;
     ready_for_query = ready_for_query_inerror | ready_for_query_idle | ready_for_query_intrans;
     row_description = str >row_description_beg @(row_description_name) @eof(row_description_name) int4 @(row_description_table) int2 @(row_description_column) int4 @(row_description_oid) int2 @(row_description_length) int4 @(row_description_mod) 0 0 @(row_description_format);
@@ -171,8 +171,8 @@ typedef struct pg_fsm_t {
     | "R" 0 0 0 12 0 0 0 5 str4 %(authentication_md5_password)
     | "R" 0 0 0 8 0 0 0 0 @(authentication_ok)
     | "R" 0 0 0 8 0 0 0 3 @(authentication_cleartext_password)
-    | "R" int4 0 0 0 10 @(authentication_sasl) authentication_sasl + 0
-    | "R" int4 0 0 0 11 @(authentication_sasl_continue) result
+#    | "R" int4 0 0 0 10 @(authentication_sasl) authentication_sasl + 0
+#    | "R" int4 0 0 0 11 @(authentication_sasl_continue) result
     | "S" int4 @(parameter_status) parameter_status
     | "T" int4 @(row_description) int2 @(row_description_count) row_description
     | "V" int4 @(function_call_response) function_call_response

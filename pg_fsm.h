@@ -16,7 +16,7 @@ typedef int (*pg_fsm_str_cb) (void *u, size_t len, const uint8_t *data);
 typedef struct {
     pg_fsm_cb authentication_cleartext_password;
     pg_fsm_cb authentication_ok;
-    pg_fsm_cb authentication_sasl_scram_sha_256;
+//    pg_fsm_cb authentication_sasl_scram_sha_256;
     pg_fsm_cb backend_key_data;
     pg_fsm_cb bind_complete;
     pg_fsm_cb close_complete;
@@ -34,8 +34,8 @@ typedef struct {
     pg_fsm_int2_cb row_description_count;
     pg_fsm_int2_cb row_description_format;
     pg_fsm_int2_cb row_description_length;
-    pg_fsm_int4_cb authentication_sasl;
-    pg_fsm_int4_cb authentication_sasl_continue;
+//    pg_fsm_int4_cb authentication_sasl;
+//    pg_fsm_int4_cb authentication_sasl_continue;
     pg_fsm_int4_cb backend_key_data_key;
     pg_fsm_int4_cb backend_key_data_pid;
     pg_fsm_int4_cb command_complete;

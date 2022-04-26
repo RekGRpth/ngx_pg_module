@@ -410,7 +410,7 @@ static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, ngx_array_t *commands) {
     return query;
 }
 
-static ngx_chain_t *ngx_pg_sasl_initial_response_scram_sha_256(ngx_pool_t *p, uint32_t len, const uint8_t *data) {
+/*static ngx_chain_t *ngx_pg_sasl_initial_response_scram_sha_256(ngx_pool_t *p, uint32_t len, const uint8_t *data) {
     ngx_chain_t *cl, *cl_size, *sasl;
     uint32_t size = 0;
     if (!(cl = sasl = ngx_pg_write_int1(p, NULL, 'p'))) return NULL;
@@ -422,7 +422,7 @@ static ngx_chain_t *ngx_pg_sasl_initial_response_scram_sha_256(ngx_pool_t *p, ui
     cl->next = ngx_pg_write_size(cl_size, size);
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = sasl; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
     return sasl;
-}
+}*/
 
 /*static ngx_chain_t *ngx_pg_ssl_request(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *ssl;
@@ -598,17 +598,17 @@ static int ngx_pg_fsm_authentication_ok(ngx_pg_save_t *s) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_authentication_sasl(ngx_pg_save_t *s, uint32_t len) {
+/*static int ngx_pg_fsm_authentication_sasl(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     return s->rc;
-}
+}*/
 
-static int ngx_pg_fsm_authentication_sasl_continue(ngx_pg_save_t *s, uint32_t len) {
+/*static int ngx_pg_fsm_authentication_sasl_continue(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     return s->rc;
-}
+}*/
 
-static int ngx_pg_fsm_authentication_sasl_scram_sha_256(ngx_pg_save_t *s) {
+/*static int ngx_pg_fsm_authentication_sasl_scram_sha_256(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
@@ -619,7 +619,7 @@ static int ngx_pg_fsm_authentication_sasl_scram_sha_256(ngx_pg_save_t *s) {
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
     ngx_chain_writer(&ctx, NULL);
     return s->rc;
-}
+}*/
 
 static int ngx_pg_fsm_backend_key_data(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
@@ -1219,9 +1219,9 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .authentication_cleartext_password = (pg_fsm_cb)ngx_pg_fsm_authentication_cleartext_password,
     .authentication_md5_password = (pg_fsm_str_cb)ngx_pg_fsm_authentication_md5_password,
     .authentication_ok = (pg_fsm_cb)ngx_pg_fsm_authentication_ok,
-    .authentication_sasl_continue = (pg_fsm_int4_cb)ngx_pg_fsm_authentication_sasl_continue,
-    .authentication_sasl = (pg_fsm_int4_cb)ngx_pg_fsm_authentication_sasl,
-    .authentication_sasl_scram_sha_256 = (pg_fsm_cb)ngx_pg_fsm_authentication_sasl_scram_sha_256,
+//    .authentication_sasl_continue = (pg_fsm_int4_cb)ngx_pg_fsm_authentication_sasl_continue,
+//    .authentication_sasl = (pg_fsm_int4_cb)ngx_pg_fsm_authentication_sasl,
+//    .authentication_sasl_scram_sha_256 = (pg_fsm_cb)ngx_pg_fsm_authentication_sasl_scram_sha_256,
     .backend_key_data_key = (pg_fsm_int4_cb)ngx_pg_fsm_backend_key_data_key,
     .backend_key_data = (pg_fsm_cb)ngx_pg_fsm_backend_key_data,
     .backend_key_data_pid = (pg_fsm_int4_cb)ngx_pg_fsm_backend_key_data_pid,
