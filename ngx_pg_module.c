@@ -536,18 +536,17 @@ static int ngx_pg_fsm_authentication_ok(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
-    ngx_chain_t *cl = NULL, *out, *last;
+    ngx_chain_t *out, *last;
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = d->plcf;
     ngx_pg_srv_conf_t *pscf = d->pscf;
     if (pscf && pscf->queries.elts) {
+        ngx_chain_t *cl;
         if (!(cl = out = ngx_pg_queries(r, &pscf->queries))) { s->rc = NGX_ERROR; return s->rc; }
         while (cl->next) cl = cl->next;
-    }
-    if (cl) {
         if (!(cl->next = ngx_pg_queries(r, &plcf->queries))) { s->rc = NGX_ERROR; return s->rc; }
     } else {
-        if (!(cl = out = ngx_pg_queries(r, &plcf->queries))) { s->rc = NGX_ERROR; return s->rc; }
+        if (!(out = ngx_pg_queries(r, &plcf->queries))) { s->rc = NGX_ERROR; return s->rc; }
     }
     ngx_connection_t *c = s->connection;
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
