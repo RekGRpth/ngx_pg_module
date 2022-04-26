@@ -546,12 +546,12 @@ static int ngx_pg_fsm_authentication_md5_password(ngx_pg_save_t *s, size_t len, 
     ngx_md5_final(digest, &md5);
     u_char hex[3 + MD5_HEX_LENGTH];
     hex[0] = 'm'; hex[1] = 'd'; hex[2] = '5';
-    (void)ngx_hex_dump(hex + 3, digest, MD5_HEX_LENGTH);
+    (void)ngx_hex_dump(hex + 3, digest, MD5_DIGEST_LENGTH);
     ngx_md5_init(&md5);
     ngx_md5_update(&md5, hex + 3, MD5_HEX_LENGTH);
     ngx_md5_update(&md5, data, len);
     ngx_md5_final(digest, &md5);
-    (void)ngx_hex_dump(hex + 3, digest, MD5_HEX_LENGTH);
+    (void)ngx_hex_dump(hex + 3, digest, MD5_DIGEST_LENGTH);
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", 3 + MD5_HEX_LENGTH, hex);
     ngx_chain_t *out, *last;
     ngx_http_request_t *r = d->request;
