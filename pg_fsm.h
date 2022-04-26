@@ -35,6 +35,7 @@ typedef struct {
     pg_fsm_int2_cb row_description_format;
     pg_fsm_int2_cb row_description_length;
     pg_fsm_int4_cb authentication_sasl;
+    pg_fsm_int4_cb authentication_sasl_continue;
     pg_fsm_int4_cb backend_key_data_key;
     pg_fsm_int4_cb backend_key_data_pid;
     pg_fsm_int4_cb command_complete;
