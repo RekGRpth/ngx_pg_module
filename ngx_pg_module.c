@@ -526,29 +526,36 @@ static int ngx_pg_fsm_authentication_cleartext_password(ngx_pg_save_t *s) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_authentication_md5_password(ngx_pg_save_t *s, uint32_t salt) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", salt);
-//    NGX_HTTP_UPSTREAM_INVALID_HEADER
+#define MD5_DIGEST_LENGTH 16
+#define MD5_HEX_LENGTH 32
+
+static int ngx_pg_fsm_authentication_md5_password(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
+    ngx_uint_t i = 0; for (u_char *p = data; p < data + len; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%ui:%d:%c", i++, *p, *p);
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
     ngx_pg_loc_conf_t *plcf = d->plcf;
     ngx_pg_srv_conf_t *pscf = d->pscf;
     ngx_str_t password = pscf ? pscf->connect.password : plcf->connect.password;
-    ngx_str_t username = pscf ? pscf->connect.username : plcf->connect.username;
     if (!password.data) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!password"); s->rc = NGX_ERROR; return s->rc; }
-    ngx_http_request_t *r = d->request;
-    ngx_str_t str;
-    if (!(str.data = ngx_pnalloc(r->pool, NGX_INT32_LEN))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
-    str.len = ngx_sprintf(str.data, "%uD", salt) - str.data;
+    ngx_str_t username = pscf ? pscf->connect.username : plcf->connect.username;
     ngx_md5_t md5;
     ngx_md5_init(&md5);
     ngx_md5_update(&md5, password.data, password.len);
     ngx_md5_update(&md5, username.data, username.len);
-    ngx_md5_update(&md5, str.data, str.len);
-    u_char buf[16];
-    ngx_md5_final(buf, &md5);
+    u_char digest[MD5_DIGEST_LENGTH];
+    ngx_md5_final(digest, &md5);
+    u_char hex[3 + MD5_HEX_LENGTH];
+    hex[0] = 'm'; hex[1] = 'd'; hex[2] = '5';
+    (void)ngx_hex_dump(hex + 3, digest, MD5_HEX_LENGTH);
+    ngx_md5_init(&md5);
+    ngx_md5_update(&md5, hex + 3, MD5_HEX_LENGTH);
+    ngx_md5_update(&md5, data, len);
+    ngx_md5_final(digest, &md5);
+    (void)ngx_hex_dump(hex + 3, digest, MD5_HEX_LENGTH);
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", 3 + MD5_HEX_LENGTH, hex);
     ngx_chain_t *out, *last;
-    if (!(out = ngx_pg_password_message(r->pool, 16, buf))) { s->rc = NGX_ERROR; return s->rc; }
+    ngx_http_request_t *r = d->request;
+    if (!(out = ngx_pg_password_message(r->pool, 3 + MD5_HEX_LENGTH, hex))) { s->rc = NGX_ERROR; return s->rc; }
     ngx_connection_t *c = s->connection;
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
     ngx_chain_writer(&ctx, NULL);
@@ -1183,7 +1190,7 @@ static int ngx_pg_fsm_row_description_table(ngx_pg_save_t *s, uint32_t table) {
 static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .all = (pg_fsm_str_cb)ngx_pg_fsm_all,
     .authentication_cleartext_password = (pg_fsm_cb)ngx_pg_fsm_authentication_cleartext_password,
-    .authentication_md5_password = (pg_fsm_int4_cb)ngx_pg_fsm_authentication_md5_password,
+    .authentication_md5_password = (pg_fsm_str_cb)ngx_pg_fsm_authentication_md5_password,
     .authentication_ok = (pg_fsm_cb)ngx_pg_fsm_authentication_ok,
     .authentication_sasl_name = (pg_fsm_str_cb)ngx_pg_fsm_authentication_sasl_name,
     .authentication_sasl = (pg_fsm_int4_cb)ngx_pg_fsm_authentication_sasl,

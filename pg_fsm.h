@@ -33,7 +33,6 @@ typedef struct {
     pg_fsm_int2_cb row_description_count;
     pg_fsm_int2_cb row_description_format;
     pg_fsm_int2_cb row_description_length;
-    pg_fsm_int4_cb authentication_md5_password;
     pg_fsm_int4_cb authentication_sasl;
     pg_fsm_int4_cb backend_key_data_key;
     pg_fsm_int4_cb backend_key_data_pid;
@@ -53,6 +52,7 @@ typedef struct {
     pg_fsm_int4_cb row_description_oid;
     pg_fsm_int4_cb row_description_table;
     pg_fsm_str_cb all;
+    pg_fsm_str_cb authentication_md5_password;
     pg_fsm_str_cb authentication_sasl_name;
     pg_fsm_str_cb command_complete_val;
     pg_fsm_str_cb error;
