@@ -1606,17 +1606,14 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_pg_connect_t *connect = pscf ? &pscf->connect : &plcf->connect;
     if (u->peer.sockaddr->sa_family != AF_UNIX && connect->ssl && !u->ssl) {
         if (b->last - b->pos != 1) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "b->last - b->pos != 1"); return NGX_ERROR; }
-        if (*b->pos == 'S') {
-            u->ssl = 1;
-        } else if (*b->pos != 'N') { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "*b->pos != 'S' && *b->pos != 'N'"); return NGX_ERROR; }
+        switch (*b->pos++) {
+            case 'N': break;
+            case 'S': u->ssl = 1; break;
+            default: ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "*b->pos != 'S' && *b->pos != 'N'"); return NGX_ERROR;
+        }
         if (!(u->request_bufs = ngx_pg_startup_message(r->pool, &connect->options))) return NGX_ERROR;
         u->request_sent = 0;
         u->write_event_handler(r, u);
-//        ngx_chain_t *out, *last;
-//        if (!(out = ngx_pg_startup_message(r->pool, &connect->options))) return NGX_ERROR;
-//        ngx_connection_t *c = s->connection;
-//        ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
-//        ngx_chain_writer(&ctx, NULL);
         return NGX_AGAIN;
     }
     s->rc = NGX_OK;
