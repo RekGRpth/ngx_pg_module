@@ -1336,10 +1336,15 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_pg_save_t *s;
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = d->plcf;
+    ngx_pg_srv_conf_t *pscf = d->pscf;
+    ngx_pg_connect_t *connect = pscf ? &pscf->connect : &plcf->connect;
     d->query = -1;
     ngx_http_upstream_t *u = r->upstream;
     if (pc->connection) {
         s = d->save = (ngx_pg_save_t *)((char *)pc->connection->pool + sizeof(*pc->connection->pool));
+#if (NGX_HTTP_SSL)
+        if (pc->sockaddr->sa_family != AF_UNIX && connect->ssl) u->ssl = 1;
+#endif
         if (!(u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
     } else {
         pc->get = ngx_event_get_peer;
@@ -1363,8 +1368,6 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!(s->fsm = ngx_pcalloc(c->pool, pg_fsm_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         pg_fsm_init(s->fsm);
         s->connection = c;
-        ngx_pg_srv_conf_t *pscf = d->pscf;
-        ngx_pg_connect_t *connect = pscf ? &pscf->connect : &plcf->connect;
 #if (NGX_HTTP_SSL)
         if (pc->sockaddr->sa_family != AF_UNIX && connect->ssl) {
             if (!(u->request_bufs = ngx_pg_ssl_request(r->pool))) return NGX_ERROR;
