@@ -1232,16 +1232,6 @@ static int ngx_pg_fsm_row_description_table(ngx_pg_save_t *s, uint32_t table) {
     return s->rc;
 }
 
-static int ngx_pg_fsm_ssl_response_off(ngx_pg_save_t *s) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    return s->rc;
-}
-
-static int ngx_pg_fsm_ssl_response_on(ngx_pg_save_t *s) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    return s->rc;
-}
-
 static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .all = (pg_fsm_str_cb)ngx_pg_fsm_all,
     .authentication_cleartext_password = (pg_fsm_cb)ngx_pg_fsm_authentication_cleartext_password,
@@ -1321,8 +1311,6 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .row_description_oid = (pg_fsm_int4_cb)ngx_pg_fsm_row_description_oid,
     .row_description = (pg_fsm_int4_cb)ngx_pg_fsm_row_description,
     .row_description_table = (pg_fsm_int4_cb)ngx_pg_fsm_row_description_table,
-    .ssl_response_off = (pg_fsm_cb)ngx_pg_fsm_ssl_response_off,
-    .ssl_response_on = (pg_fsm_cb)ngx_pg_fsm_ssl_response_on,
 };
 
 static void ngx_pg_save_cln_handler(ngx_pg_save_t *s) {
@@ -1613,11 +1601,28 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
     if (!s) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!s"); return NGX_ERROR; }
+    ngx_pg_loc_conf_t *plcf = d->plcf;
+    ngx_pg_srv_conf_t *pscf = d->pscf;
+    ngx_pg_connect_t *connect = pscf ? &pscf->connect : &plcf->connect;
+    if (u->peer.sockaddr->sa_family != AF_UNIX && connect->ssl && !u->ssl) {
+        if (b->last - b->pos != 1) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "b->last - b->pos != 1"); return NGX_ERROR; }
+        if (*b->pos == 'S') {
+            u->ssl = 1;
+        } else if (*b->pos != 'N') { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "*b->pos != 'S' && *b->pos != 'N'"); return NGX_ERROR; }
+        if (!(u->request_bufs = ngx_pg_startup_message(r->pool, &connect->options))) return NGX_ERROR;
+        u->request_sent = 0;
+        u->write_event_handler(r, u);
+//        ngx_chain_t *out, *last;
+//        if (!(out = ngx_pg_startup_message(r->pool, &connect->options))) return NGX_ERROR;
+//        ngx_connection_t *c = s->connection;
+//        ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
+//        ngx_chain_writer(&ctx, NULL);
+        return NGX_AGAIN;
+    }
     s->rc = NGX_OK;
     while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->pos, b->last);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
-    ngx_pg_loc_conf_t *plcf = d->plcf;
     if (s->rc == NGX_OK) s->rc = !d->location || d->query < plcf->queries.nelts - 1 ? NGX_AGAIN : NGX_OK;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     d->error = s->error;
@@ -1782,8 +1787,8 @@ static void *ngx_pg_create_srv_conf(ngx_conf_t *cf) {
 static void *ngx_pg_create_loc_conf(ngx_conf_t *cf) {
     ngx_pg_loc_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
     if (!conf) return NULL;
-    conf->upstream.buffer_size = NGX_CONF_UNSET_SIZE;
     conf->upstream.buffering = NGX_CONF_UNSET;
+    conf->upstream.buffer_size = NGX_CONF_UNSET_SIZE;
     conf->upstream.busy_buffers_size_conf = NGX_CONF_UNSET_SIZE;
     conf->upstream.connect_timeout = NGX_CONF_UNSET_MSEC;
     conf->upstream.ignore_client_abort = NGX_CONF_UNSET;
@@ -1791,6 +1796,7 @@ static void *ngx_pg_create_loc_conf(ngx_conf_t *cf) {
     conf->upstream.next_upstream_timeout = NGX_CONF_UNSET_MSEC;
     conf->upstream.next_upstream_tries = NGX_CONF_UNSET_UINT;
     conf->upstream.pass_request_body = NGX_CONF_UNSET;
+    conf->upstream.preserve_output = 1;
     conf->upstream.read_timeout = NGX_CONF_UNSET_MSEC;
     conf->upstream.request_buffering = NGX_CONF_UNSET;
     conf->upstream.send_timeout = NGX_CONF_UNSET_MSEC;
