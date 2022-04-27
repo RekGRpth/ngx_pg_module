@@ -1941,7 +1941,7 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     ngx_conf_merge_value(conf->upstream.ssl_server_name, prev->upstream.ssl_server_name, 0);
     ngx_conf_merge_value(conf->upstream.ssl_session_reuse, prev->upstream.ssl_session_reuse, 1);
     ngx_conf_merge_value(conf->upstream.ssl_verify, prev->upstream.ssl_verify, 0);
-    if (ngx_pg_set_ssl(cf, conf) != NGX_OK) return "ngx_pg_set_ssl != NGX_OK";
+    if (conf->connect.ssl && ngx_pg_set_ssl(cf, conf) != NGX_OK) return "ngx_pg_set_ssl != NGX_OK";
 #endif
     return NGX_CONF_OK;
 }
