@@ -1232,6 +1232,16 @@ static int ngx_pg_fsm_row_description_table(ngx_pg_save_t *s, uint32_t table) {
     return s->rc;
 }
 
+static int ngx_pg_fsm_ssl_response_off(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return s->rc;
+}
+
+static int ngx_pg_fsm_ssl_response_on(ngx_pg_save_t *s) {
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    return s->rc;
+}
+
 static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .all = (pg_fsm_str_cb)ngx_pg_fsm_all,
     .authentication_cleartext_password = (pg_fsm_cb)ngx_pg_fsm_authentication_cleartext_password,
@@ -1311,6 +1321,8 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .row_description_oid = (pg_fsm_int4_cb)ngx_pg_fsm_row_description_oid,
     .row_description = (pg_fsm_int4_cb)ngx_pg_fsm_row_description,
     .row_description_table = (pg_fsm_int4_cb)ngx_pg_fsm_row_description_table,
+    .ssl_response_off = (pg_fsm_cb)ngx_pg_fsm_ssl_response_off,
+    .ssl_response_on = (pg_fsm_cb)ngx_pg_fsm_ssl_response_on,
 };
 
 static void ngx_pg_save_cln_handler(ngx_pg_save_t *s) {
@@ -1370,15 +1382,16 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         ngx_pg_connect_t *connect = pscf ? &pscf->connect : &plcf->connect;
 #if (NGX_HTTP_SSL)
         if (pc->sockaddr->sa_family != AF_UNIX && connect->ssl) {
-            u->ssl = 1;
+            /*u->ssl = 1;
             ngx_chain_t *out, *last;
             if (!(out = ngx_pg_ssl_request(r->pool))) return NGX_ERROR;
             ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
             unsigned ready = c->write->ready;
             c->write->ready = 1;
             ngx_chain_writer(&ctx, NULL);
-            c->write->ready = ready;
-        }
+            c->write->ready = ready;*/
+            if (!(u->request_bufs = ngx_pg_ssl_request(r->pool))) return NGX_ERROR;
+        } else
 #endif
         if (!(u->request_bufs = ngx_pg_startup_message(r->pool, &connect->options))) return NGX_ERROR;
     }

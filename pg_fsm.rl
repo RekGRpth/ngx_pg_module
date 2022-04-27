@@ -21,8 +21,8 @@ typedef struct pg_fsm_t {
     action authentication_cleartext_password { if (f->authentication_cleartext_password(u)) fbreak; }
     action authentication_md5_password { if (m->string && p - m->string > 0 && f->authentication_md5_password(u, p - m->string, m->string)) fbreak; m->string = NULL; }
     action authentication_ok { if (f->authentication_ok(u)) fbreak; }
-#    action authentication_sasl { if (f->authentication_sasl(u, m->int4 - 4)) fbreak; }
 #    action authentication_sasl_continue { m->result_len = m->int4 - 4; if (f->authentication_sasl_continue(u, m->result_len)) fbreak; }
+#    action authentication_sasl { if (f->authentication_sasl(u, m->int4 - 4)) fbreak; }
 #    action authentication_sasl_scram_sha_256 { if (f->authentication_sasl_scram_sha_256(u)) fbreak; }
     action backend_key_data { if (f->backend_key_data(u)) fbreak; }
     action backend_key_data_key { if (f->backend_key_data_key(u, m->int4)) fbreak; }
@@ -96,6 +96,8 @@ typedef struct pg_fsm_t {
     action row_description_name { if (m->string && p - m->string > 0 && f->row_description_name(u, p - m->string, m->string)) fbreak; m->string = NULL; }
     action row_description_oid { if (f->row_description_oid(u, m->int4)) fbreak; }
     action row_description_table { if (f->row_description_table(u, m->int4)) fbreak; }
+    action ssl_response_off { if (f->ssl_response_off(u)) fbreak; }
+    action ssl_response_on { if (f->ssl_response_on(u)) fbreak; }
     action string { if (!m->string) m->string = p; }
 
     char = any - 0;
@@ -167,12 +169,14 @@ typedef struct pg_fsm_t {
     | "I" 0 0 0 4 @(empty_query_response)
     | "K" 0 0 0 12 @(backend_key_data) int4 @(backend_key_data_pid) int4 @(backend_key_data_key)
     | "n" 0 0 0 4 @(no_data)
+    | "N" @(ssl_response_off)
     | "N" int4 @(notice_response) error_response + 0
     | "R" 0 0 0 12 0 0 0 5 str4 %(authentication_md5_password)
     | "R" 0 0 0 8 0 0 0 0 @(authentication_ok)
     | "R" 0 0 0 8 0 0 0 3 @(authentication_cleartext_password)
 #    | "R" int4 0 0 0 10 @(authentication_sasl) authentication_sasl + 0
 #    | "R" int4 0 0 0 11 @(authentication_sasl_continue) result
+    | "S" @(ssl_response_on)
     | "S" int4 @(parameter_status) parameter_status
     | "T" int4 @(row_description) int2 @(row_description_count) row_description
     | "V" int4 @(function_call_response) function_call_response
