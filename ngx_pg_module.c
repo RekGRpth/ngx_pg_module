@@ -549,12 +549,11 @@ static int ngx_pg_fsm_authentication_cleartext_password(ngx_pg_save_t *s) {
     ngx_pg_srv_conf_t *pscf = d->pscf;
     ngx_str_t password = pscf ? pscf->connect.password : plcf->connect.password;
     if (!password.data) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!password"); s->rc = NGX_ERROR; return s->rc; }
-    ngx_chain_t *out, *last;
     ngx_http_request_t *r = d->request;
-    if (!(out = ngx_pg_password_message(r->pool, password.len, password.data))) { s->rc = NGX_ERROR; return s->rc; }
-    ngx_connection_t *c = s->connection;
-    ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
-    ngx_chain_writer(&ctx, NULL);
+    ngx_http_upstream_t *u = r->upstream;
+    if (!(u->request_bufs = ngx_pg_password_message(r->pool, password.len, password.data))) { s->rc = NGX_ERROR; return s->rc; }
+    u->request_sent = 0;
+    u->write_event_handler(r, u);
     return s->rc;
 }
 
@@ -585,12 +584,11 @@ static int ngx_pg_fsm_authentication_md5_password(ngx_pg_save_t *s, size_t len, 
     ngx_md5_final(digest, &md5);
     (void)ngx_hex_dump(hex + 3, digest, MD5_DIGEST_LENGTH);
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%*s", 3 + MD5_HEX_LENGTH, hex);
-    ngx_chain_t *out, *last;
     ngx_http_request_t *r = d->request;
-    if (!(out = ngx_pg_password_message(r->pool, 3 + MD5_HEX_LENGTH, hex))) { s->rc = NGX_ERROR; return s->rc; }
-    ngx_connection_t *c = s->connection;
-    ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
-    ngx_chain_writer(&ctx, NULL);
+    ngx_http_upstream_t *u = r->upstream;
+    if (!(u->request_bufs = ngx_pg_password_message(r->pool, 3 + MD5_HEX_LENGTH, hex))) { s->rc = NGX_ERROR; return s->rc; }
+    u->request_sent = 0;
+    u->write_event_handler(r, u);
     return s->rc;
 }
 
