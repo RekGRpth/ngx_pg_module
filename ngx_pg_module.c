@@ -2,6 +2,15 @@
 #include <ngx_md5.h>
 #include "pg_fsm.h"
 
+#define CANCEL_REQUEST_CODE PG_PROTOCOL(1234,5678)
+#define NEGOTIATE_GSS_CODE PG_PROTOCOL(1234,5680)
+#define NEGOTIATE_SSL_CODE PG_PROTOCOL(1234,5679)
+#define PG_PROTOCOL_EARLIEST PG_PROTOCOL(3,0)
+#define PG_PROTOCOL_LATEST PG_PROTOCOL(3,0)
+#define PG_PROTOCOL_MAJOR(v) ((v) >> 16)
+#define PG_PROTOCOL_MINOR(v) ((v) & 0x0000ffff)
+#define PG_PROTOCOL(m,n) (((m) << 16) | (n))
+
 extern ngx_int_t ngx_http_push_stream_add_msg_to_channel_my(ngx_log_t *log, ngx_str_t *id, ngx_str_t *text, ngx_str_t *event_id, ngx_str_t *event_type, ngx_flag_t store_messages, ngx_pool_t *temp_pool) __attribute__((weak));
 extern ngx_int_t ngx_http_push_stream_delete_channel_my(ngx_log_t *log, ngx_str_t *id, u_char *text, size_t len, ngx_pool_t *temp_pool) __attribute__((weak));
 
@@ -269,7 +278,7 @@ static ngx_chain_t *ngx_pg_cancel_request(ngx_pool_t *p, uint32_t pid, uint32_t 
     ngx_chain_t *cl, *cl_size, *cancel;
     uint32_t size = 0;
     if (!(cl = cl_size = cancel = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 80877102))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, CANCEL_REQUEST_CODE))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int4(p, &size, pid))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int4(p, &size, key))) return NULL;
     cl->next = ngx_pg_write_size(cl_size, size);
@@ -437,7 +446,7 @@ static ngx_chain_t *ngx_pg_ssl_request(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *ssl;
     uint32_t size = 0;
     if (!(cl = cl_size = ssl = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 80877103))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, NEGOTIATE_SSL_CODE))) return NULL;
     cl->next = ngx_pg_write_size(cl_size, size);
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = ssl; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
     return ssl;
@@ -447,7 +456,7 @@ static ngx_chain_t *ngx_pg_startup_message(ngx_pool_t *p, ngx_array_t *options) 
     ngx_chain_t *cl, *cl_size, *connect;
     uint32_t size = 0;
     if (!(cl = cl_size = connect = ngx_pg_alloc_size(p, &size))) return NULL;
-    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, 0x00030000))) return NULL;
+    if (!(cl = cl->next = ngx_pg_write_int4(p, &size, PG_PROTOCOL_LATEST))) return NULL;
     if (options) {
         ngx_str_t *str = options->elts;
         for (ngx_uint_t i = 0; i < options->nelts; i++) {
