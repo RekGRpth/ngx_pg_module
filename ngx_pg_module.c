@@ -1370,14 +1370,6 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         ngx_pg_connect_t *connect = pscf ? &pscf->connect : &plcf->connect;
 #if (NGX_HTTP_SSL)
         if (pc->sockaddr->sa_family != AF_UNIX && connect->ssl) {
-            /*u->ssl = 1;
-            ngx_chain_t *out, *last;
-            if (!(out = ngx_pg_ssl_request(r->pool))) return NGX_ERROR;
-            ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
-            unsigned ready = c->write->ready;
-            c->write->ready = 1;
-            ngx_chain_writer(&ctx, NULL);
-            c->write->ready = ready;*/
             if (!(u->request_bufs = ngx_pg_ssl_request(r->pool))) return NGX_ERROR;
         } else
 #endif
