@@ -322,7 +322,7 @@ static ngx_chain_t *ngx_pg_execute(ngx_pool_t *p) {
     return execute;
 }
 
-static ngx_chain_t *ngx_pg_terminate(ngx_pool_t *p) {
+/*static ngx_chain_t *ngx_pg_terminate(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *exit;
     uint32_t size = 0;
     if (!(cl = exit = ngx_pg_write_int1(p, NULL, 'X'))) return NULL;
@@ -330,7 +330,7 @@ static ngx_chain_t *ngx_pg_terminate(ngx_pool_t *p) {
     cl->next = ngx_pg_write_size(cl_size, size);
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = exit; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
     return exit;
-}
+}*/
 
 static ngx_chain_t *ngx_pg_flush(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *flush;
@@ -1310,7 +1310,7 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .row_description_table = (pg_fsm_int4_cb)ngx_pg_fsm_row_description_table,
 };
 
-static void ngx_pg_save_cln_handler(ngx_pg_save_t *s) {
+/*static void ngx_pg_save_cln_handler(ngx_pg_save_t *s) {
     ngx_connection_t *c = s->connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
     ngx_str_t *channel = s->channels.elts;
@@ -1322,7 +1322,7 @@ static void ngx_pg_save_cln_handler(ngx_pg_save_t *s) {
     if (!(out = ngx_pg_terminate(c->pool))) return;
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
     ngx_chain_writer(&ctx, NULL);
-}
+}*/
 
 static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%s", __func__);
@@ -1361,10 +1361,10 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!(c->pool = ngx_create_pool(sizeof(*c->pool) + sizeof(*s), pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
         if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         if ((char *)s != (char *)c->pool + sizeof(*c->pool)) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "wrong pool"); return NGX_ERROR; }
-        ngx_pool_cleanup_t *cln;
+/*        ngx_pool_cleanup_t *cln;
         if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
         cln->data = s;
-        cln->handler = (ngx_pool_cleanup_pt)ngx_pg_save_cln_handler;
+        cln->handler = (ngx_pool_cleanup_pt)ngx_pg_save_cln_handler;*/
         if (!(s->fsm = ngx_pcalloc(c->pool, pg_fsm_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         pg_fsm_init(s->fsm);
         s->connection = c;
