@@ -2262,10 +2262,14 @@ static char *ngx_pg_pass_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
     if (ngx_http_script_variables_count(&str[1])) {
         ngx_http_compile_complex_value_t ccv = {cf, &str[1], &plcf->complex, 0, 0, 0};
         if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+        plcf->connect.ssl = 1;
         return NGX_CONF_OK;
     }
     ngx_url_t url = {0};
-    if (!plcf->connect.options.elts) url.no_resolve = 1;
+    if (!plcf->connect.options.elts) {
+        plcf->connect.ssl = 1;
+        url.no_resolve = 1;
+    }
     url.url = str[1];
     if (!(plcf->upstream.upstream = ngx_http_upstream_add(cf, &url, 0))) return NGX_CONF_ERROR;
     ngx_http_upstream_srv_conf_t *uscf = plcf->upstream.upstream;
