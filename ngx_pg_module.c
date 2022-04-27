@@ -52,6 +52,7 @@ typedef struct {
 
 typedef struct {
     ngx_array_t options;
+    ngx_flag_t ssl;
     ngx_str_t password;
     ngx_str_t username;
 } ngx_pg_connect_t;
@@ -65,7 +66,6 @@ typedef struct {
 #endif
 #if (NGX_HTTP_SSL)
     ngx_array_t *ssl_conf_commands;
-    ngx_flag_t ssl;
     ngx_str_t ssl_ciphers;
     ngx_str_t ssl_crl;
     ngx_str_t ssl_trusted_certificate;
@@ -1363,9 +1363,14 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
         cln->data = s;
         cln->handler = (ngx_pool_cleanup_pt)ngx_pg_save_cln_handler;
+        if (!(s->fsm = ngx_pcalloc(c->pool, pg_fsm_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+        pg_fsm_init(s->fsm);
+        s->connection = c;
+        ngx_pg_srv_conf_t *pscf = d->pscf;
+        ngx_pg_connect_t *connect = pscf ? &pscf->connect : &plcf->connect;
 #if (NGX_HTTP_SSL)
-        if (pc->sockaddr->sa_family != AF_UNIX && u->ssl) {
-            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%i", c->write->ready);
+        if (pc->sockaddr->sa_family != AF_UNIX && connect->ssl) {
+            u->ssl = 1;
             ngx_chain_t *out, *last;
             if (!(out = ngx_pg_ssl_request(r->pool))) return NGX_ERROR;
             ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
@@ -1375,11 +1380,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
             c->write->ready = ready;
         }
 #endif
-        if (!(s->fsm = ngx_pcalloc(c->pool, pg_fsm_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
-        pg_fsm_init(s->fsm);
-        s->connection = c;
-        ngx_pg_srv_conf_t *pscf = d->pscf;
-        if (!(u->request_bufs = ngx_pg_startup_message(r->pool, pscf ? &pscf->connect.options : &plcf->connect.options))) return NGX_ERROR;
+        if (!(u->request_bufs = ngx_pg_startup_message(r->pool, &connect->options))) return NGX_ERROR;
     }
     s->data = d;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = u->request_bufs; cl; cl = cl->next) for (u_char *p = cl->buf->pos; p < cl->buf->last; p++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%ui:%d:%c", i++, *p, *p);
@@ -1733,10 +1734,7 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
     if (ngx_http_set_content_type(r) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_set_content_type != NGX_OK"); return NGX_HTTP_INTERNAL_SERVER_ERROR; }
     if (ngx_http_upstream_create(r) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_upstream_create != NGX_OK"); return NGX_HTTP_INTERNAL_SERVER_ERROR; }
     ngx_http_upstream_t *u = r->upstream;
-#if (NGX_HTTP_SSL)
-    if ((u->ssl = plcf->upstream.ssl != NULL)) { ngx_str_set(&u->schema, "pgs://"); } else
-#endif
-    { ngx_str_set(&u->schema, "pg://"); }
+    ngx_str_set(&u->schema, "pg://");
     u->output.tag = (ngx_buf_tag_t)&ngx_pg_module;
     u->conf = &plcf->upstream;
 #if (NGX_HTTP_CACHE)
@@ -1800,7 +1798,6 @@ static void *ngx_pg_create_loc_conf(ngx_conf_t *cf) {
 #endif
 #if (NGX_HTTP_SSL)
     conf->ssl_conf_commands = NGX_CONF_UNSET_PTR;
-    conf->ssl = NGX_CONF_UNSET;
     conf->ssl_verify_depth = NGX_CONF_UNSET_UINT;
     conf->upstream.ssl_certificate_key = NGX_CONF_UNSET_PTR;
     conf->upstream.ssl_certificate = NGX_CONF_UNSET_PTR;
@@ -1941,11 +1938,10 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     ngx_conf_merge_str_value(conf->ssl_crl, prev->ssl_crl, "");
     ngx_conf_merge_str_value(conf->ssl_trusted_certificate, prev->ssl_trusted_certificate, "");
     ngx_conf_merge_uint_value(conf->ssl_verify_depth, prev->ssl_verify_depth, 1);
-    ngx_conf_merge_value(conf->ssl, prev->ssl, 0);
     ngx_conf_merge_value(conf->upstream.ssl_server_name, prev->upstream.ssl_server_name, 0);
     ngx_conf_merge_value(conf->upstream.ssl_session_reuse, prev->upstream.ssl_session_reuse, 1);
     ngx_conf_merge_value(conf->upstream.ssl_verify, prev->upstream.ssl_verify, 0);
-    if (conf->ssl && ngx_pg_set_ssl(cf, conf) != NGX_OK) return "ngx_pg_set_ssl != NGX_OK";
+    if (ngx_pg_set_ssl(cf, conf) != NGX_OK) return "ngx_pg_set_ssl != NGX_OK";
 #endif
     return NGX_CONF_OK;
 }
@@ -2221,6 +2217,14 @@ static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_pg_connect_t *connec
             connect->password.data = &str[i].data[sizeof("password=") - 1];
             continue;
         }
+        if (str[i].len > sizeof("ssl=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"ssl=", sizeof("ssl=") - 1)) {
+            ngx_uint_t j;
+            static const ngx_conf_enum_t e[] = { { ngx_string("off"), 0 }, { ngx_string("no"), 0 }, { ngx_string("false"), 0 }, { ngx_string("on"), 1 }, { ngx_string("yes"), 1 }, { ngx_string("true"), 1 }, { ngx_null_string, 0 } };
+            for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("ssl=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("ssl=") - 1], str[i].len - (sizeof("ssl=") - 1))) break;
+            if (!e[j].name.len) return "\"ssl\" value must be \"off\", \"no\", \"false\", \"on\", \"yes\" or \"true\"";
+            connect->ssl = e[j].value;
+            continue;
+        }
         if (str[i].len > sizeof("user=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"user=", sizeof("user=") - 1)) {
             if (!(connect->username.len = str[i].len - (sizeof("user=") - 1))) return "empty \"user\" value";
             connect->username.data = &str[i].data[sizeof("user=") - 1];
@@ -2423,7 +2427,6 @@ static ngx_command_t ngx_pg_commands[] = {
   { ngx_string("pg_ssl_conf_command"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE2, ngx_conf_set_keyval_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, ssl_conf_commands), &ngx_pg_ssl_conf_command_post },
   { ngx_string("pg_ssl_crl"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_conf_set_str_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, ssl_crl), NULL },
   { ngx_string("pg_ssl_name"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_http_set_complex_value_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.ssl_name), NULL },
-  { ngx_string("pg_ssl"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG, ngx_conf_set_flag_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, ssl), NULL },
   { ngx_string("pg_ssl_password_file"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_pg_ssl_password_file, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_ssl_protocols"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_1MORE, ngx_conf_set_bitmask_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, ssl_protocols), &ngx_pg_ssl_protocols },
   { ngx_string("pg_ssl_server_name"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG, ngx_conf_set_flag_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.ssl_server_name), NULL },
