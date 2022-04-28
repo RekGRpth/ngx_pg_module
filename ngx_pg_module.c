@@ -52,7 +52,9 @@ typedef struct {
 
 typedef struct {
     ngx_array_t options;
+#if (NGX_HTTP_SSL)
     ngx_flag_t ssl;
+#endif
     ngx_str_t password;
     ngx_str_t username;
 } ngx_pg_connect_t;
@@ -442,6 +444,7 @@ static ngx_chain_t *ngx_pg_query(ngx_pool_t *p, ngx_array_t *commands) {
     return sasl;
 }*/
 
+#if (NGX_HTTP_SSL)
 static ngx_chain_t *ngx_pg_ssl_request(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *ssl;
     uint32_t size = 0;
@@ -451,6 +454,7 @@ static ngx_chain_t *ngx_pg_ssl_request(ngx_pool_t *p) {
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = ssl; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
     return ssl;
 }
+#endif
 
 static ngx_chain_t *ngx_pg_startup_message(ngx_pool_t *p, ngx_array_t *options) {
     ngx_chain_t *cl, *cl_size, *connect;
@@ -1348,15 +1352,14 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_http_upstream_t *u = r->upstream;
     if (pc->connection) {
         s = d->save = (ngx_pg_save_t *)((char *)pc->connection->pool + sizeof(*pc->connection->pool));
-//        if (!(u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
+        if (!(u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
 #if (NGX_HTTP_SSL)
-        if (pc->sockaddr->sa_family != AF_UNIX && connect->ssl) u->ssl = 1;
+        if (pc->sockaddr->sa_family != AF_UNIX && connect->ssl) {
+            u->ssl = 1;
+            ngx_connection_t *c = s->connection;
+            if (c->write->ready) { ngx_post_event(c->write, &ngx_posted_events); }
+        }
 #endif
-        ngx_chain_t *out, *last;
-        ngx_connection_t *c = s->connection;
-        if (!(out = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
-        ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
-        ngx_chain_writer(&ctx, NULL);
     } else {
         pc->get = ngx_event_get_peer;
         switch ((rc = ngx_event_connect_peer(pc))) {
@@ -1607,6 +1610,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_pg_loc_conf_t *plcf = d->plcf;
     ngx_pg_srv_conf_t *pscf = d->pscf;
     ngx_pg_connect_t *connect = pscf ? &pscf->connect : &plcf->connect;
+#if (NGX_HTTP_SSL)
     if (u->peer.sockaddr->sa_family != AF_UNIX && connect->ssl && !u->ssl) {
         if (b->last - b->pos != 1) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "b->last - b->pos != 1"); return NGX_ERROR; }
         switch (*b->pos++) {
@@ -1621,6 +1625,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         ngx_http_run_posted_requests(c);
         return NGX_AGAIN;
     }
+#endif
     s->rc = NGX_OK;
     while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->pos, b->last);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
@@ -2238,6 +2243,7 @@ static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_pg_connect_t *connec
             connect->password.data = &str[i].data[sizeof("password=") - 1];
             continue;
         }
+#if (NGX_HTTP_SSL)
         if (str[i].len > sizeof("ssl=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"ssl=", sizeof("ssl=") - 1)) {
             ngx_uint_t j;
             static const ngx_conf_enum_t e[] = { { ngx_string("off"), 0 }, { ngx_string("no"), 0 }, { ngx_string("false"), 0 }, { ngx_string("on"), 1 }, { ngx_string("yes"), 1 }, { ngx_string("true"), 1 }, { ngx_null_string, 0 } };
@@ -2246,6 +2252,7 @@ static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_pg_connect_t *connec
             connect->ssl = e[j].value;
             continue;
         }
+#endif
         if (str[i].len > sizeof("user=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"user=", sizeof("user=") - 1)) {
             if (!(connect->username.len = str[i].len - (sizeof("user=") - 1))) return "empty \"user\" value";
             connect->username.data = &str[i].data[sizeof("user=") - 1];
@@ -2283,12 +2290,16 @@ static char *ngx_pg_pass_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
     if (ngx_http_script_variables_count(&str[1])) {
         ngx_http_compile_complex_value_t ccv = {cf, &str[1], &plcf->complex, 0, 0, 0};
         if (ngx_http_compile_complex_value(&ccv) != NGX_OK) return "ngx_http_compile_complex_value != NGX_OK";
+#if (NGX_HTTP_SSL)
         plcf->connect.ssl = 1;
+#endif
         return NGX_CONF_OK;
     }
     ngx_url_t url = {0};
     if (!plcf->connect.options.elts) {
+#if (NGX_HTTP_SSL)
         plcf->connect.ssl = 1;
+#endif
         url.no_resolve = 1;
     }
     url.url = str[1];
