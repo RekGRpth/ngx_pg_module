@@ -554,6 +554,8 @@ static int ngx_pg_fsm_authentication_cleartext_password(ngx_pg_save_t *s) {
     if (!(u->request_bufs = ngx_pg_password_message(r->pool, password.len, password.data))) { s->rc = NGX_ERROR; return s->rc; }
     u->request_sent = 0;
     u->write_event_handler(r, u);
+    ngx_connection_t *c = r->connection;
+    ngx_http_run_posted_requests(c);
     return s->rc;
 }
 
@@ -589,6 +591,8 @@ static int ngx_pg_fsm_authentication_md5_password(ngx_pg_save_t *s, size_t len, 
     if (!(u->request_bufs = ngx_pg_password_message(r->pool, 3 + MD5_HEX_LENGTH, hex))) { s->rc = NGX_ERROR; return s->rc; }
     u->request_sent = 0;
     u->write_event_handler(r, u);
+    ngx_connection_t *c = r->connection;
+    ngx_http_run_posted_requests(c);
     return s->rc;
 }
 
@@ -610,6 +614,8 @@ static int ngx_pg_fsm_authentication_ok(ngx_pg_save_t *s) {
     }
     u->request_sent = 0;
     u->write_event_handler(r, u);
+    ngx_connection_t *c = r->connection;
+    ngx_http_run_posted_requests(c);
     return s->rc;
 }
 
@@ -1343,6 +1349,8 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     if (pc->connection) {
         s = d->save = (ngx_pg_save_t *)((char *)pc->connection->pool + sizeof(*pc->connection->pool));
         if (!(u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
+        ngx_connection_t *c = r->connection;
+        ngx_http_run_posted_requests(c);
     } else {
         pc->get = ngx_event_get_peer;
         switch ((rc = ngx_event_connect_peer(pc))) {
@@ -1603,6 +1611,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         if (!(u->request_bufs = ngx_pg_startup_message(r->pool, &connect->options))) return NGX_ERROR;
         u->request_sent = 0;
         u->write_event_handler(r, u);
+        ngx_connection_t *c = r->connection;
+        ngx_http_run_posted_requests(c);
         return NGX_AGAIN;
     }
     s->rc = NGX_OK;
