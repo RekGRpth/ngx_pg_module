@@ -25,12 +25,9 @@ typedef enum {
 
 #if (NGX_HTTP_SSL)
 typedef enum {
-    ngx_pg_ssl_allow,
     ngx_pg_ssl_disable = 0,
     ngx_pg_ssl_prefer,
     ngx_pg_ssl_require,
-    ngx_pg_ssl_verify_ca,
-    ngx_pg_ssl_verify_full,
 } ngx_pg_ssl_t;
 #endif
 
@@ -1625,7 +1622,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     if (u->peer.sockaddr->sa_family != AF_UNIX && connect->sslmode != ngx_pg_ssl_disable && !u->ssl) {
         if (b->last - b->pos != 1) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "b->last - b->pos != 1"); return NGX_ERROR; }
         switch (*b->pos++) {
-            case 'N': break;
+            case 'N': if (connect->sslmode == ngx_pg_ssl_require) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "sslmode == require"); return NGX_ERROR; } break;
             case 'S': u->ssl = 1; break;
             default: ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "*b->pos != 'S' && *b->pos != 'N'"); return NGX_ERROR;
         }
@@ -2260,9 +2257,9 @@ static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_pg_connect_t *connec
 #if (NGX_HTTP_SSL)
         if (str[i].len > sizeof("sslmode=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"sslmode=", sizeof("sslmode=") - 1)) {
             ngx_uint_t j;
-            static const ngx_conf_enum_t e[] = { { ngx_string("allow"), ngx_pg_ssl_allow }, { ngx_string("disable"), ngx_pg_ssl_disable }, { ngx_string("prefer"), ngx_pg_ssl_prefer }, { ngx_string("require"), ngx_pg_ssl_require }, { ngx_string("verify_ca"), ngx_pg_ssl_verify_ca }, { ngx_string("verify_full"), ngx_pg_ssl_verify_full }, { ngx_null_string, 0 } };
+            static const ngx_conf_enum_t e[] = { { ngx_string("disable"), ngx_pg_ssl_disable }, { ngx_string("prefer"), ngx_pg_ssl_prefer }, { ngx_string("require"), ngx_pg_ssl_require }, { ngx_null_string, 0 } };
             for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("sslmode=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("sslmode=") - 1], str[i].len - (sizeof("sslmode=") - 1))) break;
-            if (!e[j].name.len) return "\"ssl\" value must be \"allow\", \"disable\", \"prefer\", \"require\", \"verify_ca\" or \"verify_full\"";
+            if (!e[j].name.len) return "\"ssl\" value must be \"disable\", \"prefer\" or \"require\"";
             connect->sslmode = e[j].value;
             continue;
         }
