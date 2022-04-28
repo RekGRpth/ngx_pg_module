@@ -1954,7 +1954,7 @@ static char *ngx_pg_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     ngx_conf_merge_value(conf->upstream.cache_background_update, prev->upstream.cache_background_update, 0);
 #endif
 #if (NGX_HTTP_SSL)
-    ngx_conf_merge_bitmask_value(conf->ssl_protocols, prev->ssl_protocols, NGX_CONF_BITMASK_SET|NGX_SSL_TLSv1|NGX_SSL_TLSv1_1|NGX_SSL_TLSv1_2);
+    ngx_conf_merge_bitmask_value(conf->ssl_protocols, prev->ssl_protocols, NGX_CONF_BITMASK_SET|NGX_SSL_TLSv1|NGX_SSL_TLSv1_1|NGX_SSL_TLSv1_2|NGX_SSL_TLSv1_3);
     ngx_conf_merge_ptr_value(conf->ssl_conf_commands, prev->ssl_conf_commands, NULL);
     ngx_conf_merge_ptr_value(conf->upstream.ssl_certificate_key, prev->upstream.ssl_certificate_key, NULL);
     ngx_conf_merge_ptr_value(conf->upstream.ssl_certificate, prev->upstream.ssl_certificate, NULL);
