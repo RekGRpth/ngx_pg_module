@@ -1349,8 +1349,6 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     if (pc->connection) {
         s = d->save = (ngx_pg_save_t *)((char *)pc->connection->pool + sizeof(*pc->connection->pool));
         if (!(u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
-        ngx_connection_t *c = r->connection;
-        ngx_http_run_posted_requests(c);
     } else {
         pc->get = ngx_event_get_peer;
         switch ((rc = ngx_event_connect_peer(pc))) {
