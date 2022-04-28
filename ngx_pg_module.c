@@ -1348,7 +1348,15 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_http_upstream_t *u = r->upstream;
     if (pc->connection) {
         s = d->save = (ngx_pg_save_t *)((char *)pc->connection->pool + sizeof(*pc->connection->pool));
-        if (!(u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
+//        if (!(u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
+#if (NGX_HTTP_SSL)
+        if (pc->sockaddr->sa_family != AF_UNIX && connect->ssl) u->ssl = 1;
+#endif
+        ngx_chain_t *out, *last;
+        ngx_connection_t *c = s->connection;
+        if (!(out = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
+        ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
+        ngx_chain_writer(&ctx, NULL);
     } else {
         pc->get = ngx_event_get_peer;
         switch ((rc = ngx_event_connect_peer(pc))) {
