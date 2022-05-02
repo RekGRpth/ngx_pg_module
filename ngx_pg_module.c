@@ -312,7 +312,7 @@ static ngx_chain_t *ngx_pg_cancel_request(ngx_pool_t *p, uint32_t pid, uint32_t 
     return cancel;
 }
 
-/*static ngx_chain_t *ngx_pg_close(ngx_pool_t *p) {
+static ngx_chain_t *ngx_pg_close(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *close;
     uint32_t size = 0;
     if (!(cl = close = ngx_pg_write_int1(p, NULL, 'C'))) return NULL;
@@ -322,7 +322,7 @@ static ngx_chain_t *ngx_pg_cancel_request(ngx_pool_t *p, uint32_t pid, uint32_t 
     cl->next = ngx_pg_write_size(cl_size, size);
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = close; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
     return close;
-}*/
+}
 
 static ngx_chain_t *ngx_pg_describe(ngx_pool_t *p) {
     ngx_chain_t *cl, *cl_size, *describe;
@@ -570,8 +570,8 @@ static ngx_chain_t *ngx_pg_queries(ngx_http_request_t *r, ngx_array_t *queries) 
             }
         }
     }
-//    if (!(cl->next = ngx_pg_close(r->pool))) return NULL;
-//    while (cl->next) cl = cl->next;
+    if (!(cl->next = ngx_pg_close(r->pool))) return NULL;
+    while (cl->next) cl = cl->next;
     if (!(cl->next = ngx_pg_sync(r->pool))) return NULL;
     while (cl->next) cl = cl->next;
     if (!(cl->next = ngx_pg_flush(r->pool))) return NULL;
