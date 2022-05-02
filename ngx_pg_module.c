@@ -825,6 +825,12 @@ static int ngx_pg_fsm_error_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
     u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
+    if (ngx_queue_empty(&d->queue)) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_queue_empty"); s->rc = NGX_ERROR; return s->rc; }
+    ngx_queue_t *q = ngx_queue_head(&d->queue);
+    ngx_queue_remove(q);
+    ngx_pg_query_queue_t *qq = ngx_queue_data(q, ngx_pg_query_queue_t, queue);
+    ngx_pg_query_t *query = d->query = qq->query;
+    if (!(query->type & ngx_pg_type_location)) return s->rc;
     return s->rc;
 }
 
