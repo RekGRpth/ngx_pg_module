@@ -244,7 +244,8 @@ option-standard-conforming-strings: on
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
-        pg_query "select $1 as ab, null::text as cde union select $2, $3 order by 1" $arg_a::23 $arg_b::23 $arg_c output=plain;
+        pg_parse query "select $1 as ab, null::text as cde union select $2, $3 order by 1" 23 23 "";
+        pg_execute query $arg_a $arg_b $arg_c output=plain;
     }
 --- request
 GET /?a=34&b=89&c=qwe
