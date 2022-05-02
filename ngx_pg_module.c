@@ -17,6 +17,14 @@ extern ngx_int_t ngx_http_push_stream_delete_channel_my(ngx_log_t *log, ngx_str_
 ngx_module_t ngx_pg_module;
 
 typedef enum {
+    ngx_pg_type_output = 1 << 0,
+    ngx_pg_type_execute = 1 << 1,
+    ngx_pg_type_function = 1 << 2,
+    ngx_pg_type_parse = 1 << 3,
+    ngx_pg_type_query = 1 << 4,
+} ngx_pg_type_t;
+
+typedef enum {
     ngx_pg_output_csv = 2,
     ngx_pg_output_none = 0,
     ngx_pg_output_plain = 3,
@@ -58,6 +66,10 @@ typedef struct {
     u_char delimiter;
     u_char escape;
     u_char quote;
+    struct {
+        ngx_int_t index;
+        ngx_str_t str;
+    } name;
 } ngx_pg_query_t;
 
 typedef struct {
@@ -2094,23 +2106,23 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
 
 static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, ngx_pg_query_t *query) {
     ngx_str_t *str = cf->args->elts;
-    for (ngx_uint_t i = 2; i < cf->args->nelts; i++) {
+    for (ngx_uint_t i = cmd->offset & ngx_pg_type_parse ? 3 : 2; i < cf->args->nelts; i++) {
         if (str[i].len > sizeof("delimiter=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"delimiter=", sizeof("delimiter=") - 1)) {
-            if (!cmd->offset) return "output not allowed";
+            if (!(cmd->offset & ngx_pg_type_output)) return "output not allowed";
             if (!(str[i].len - (sizeof("delimiter=") - 1))) return "empty \"delimiter\" value";
             if (str[i].len - (sizeof("delimiter=") - 1) > 1) return "\"delimiter\" value must be one character";
             query->delimiter = str[i].data[sizeof("delimiter=") - 1];
             continue;
         }
         if (str[i].len >= sizeof("escape=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"escape=", sizeof("escape=") - 1)) {
-            if (!cmd->offset) return "output not allowed";
+            if (!(cmd->offset & ngx_pg_type_output)) return "output not allowed";
             if (!(str[i].len - (sizeof("escape=") - 1))) { query->escape = '\0'; continue; }
             else if (str[i].len > 1) return "\"escape\" value must be one character";
             query->escape = str[i].data[sizeof("escape=") - 1];
             continue;
         }
         if (str[i].len > sizeof("header=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"header=", sizeof("header=") - 1)) {
-            if (!cmd->offset) return "output not allowed";
+            if (!(cmd->offset & ngx_pg_type_output)) return "output not allowed";
             ngx_uint_t j;
             static const ngx_conf_enum_t e[] = { { ngx_string("off"), 0 }, { ngx_string("no"), 0 }, { ngx_string("false"), 0 }, { ngx_string("on"), 1 }, { ngx_string("yes"), 1 }, { ngx_string("true"), 1 }, { ngx_null_string, 0 } };
             for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("header=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("header=") - 1], str[i].len - (sizeof("header=") - 1))) break;
@@ -2119,7 +2131,7 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
             continue;
         }
         if (str[i].len > sizeof("output=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"output=", sizeof("output=") - 1)) {
-            if (!cmd->offset) return "output not allowed";
+            if (!(cmd->offset & ngx_pg_type_output)) return "output not allowed";
             ngx_uint_t j;
             static const ngx_conf_enum_t e[] = { { ngx_string("csv"), ngx_pg_output_csv }, { ngx_string("plain"), ngx_pg_output_plain }, { ngx_string("value"), ngx_pg_output_value }, { ngx_null_string, 0 } };
             for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("output=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("output=") - 1], str[i].len - (sizeof("output=") - 1))) break;
@@ -2142,20 +2154,20 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
             continue;
         }
         if (str[i].len > sizeof("null=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"null=", sizeof("null=") - 1)) {
-            if (!cmd->offset) return "output not allowed";
+            if (!(cmd->offset & ngx_pg_type_output)) return "output not allowed";
             if (!(query->null.len = str[i].len - (sizeof("null=") - 1))) return "empty \"null\" value";
             query->null.data = &str[i].data[sizeof("null=") - 1];
             continue;
         }
         if (str[i].len >= sizeof("quote=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"quote=", sizeof("quote=") - 1)) {
-            if (!cmd->offset) return "output not allowed";
+            if (!(cmd->offset & ngx_pg_type_output)) return "output not allowed";
             if (!(str[i].len - (sizeof("quote=") - 1))) { query->quote = '\0'; continue; }
             else if (str[i].len - (sizeof("quote=") - 1) > 1) return "\"quote\" value must be one character";
             query->quote = str[i].data[sizeof("quote=") - 1];
             continue;
         }
         if (str[i].len > sizeof("string=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"string=", sizeof("string=") - 1)) {
-            if (!cmd->offset) return "output not allowed";
+            if (!(cmd->offset & ngx_pg_type_output)) return "output not allowed";
             ngx_uint_t j;
             static const ngx_conf_enum_t e[] = { { ngx_string("off"), 0 }, { ngx_string("no"), 0 }, { ngx_string("false"), 0 }, { ngx_string("on"), 1 }, { ngx_string("yes"), 1 }, { ngx_string("true"), 1 }, { ngx_null_string, 0 } };
             for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("string=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("string=") - 1], str[i].len - (sizeof("string=") - 1))) break;
@@ -2167,19 +2179,23 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
         if (!query->arguments.elts && ngx_array_init(&query->arguments, cf->pool, 1, sizeof(*argument)) != NGX_OK) return "ngx_array_init != NGX_OK";
         if (!(argument = ngx_array_push(&query->arguments))) return "!ngx_array_push";
         ngx_memzero(argument, sizeof(*argument));
-        u_char *colon;
         ngx_str_t value = str[i];
         ngx_str_t oid = ngx_null_string;
-        if ((colon = ngx_strstrn(value.data, "::", sizeof("::") - 1 - 1))) {
-            value.len = colon - value.data;
-            oid.data = colon + sizeof("::") - 1;
-            oid.len = str[i].len - value.len - sizeof("::") + 1;
+        if ((cmd->offset & ngx_pg_type_query) || (cmd->offset & ngx_pg_type_function)) {
+            u_char *colon;
+            if ((colon = ngx_strstrn(value.data, "::", sizeof("::") - 1 - 1))) {
+                value.len = colon - value.data;
+                oid.data = colon + sizeof("::") - 1;
+                oid.len = str[i].len - value.len - sizeof("::") + 1;
+            }
+        } else if (cmd->offset & ngx_pg_type_parse) oid = value;
+        if (!(cmd->offset & ngx_pg_type_parse)) {
+            if (value.data[0] == '$') {
+                value.data++;
+                value.len--;
+                if ((argument->value.index = ngx_http_get_variable_index(cf, &value)) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
+            } else argument->value.str = value;
         }
-        if (value.data[0] == '$') {
-            value.data++;
-            value.len--;
-            if ((argument->value.index = ngx_http_get_variable_index(cf, &value)) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
-        } else argument->value.str = value;
         if (!oid.data) continue;
         if (oid.data[0] == '$') {
             oid.data++;
@@ -2302,7 +2318,7 @@ static char *ngx_pg_pass_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
     return NGX_CONF_OK;
 }
 
-static char *ngx_pg_query_loc_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, ngx_array_t *queries) {
+static char *ngx_pg_parse_query_loc_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, ngx_array_t *queries) {
     ngx_pg_query_t *query;
     if (!queries->elts && ngx_array_init(queries, cf->pool, 1, sizeof(*query)) != NGX_OK) return "ngx_array_init != NGX_OK";
     if (!(query = ngx_array_push(queries))) return "!ngx_array_push";
@@ -2310,8 +2326,17 @@ static char *ngx_pg_query_loc_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, ngx_a
     ngx_pg_command_t *command;
     if (ngx_array_init(&query->commands, cf->pool, 1, sizeof(*command)) != NGX_OK) return "ngx_array_init != NGX_OK";
     ngx_str_t *str = cf->args->elts;
-    u_char *b = str[1].data;
-    u_char *e = str[1].data + str[1].len;
+    ngx_uint_t i = 1;
+    if (cmd->offset & ngx_pg_type_parse) {
+        if (str[i].data[0] == '$') {
+            str[i].data++;
+            str[i].len--;
+            if ((query->name.index = ngx_http_get_variable_index(cf, &str[i])) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
+        } else query->name.str = str[i];
+        i++;
+    }
+    u_char *b = str[i].data;
+    u_char *e = str[i].data + str[i].len;
     u_char *n = b;
     u_char *s = n;
     while (s < e) {
@@ -2347,14 +2372,48 @@ static char *ngx_pg_query_loc_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, ngx_a
     return ngx_pg_argument_output_loc_conf(cf, cmd, query);
 }
 
+static char *ngx_pg_execute_loc_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, ngx_array_t *queries) {
+    ngx_pg_query_t *query;
+    if (!queries->elts && ngx_array_init(queries, cf->pool, 1, sizeof(*query)) != NGX_OK) return "ngx_array_init != NGX_OK";
+    if (!(query = ngx_array_push(queries))) return "!ngx_array_push";
+    ngx_memzero(query, sizeof(*query));
+    ngx_str_t *str = cf->args->elts;
+    if (str[1].data[0] == '$') {
+        str[1].data++;
+        str[1].len--;
+        if ((query->name.index = ngx_http_get_variable_index(cf, &str[1])) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
+    } else query->name.str = str[1];
+    return ngx_pg_argument_output_loc_conf(cf, cmd, query);
+}
+
+static char *ngx_pg_execute_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_loc_conf_t *plcf = conf;
+    return ngx_pg_execute_loc_ups_conf(cf, cmd, &plcf->queries);
+}
+
+static char *ngx_pg_execute_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_srv_conf_t *pscf = conf;
+    return ngx_pg_execute_loc_ups_conf(cf, cmd, &pscf->queries);
+}
+
+static char *ngx_pg_parse_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_loc_conf_t *plcf = conf;
+    return ngx_pg_parse_query_loc_ups_conf(cf, cmd, &plcf->queries);
+}
+
+static char *ngx_pg_parse_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    ngx_pg_srv_conf_t *pscf = conf;
+    return ngx_pg_parse_query_loc_ups_conf(cf, cmd, &pscf->queries);
+}
+
 static char *ngx_pg_query_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_loc_conf_t *plcf = conf;
-    return ngx_pg_query_loc_ups_conf(cf, cmd, &plcf->queries);
+    return ngx_pg_parse_query_loc_ups_conf(cf, cmd, &plcf->queries);
 }
 
 static char *ngx_pg_query_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_pg_srv_conf_t *pscf = conf;
-    return ngx_pg_query_loc_ups_conf(cf, cmd, &pscf->queries);
+    return ngx_pg_parse_query_loc_ups_conf(cf, cmd, &pscf->queries);
 }
 
 #if (NGX_HTTP_CACHE)
@@ -2409,14 +2468,18 @@ static ngx_conf_bitmask_t ngx_pg_next_upstream_masks[] = {
 };
 
 static ngx_command_t ngx_pg_commands[] = {
-  { ngx_string("pg_function"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_function_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 1, NULL },
-  { ngx_string("pg_function"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_function_ups_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
+  { ngx_string("pg_execute"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_execute_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_execute|ngx_pg_type_output, NULL },
+  { ngx_string("pg_execute"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_execute_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, ngx_pg_type_execute, NULL },
+  { ngx_string("pg_function"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_function_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_function|ngx_pg_type_output, NULL },
+  { ngx_string("pg_function"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_function_ups_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_function, NULL },
   { ngx_string("pg_log"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_log_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_option"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_option_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_option"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_option_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
+  { ngx_string("pg_parse"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_parse_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_parse, NULL },
+  { ngx_string("pg_parse"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_parse_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, ngx_pg_type_parse, NULL },
   { ngx_string("pg_pass"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_pass_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
-  { ngx_string("pg_query"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_query_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 1, NULL },
-  { ngx_string("pg_query"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_query_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
+  { ngx_string("pg_query"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_query_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_query|ngx_pg_type_output, NULL },
+  { ngx_string("pg_query"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_query_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, ngx_pg_type_query, NULL },
   { ngx_string("pg_buffering"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG, ngx_conf_set_flag_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.buffering), NULL },
   { ngx_string("pg_buffer_size"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_conf_set_size_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.buffer_size), NULL },
   { ngx_string("pg_buffers"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE2, ngx_conf_set_bufs_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.bufs), NULL },
