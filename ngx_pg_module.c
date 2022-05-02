@@ -16,13 +16,15 @@ extern ngx_int_t ngx_http_push_stream_delete_channel_my(ngx_log_t *log, ngx_str_
 
 ngx_module_t ngx_pg_module;
 
-typedef enum {
-    ngx_pg_type_output = 1 << 0,
-    ngx_pg_type_bind = 1 << 1,
-    ngx_pg_type_function = 1 << 2,
-    ngx_pg_type_parse = 1 << 3,
-    ngx_pg_type_query = 1 << 4,
-} ngx_pg_type_t;
+enum {
+    ngx_pg_type_bind = 1 << 0,
+    ngx_pg_type_function = 1 << 1,
+    ngx_pg_type_location = 1 << 2,
+    ngx_pg_type_output = 1 << 3,
+    ngx_pg_type_parse = 1 << 4,
+    ngx_pg_type_query = 1 << 5,
+    ngx_pg_type_upstream = 1 << 6,
+};
 
 typedef enum {
     ngx_pg_output_type_csv = 2,
@@ -69,7 +71,7 @@ typedef struct {
     ngx_array_t arguments;
     ngx_array_t commands;
     ngx_pg_output_t output;
-    ngx_pg_type_t type;
+    ngx_uint_t type;
     struct {
         ngx_int_t index;
     } function;
@@ -554,7 +556,7 @@ static ngx_chain_t *ngx_pg_queries(ngx_http_request_t *r, ngx_array_t *queries) 
             }
             while (cl->next) cl = cl->next;
         } else {
-            if (query[i].type == ngx_pg_type_query || query[i].type == ngx_pg_type_parse) {
+            if (query[i].type & ngx_pg_type_query || query[i].type & ngx_pg_type_parse) {
                 if (cl) {
                     if (!(cl->next = ngx_pg_parse(r->pool, query[i].name.str.len, query[i].name.str.data, &query[i].commands, &query[i].arguments))) return NULL;
                 } else {
@@ -562,7 +564,7 @@ static ngx_chain_t *ngx_pg_queries(ngx_http_request_t *r, ngx_array_t *queries) 
                 }
                 while (cl->next) cl = cl->next;
             }
-            if (query[i].type == ngx_pg_type_query || query[i].type == ngx_pg_type_bind) {
+            if (query[i].type & ngx_pg_type_query || query[i].type & ngx_pg_type_bind) {
                 if (cl) {
                     if (!(cl->next = ngx_pg_bind(r->pool, query[i].name.str.len, query[i].name.str.data, &query[i].arguments))) return NULL;
                 } else {
@@ -2237,7 +2239,7 @@ static char *ngx_pg_function_loc_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, ng
     str[1].data++;
     str[1].len--;
     if ((query->function.index = ngx_http_get_variable_index(cf, &str[1])) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
-    query->type = ngx_pg_type_function;
+    query->type = cmd->offset;
     return ngx_pg_argument_output_loc_conf(cf, cmd, query);
 }
 
@@ -2345,9 +2347,8 @@ static char *ngx_pg_parse_query_loc_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd,
     if (ngx_array_init(&query->commands, cf->pool, 1, sizeof(*command)) != NGX_OK) return "ngx_array_init != NGX_OK";
     ngx_str_t *str = cf->args->elts;
     ngx_uint_t i = 1;
-    query->type = ngx_pg_type_query;
+    query->type = cmd->offset;
     if (cmd->offset & ngx_pg_type_parse) {
-        query->type = ngx_pg_type_parse;
         if (str[i].data[0] == '$') {
             str[i].data++;
             str[i].len--;
@@ -2403,7 +2404,7 @@ static char *ngx_pg_bind_loc_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, ngx_ar
         str[1].len--;
         if ((query->name.index = ngx_http_get_variable_index(cf, &str[1])) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
     } else query->name.str = str[1];
-    query->type = ngx_pg_type_bind;
+    query->type = cmd->offset;
     return ngx_pg_argument_output_loc_conf(cf, cmd, query);
 }
 
@@ -2489,18 +2490,18 @@ static ngx_conf_bitmask_t ngx_pg_next_upstream_masks[] = {
 };
 
 static ngx_command_t ngx_pg_commands[] = {
-  { ngx_string("pg_bind"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_bind_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_bind|ngx_pg_type_output, NULL },
-  { ngx_string("pg_bind"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_bind_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, ngx_pg_type_bind, NULL },
-  { ngx_string("pg_function"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_function_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_function|ngx_pg_type_output, NULL },
-  { ngx_string("pg_function"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_function_ups_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_function, NULL },
+  { ngx_string("pg_bind"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_bind_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_location|ngx_pg_type_bind|ngx_pg_type_output, NULL },
+  { ngx_string("pg_bind"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_bind_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, ngx_pg_type_upstream|ngx_pg_type_bind, NULL },
+  { ngx_string("pg_function"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_function_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_location|ngx_pg_type_function|ngx_pg_type_output, NULL },
+  { ngx_string("pg_function"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_function_ups_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_upstream|ngx_pg_type_function, NULL },
   { ngx_string("pg_log"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_log_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_option"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_option_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
   { ngx_string("pg_option"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_option_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
-  { ngx_string("pg_parse"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_parse_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_parse, NULL },
-  { ngx_string("pg_parse"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_parse_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, ngx_pg_type_parse, NULL },
+  { ngx_string("pg_parse"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_parse_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_location|ngx_pg_type_parse, NULL },
+  { ngx_string("pg_parse"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_parse_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, ngx_pg_type_upstream|ngx_pg_type_parse, NULL },
   { ngx_string("pg_pass"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1, ngx_pg_pass_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, 0, NULL },
-  { ngx_string("pg_query"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_query_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_query|ngx_pg_type_output, NULL },
-  { ngx_string("pg_query"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_query_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, ngx_pg_type_query, NULL },
+  { ngx_string("pg_query"), NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_1MORE, ngx_pg_query_loc_conf, NGX_HTTP_LOC_CONF_OFFSET, ngx_pg_type_location|ngx_pg_type_query|ngx_pg_type_output, NULL },
+  { ngx_string("pg_query"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_query_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, ngx_pg_type_upstream|ngx_pg_type_query, NULL },
   { ngx_string("pg_buffering"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG, ngx_conf_set_flag_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.buffering), NULL },
   { ngx_string("pg_buffer_size"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_conf_set_size_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.buffer_size), NULL },
   { ngx_string("pg_buffers"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE2, ngx_conf_set_bufs_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.bufs), NULL },
