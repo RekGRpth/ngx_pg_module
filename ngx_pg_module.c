@@ -1333,7 +1333,8 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .row_description_table = (pg_fsm_int4_cb)ngx_pg_fsm_row_description_table,
 };
 
-/*static void ngx_pg_save_cln_handler(ngx_pg_save_t *s) {
+static void ngx_pg_save_cln_handler(void *data) {
+    ngx_pg_save_t *s = data;
     ngx_connection_t *c = s->connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
     ngx_str_t *channel = s->channels.elts;
@@ -1341,11 +1342,11 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
         ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0, "channel[%ui] = %V", i, &channel[i]);
         ngx_http_push_stream_delete_channel_my(c->log, &channel[i], NULL, 0, c->pool);
     }
-    ngx_chain_t *out, *last;
+/*    ngx_chain_t *out, *last;
     if (!(out = ngx_pg_terminate(c->pool))) return;
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
-    ngx_chain_writer(&ctx, NULL);
-}*/
+    ngx_chain_writer(&ctx, NULL);*/
+}
 
 static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "%s", __func__);
@@ -1356,7 +1357,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         case NGX_OK: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = NGX_OK"); break;
         default: ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "peer.get = %i", rc); return rc;
     }
-    ngx_pg_save_t *s;
+    ngx_pg_save_t *s = NULL;
     ngx_http_request_t *r = d->request;
     ngx_pg_loc_conf_t *plcf = d->plcf;
     ngx_pg_srv_conf_t *pscf = d->pscf;
@@ -1364,12 +1365,13 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
     d->query = -1;
     ngx_http_upstream_t *u = r->upstream;
     if (pc->connection) {
-        s = d->save = (ngx_pg_save_t *)((char *)pc->connection->pool + sizeof(*pc->connection->pool));
+        ngx_connection_t *c = pc->connection;
+        for (ngx_pool_cleanup_t *cln = c->pool->cleanup; cln; cln = cln->next) if (cln->handler == ngx_pg_save_cln_handler) { s = d->save = cln->data; break; }
+        if (!s) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!s"); return NGX_ERROR; }
         if (!(u->request_bufs = ngx_pg_queries(r, &plcf->queries))) return NGX_ERROR;
 #if (NGX_HTTP_SSL)
         if (pc->sockaddr->sa_family != AF_UNIX && connect->sslmode != ngx_pg_ssl_disable) {
             u->ssl = 1;
-            ngx_connection_t *c = s->connection;
             if (c->write->ready) { ngx_post_event(c->write, &ngx_posted_events); }
         }
 #endif
@@ -1385,16 +1387,15 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         ngx_connection_t *c = pc->connection;
         if (!c) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!c"); return NGX_ERROR; }
         if (c->pool) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "c->pool"); return NGX_ERROR; }
-        if (!(c->pool = ngx_create_pool(sizeof(*c->pool) + sizeof(*s), pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
+        if (!(c->pool = ngx_create_pool(128, pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
         if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
-        if ((char *)s != (char *)c->pool + sizeof(*c->pool)) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "wrong pool"); return NGX_ERROR; }
-/*        ngx_pool_cleanup_t *cln;
+        s->connection = c;
+        ngx_pool_cleanup_t *cln;
         if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
         cln->data = s;
-        cln->handler = (ngx_pool_cleanup_pt)ngx_pg_save_cln_handler;*/
+        cln->handler = ngx_pg_save_cln_handler;
         if (!(s->fsm = ngx_pcalloc(c->pool, pg_fsm_size()))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
         pg_fsm_init(s->fsm);
-        s->connection = c;
 #if (NGX_HTTP_SSL)
         if (pc->sockaddr->sa_family != AF_UNIX && connect->sslmode != ngx_pg_ssl_disable) {
             if (!(u->request_bufs = ngx_pg_ssl_request(r->pool))) return NGX_ERROR;
