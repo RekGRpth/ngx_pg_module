@@ -2207,7 +2207,7 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
                 if ((argument->value.index = ngx_http_get_variable_index(cf, &value)) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
             } else argument->value.str = value;
         }
-        if (!oid.data) continue;
+        if (!oid.len) continue;
         if (oid.data[0] == '$') {
             oid.data++;
             oid.len--;
