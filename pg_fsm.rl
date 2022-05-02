@@ -144,15 +144,18 @@ typedef struct pg_fsm_t {
     | "TimeZone"i 0 str @(parameter_status_timezone) @eof(parameter_status_timezone)
     );
 
-    ready_for_query_idle = "I" @(ready_for_query_idle);
-    ready_for_query_inerror = "E" @(ready_for_query_inerror);
-    ready_for_query_intrans = "T" @(ready_for_query_intrans);
+    ready_for_query =
+    ( "E" @(ready_for_query_inerror)
+    | "I" @(ready_for_query_idle)
+    | "T" @(ready_for_query_intrans)
+    );
+
     result = any * $(string) $(result_val) $eof(result_val);
 
     function_call_response = int4 @(result_len) result;
 
     data_row = function_call_response;
-    ready_for_query = ready_for_query_inerror | ready_for_query_idle | ready_for_query_intrans;
+
     row_description =
         str >row_description_beg @(row_description_name) @eof(row_description_name)
         int4 @(row_description_table)
@@ -160,7 +163,8 @@ typedef struct pg_fsm_t {
         int4 @(row_description_oid)
         int2 @(row_description_length)
         int4 @(row_description_mod)
-        0 0 @(row_description_format);
+        0 0 @(row_description_format)
+    ;
 
     main :=
     ( "1" 0 0 0 4 @(parse_complete)

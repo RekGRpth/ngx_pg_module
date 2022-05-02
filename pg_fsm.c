@@ -19,7 +19,7 @@ typedef struct pg_fsm_t {
 static const int pg_fsm_start = 397;
 
 
-#line 188 "pg_fsm.rl"
+#line 192 "pg_fsm.rl"
 
 
 size_t pg_fsm_execute(pg_fsm_t *m, const pg_fsm_cb_t *f, const void *u, const uint8_t *p, const uint8_t *pe) {
@@ -5064,7 +5064,7 @@ case 396:
 	_out: {}
 	}
 
-#line 194 "pg_fsm.rl"
+#line 198 "pg_fsm.rl"
     if (!m->cs) (void)f->error(u, p - b, p);
     return p - b;
 }
@@ -5080,5 +5080,5 @@ void pg_fsm_init(pg_fsm_t *m) {
 	 m->cs = pg_fsm_start;
 	}
 
-#line 204 "pg_fsm.rl"
+#line 208 "pg_fsm.rl"
 }
