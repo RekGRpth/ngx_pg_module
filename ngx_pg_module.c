@@ -414,11 +414,12 @@ static ngx_chain_t *ngx_pg_command(ngx_pool_t *p, uint32_t *size, ngx_chain_t *c
     return cl;
 }
 
-static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, ngx_array_t *commands, ngx_array_t *arguments) {
+static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, size_t len, const uint8_t *data, ngx_array_t *commands, ngx_array_t *arguments) {
     ngx_chain_t *cl, *cl_size, *parse;
     uint32_t size = 0;
     if (!(cl = parse = ngx_pg_write_int1(p, NULL, 'P'))) return NULL;
     if (!(cl = cl->next = cl_size = ngx_pg_alloc_size(p, &size))) return NULL;
+    if (len) if (!(cl = cl->next = ngx_pg_write_str(p, &size, len, data))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int1(p, &size, 0))) return NULL;
     if (!(cl = ngx_pg_command(p, &size, cl, commands))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arguments->nelts))) return NULL;
@@ -546,9 +547,9 @@ static ngx_chain_t *ngx_pg_queries(ngx_http_request_t *r, ngx_array_t *queries) 
             while (cl->next) cl = cl->next;
         } else if (query[i].commands.elts) {
             if (cl) {
-                if (!(cl->next = ngx_pg_parse(r->pool, &query[i].commands, &query[i].arguments))) return NULL;
+                if (!(cl->next = ngx_pg_parse(r->pool, 0, NULL, &query[i].commands, &query[i].arguments))) return NULL;
             } else {
-                if (!(cl = cl_query = ngx_pg_parse(r->pool, &query[i].commands, &query[i].arguments))) return NULL;
+                if (!(cl = cl_query = ngx_pg_parse(r->pool, 0, NULL, &query[i].commands, &query[i].arguments))) return NULL;
             }
             while (cl->next) cl = cl->next;
             if (!(cl->next = ngx_pg_bind(r->pool, &query[i].arguments))) return NULL;
