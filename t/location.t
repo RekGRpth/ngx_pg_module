@@ -101,7 +101,7 @@ option-standard-conforming-strings: on
         pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
         pg_parse query "select $1 as ab, $2 as cde" 23 23;
-        pg_bind query $arg_a $arg_b output=plain;
+        pg_execute query $arg_a $arg_b output=plain;
     }
 --- request
 GET /?a=12&b=345
