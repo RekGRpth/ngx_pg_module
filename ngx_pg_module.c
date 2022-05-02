@@ -25,11 +25,11 @@ typedef enum {
 } ngx_pg_type_t;
 
 typedef enum {
-    ngx_pg_output_csv = 2,
-    ngx_pg_output_none = 0,
-    ngx_pg_output_plain = 3,
-    ngx_pg_output_value = 1,
-} ngx_pg_output_t;
+    ngx_pg_output_type_csv = 2,
+    ngx_pg_output_type_none = 0,
+    ngx_pg_output_type_plain = 3,
+    ngx_pg_output_type_value = 1,
+} ngx_pg_output_type_t;
 
 #if (NGX_HTTP_SSL)
 typedef enum {
@@ -61,7 +61,7 @@ typedef struct {
     ngx_flag_t header;
     ngx_flag_t string;
     ngx_int_t function;
-    ngx_pg_output_t output;
+    ngx_pg_output_type_t output;
     ngx_pg_type_t type;
     ngx_str_t null;
     u_char delimiter;
@@ -2144,18 +2144,18 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
         if (str[i].len > sizeof("output=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"output=", sizeof("output=") - 1)) {
             if (!(cmd->offset & ngx_pg_type_output)) return "output not allowed";
             ngx_uint_t j;
-            static const ngx_conf_enum_t e[] = { { ngx_string("csv"), ngx_pg_output_csv }, { ngx_string("plain"), ngx_pg_output_plain }, { ngx_string("value"), ngx_pg_output_value }, { ngx_null_string, 0 } };
+            static const ngx_conf_enum_t e[] = { { ngx_string("csv"), ngx_pg_output_type_csv }, { ngx_string("plain"), ngx_pg_output_type_plain }, { ngx_string("value"), ngx_pg_output_type_value }, { ngx_null_string, 0 } };
             for (j = 0; e[j].name.len; j++) if (e[j].name.len == str[i].len - (sizeof("output=") - 1) && !ngx_strncasecmp(e[j].name.data, &str[i].data[sizeof("output=") - 1], str[i].len - (sizeof("output=") - 1))) break;
             if (!e[j].name.len) return "\"output\" value must be \"csv\", \"plain\" or \"value\"";
             switch ((query->output = e[j].value)) {
-                case ngx_pg_output_csv: {
+                case ngx_pg_output_type_csv: {
                     ngx_str_set(&query->null, "");
                     query->delimiter = ',';
                     query->escape = '"';
                     query->header = 1;
                     query->quote = '"';
                 } break;
-                case ngx_pg_output_plain: {
+                case ngx_pg_output_type_plain: {
                     ngx_str_set(&query->null, "\\N");
                     query->delimiter = '\t';
                     query->header = 1;
