@@ -5,7 +5,7 @@ it uses ragel-based PostgreSQL connection parser with zero-alloc and zero-copy
 
 pg_function
 -------------
-* Syntax: **pg_function** *$oid* [ NULL | NULL::*$oid* | *$arg* | *$arg*::*$oid* ] [ output=*csv* | output=*plain* ]
+* Syntax: **pg_function** *$oid* [ *$arg* | *$arg*::*$oid* ] [ output=*csv* | output=*plain* ]
 * Default: --
 * Context: location, if in location, upstream
 
@@ -101,7 +101,7 @@ location =/postgres {
 ```
 pg_query
 -------------
-* Syntax: **pg_query** *sql* [ NULL | NULL::*$oid* | *$arg* | *$arg*::*$oid* ] [ output=*csv* | output=*plain* | output=*value* ]
+* Syntax: **pg_query** *sql* [ *$arg* | *$arg*::*$oid* ] [ output=*csv* | output=*plain* | output=*value* ]
 * Default: --
 * Context: location, if in location, upstream
 
@@ -124,7 +124,7 @@ location =/postgres {
 # or
 location =/postgres {
     pg_pass postgres; # upstream is postgres
-    pg_query "SELECT $1, $2::text" NULL::25 $arg output=plain; # extended query with two arguments: first query argument is NULL and its oid is 25 (TEXTOID) and second query argument is taken from $arg variable and auto oid and plain output type
+    pg_query "SELECT $1, $2::text" str::25 $arg output=plain; # extended query with two arguments: first query argument is str and its oid is 25 (TEXTOID) and second query argument is taken from $arg variable and auto oid and plain output type
 }
 ```
 # Embedded Variables
