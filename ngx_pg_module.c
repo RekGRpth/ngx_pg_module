@@ -32,12 +32,14 @@ typedef enum {
 #endif
 
 typedef struct {
-    ngx_str_t value;
-    ngx_uint_t oid;
     struct {
-        ngx_int_t oid;
-        ngx_int_t value;
-    } index;
+        ngx_int_t index;
+        uint32_t value;
+    } oid;
+    struct {
+        ngx_int_t index;
+        ngx_str_t str;
+    } value;
 } ngx_pg_argument_t;
 
 typedef struct {
@@ -271,9 +273,9 @@ static ngx_chain_t *ngx_pg_bind(ngx_pool_t *p, ngx_array_t *arguments) {
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arguments->nelts))) return NULL;
     ngx_pg_argument_t *argument = arguments->elts;
     for (ngx_uint_t i = 0; i < arguments->nelts; i++) {
-        if (argument[i].value.data) {
-            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, argument[i].value.len))) return NULL;
-            if (!(cl = cl->next = ngx_pg_write_str(p, &size, argument[i].value.len, argument[i].value.data))) return NULL;
+        if (argument[i].value.str.data) {
+            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, argument[i].value.str.len))) return NULL;
+            if (!(cl = cl->next = ngx_pg_write_str(p, &size, argument[i].value.str.len, argument[i].value.str.data))) return NULL;
         } else {
             if (!(cl = cl->next = ngx_pg_write_int4(p, &size, -1))) return NULL;
         }
@@ -363,9 +365,9 @@ static ngx_chain_t *ngx_pg_function_call(ngx_pool_t *p, uint32_t oid, ngx_array_
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arguments->nelts))) return NULL;
     ngx_pg_argument_t *argument = arguments->elts;
     for (ngx_uint_t i = 0; i < arguments->nelts; i++) {
-        if (argument[i].value.data) {
-            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, argument[i].value.len))) return NULL;
-            if (!(cl = cl->next = ngx_pg_write_str(p, &size, argument[i].value.len, argument[i].value.data))) return NULL;
+        if (argument[i].value.str.data) {
+            if (!(cl = cl->next = ngx_pg_write_int4(p, &size, argument[i].value.str.len))) return NULL;
+            if (!(cl = cl->next = ngx_pg_write_str(p, &size, argument[i].value.str.len, argument[i].value.str.data))) return NULL;
         } else {
             if (!(cl = cl->next = ngx_pg_write_int4(p, &size, -1))) return NULL;
         }
@@ -409,7 +411,7 @@ static ngx_chain_t *ngx_pg_parse(ngx_pool_t *p, ngx_array_t *commands, ngx_array
     if (!(cl = ngx_pg_command(p, &size, cl, commands))) return NULL;
     if (!(cl = cl->next = ngx_pg_write_int2(p, &size, arguments->nelts))) return NULL;
     ngx_pg_argument_t *argument = arguments->elts;
-    for (ngx_uint_t i = 0; i < arguments->nelts; i++) if (!(cl = cl->next = ngx_pg_write_int4(p, &size, argument[i].oid))) return NULL;
+    for (ngx_uint_t i = 0; i < arguments->nelts; i++) if (!(cl = cl->next = ngx_pg_write_int4(p, &size, argument[i].oid.value))) return NULL;
     cl->next = ngx_pg_write_size(cl_size, size);
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = parse; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
     return parse;
@@ -498,18 +500,18 @@ static ngx_chain_t *ngx_pg_queries(ngx_http_request_t *r, ngx_array_t *queries) 
     for (ngx_uint_t i = 0; i < queries->nelts; i++) {
         ngx_pg_argument_t *argument = query[i].arguments.elts;
         for (ngx_uint_t j = 0; j < query[i].arguments.nelts; j++) {
-            if (argument[j].index.oid) {
+            if (argument[j].oid.index) {
                 ngx_http_variable_value_t *value;
-                if (!(value = ngx_http_get_indexed_variable(r, argument[j].index.oid))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_http_get_indexed_variable"); return NULL; }
+                if (!(value = ngx_http_get_indexed_variable(r, argument[j].oid.index))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_http_get_indexed_variable"); return NULL; }
                 ngx_int_t n = ngx_atoi(value->data, value->len);
                 if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NULL; }
-                argument[j].oid = n;
+                argument[j].oid.value = n;
             }
-            if (argument[j].index.value) {
+            if (argument[j].value.index) {
                 ngx_http_variable_value_t *value;
-                if (!(value = ngx_http_get_indexed_variable(r, argument[j].index.value))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_http_get_indexed_variable"); return NULL; }
-                argument[j].value.data = value->data;
-                argument[j].value.len = value->len;
+                if (!(value = ngx_http_get_indexed_variable(r, argument[j].value.index))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_http_get_indexed_variable"); return NULL; }
+                argument[j].value.str.data = value->data;
+                argument[j].value.str.len = value->len;
             }
         }
         ngx_pg_command_t *command = query[i].commands.elts;
@@ -2204,17 +2206,17 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
         if (value.data[0] == '$') {
             value.data++;
             value.len--;
-            if ((argument->index.value = ngx_http_get_variable_index(cf, &value)) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
-        } else argument->value = value;
+            if ((argument->value.index = ngx_http_get_variable_index(cf, &value)) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
+        } else argument->value.str = value;
         if (!oid.data) continue;
         if (oid.data[0] == '$') {
             oid.data++;
             oid.len--;
-            if ((argument->index.oid = ngx_http_get_variable_index(cf, &oid)) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
+            if ((argument->oid.index = ngx_http_get_variable_index(cf, &oid)) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
         } else {
             ngx_int_t n = ngx_atoi(oid.data, oid.len);
             if (n == NGX_ERROR) return "ngx_atoi == NGX_ERROR";
-            argument->oid = n;
+            argument->oid.value = n;
         }
     }
     return NGX_CONF_OK;
