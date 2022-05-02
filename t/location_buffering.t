@@ -210,7 +210,7 @@ option-standard-conforming-strings: on
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
-        pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 2" NULL::25 $arg_a::23 $arg_b $arg_c::23 output=plain;
+        pg_query "select null::text as ab, $1 as cde union select $2, $3 order by 2" $arg_a::23 $arg_b $arg_c::23 output=plain;
         pg_buffering off;
     }
 --- request
@@ -246,7 +246,7 @@ option-standard-conforming-strings: on
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
-        pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1" $arg_a::23 NULL::25 $arg_b::23 $arg_c output=plain;
+        pg_query "select $1 as ab, null::text as cde union select $2, $3 order by 1" $arg_a::23 $arg_b::23 $arg_c output=plain;
         pg_buffering off;
     }
 --- request
@@ -282,7 +282,7 @@ option-standard-conforming-strings: on
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
         pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
-        pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1" $arg_a::23 $arg_b $arg_c::23 NULL::25 output=plain;
+        pg_query "select $1 as ab, $2 as cde union select $3, null::text order by 1" $arg_a::23 $arg_b $arg_c::23 output=plain;
         pg_buffering off;
     }
 --- request
@@ -430,7 +430,7 @@ option-standard-conforming-strings: on
         default_type text/csv;
         pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
-        pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 2" NULL::25 $arg_a::23 $arg_b $arg_c::23 output=csv;
+        pg_query "select null::text as ab, $1 as cde union select $2, $3 order by 2" $arg_a::23 $arg_b $arg_c::23 output=csv;
         pg_buffering off;
     }
 --- request
@@ -467,7 +467,7 @@ option-standard-conforming-strings: on
         default_type text/csv;
         pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
-        pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1" $arg_a::23 NULL::25 $arg_b::23 $arg_c output=csv;
+        pg_query "select $1 as ab, null::text as cde union select $2, $3 order by 1" $arg_a::23 $arg_b::23 $arg_c output=csv;
         pg_buffering off;
     }
 --- request
@@ -504,7 +504,7 @@ option-standard-conforming-strings: on
         default_type text/csv;
         pg_option user=postgres database=postgres application_name=nginx;
         pg_pass unix:///run/postgresql/.s.PGSQL.5432;
-        pg_query "select $1 as ab, $2 as cde union select $3, $4 order by 1" $arg_a::23 $arg_b $arg_c::23 NULL::25 output=csv;
+        pg_query "select $1 as ab, $2 as cde union select $3, null::text order by 1" $arg_a::23 $arg_b $arg_c::23 output=csv;
         pg_buffering off;
     }
 --- request
