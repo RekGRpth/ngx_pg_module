@@ -3,6 +3,19 @@ it uses ragel-based PostgreSQL connection parser with zero-alloc and zero-copy
 
 # Directives
 
+pg_execute
+-------------
+* Syntax: **pg_execute** *$query* [ *$arg* ] [ output=*csv* | output=*plain* | output=*value* ]
+* Default: --
+* Context: location, if in location, upstream
+
+Executes query(queries) (nginx variables allowed) sql(s) (named only nginx variables allowed as identifier only), optional argument(s) (nginx variables allowed) and output type (no nginx variables allowed):
+```nginx
+location =/postgres {
+    pg_pass postgres; # upstream is postgres
+    pg_execute $query str $arg output=plain; # execute extended query wich name is taken from $query variable with two arguments: first query argument is str and second query argument is taken from $arg variable and plain output type
+}
+```
 pg_function
 -------------
 * Syntax: **pg_function** *$oid* [ *$arg* | *$arg*::*$oid* ] [ output=*csv* | output=*plain* ]
@@ -85,12 +98,12 @@ Parse query(queries) (nginx variables allowed) sql(s) (named only nginx variable
 ```nginx
 location =/postgres {
     pg_pass postgres; # upstream is postgres
-    pg_parse $query "SELECT $1, $2::text" 25 ""; # parser query witch name is taken from $query variable and two arguments: first query argument oid is 25 (TEXTOID) and second query argument is auto oid
+    pg_parse $query "SELECT $1, $2::text" 25 ""; # parser query wich name is taken from $query variable and two arguments: first query argument oid is 25 (TEXTOID) and second query argument is auto oid
 }
 # or
 upstream postgres {
     pg_option user=user database=database application_name=application_name; # set user, database and application_name
-    pg_parse $query "SELECT $1, $2::text" 25 ""; # parser query witch name is taken from $query variable and two arguments: first query argument oid is 25 (TEXTOID) and second query argument is auto oid
+    pg_parse $query "SELECT $1, $2::text" 25 ""; # parser query wich name is taken from $query variable and two arguments: first query argument oid is 25 (TEXTOID) and second query argument is auto oid
     server postgres:5432; # host is postgres and port is 5432
 }
 ```
