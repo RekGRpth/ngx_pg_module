@@ -139,6 +139,7 @@ option-standard-conforming-strings: on
 --- http_config
     upstream pg {
         pg_option user=postgres database=postgres application_name=nginx;
+        pg_parse query "select $1 as ab union select $2 order by 1" 23 23;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -151,8 +152,8 @@ option-standard-conforming-strings: on
         add_header option-server-encoding $pg_option_server_encoding always;
         add_header option-session-authorization $pg_option_session_authorization always;
         add_header option-standard-conforming-strings $pg_option_standard_conforming_strings always;
+        pg_execute query $arg_a $arg_b output=plain;
         pg_pass pg;
-        pg_query "select $1 as ab union select $2 order by 1" $arg_a::23 $arg_b::23 output=plain;
     }
 --- request
 GET /?a=12&b=345
