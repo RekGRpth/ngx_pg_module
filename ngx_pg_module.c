@@ -68,9 +68,11 @@ typedef struct {
 typedef struct {
     ngx_array_t arguments;
     ngx_array_t commands;
-    ngx_int_t function;
     ngx_pg_output_t output;
     ngx_pg_type_t type;
+    struct {
+        ngx_int_t index;
+    } function;
     struct {
         ngx_int_t index;
         ngx_str_t str;
@@ -540,9 +542,9 @@ static ngx_chain_t *ngx_pg_queries(ngx_http_request_t *r, ngx_array_t *queries) 
             command[j].str.data = value->data;
             command[j].str.len = value->len;
         }
-        if (query[i].function) {
+        if (query[i].function.index) {
             ngx_http_variable_value_t *value;
-            if (!(value = ngx_http_get_indexed_variable(r, query[i].function))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_http_get_indexed_variable"); return NULL; }
+            if (!(value = ngx_http_get_indexed_variable(r, query[i].function.index))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_http_get_indexed_variable"); return NULL; }
             ngx_int_t oid = ngx_atoi(value->data, value->len);
             if (oid == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NULL; }
             if (cl) {
@@ -2234,7 +2236,7 @@ static char *ngx_pg_function_loc_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, ng
     if (str[1].data[0] != '$') return "not variable";
     str[1].data++;
     str[1].len--;
-    if ((query->function = ngx_http_get_variable_index(cf, &str[1])) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
+    if ((query->function.index = ngx_http_get_variable_index(cf, &str[1])) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
     query->type = ngx_pg_type_function;
     return ngx_pg_argument_output_loc_conf(cf, cmd, query);
 }
