@@ -19,7 +19,7 @@ typedef struct pg_fsm_t {
 static const int pg_fsm_start = 397;
 
 
-#line 183 "pg_fsm.rl"
+#line 188 "pg_fsm.rl"
 
 
 size_t pg_fsm_execute(pg_fsm_t *m, const pg_fsm_cb_t *f, const void *u, const uint8_t *p, const uint8_t *pe) {
@@ -444,33 +444,33 @@ _resume:
 	switch (  m->cs )
 	{
 tr4:
-#line 82 "pg_fsm.rl"
+#line 79 "pg_fsm.rl"
 	{ if (f->parse_complete(u)) {p++;  m->cs = 397; goto _out;} }
 	goto st397;
 tr8:
-#line 30 "pg_fsm.rl"
+#line 27 "pg_fsm.rl"
 	{ if (f->bind_complete(u)) {p++;  m->cs = 397; goto _out;} }
 	goto st397;
 tr12:
-#line 31 "pg_fsm.rl"
+#line 28 "pg_fsm.rl"
 	{ if (f->close_complete(u)) {p++;  m->cs = 397; goto _out;} }
 	goto st397;
 tr24:
-#line 64 "pg_fsm.rl"
+#line 61 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->notification_response_extra(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; if (p != eof) if (f->notification_response_done(u)) {p++;  m->cs = 397; goto _out;} }
 	goto st397;
 tr30:
-#line 33 "pg_fsm.rl"
+#line 30 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->command_complete_val(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
 	goto st397;
 tr110:
-#line 39 "pg_fsm.rl"
+#line 36 "pg_fsm.rl"
 	{ if (f->empty_query_response(u)) {p++;  m->cs = 397; goto _out;} }
 	goto st397;
 tr122:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 28 "pg_fsm.rl"
+#line 25 "pg_fsm.rl"
 	{ if (f->backend_key_data_key(u, m->int4)) {p++;  m->cs = 397; goto _out;} }
 	goto st397;
 tr135:
@@ -482,80 +482,80 @@ tr136:
 	{ if (f->authentication_cleartext_password(u)) {p++;  m->cs = 397; goto _out;} }
 	goto st397;
 tr172:
-#line 68 "pg_fsm.rl"
+#line 65 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_application_name(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
 	goto st397;
 tr189:
-#line 69 "pg_fsm.rl"
+#line 66 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_client_encoding(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
 	goto st397;
 tr201:
-#line 70 "pg_fsm.rl"
+#line 67 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_datestyle(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
 	goto st397;
 tr231:
-#line 71 "pg_fsm.rl"
+#line 68 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_default_transaction_read_only(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
 	goto st397;
 tr253:
-#line 74 "pg_fsm.rl"
+#line 71 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_integer_datetimes(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
 	goto st397;
 tr264:
-#line 75 "pg_fsm.rl"
+#line 72 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_intervalstyle(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
 	goto st397;
 tr278:
-#line 73 "pg_fsm.rl"
+#line 70 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_in_hot_standby(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
 	goto st397;
 tr291:
-#line 76 "pg_fsm.rl"
+#line 73 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_is_superuser(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
 	goto st397;
 tr311:
-#line 77 "pg_fsm.rl"
+#line 74 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_server_encoding(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
 	goto st397;
 tr320:
-#line 78 "pg_fsm.rl"
+#line 75 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_server_version(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
 	goto st397;
 tr341:
-#line 79 "pg_fsm.rl"
+#line 76 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_session_authorization(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
 	goto st397;
 tr369:
-#line 80 "pg_fsm.rl"
+#line 77 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_standard_conforming_strings(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
 	goto st397;
 tr379:
-#line 81 "pg_fsm.rl"
+#line 78 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_timezone(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
 	goto st397;
 tr406:
 	 m->cs = 397;
-#line 92 "pg_fsm.rl"
+#line 89 "pg_fsm.rl"
 	{ if (f->row_description_format(u, 0)) {p++; goto _out;} if (!--m->row_description_count)  m->cs = 397; else  m->cs = 356; }
 	goto _again;
 tr415:
-#line 85 "pg_fsm.rl"
+#line 82 "pg_fsm.rl"
 	{ if (f->ready_for_query_state(u, pg_ready_for_query_state_inerror)) {p++;  m->cs = 397; goto _out;} }
 	goto st397;
 tr416:
-#line 83 "pg_fsm.rl"
+#line 80 "pg_fsm.rl"
 	{ if (f->ready_for_query_state(u, pg_ready_for_query_state_idle)) {p++;  m->cs = 397; goto _out;} }
 	goto st397;
 tr417:
-#line 86 "pg_fsm.rl"
+#line 83 "pg_fsm.rl"
 	{ if (f->ready_for_query_state(u, pg_ready_for_query_state_intrans)) {p++;  m->cs = 397; goto _out;} }
 	goto st397;
 tr421:
-#line 35 "pg_fsm.rl"
+#line 32 "pg_fsm.rl"
 	{ if (f->copy_done(u)) {p++;  m->cs = 397; goto _out;} }
 	goto st397;
 tr429:
-#line 62 "pg_fsm.rl"
+#line 59 "pg_fsm.rl"
 	{ if (f->no_data(u)) {p++;  m->cs = 397; goto _out;} }
 	goto st397;
 st397:
@@ -698,7 +698,7 @@ case 13:
 #line 699 "pg_fsm.c"
 	goto tr13;
 tr13:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st14;
 st14:
@@ -708,7 +708,7 @@ case 14:
 #line 709 "pg_fsm.c"
 	goto tr14;
 tr14:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st15;
 st15:
@@ -718,7 +718,7 @@ case 15:
 #line 719 "pg_fsm.c"
 	goto tr15;
 tr15:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st16;
 st16:
@@ -728,9 +728,9 @@ case 16:
 #line 729 "pg_fsm.c"
 	goto tr16;
 tr16:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 65 "pg_fsm.rl"
+#line 62 "pg_fsm.rl"
 	{ if (f->notification_response(u, m->int4 - 4)) {p++;  m->cs = 17; goto _out;} }
 	goto st17;
 st17:
@@ -740,7 +740,7 @@ case 17:
 #line 741 "pg_fsm.c"
 	goto tr17;
 tr17:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st18;
 st18:
@@ -750,7 +750,7 @@ case 18:
 #line 751 "pg_fsm.c"
 	goto tr18;
 tr18:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st19;
 st19:
@@ -760,7 +760,7 @@ case 19:
 #line 761 "pg_fsm.c"
 	goto tr19;
 tr19:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st20;
 st20:
@@ -770,9 +770,9 @@ case 20:
 #line 771 "pg_fsm.c"
 	goto tr20;
 tr20:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 66 "pg_fsm.rl"
+#line 63 "pg_fsm.rl"
 	{ if (f->notification_response_pid(u, m->int4)) {p++;  m->cs = 21; goto _out;} }
 	goto st21;
 st21:
@@ -784,7 +784,7 @@ case 21:
 		goto st0;
 	goto tr21;
 tr21:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st22;
 st22:
@@ -796,7 +796,7 @@ case 22:
 		goto tr22;
 	goto tr21;
 tr22:
-#line 67 "pg_fsm.rl"
+#line 64 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->notification_response_relname(u, p - m->string, m->string)) {p++;  m->cs = 23; goto _out;} m->string = NULL; }
 	goto st23;
 st23:
@@ -808,7 +808,7 @@ case 23:
 		goto st0;
 	goto tr23;
 tr23:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st24;
 st24:
@@ -830,7 +830,7 @@ case 25:
 #line 831 "pg_fsm.c"
 	goto tr25;
 tr25:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st26;
 st26:
@@ -840,7 +840,7 @@ case 26:
 #line 841 "pg_fsm.c"
 	goto tr26;
 tr26:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st27;
 st27:
@@ -850,7 +850,7 @@ case 27:
 #line 851 "pg_fsm.c"
 	goto tr27;
 tr27:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st28;
 st28:
@@ -860,9 +860,9 @@ case 28:
 #line 861 "pg_fsm.c"
 	goto tr28;
 tr28:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 32 "pg_fsm.rl"
+#line 29 "pg_fsm.rl"
 	{ if (f->command_complete(u, m->int4 - 4)) {p++;  m->cs = 29; goto _out;} }
 	goto st29;
 st29:
@@ -874,7 +874,7 @@ case 29:
 		goto st0;
 	goto tr29;
 tr29:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st30;
 st30:
@@ -896,7 +896,7 @@ case 31:
 #line 897 "pg_fsm.c"
 	goto tr31;
 tr31:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st32;
 st32:
@@ -906,7 +906,7 @@ case 32:
 #line 907 "pg_fsm.c"
 	goto tr32;
 tr32:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st33;
 st33:
@@ -916,7 +916,7 @@ case 33:
 #line 917 "pg_fsm.c"
 	goto tr33;
 tr33:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st34;
 st34:
@@ -926,9 +926,9 @@ case 34:
 #line 927 "pg_fsm.c"
 	goto tr34;
 tr34:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 38 "pg_fsm.rl"
+#line 35 "pg_fsm.rl"
 	{ if (f->data_row(u, m->int4 - 4)) {p++;  m->cs = 35; goto _out;} }
 	goto st35;
 st35:
@@ -938,7 +938,7 @@ case 35:
 #line 939 "pg_fsm.c"
 	goto tr35;
 tr35:
-#line 60 "pg_fsm.rl"
+#line 57 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
 	goto st36;
 st36:
@@ -949,15 +949,15 @@ case 36:
 	goto tr36;
 tr36:
 	 m->cs = 37;
-#line 60 "pg_fsm.rl"
+#line 57 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
-#line 37 "pg_fsm.rl"
+#line 34 "pg_fsm.rl"
 	{ m->data_row_count = m->int2; if (f->data_row_count(u, m->data_row_count)) {p++; goto _out;} if (!m->data_row_count)  m->cs = 397; }
 	goto _again;
 tr410:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 59 "pg_fsm.rl"
+#line 56 "pg_fsm.rl"
 	{ if (f->function_call_response(u, m->int4 - 4)) {p++;  m->cs = 37; goto _out;} }
 	goto st37;
 st37:
@@ -967,7 +967,7 @@ case 37:
 #line 968 "pg_fsm.c"
 	goto tr37;
 tr37:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st38;
 st38:
@@ -977,7 +977,7 @@ case 38:
 #line 978 "pg_fsm.c"
 	goto tr38;
 tr38:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st39;
 st39:
@@ -987,7 +987,7 @@ case 39:
 #line 988 "pg_fsm.c"
 	goto tr39;
 tr39:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st40;
 st40:
@@ -998,22 +998,22 @@ case 40:
 	goto tr40;
 tr40:
 	 m->cs = 398;
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 87 "pg_fsm.rl"
+#line 84 "pg_fsm.rl"
 	{ m->result_len = m->int4; if (f->result_len(u, m->result_len)) {p++; goto _out;} if (!m->result_len || m->result_len == (uint32_t)-1) { if (!m->data_row_count || !--m->data_row_count)  m->cs = 397; else  m->cs = 37; } }
 	goto _again;
 tr425:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 34 "pg_fsm.rl"
+#line 31 "pg_fsm.rl"
 	{ m->result_len = m->int4 - 4; if (f->copy_data(u, m->result_len)) {p++;  m->cs = 398; goto _out;} }
 	goto st398;
 tr449:
 	 m->cs = 398;
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
-#line 88 "pg_fsm.rl"
+#line 85 "pg_fsm.rl"
 	{ if (p == eof || !m->result_len--) { if (m->string && p - m->string > 0 && f->result_val(u, p - m->string, m->string)) {p++; goto _out;} m->string = NULL; if (m->result_len == (uint32_t)-1) { if (f->result_done(u)) {p++; goto _out;} p--; if (!m->data_row_count || !--m->data_row_count)  m->cs = 397; else  m->cs = 37; } } }
 	goto _again;
 st398:
@@ -1033,7 +1033,7 @@ case 41:
 #line 1034 "pg_fsm.c"
 	goto tr41;
 tr41:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st42;
 st42:
@@ -1043,7 +1043,7 @@ case 42:
 #line 1044 "pg_fsm.c"
 	goto tr42;
 tr42:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st43;
 st43:
@@ -1053,7 +1053,7 @@ case 43:
 #line 1054 "pg_fsm.c"
 	goto tr43;
 tr43:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st44;
 st44:
@@ -1063,15 +1063,15 @@ case 44:
 #line 1064 "pg_fsm.c"
 	goto tr44;
 tr44:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 48 "pg_fsm.rl"
+#line 45 "pg_fsm.rl"
 	{ if (f->error_response(u, m->int4 - 4)) {p++;  m->cs = 45; goto _out;} }
 	goto st45;
 tr126:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 63 "pg_fsm.rl"
+#line 60 "pg_fsm.rl"
 	{ if (f->notice_response(u, m->int4 - 4)) {p++;  m->cs = 45; goto _out;} }
 	goto st45;
 st45:
@@ -1108,7 +1108,7 @@ case 46:
 		goto st0;
 	goto tr63;
 tr63:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st47;
 st47:
@@ -1120,75 +1120,75 @@ case 47:
 		goto tr64;
 	goto tr63;
 tr64:
-#line 56 "pg_fsm.rl"
+#line 53 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_sqlstate(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr67:
-#line 44 "pg_fsm.rl"
+#line 41 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_detail(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr69:
-#line 45 "pg_fsm.rl"
+#line 42 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_file(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr71:
-#line 47 "pg_fsm.rl"
+#line 44 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_hint(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr73:
-#line 50 "pg_fsm.rl"
+#line 47 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_line(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr75:
-#line 52 "pg_fsm.rl"
+#line 49 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_primary(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr77:
-#line 57 "pg_fsm.rl"
+#line 54 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_statement(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr79:
-#line 46 "pg_fsm.rl"
+#line 43 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_function(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr81:
-#line 55 "pg_fsm.rl"
+#line 52 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_severity(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr83:
-#line 51 "pg_fsm.rl"
+#line 48 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_nonlocalized(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr85:
-#line 42 "pg_fsm.rl"
+#line 39 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_context(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr87:
-#line 40 "pg_fsm.rl"
+#line 37 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_column(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr89:
-#line 43 "pg_fsm.rl"
+#line 40 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_datatype(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr91:
-#line 41 "pg_fsm.rl"
+#line 38 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_constraint(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr93:
-#line 49 "pg_fsm.rl"
+#line 46 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_internal(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr95:
-#line 53 "pg_fsm.rl"
+#line 50 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_query(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr97:
-#line 54 "pg_fsm.rl"
+#line 51 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_schema(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 tr99:
-#line 58 "pg_fsm.rl"
+#line 55 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_table(u, p - m->string, m->string)) {p++;  m->cs = 48; goto _out;} m->string = NULL; }
 	goto st48;
 st48:
@@ -1226,7 +1226,7 @@ case 49:
 		goto st0;
 	goto tr66;
 tr66:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st50;
 st50:
@@ -1245,7 +1245,7 @@ case 51:
 		goto st0;
 	goto tr68;
 tr68:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st52;
 st52:
@@ -1264,7 +1264,7 @@ case 53:
 		goto st0;
 	goto tr70;
 tr70:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st54;
 st54:
@@ -1283,7 +1283,7 @@ case 55:
 		goto st0;
 	goto tr72;
 tr72:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st56;
 st56:
@@ -1302,7 +1302,7 @@ case 57:
 		goto st0;
 	goto tr74;
 tr74:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st58;
 st58:
@@ -1321,7 +1321,7 @@ case 59:
 		goto st0;
 	goto tr76;
 tr76:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st60;
 st60:
@@ -1340,7 +1340,7 @@ case 61:
 		goto st0;
 	goto tr78;
 tr78:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st62;
 st62:
@@ -1359,7 +1359,7 @@ case 63:
 		goto st0;
 	goto tr80;
 tr80:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st64;
 st64:
@@ -1378,7 +1378,7 @@ case 65:
 		goto st0;
 	goto tr82;
 tr82:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st66;
 st66:
@@ -1397,7 +1397,7 @@ case 67:
 		goto st0;
 	goto tr84;
 tr84:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st68;
 st68:
@@ -1416,7 +1416,7 @@ case 69:
 		goto st0;
 	goto tr86;
 tr86:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st70;
 st70:
@@ -1435,7 +1435,7 @@ case 71:
 		goto st0;
 	goto tr88;
 tr88:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st72;
 st72:
@@ -1454,7 +1454,7 @@ case 73:
 		goto st0;
 	goto tr90;
 tr90:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st74;
 st74:
@@ -1473,7 +1473,7 @@ case 75:
 		goto st0;
 	goto tr92;
 tr92:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st76;
 st76:
@@ -1492,7 +1492,7 @@ case 77:
 		goto st0;
 	goto tr94;
 tr94:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st78;
 st78:
@@ -1511,7 +1511,7 @@ case 79:
 		goto st0;
 	goto tr96;
 tr96:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st80;
 st80:
@@ -1530,7 +1530,7 @@ case 81:
 		goto st0;
 	goto tr98;
 tr98:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st82;
 st82:
@@ -1552,7 +1552,7 @@ case 83:
 #line 1553 "pg_fsm.c"
 	goto tr100;
 tr100:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st84;
 st84:
@@ -1562,7 +1562,7 @@ case 84:
 #line 1563 "pg_fsm.c"
 	goto tr101;
 tr101:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st85;
 st85:
@@ -1572,7 +1572,7 @@ case 85:
 #line 1573 "pg_fsm.c"
 	goto tr102;
 tr102:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st86;
 st86:
@@ -1582,9 +1582,9 @@ case 86:
 #line 1583 "pg_fsm.c"
 	goto tr103;
 tr103:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 36 "pg_fsm.rl"
+#line 33 "pg_fsm.rl"
 	{ if (f->copy_out_response(u, m->int4 - 4)) {p++;  m->cs = 87; goto _out;} }
 	goto st87;
 st87:
@@ -1706,7 +1706,7 @@ case 98:
 		goto tr114;
 	goto st0;
 tr114:
-#line 27 "pg_fsm.rl"
+#line 24 "pg_fsm.rl"
 	{ if (f->backend_key_data(u)) {p++;  m->cs = 99; goto _out;} }
 	goto st99;
 st99:
@@ -1716,7 +1716,7 @@ case 99:
 #line 1717 "pg_fsm.c"
 	goto tr115;
 tr115:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st100;
 st100:
@@ -1726,7 +1726,7 @@ case 100:
 #line 1727 "pg_fsm.c"
 	goto tr116;
 tr116:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st101;
 st101:
@@ -1736,7 +1736,7 @@ case 101:
 #line 1737 "pg_fsm.c"
 	goto tr117;
 tr117:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st102;
 st102:
@@ -1746,9 +1746,9 @@ case 102:
 #line 1747 "pg_fsm.c"
 	goto tr118;
 tr118:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 29 "pg_fsm.rl"
+#line 26 "pg_fsm.rl"
 	{ if (f->backend_key_data_pid(u, m->int4)) {p++;  m->cs = 103; goto _out;} }
 	goto st103;
 st103:
@@ -1758,7 +1758,7 @@ case 103:
 #line 1759 "pg_fsm.c"
 	goto tr119;
 tr119:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st104;
 st104:
@@ -1768,7 +1768,7 @@ case 104:
 #line 1769 "pg_fsm.c"
 	goto tr120;
 tr120:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st105;
 st105:
@@ -1778,7 +1778,7 @@ case 105:
 #line 1779 "pg_fsm.c"
 	goto tr121;
 tr121:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st106;
 st106:
@@ -1798,7 +1798,7 @@ case 107:
 #line 1799 "pg_fsm.c"
 	goto tr123;
 tr123:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st108;
 st108:
@@ -1808,7 +1808,7 @@ case 108:
 #line 1809 "pg_fsm.c"
 	goto tr124;
 tr124:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st109;
 st109:
@@ -1818,7 +1818,7 @@ case 109:
 #line 1819 "pg_fsm.c"
 	goto tr125;
 tr125:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st110;
 st110:
@@ -1926,7 +1926,7 @@ st123:
 case 123:
 	goto tr141;
 tr141:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st124;
 st124:
@@ -1936,7 +1936,7 @@ case 124:
 #line 1937 "pg_fsm.c"
 	goto tr142;
 tr142:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st125;
 st125:
@@ -1946,7 +1946,7 @@ case 125:
 #line 1947 "pg_fsm.c"
 	goto tr143;
 tr143:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st126;
 st126:
@@ -1956,7 +1956,7 @@ case 126:
 #line 1957 "pg_fsm.c"
 	goto tr144;
 tr144:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st400;
 st400:
@@ -1997,7 +1997,7 @@ case 127:
 #line 1998 "pg_fsm.c"
 	goto tr145;
 tr145:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st128;
 st128:
@@ -2007,7 +2007,7 @@ case 128:
 #line 2008 "pg_fsm.c"
 	goto tr146;
 tr146:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st129;
 st129:
@@ -2017,7 +2017,7 @@ case 129:
 #line 2018 "pg_fsm.c"
 	goto tr147;
 tr147:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st130;
 st130:
@@ -2027,9 +2027,9 @@ case 130:
 #line 2028 "pg_fsm.c"
 	goto tr148;
 tr148:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 72 "pg_fsm.rl"
+#line 69 "pg_fsm.rl"
 	{ if (f->parameter_status(u, m->int4 - 4)) {p++;  m->cs = 131; goto _out;} }
 	goto st131;
 st131:
@@ -2200,7 +2200,7 @@ case 148:
 		goto st0;
 	goto tr171;
 tr171:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st149;
 st149:
@@ -2350,7 +2350,7 @@ case 165:
 		goto st0;
 	goto tr188;
 tr188:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st166;
 st166:
@@ -2450,7 +2450,7 @@ case 176:
 		goto st0;
 	goto tr200;
 tr200:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st177;
 st177:
@@ -2713,7 +2713,7 @@ case 206:
 		goto st0;
 	goto tr230;
 tr230:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st207;
 st207:
@@ -2886,7 +2886,7 @@ case 225:
 		goto st0;
 	goto tr252;
 tr252:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st226;
 st226:
@@ -2984,7 +2984,7 @@ case 236:
 		goto st0;
 	goto tr263;
 tr263:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st237;
 st237:
@@ -3107,7 +3107,7 @@ case 250:
 		goto st0;
 	goto tr277;
 tr277:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st251;
 st251:
@@ -3221,7 +3221,7 @@ case 263:
 		goto st0;
 	goto tr290;
 tr290:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st264;
 st264:
@@ -3377,7 +3377,7 @@ case 280:
 		goto st0;
 	goto tr310;
 tr310:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st281;
 st281:
@@ -3457,7 +3457,7 @@ case 289:
 		goto st0;
 	goto tr319;
 tr319:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st290;
 st290:
@@ -3643,7 +3643,7 @@ case 310:
 		goto st0;
 	goto tr340;
 tr340:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st311;
 st311:
@@ -3890,7 +3890,7 @@ case 338:
 		goto st0;
 	goto tr368;
 tr368:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st339;
 st339:
@@ -3979,7 +3979,7 @@ case 348:
 		goto st0;
 	goto tr378;
 tr378:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st349;
 st349:
@@ -4001,7 +4001,7 @@ case 350:
 #line 4002 "pg_fsm.c"
 	goto tr380;
 tr380:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st351;
 st351:
@@ -4011,7 +4011,7 @@ case 351:
 #line 4012 "pg_fsm.c"
 	goto tr381;
 tr381:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st352;
 st352:
@@ -4021,7 +4021,7 @@ case 352:
 #line 4022 "pg_fsm.c"
 	goto tr382;
 tr382:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st353;
 st353:
@@ -4031,9 +4031,9 @@ case 353:
 #line 4032 "pg_fsm.c"
 	goto tr383;
 tr383:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 93 "pg_fsm.rl"
+#line 90 "pg_fsm.rl"
 	{ if (f->row_description(u, m->int4 - 4)) {p++;  m->cs = 354; goto _out;} }
 	goto st354;
 st354:
@@ -4043,7 +4043,7 @@ case 354:
 #line 4044 "pg_fsm.c"
 	goto tr384;
 tr384:
-#line 60 "pg_fsm.rl"
+#line 57 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
 	goto st355;
 st355:
@@ -4054,9 +4054,9 @@ case 355:
 	goto tr385;
 tr385:
 	 m->cs = 356;
-#line 60 "pg_fsm.rl"
+#line 57 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
-#line 91 "pg_fsm.rl"
+#line 88 "pg_fsm.rl"
 	{ m->row_description_count = m->int2; if (f->row_description_count(u, m->row_description_count)) {p++; goto _out;} if (!m->row_description_count)  m->cs = 397; }
 	goto _again;
 st356:
@@ -4068,13 +4068,13 @@ case 356:
 		goto st0;
 	goto tr386;
 tr388:
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st357;
 tr386:
-#line 89 "pg_fsm.rl"
+#line 86 "pg_fsm.rl"
 	{ if (f->row_description_beg(u)) {p++;  m->cs = 357; goto _out;} }
-#line 99 "pg_fsm.rl"
+#line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 	goto st357;
 st357:
@@ -4086,7 +4086,7 @@ case 357:
 		goto tr387;
 	goto tr388;
 tr387:
-#line 96 "pg_fsm.rl"
+#line 93 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->row_description_name(u, p - m->string, m->string)) {p++;  m->cs = 358; goto _out;} m->string = NULL; }
 	goto st358;
 st358:
@@ -4096,7 +4096,7 @@ case 358:
 #line 4097 "pg_fsm.c"
 	goto tr389;
 tr389:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st359;
 st359:
@@ -4106,7 +4106,7 @@ case 359:
 #line 4107 "pg_fsm.c"
 	goto tr390;
 tr390:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st360;
 st360:
@@ -4116,7 +4116,7 @@ case 360:
 #line 4117 "pg_fsm.c"
 	goto tr391;
 tr391:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st361;
 st361:
@@ -4126,9 +4126,9 @@ case 361:
 #line 4127 "pg_fsm.c"
 	goto tr392;
 tr392:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 98 "pg_fsm.rl"
+#line 95 "pg_fsm.rl"
 	{ if (f->row_description_table(u, m->int4)) {p++;  m->cs = 362; goto _out;} }
 	goto st362;
 st362:
@@ -4138,7 +4138,7 @@ case 362:
 #line 4139 "pg_fsm.c"
 	goto tr393;
 tr393:
-#line 60 "pg_fsm.rl"
+#line 57 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
 	goto st363;
 st363:
@@ -4148,9 +4148,9 @@ case 363:
 #line 4149 "pg_fsm.c"
 	goto tr394;
 tr394:
-#line 60 "pg_fsm.rl"
+#line 57 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
-#line 90 "pg_fsm.rl"
+#line 87 "pg_fsm.rl"
 	{ if (f->row_description_column(u, m->int2)) {p++;  m->cs = 364; goto _out;} }
 	goto st364;
 st364:
@@ -4160,7 +4160,7 @@ case 364:
 #line 4161 "pg_fsm.c"
 	goto tr395;
 tr395:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st365;
 st365:
@@ -4170,7 +4170,7 @@ case 365:
 #line 4171 "pg_fsm.c"
 	goto tr396;
 tr396:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st366;
 st366:
@@ -4180,7 +4180,7 @@ case 366:
 #line 4181 "pg_fsm.c"
 	goto tr397;
 tr397:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st367;
 st367:
@@ -4190,9 +4190,9 @@ case 367:
 #line 4191 "pg_fsm.c"
 	goto tr398;
 tr398:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 97 "pg_fsm.rl"
+#line 94 "pg_fsm.rl"
 	{ if (f->row_description_oid(u, m->int4)) {p++;  m->cs = 368; goto _out;} }
 	goto st368;
 st368:
@@ -4202,7 +4202,7 @@ case 368:
 #line 4203 "pg_fsm.c"
 	goto tr399;
 tr399:
-#line 60 "pg_fsm.rl"
+#line 57 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
 	goto st369;
 st369:
@@ -4212,9 +4212,9 @@ case 369:
 #line 4213 "pg_fsm.c"
 	goto tr400;
 tr400:
-#line 60 "pg_fsm.rl"
+#line 57 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
-#line 94 "pg_fsm.rl"
+#line 91 "pg_fsm.rl"
 	{ if (f->row_description_length(u, m->int2)) {p++;  m->cs = 370; goto _out;} }
 	goto st370;
 st370:
@@ -4224,7 +4224,7 @@ case 370:
 #line 4225 "pg_fsm.c"
 	goto tr401;
 tr401:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st371;
 st371:
@@ -4234,7 +4234,7 @@ case 371:
 #line 4235 "pg_fsm.c"
 	goto tr402;
 tr402:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st372;
 st372:
@@ -4244,7 +4244,7 @@ case 372:
 #line 4245 "pg_fsm.c"
 	goto tr403;
 tr403:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st373;
 st373:
@@ -4254,9 +4254,9 @@ case 373:
 #line 4255 "pg_fsm.c"
 	goto tr404;
 tr404:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 95 "pg_fsm.rl"
+#line 92 "pg_fsm.rl"
 	{ if (f->row_description_mod(u, m->int4)) {p++;  m->cs = 374; goto _out;} }
 	goto st374;
 st374:
@@ -4285,7 +4285,7 @@ case 376:
 #line 4286 "pg_fsm.c"
 	goto tr407;
 tr407:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st377;
 st377:
@@ -4295,7 +4295,7 @@ case 377:
 #line 4296 "pg_fsm.c"
 	goto tr408;
 tr408:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st378;
 st378:
@@ -4305,7 +4305,7 @@ case 378:
 #line 4306 "pg_fsm.c"
 	goto tr409;
 tr409:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st379;
 st379:
@@ -4348,7 +4348,7 @@ case 383:
 		goto tr414;
 	goto st0;
 tr414:
-#line 84 "pg_fsm.rl"
+#line 81 "pg_fsm.rl"
 	{ if (f->ready_for_query(u)) {p++;  m->cs = 384; goto _out;} }
 	goto st384;
 st384:
@@ -4406,7 +4406,7 @@ case 389:
 #line 4407 "pg_fsm.c"
 	goto tr422;
 tr422:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st390;
 st390:
@@ -4416,7 +4416,7 @@ case 390:
 #line 4417 "pg_fsm.c"
 	goto tr423;
 tr423:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st391;
 st391:
@@ -4426,7 +4426,7 @@ case 391:
 #line 4427 "pg_fsm.c"
 	goto tr424;
 tr424:
-#line 61 "pg_fsm.rl"
+#line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st392;
 st392:
@@ -4880,181 +4880,181 @@ case 396:
 	break;
 	case 29: 
 	case 30: 
-#line 33 "pg_fsm.rl"
+#line 30 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->command_complete_val(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 69: 
 	case 70: 
-#line 40 "pg_fsm.rl"
+#line 37 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_column(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 73: 
 	case 74: 
-#line 41 "pg_fsm.rl"
+#line 38 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_constraint(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 67: 
 	case 68: 
-#line 42 "pg_fsm.rl"
+#line 39 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_context(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 71: 
 	case 72: 
-#line 43 "pg_fsm.rl"
+#line 40 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_datatype(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 49: 
 	case 50: 
-#line 44 "pg_fsm.rl"
+#line 41 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_detail(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 51: 
 	case 52: 
-#line 45 "pg_fsm.rl"
+#line 42 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_file(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 61: 
 	case 62: 
-#line 46 "pg_fsm.rl"
+#line 43 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_function(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 53: 
 	case 54: 
-#line 47 "pg_fsm.rl"
+#line 44 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_hint(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 75: 
 	case 76: 
-#line 49 "pg_fsm.rl"
+#line 46 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_internal(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 55: 
 	case 56: 
-#line 50 "pg_fsm.rl"
+#line 47 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_line(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 65: 
 	case 66: 
-#line 51 "pg_fsm.rl"
+#line 48 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_nonlocalized(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 57: 
 	case 58: 
-#line 52 "pg_fsm.rl"
+#line 49 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_primary(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 77: 
 	case 78: 
-#line 53 "pg_fsm.rl"
+#line 50 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_query(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 79: 
 	case 80: 
-#line 54 "pg_fsm.rl"
+#line 51 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_schema(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 63: 
 	case 64: 
-#line 55 "pg_fsm.rl"
+#line 52 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_severity(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 46: 
 	case 47: 
-#line 56 "pg_fsm.rl"
+#line 53 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_sqlstate(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 59: 
 	case 60: 
-#line 57 "pg_fsm.rl"
+#line 54 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_statement(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 81: 
 	case 82: 
-#line 58 "pg_fsm.rl"
+#line 55 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->error_response_table(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 23: 
 	case 24: 
-#line 64 "pg_fsm.rl"
+#line 61 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->notification_response_extra(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; if (p != eof) if (f->notification_response_done(u)) {p++;  m->cs = 0; goto _out;} }
 	break;
 	case 21: 
 	case 22: 
-#line 67 "pg_fsm.rl"
+#line 64 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->notification_response_relname(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 148: 
 	case 149: 
-#line 68 "pg_fsm.rl"
+#line 65 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_application_name(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 165: 
 	case 166: 
-#line 69 "pg_fsm.rl"
+#line 66 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_client_encoding(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 176: 
 	case 177: 
-#line 70 "pg_fsm.rl"
+#line 67 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_datestyle(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 206: 
 	case 207: 
-#line 71 "pg_fsm.rl"
+#line 68 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_default_transaction_read_only(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 250: 
 	case 251: 
-#line 73 "pg_fsm.rl"
+#line 70 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_in_hot_standby(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 225: 
 	case 226: 
-#line 74 "pg_fsm.rl"
+#line 71 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_integer_datetimes(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 236: 
 	case 237: 
-#line 75 "pg_fsm.rl"
+#line 72 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_intervalstyle(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 263: 
 	case 264: 
-#line 76 "pg_fsm.rl"
+#line 73 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_is_superuser(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 280: 
 	case 281: 
-#line 77 "pg_fsm.rl"
+#line 74 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_server_encoding(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 289: 
 	case 290: 
-#line 78 "pg_fsm.rl"
+#line 75 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_server_version(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 310: 
 	case 311: 
-#line 79 "pg_fsm.rl"
+#line 76 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_session_authorization(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 338: 
 	case 339: 
-#line 80 "pg_fsm.rl"
+#line 77 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_standard_conforming_strings(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 348: 
 	case 349: 
-#line 81 "pg_fsm.rl"
+#line 78 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_timezone(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 398: 
-#line 88 "pg_fsm.rl"
+#line 85 "pg_fsm.rl"
 	{ if (p == eof || !m->result_len--) { if (m->string && p - m->string > 0 && f->result_val(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; if (m->result_len == (uint32_t)-1) { if (f->result_done(u)) {p++;  m->cs = 0; goto _out;} p--; if (!m->data_row_count || !--m->data_row_count)  m->cs = 397; else  m->cs = 37; } } }
 	break;
 	case 356: 
 	case 357: 
-#line 96 "pg_fsm.rl"
+#line 93 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->row_description_name(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 #line 5061 "pg_fsm.c"
@@ -5064,7 +5064,7 @@ case 396:
 	_out: {}
 	}
 
-#line 189 "pg_fsm.rl"
+#line 194 "pg_fsm.rl"
     if (!m->cs) (void)f->error(u, p - b, p);
     return p - b;
 }
@@ -5080,5 +5080,5 @@ void pg_fsm_init(pg_fsm_t *m) {
 	 m->cs = pg_fsm_start;
 	}
 
-#line 199 "pg_fsm.rl"
+#line 204 "pg_fsm.rl"
 }

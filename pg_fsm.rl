@@ -101,6 +101,12 @@ typedef struct pg_fsm_t {
     str = char + $(string) 0;
     str4 = any{4} $(string);
 
+    authentication =
+    ( 12 0 0 0 5 str4 %(authentication_md5_password)
+    |  8 0 0 0 0 @(authentication_ok)
+    |  8 0 0 0 3 @(authentication_cleartext_password)
+    );
+
     error_response =
     ( "c" str @(error_response_column) @eof(error_response_column)
     | "C" str @(error_response_sqlstate) @eof(error_response_sqlstate)
@@ -147,7 +153,14 @@ typedef struct pg_fsm_t {
 
     data_row = function_call_response;
     ready_for_query = ready_for_query_inerror | ready_for_query_idle | ready_for_query_intrans;
-    row_description = str >row_description_beg @(row_description_name) @eof(row_description_name) int4 @(row_description_table) int2 @(row_description_column) int4 @(row_description_oid) int2 @(row_description_length) int4 @(row_description_mod) 0 0 @(row_description_format);
+    row_description =
+        str >row_description_beg @(row_description_name) @eof(row_description_name)
+        int4 @(row_description_table)
+        int2 @(row_description_column)
+        int4 @(row_description_oid)
+        int2 @(row_description_length)
+        int4 @(row_description_mod)
+        0 0 @(row_description_format);
 
     main :=
     ( "1" 0 0 0 4 @(parse_complete)
@@ -164,9 +177,7 @@ typedef struct pg_fsm_t {
     | "K" 0 0 0 12 @(backend_key_data) int4 @(backend_key_data_pid) int4 @(backend_key_data_key)
     | "n" 0 0 0 4 @(no_data)
     | "N" int4 @(notice_response) error_response + 0
-    | "R" 0 0 0 12 0 0 0 5 str4 %(authentication_md5_password)
-    | "R" 0 0 0 8 0 0 0 0 @(authentication_ok)
-    | "R" 0 0 0 8 0 0 0 3 @(authentication_cleartext_password)
+    | "R" 0 0 0 authentication
     | "S" int4 @(parameter_status) parameter_status
     | "T" int4 @(row_description) int2 @(row_description_count) row_description
     | "V" int4 @(function_call_response) function_call_response
