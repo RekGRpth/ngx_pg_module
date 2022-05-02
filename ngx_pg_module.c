@@ -707,6 +707,14 @@ static int ngx_pg_fsm_backend_key_data_pid(ngx_pg_save_t *s, uint32_t pid) {
 
 static int ngx_pg_fsm_bind_complete(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
+    ngx_pg_data_t *d = s->data;
+    if (!d) return s->rc;
+    if (ngx_queue_empty(&d->queue)) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_queue_empty"); s->rc = NGX_ERROR; return s->rc; }
+    ngx_queue_t *q = ngx_queue_head(&d->queue);
+    ngx_queue_remove(q);
+    ngx_pg_query_queue_t *qq = ngx_queue_data(q, ngx_pg_query_queue_t, queue);
+    ngx_pg_query_t *query = d->query = qq->query;
+    if (!(query->type & ngx_pg_type_location)) return s->rc;
     return s->rc;
 }
 
@@ -1654,7 +1662,7 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->pos, b->last);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
-    if (s->rc == NGX_OK) s->rc = !ngx_queue_empty(&d->queue) ? NGX_AGAIN : NGX_OK;
+    if (s->rc == NGX_OK) s->rc = !ngx_queue_empty(&d->queue) || !s->pid || !s->key ? NGX_AGAIN : NGX_OK;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     d->error = s->error;
     d->option = s->option;
@@ -1714,7 +1722,7 @@ static ngx_int_t ngx_pg_pipe_input_filter(ngx_event_pipe_t *p, ngx_buf_t *b) {
     while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->pos, b->last);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, p->log, 0, "s->rc = %i", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
-    if (ngx_queue_empty(&d->queue)) {
+    if (ngx_queue_empty(&d->queue) && s->pid && s->key) {
         p->length = 0;
         u->length = 0;
     }
@@ -1728,7 +1736,8 @@ static ngx_int_t ngx_pg_input_filter_init(void *data) {
     ngx_event_pipe_t *p = u->pipe;
     if (u->peer.get != ngx_pg_peer_get) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "peer is not pg"); return NGX_ERROR; }
     ngx_pg_data_t *d = u->peer.data;
-    if (ngx_queue_empty(&d->queue)) {
+    ngx_pg_save_t *s = d->save;
+    if (ngx_queue_empty(&d->queue) && s->pid && s->key) {
         if (u->buffering) p->length = 0;
         u->length = 0;
     } else {
@@ -1752,7 +1761,7 @@ static ngx_int_t ngx_pg_input_filter(void *data, ssize_t bytes) {
     while (b->last < last && s->rc == NGX_OK) b->last += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->last, last);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->last == last = %s", b->last == last ? "true" : "false");
-    if (ngx_queue_empty(&d->queue)) u->length = 0;
+    if (ngx_queue_empty(&d->queue) && s->pid && s->key) u->length = 0;
     return s->rc;
 }
 
