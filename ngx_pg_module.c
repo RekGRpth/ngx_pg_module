@@ -547,7 +547,7 @@ static ngx_chain_t *ngx_pg_queries(ngx_http_request_t *r, ngx_array_t *queries) 
                 if (!(cl = cl_query = ngx_pg_function_call(r->pool, oid, &query[i].arguments))) return NULL;
             }
             while (cl->next) cl = cl->next;
-        } else if (query[i].commands.elts) {
+        } else {
             if (query[i].type == ngx_pg_type_query || query[i].type == ngx_pg_type_parse) {
                 if (cl) {
                     if (!(cl->next = ngx_pg_parse(r->pool, query[i].name.str.len, query[i].name.str.data, &query[i].commands, &query[i].arguments))) return NULL;
@@ -568,7 +568,7 @@ static ngx_chain_t *ngx_pg_queries(ngx_http_request_t *r, ngx_array_t *queries) 
                 if (!(cl->next = ngx_pg_execute(r->pool))) return NULL;
                 while (cl->next) cl = cl->next;
             }
-        } else { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!pg_function && !pg_query"); return NULL; }
+        }
     }
 //    if (!(cl->next = ngx_pg_close(r->pool))) return NULL;
 //    while (cl->next) cl = cl->next;
