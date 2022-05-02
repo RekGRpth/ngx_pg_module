@@ -638,29 +638,6 @@ static int ngx_pg_fsm_authentication_ok(ngx_pg_save_t *s) {
     return s->rc;
 }
 
-/*static int ngx_pg_fsm_authentication_sasl(ngx_pg_save_t *s, uint32_t len) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
-    return s->rc;
-}*/
-
-/*static int ngx_pg_fsm_authentication_sasl_continue(ngx_pg_save_t *s, uint32_t len) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
-    return s->rc;
-}*/
-
-/*static int ngx_pg_fsm_authentication_sasl_scram_sha_256(ngx_pg_save_t *s) {
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
-    ngx_pg_data_t *d = s->data;
-    if (!d) return s->rc;
-    ngx_chain_t *out, *last;
-    ngx_http_request_t *r = d->request;
-    if (!(out = ngx_pg_sasl_initial_response_scram_sha_256(r->pool, sizeof("n,,n=,r=") - 1, (uint8_t *)"n,,n=,r="))) { s->rc = NGX_ERROR; return s->rc; }
-    ngx_connection_t *c = s->connection;
-    ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
-    ngx_chain_writer(&ctx, NULL);
-    return s->rc;
-}*/
-
 static int ngx_pg_fsm_backend_key_data(ngx_pg_save_t *s) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%s", __func__);
     return s->rc;
@@ -1259,9 +1236,6 @@ static const pg_fsm_cb_t ngx_pg_fsm_cb = {
     .authentication_cleartext_password = (pg_fsm_cb)ngx_pg_fsm_authentication_cleartext_password,
     .authentication_md5_password = (pg_fsm_str_cb)ngx_pg_fsm_authentication_md5_password,
     .authentication_ok = (pg_fsm_cb)ngx_pg_fsm_authentication_ok,
-//    .authentication_sasl_continue = (pg_fsm_int4_cb)ngx_pg_fsm_authentication_sasl_continue,
-//    .authentication_sasl = (pg_fsm_int4_cb)ngx_pg_fsm_authentication_sasl,
-//    .authentication_sasl_scram_sha_256 = (pg_fsm_cb)ngx_pg_fsm_authentication_sasl_scram_sha_256,
     .backend_key_data_key = (pg_fsm_int4_cb)ngx_pg_fsm_backend_key_data_key,
     .backend_key_data = (pg_fsm_cb)ngx_pg_fsm_backend_key_data,
     .backend_key_data_pid = (pg_fsm_int4_cb)ngx_pg_fsm_backend_key_data_pid,
