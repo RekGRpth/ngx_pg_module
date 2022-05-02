@@ -550,17 +550,17 @@ static ngx_chain_t *ngx_pg_queries(ngx_http_request_t *r, ngx_array_t *queries) 
         } else if (query[i].commands.elts) {
             if (query[i].type == ngx_pg_type_query || query[i].type == ngx_pg_type_parse) {
                 if (cl) {
-                    if (!(cl->next = ngx_pg_parse(r->pool, 0, NULL, &query[i].commands, &query[i].arguments))) return NULL;
+                    if (!(cl->next = ngx_pg_parse(r->pool, query[i].name.str.len, query[i].name.str.data, &query[i].commands, &query[i].arguments))) return NULL;
                 } else {
-                    if (!(cl = cl_query = ngx_pg_parse(r->pool, 0, NULL, &query[i].commands, &query[i].arguments))) return NULL;
+                    if (!(cl = cl_query = ngx_pg_parse(r->pool, query[i].name.str.len, query[i].name.str.data, &query[i].commands, &query[i].arguments))) return NULL;
                 }
                 while (cl->next) cl = cl->next;
             }
             if (query[i].type == ngx_pg_type_query || query[i].type == ngx_pg_type_bind) {
                 if (cl) {
-                    if (!(cl->next = ngx_pg_bind(r->pool, 0, NULL, &query[i].arguments))) return NULL;
+                    if (!(cl->next = ngx_pg_bind(r->pool, query[i].name.str.len, query[i].name.str.data, &query[i].arguments))) return NULL;
                 } else {
-                    if (!(cl = cl_query = ngx_pg_bind(r->pool, 0, NULL, &query[i].arguments))) return NULL;
+                    if (!(cl = cl_query = ngx_pg_bind(r->pool, query[i].name.str.len, query[i].name.str.data, &query[i].arguments))) return NULL;
                 }
                 while (cl->next) cl = cl->next;
                 if (!(cl->next = ngx_pg_describe(r->pool))) return NULL;
