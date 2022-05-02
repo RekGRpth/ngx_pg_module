@@ -2200,7 +2200,7 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
         ngx_memzero(argument, sizeof(*argument));
         ngx_str_t value = str[i];
         ngx_str_t oid = ngx_null_string;
-        if ((cmd->offset & ngx_pg_type_query) || (cmd->offset & ngx_pg_type_function)) {
+        if (cmd->offset & ngx_pg_type_query || cmd->offset & ngx_pg_type_function) {
             u_char *colon;
             if ((colon = ngx_strstrn(value.data, "::", sizeof("::") - 1 - 1))) {
                 value.len = colon - value.data;
