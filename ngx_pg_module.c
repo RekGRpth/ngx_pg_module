@@ -162,7 +162,13 @@ typedef struct {
 typedef struct ngx_pg_data_t ngx_pg_data_t;
 
 typedef struct {
+    ngx_int_t index;
+    ngx_str_t value;
+} ngx_pg_variable_t;
+
+typedef struct {
     ngx_array_t channels;
+    ngx_array_t variables;
     ngx_buf_t buffer;
     ngx_connection_t *connection;
     ngx_msec_t timeout;
@@ -1194,12 +1200,14 @@ static int ngx_pg_fsm_result_val(ngx_pg_save_t *s, size_t len, const uint8_t *da
     if (!query) return s->rc;
     if (query->type & ngx_pg_type_upstream) {
         if (query->output.index) {
-            ngx_http_request_t *r = d->request;
-            ngx_http_variable_value_t *value = r->variables + query->output.index;
-            if (!(value->data = ngx_pnalloc(r->pool, value->len = len))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
-            (void)ngx_copy(value->data, data, len);
-            value->not_found = 0;
-            value->valid = 1;
+            ngx_pg_variable_t *variable;
+            ngx_connection_t *c = s->connection;
+            if (!s->variables.elts && ngx_array_init(&s->variables, c->pool, 1, sizeof(*variable)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_array_init != NGX_OK"); s->rc = NGX_ERROR; return s->rc; }
+            if (!(variable = ngx_array_push(&s->variables))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
+            ngx_memzero(variable, sizeof(*variable));
+            if (!(variable->value.data = ngx_pnalloc(c->pool, variable->value.len = len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
+            (void)ngx_copy(variable->value.data, data, len);
+            variable->index = query->output.index;
         }
         return s->rc;
     }
@@ -2157,6 +2165,23 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
 
 static ngx_int_t ngx_pg_variable_get_handler(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
+    v->not_found = 1;
+    ngx_http_upstream_t *u = r->upstream;
+    if (!u) return NGX_OK;
+    if (u->peer.get != ngx_pg_peer_get) return NGX_OK;
+    ngx_pg_data_t *d = u->peer.data;
+    ngx_pg_save_t *s = d->save;
+    if (!s) return NGX_OK;
+    ngx_int_t index = data;
+    ngx_pg_variable_t *variable = s->variables.elts;
+    for (ngx_uint_t i = 0; i < s->variables.nelts; i++) if (variable[i].index == index) {
+        v->data = variable[i].value.data;
+        v->len = variable[i].value.len;
+        v->no_cacheable = 0;
+        v->not_found = 0;
+        v->valid = 1;
+        return NGX_OK;
+    }
     return NGX_OK;
 }
 
