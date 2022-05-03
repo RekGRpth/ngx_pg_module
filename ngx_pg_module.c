@@ -1192,12 +1192,7 @@ static int ngx_pg_fsm_result_val(ngx_pg_save_t *s, size_t len, const uint8_t *da
     if (!d) return s->rc;
     ngx_pg_query_t *query = d->query;
     if (!query) return s->rc;
-    if (!(query->type & ngx_pg_type_location)) return s->rc;
-    if (query->output.type == ngx_pg_output_type_none) return s->rc;
-    if (query->output.type > ngx_pg_output_type_value && query->output.string && query->output.quote && query->output.escape) for (ngx_uint_t k = 0; k < len; k++) {
-        if (data[k] == query->output.quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->output.escape), &query->output.escape)) != NGX_OK) return s->rc;
-        if ((s->rc = ngx_pg_output_handler(d, sizeof(data[k]), &data[k])) != NGX_OK) return s->rc;
-    } else if (query->output.type > ngx_pg_output_type_none) {
+    if (query->type & ngx_pg_type_upstream) {
         if (query->output.index) {
             ngx_http_request_t *r = d->request;
             ngx_http_variable_value_t *value = r->variables + query->output.index;
@@ -1205,7 +1200,15 @@ static int ngx_pg_fsm_result_val(ngx_pg_save_t *s, size_t len, const uint8_t *da
             (void)ngx_copy(value->data, data, len);
             value->not_found = 0;
             value->valid = 1;
-        } else if ((s->rc = ngx_pg_output_handler(d, len, data)) != NGX_OK) return s->rc;
+        }
+        return s->rc;
+    }
+    if (query->output.type == ngx_pg_output_type_none) return s->rc;
+    if (query->output.type > ngx_pg_output_type_value && query->output.string && query->output.quote && query->output.escape) for (ngx_uint_t k = 0; k < len; k++) {
+        if (data[k] == query->output.quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->output.escape), &query->output.escape)) != NGX_OK) return s->rc;
+        if ((s->rc = ngx_pg_output_handler(d, sizeof(data[k]), &data[k])) != NGX_OK) return s->rc;
+    } else if (query->output.type > ngx_pg_output_type_none) {
+        if ((s->rc = ngx_pg_output_handler(d, len, data)) != NGX_OK) return s->rc;
     }
     return s->rc;
 }
