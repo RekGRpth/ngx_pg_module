@@ -678,14 +678,7 @@ static int ngx_pg_fsm_authentication_ok(ngx_pg_save_t *s) {
     ngx_http_upstream_t *u = r->upstream;
     ngx_pg_loc_conf_t *plcf = d->plcf;
     ngx_pg_srv_conf_t *pscf = d->pscf;
-    if (pscf && pscf->queries.elts) {
-        ngx_chain_t *cl;
-        if (!(cl = u->request_bufs = ngx_pg_queries(d, &pscf->queries))) { s->rc = NGX_ERROR; return s->rc; }
-        while (cl->next) cl = cl->next;
-        if (!(cl->next = ngx_pg_queries(d, &plcf->queries))) { s->rc = NGX_ERROR; return s->rc; }
-    } else {
-        if (!(u->request_bufs = ngx_pg_queries(d, &plcf->queries))) { s->rc = NGX_ERROR; return s->rc; }
-    }
+    if (!(u->request_bufs = ngx_pg_queries(d, pscf && pscf->queries.elts ? &pscf->queries : &plcf->queries))) { s->rc = NGX_ERROR; return s->rc; }
     u->request_sent = 0;
     u->write_event_handler(r, u);
     ngx_connection_t *c = r->connection;
@@ -1147,6 +1140,19 @@ static int ngx_pg_fsm_ready_for_query(ngx_pg_save_t *s) {
 
 static int ngx_pg_fsm_ready_for_query_state(ngx_pg_save_t *s, uint16_t state) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%d", state);
+    ngx_pg_data_t *d = s->data;
+    if (!d) return s->rc;
+    ngx_pg_query_t *query = d->query;
+    if (!query) return s->rc;
+    if (!(query->type & ngx_pg_type_upstream)) return s->rc;
+    ngx_http_request_t *r = d->request;
+    ngx_http_upstream_t *u = r->upstream;
+    ngx_pg_loc_conf_t *plcf = d->plcf;
+    if (!(u->request_bufs = ngx_pg_queries(d, &plcf->queries))) { s->rc = NGX_ERROR; return s->rc; }
+    u->request_sent = 0;
+    u->write_event_handler(r, u);
+    ngx_connection_t *c = r->connection;
+    ngx_http_run_posted_requests(c);
     return s->rc;
 }
 
