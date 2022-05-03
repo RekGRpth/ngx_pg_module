@@ -2191,10 +2191,7 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
                 ngx_http_variable_t *variable;
                 if (!(variable = ngx_http_add_variable(cf, &name, NGX_HTTP_VAR_CHANGEABLE))) return "!ngx_http_add_variable";
                 if ((query->output.index = ngx_http_get_variable_index(cf, &name)) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
-                if (!variable->get_handler && ngx_strncasecmp(name.data, (u_char *) "arg_", 4) && ngx_strncasecmp(name.data, (u_char *) "cookie_", 7) && ngx_strncasecmp(name.data, (u_char *) "http_", 5) && ngx_strncasecmp(name.data, (u_char *) "sent_http_", 10) && ngx_strncasecmp(name.data, (u_char *) "upstream_http_", 14)) {
-                    variable->get_handler = ngx_http_rewrite_var;
-                    variable->data = query->output.index;
-                }
+                if (!variable->get_handler && ngx_strncasecmp(name.data, (u_char *) "arg_", 4) && ngx_strncasecmp(name.data, (u_char *) "cookie_", 7) && ngx_strncasecmp(name.data, (u_char *) "http_", 5) && ngx_strncasecmp(name.data, (u_char *) "sent_http_", 10) && ngx_strncasecmp(name.data, (u_char *) "upstream_http_", 14)) variable->get_handler = ngx_http_rewrite_var;
                 query->output.type = ngx_pg_output_type_value;
                 continue;
             }
