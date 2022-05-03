@@ -74,6 +74,7 @@ typedef struct {
     ngx_uint_t type;
     struct {
         ngx_int_t index;
+        uint32_t oid;
     } function;
     struct {
         ngx_int_t index;
@@ -551,15 +552,18 @@ static ngx_chain_t *ngx_pg_queries(ngx_pg_data_t *d, ngx_array_t *queries) {
             command[j].str.data = value->data;
             command[j].str.len = value->len;
         }
-        if (query[i].function.index) {
-            ngx_http_variable_value_t *value;
-            if (!(value = ngx_http_get_indexed_variable(r, query[i].function.index))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_http_get_indexed_variable"); return NULL; }
-            ngx_int_t oid = ngx_atoi(value->data, value->len);
-            if (oid == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NULL; }
+        if (query[i].type & ngx_pg_type_function) {
+            if (query[i].function.index) {
+                ngx_http_variable_value_t *value;
+                if (!(value = ngx_http_get_indexed_variable(r, query[i].function.index))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_http_get_indexed_variable"); return NULL; }
+                ngx_int_t n = ngx_atoi(value->data, value->len);
+                if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NULL; }
+                query[i].function.oid = n;
+            }
             if (cl) {
-                if (!(cl->next = ngx_pg_function_call(r->pool, oid, &query[i].arguments))) return NULL;
+                if (!(cl->next = ngx_pg_function_call(r->pool, query[i].function.oid, &query[i].arguments))) return NULL;
             } else {
-                if (!(cl = cl_query = ngx_pg_function_call(r->pool, oid, &query[i].arguments))) return NULL;
+                if (!(cl = cl_query = ngx_pg_function_call(r->pool, query[i].function.oid, &query[i].arguments))) return NULL;
             }
             while (cl->next) cl = cl->next;
             ngx_pg_query_queue_t *qq;
@@ -2244,10 +2248,15 @@ static char *ngx_pg_function_loc_ups_conf(ngx_conf_t *cf, ngx_command_t *cmd, ng
     if (!(query = ngx_array_push(queries))) return "!ngx_array_push";
     ngx_memzero(query, sizeof(*query));
     ngx_str_t *str = cf->args->elts;
-    if (str[1].data[0] != '$') return "not variable";
-    str[1].data++;
-    str[1].len--;
-    if ((query->function.index = ngx_http_get_variable_index(cf, &str[1])) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
+    if (str[1].data[0] == '$') {
+        str[1].data++;
+        str[1].len--;
+        if ((query->function.index = ngx_http_get_variable_index(cf, &str[1])) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
+    } else {
+        ngx_int_t n = ngx_atoi(str[1].data, str[1].len);
+        if (n == NGX_ERROR) return "ngx_atoi == NGX_ERROR";
+        query->function.oid = n;
+    }
     query->type = cmd->offset;
     return ngx_pg_argument_output_loc_conf(cf, cmd, query);
 }
