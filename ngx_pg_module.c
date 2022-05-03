@@ -2153,7 +2153,7 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
 }
 
 static ngx_int_t ngx_http_rewrite_var(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
-    *v = ngx_http_variable_null_value;
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "%s", __func__);
     return NGX_OK;
 }
 
