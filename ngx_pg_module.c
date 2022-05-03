@@ -60,6 +60,7 @@ typedef struct {
 typedef struct {
     ngx_flag_t header;
     ngx_flag_t string;
+    ngx_int_t index;
     ngx_pg_output_type_t type;
     ngx_str_t null;
     u_char delimiter;
@@ -752,8 +753,8 @@ static int ngx_pg_fsm_command_complete_val(ngx_pg_save_t *s, size_t len, const u
         channel->len = command->str.len;
     }
     if (!(query->type & ngx_pg_type_location)) return s->rc;
-    if (!query->output.type) return s->rc;
-    if (query->output.type > 1 || d->row) return s->rc;
+    if (query->output.type == ngx_pg_output_type_none) return s->rc;
+    if (query->output.type > ngx_pg_output_type_value || d->row) return s->rc;
     if ((s->rc = ngx_pg_output_handler(d, len, data)) != NGX_OK) return s->rc;
     return s->rc;
 }
@@ -767,7 +768,7 @@ static int ngx_pg_fsm_copy_data(ngx_pg_save_t *s, uint32_t len) {
     if (!query) return s->rc;
     if (!(query->type & ngx_pg_type_location)) return s->rc;
     if (!d->filter++) s->rc = NGX_DONE;
-    if (!query->output.type) return s->rc;
+    if (query->output.type == ngx_pg_output_type_none) return s->rc;
     d->row++;
     return s->rc;
 }
@@ -792,7 +793,7 @@ static int ngx_pg_fsm_data_row(ngx_pg_save_t *s, uint32_t len) {
     if (!query) return s->rc;
     if (!(query->type & ngx_pg_type_location)) return s->rc;
     if (!d->filter++) s->rc = NGX_DONE;
-    if (!query->output.type) return s->rc;
+    if (query->output.type == ngx_pg_output_type_none) return s->rc;
     d->col = 0;
     d->row++;
     if (d->row > 1 || query->output.header) if (ngx_pg_output_handler(d, sizeof("\n") - 1, (uint8_t *)"\n") == NGX_ERROR) { s->rc = NGX_ERROR; return s->rc; }
@@ -954,7 +955,7 @@ static int ngx_pg_fsm_function_call_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_pg_query_t *query = d->query = qq->query;
     if (!(query->type & ngx_pg_type_location)) return s->rc;
     if (!d->filter++) s->rc = NGX_DONE;
-    if (!query->output.type) return s->rc;
+    if (query->output.type == ngx_pg_output_type_none) return s->rc;
     d->row++;
     return s->rc;
 }
@@ -1156,7 +1157,7 @@ static int ngx_pg_fsm_result_done(ngx_pg_save_t *s) {
     ngx_pg_query_t *query = d->query;
     if (!query) return s->rc;
     if (!(query->type & ngx_pg_type_location)) return s->rc;
-    if (!query->output.type) return s->rc;
+    if (query->output.type == ngx_pg_output_type_none) return s->rc;
     if (query->output.string && query->output.quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->output.quote), &query->output.quote)) != NGX_OK) return s->rc;
     return s->rc;
 }
@@ -1168,7 +1169,7 @@ static int ngx_pg_fsm_result_len(ngx_pg_save_t *s, uint32_t len) {
     ngx_pg_query_t *query = d->query;
     if (!query) return s->rc;
     if (!(query->type & ngx_pg_type_location)) return s->rc;
-    if (!query->output.type) return s->rc;
+    if (query->output.type == ngx_pg_output_type_none) return s->rc;
     d->col++;
     if (d->col > 1) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->output.delimiter), &query->output.delimiter)) != NGX_OK) return s->rc;
     if (len == (uint32_t)-1) {
@@ -1186,11 +1187,11 @@ static int ngx_pg_fsm_result_val(ngx_pg_save_t *s, size_t len, const uint8_t *da
     ngx_pg_query_t *query = d->query;
     if (!query) return s->rc;
     if (!(query->type & ngx_pg_type_location)) return s->rc;
-    if (!query->output.type) return s->rc;
-    if (query->output.type > 1 && query->output.string && query->output.quote && query->output.escape) for (ngx_uint_t k = 0; k < len; k++) {
+    if (query->output.type == ngx_pg_output_type_none) return s->rc;
+    if (query->output.type > ngx_pg_output_type_value && query->output.string && query->output.quote && query->output.escape) for (ngx_uint_t k = 0; k < len; k++) {
         if (data[k] == query->output.quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->output.escape), &query->output.escape)) != NGX_OK) return s->rc;
         if ((s->rc = ngx_pg_output_handler(d, sizeof(data[k]), &data[k])) != NGX_OK) return s->rc;
-    } else if (query->output.type) if ((s->rc = ngx_pg_output_handler(d, len, data)) != NGX_OK) return s->rc;
+    } else if (query->output.type > ngx_pg_output_type_none) if ((s->rc = ngx_pg_output_handler(d, len, data)) != NGX_OK) return s->rc;
     return s->rc;
 }
 
@@ -1203,7 +1204,7 @@ static int ngx_pg_fsm_row_description(ngx_pg_save_t *s, uint32_t len) {
     if (!query) return s->rc;
     if (!(query->type & ngx_pg_type_location)) return s->rc;
     if (!d->filter++) s->rc = NGX_DONE;
-    if (!query->output.type) return s->rc;
+    if (query->output.type == ngx_pg_output_type_none) return s->rc;
     d->col = 0;
     if (!query->output.header) return s->rc;
     if (d->row > 1) if (ngx_pg_output_handler(d, sizeof("\n") - 1, (uint8_t *)"\n") == NGX_ERROR) { s->rc = NGX_ERROR; return s->rc; }
@@ -1217,7 +1218,7 @@ static int ngx_pg_fsm_row_description_beg(ngx_pg_save_t *s) {
     ngx_pg_query_t *query = d->query;
     if (!query) return s->rc;
     if (!(query->type & ngx_pg_type_location)) return s->rc;
-    if (!query->output.type) return s->rc;
+    if (query->output.type == ngx_pg_output_type_none) return s->rc;
     d->col++;
     if (!query->output.header) return s->rc;
     if (d->col > 1) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->output.delimiter), &query->output.delimiter)) != NGX_OK) return s->rc;
@@ -1257,7 +1258,7 @@ static int ngx_pg_fsm_row_description_name(ngx_pg_save_t *s, size_t len, const u
     ngx_pg_query_t *query = d->query;
     if (!query) return s->rc;
     if (!(query->type & ngx_pg_type_location)) return s->rc;
-    if (!query->output.type) return s->rc;
+    if (query->output.type == ngx_pg_output_type_none) return s->rc;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%ui", d->col);
     if (!query->output.header) return s->rc;
     if (query->output.string && query->output.quote && query->output.escape) for (ngx_uint_t k = 0; k < len; k++) {
@@ -1279,7 +1280,7 @@ static int ngx_pg_fsm_row_description_table(ngx_pg_save_t *s, uint32_t table) {
     ngx_pg_query_t *query = d->query;
     if (!query) return s->rc;
     if (!(query->type & ngx_pg_type_location)) return s->rc;
-    if (!query->output.type) return s->rc;
+    if (query->output.type == ngx_pg_output_type_none) return s->rc;
     if (query->output.string && query->output.quote) if ((s->rc = ngx_pg_output_handler(d, sizeof(query->output.quote), &query->output.quote)) != NGX_OK) return s->rc;
     return s->rc;
 }
@@ -2136,6 +2137,11 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
     return NGX_OK;
 }
 
+static ngx_int_t ngx_http_rewrite_var(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data) {
+    *v = ngx_http_variable_null_value;
+    return NGX_OK;
+}
+
 static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd, ngx_pg_query_t *query) {
     ngx_str_t *str = cf->args->elts;
     for (ngx_uint_t i = cmd->offset & ngx_pg_type_parse ? 3 : 2; i < cf->args->nelts; i++) {
@@ -2163,6 +2169,20 @@ static char *ngx_pg_argument_output_loc_conf(ngx_conf_t *cf, ngx_command_t *cmd,
             continue;
         }
         if (str[i].len > sizeof("output=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"output=", sizeof("output=") - 1)) {
+            if (str[i].data[sizeof("output=") - 1] == '$' && cmd->offset & ngx_pg_type_upstream) {
+                ngx_str_t name = str[i];
+                name.data += sizeof("output=") - 1 + 1;
+                name.len -= sizeof("output=") - 1 + 1;
+                ngx_http_variable_t *variable;
+                if (!(variable = ngx_http_add_variable(cf, &name, NGX_HTTP_VAR_CHANGEABLE))) return "!ngx_http_add_variable";
+                if ((query->output.index = ngx_http_get_variable_index(cf, &name)) == NGX_ERROR) return "ngx_http_get_variable_index == NGX_ERROR";
+                if (!variable->get_handler && ngx_strncasecmp(name.data, (u_char *) "arg_", 4) && ngx_strncasecmp(name.data, (u_char *) "cookie_", 7) && ngx_strncasecmp(name.data, (u_char *) "http_", 5) && ngx_strncasecmp(name.data, (u_char *) "sent_http_", 10) && ngx_strncasecmp(name.data, (u_char *) "upstream_http_", 14)) {
+                    variable->get_handler = ngx_http_rewrite_var;
+                    variable->data = query->output.index;
+                }
+                query->output.type = ngx_pg_output_type_value;
+                continue;
+            }
             if (!(cmd->offset & ngx_pg_type_output)) return "output not allowed";
             ngx_uint_t j;
             static const ngx_conf_enum_t e[] = { { ngx_string("csv"), ngx_pg_output_type_csv }, { ngx_string("plain"), ngx_pg_output_type_plain }, { ngx_string("value"), ngx_pg_output_type_value }, { ngx_null_string, 0 } };
