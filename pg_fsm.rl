@@ -131,18 +131,18 @@ typedef struct pg_fsm_t {
 
     parameter_status =
     ( "application_name"i 0 str0 @(parameter_status_application_name) @eof(parameter_status_application_name)
-    | "client_encoding"i 0 str0 @(parameter_status_client_encoding) @eof(parameter_status_client_encoding)
-    | "DateStyle"i 0 str0 @(parameter_status_datestyle) @eof(parameter_status_datestyle)
-    | "default_transaction_read_only"i 0 str0 @(parameter_status_default_transaction_read_only) @eof(parameter_status_default_transaction_read_only)
-    | "in_hot_standby"i 0 str0 @(parameter_status_in_hot_standby) @eof(parameter_status_in_hot_standby)
-    | "integer_datetimes"i 0 str0 @(parameter_status_integer_datetimes) @eof(parameter_status_integer_datetimes)
-    | "IntervalStyle"i 0 str0 @(parameter_status_intervalstyle) @eof(parameter_status_intervalstyle)
-    | "is_superuser"i 0 str0 @(parameter_status_is_superuser) @eof(parameter_status_is_superuser)
-    | "server_encoding"i 0 str0 @(parameter_status_server_encoding) @eof(parameter_status_server_encoding)
-    | "server_version"i 0 str0 @(parameter_status_server_version) @eof(parameter_status_server_version)
-    | "session_authorization"i 0 str0 @(parameter_status_session_authorization) @eof(parameter_status_session_authorization)
-    | "standard_conforming_strings"i 0 str0 @(parameter_status_standard_conforming_strings) @eof(parameter_status_standard_conforming_strings)
-    | "TimeZone"i 0 str0 @(parameter_status_timezone) @eof(parameter_status_timezone)
+    | "client_encoding"i 0 str @(parameter_status_client_encoding) @eof(parameter_status_client_encoding)
+    | "DateStyle"i 0 str @(parameter_status_datestyle) @eof(parameter_status_datestyle)
+    | "default_transaction_read_only"i 0 str @(parameter_status_default_transaction_read_only) @eof(parameter_status_default_transaction_read_only)
+    | "in_hot_standby"i 0 str @(parameter_status_in_hot_standby) @eof(parameter_status_in_hot_standby)
+    | "integer_datetimes"i 0 str @(parameter_status_integer_datetimes) @eof(parameter_status_integer_datetimes)
+    | "IntervalStyle"i 0 str @(parameter_status_intervalstyle) @eof(parameter_status_intervalstyle)
+    | "is_superuser"i 0 str @(parameter_status_is_superuser) @eof(parameter_status_is_superuser)
+    | "server_encoding"i 0 str @(parameter_status_server_encoding) @eof(parameter_status_server_encoding)
+    | "server_version"i 0 str @(parameter_status_server_version) @eof(parameter_status_server_version)
+    | "session_authorization"i 0 str @(parameter_status_session_authorization) @eof(parameter_status_session_authorization)
+    | "standard_conforming_strings"i 0 str @(parameter_status_standard_conforming_strings) @eof(parameter_status_standard_conforming_strings)
+    | "TimeZone"i 0 str @(parameter_status_timezone) @eof(parameter_status_timezone)
     );
 
     ready_for_query =
