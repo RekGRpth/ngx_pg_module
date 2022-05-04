@@ -2353,6 +2353,7 @@ static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_pg_connect_t *connec
 #if (NGX_HTTP_SSL)
     connect->sslmode = ngx_pg_ssl_prefer;
 #endif
+    ngx_flag_t application_name = 0;
     for (ngx_uint_t i = 1; i < cf->args->nelts; i++) {
         if (str[i].len > sizeof("password=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"password=", sizeof("password=") - 1)) {
             if (!(connect->password.len = str[i].len - (sizeof("password=") - 1))) return "empty \"password\" value";
@@ -2369,7 +2370,8 @@ static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_pg_connect_t *connec
             continue;
         }
 #endif
-        if (str[i].len > sizeof("user=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"user=", sizeof("user=") - 1)) {
+        if (str[i].len > sizeof("application_name=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"application_name=", sizeof("application_name=") - 1)) application_name = 1;
+        else if (str[i].len > sizeof("user=") - 1 && !ngx_strncasecmp(str[i].data, (u_char *)"user=", sizeof("user=") - 1)) {
             if (!(connect->username.len = str[i].len - (sizeof("user=") - 1))) return "empty \"user\" value";
             connect->username.data = &str[i].data[sizeof("user=") - 1];
         }
@@ -2377,6 +2379,11 @@ static char *ngx_pg_option_loc_ups_conf(ngx_conf_t *cf, ngx_pg_connect_t *connec
         ngx_memzero(option, sizeof(*option));
         *option = str[i];
         for (ngx_uint_t j = 0; j < option->len; j++) if (option->data[j] == '=') option->data[j] = '\0';
+    }
+    if (!application_name) {
+        if (!(option = ngx_array_push(&connect->options))) return "!ngx_array_push";
+        ngx_memzero(option, sizeof(*option));
+        ngx_str_set(option, "application_name\0nginx");
     }
     return NGX_CONF_OK;
 }

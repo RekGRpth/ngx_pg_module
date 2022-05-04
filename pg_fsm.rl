@@ -99,7 +99,6 @@ typedef struct pg_fsm_t {
     int2 = any{2} $(int2);
     int4 = any{4} $(int4);
     str = char + $(string) 0;
-    str0 = char * $(string) 0;
     str4 = any{4} $(string);
 
     authentication =
@@ -130,7 +129,7 @@ typedef struct pg_fsm_t {
     );
 
     parameter_status =
-    ( "application_name"i 0 str0 @(parameter_status_application_name) @eof(parameter_status_application_name)
+    ( "application_name"i 0 str @(parameter_status_application_name) @eof(parameter_status_application_name)
     | "client_encoding"i 0 str @(parameter_status_client_encoding) @eof(parameter_status_client_encoding)
     | "DateStyle"i 0 str @(parameter_status_datestyle) @eof(parameter_status_datestyle)
     | "default_transaction_read_only"i 0 str @(parameter_status_default_transaction_read_only) @eof(parameter_status_default_transaction_read_only)
