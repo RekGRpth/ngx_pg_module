@@ -16,10 +16,10 @@ typedef struct pg_fsm_t {
 
 
 #line 19 "pg_fsm.c"
-static const int pg_fsm_start = 397;
+static const int pg_fsm_start = 384;
 
 
-#line 192 "pg_fsm.rl"
+#line 193 "pg_fsm.rl"
 
 
 size_t pg_fsm_execute(pg_fsm_t *m, const pg_fsm_cb_t *f, const void *u, const uint8_t *p, const uint8_t *pe) {
@@ -34,7 +34,7 @@ size_t pg_fsm_execute(pg_fsm_t *m, const pg_fsm_cb_t *f, const void *u, const ui
 
 _again:
 	switch (  m->cs ) {
-		case 397: goto st397;
+		case 384: goto st384;
 		case 0: goto st0;
 		case 1: goto st1;
 		case 2: goto st2;
@@ -76,7 +76,7 @@ _again:
 		case 38: goto st38;
 		case 39: goto st39;
 		case 40: goto st40;
-		case 398: goto st398;
+		case 385: goto st385;
 		case 41: goto st41;
 		case 42: goto st42;
 		case 43: goto st43;
@@ -126,7 +126,7 @@ _again:
 		case 87: goto st87;
 		case 88: goto st88;
 		case 89: goto st89;
-		case 399: goto st399;
+		case 386: goto st386;
 		case 90: goto st90;
 		case 91: goto st91;
 		case 92: goto st92;
@@ -164,7 +164,7 @@ _again:
 		case 124: goto st124;
 		case 125: goto st125;
 		case 126: goto st126;
-		case 400: goto st400;
+		case 387: goto st387;
 		case 127: goto st127;
 		case 128: goto st128;
 		case 129: goto st129;
@@ -422,19 +422,6 @@ _again:
 		case 381: goto st381;
 		case 382: goto st382;
 		case 383: goto st383;
-		case 384: goto st384;
-		case 385: goto st385;
-		case 386: goto st386;
-		case 387: goto st387;
-		case 388: goto st388;
-		case 389: goto st389;
-		case 390: goto st390;
-		case 391: goto st391;
-		case 392: goto st392;
-		case 393: goto st393;
-		case 394: goto st394;
-		case 395: goto st395;
-		case 396: goto st396;
 	default: break;
 	}
 
@@ -445,124 +432,124 @@ _resume:
 	{
 tr4:
 #line 79 "pg_fsm.rl"
-	{ if (f->parse_complete(u)) {p++;  m->cs = 397; goto _out;} }
-	goto st397;
+	{ if (f->parse_complete(u)) {p++;  m->cs = 384; goto _out;} }
+	goto st384;
 tr8:
 #line 27 "pg_fsm.rl"
-	{ if (f->bind_complete(u)) {p++;  m->cs = 397; goto _out;} }
-	goto st397;
+	{ if (f->bind_complete(u)) {p++;  m->cs = 384; goto _out;} }
+	goto st384;
 tr12:
 #line 28 "pg_fsm.rl"
-	{ if (f->close_complete(u)) {p++;  m->cs = 397; goto _out;} }
-	goto st397;
+	{ if (f->close_complete(u)) {p++;  m->cs = 384; goto _out;} }
+	goto st384;
 tr24:
 #line 61 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->notification_response_extra(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; if (p != eof) if (f->notification_response_done(u)) {p++;  m->cs = 397; goto _out;} }
-	goto st397;
+	{ if (m->string && p - m->string > 0 && f->notification_response_extra(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; if (p != eof) if (f->notification_response_done(u)) {p++;  m->cs = 384; goto _out;} }
+	goto st384;
 tr30:
 #line 30 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->command_complete_val(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
-	goto st397;
+	{ if (m->string && p - m->string > 0 && f->command_complete_val(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; }
+	goto st384;
 tr110:
 #line 36 "pg_fsm.rl"
-	{ if (f->empty_query_response(u)) {p++;  m->cs = 397; goto _out;} }
-	goto st397;
+	{ if (f->empty_query_response(u)) {p++;  m->cs = 384; goto _out;} }
+	goto st384;
 tr122:
 #line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 #line 25 "pg_fsm.rl"
-	{ if (f->backend_key_data_key(u, m->int4)) {p++;  m->cs = 397; goto _out;} }
-	goto st397;
+	{ if (f->backend_key_data_key(u, m->int4)) {p++;  m->cs = 384; goto _out;} }
+	goto st384;
 tr135:
 #line 23 "pg_fsm.rl"
-	{ if (f->authentication_ok(u)) {p++;  m->cs = 397; goto _out;} }
-	goto st397;
+	{ if (f->authentication_ok(u)) {p++;  m->cs = 384; goto _out;} }
+	goto st384;
 tr136:
 #line 21 "pg_fsm.rl"
-	{ if (f->authentication_cleartext_password(u)) {p++;  m->cs = 397; goto _out;} }
-	goto st397;
-tr172:
+	{ if (f->authentication_cleartext_password(u)) {p++;  m->cs = 384; goto _out;} }
+	goto st384;
+tr171:
 #line 65 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->parameter_status_application_name(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
-	goto st397;
-tr189:
+	{ if (m->string && p - m->string > 0 && f->parameter_status_application_name(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; }
+	goto st384;
+tr188:
 #line 66 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->parameter_status_client_encoding(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
-	goto st397;
-tr201:
+	{ if (m->string && p - m->string > 0 && f->parameter_status_client_encoding(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; }
+	goto st384;
+tr200:
 #line 67 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->parameter_status_datestyle(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
-	goto st397;
-tr231:
+	{ if (m->string && p - m->string > 0 && f->parameter_status_datestyle(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; }
+	goto st384;
+tr230:
 #line 68 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->parameter_status_default_transaction_read_only(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
-	goto st397;
-tr253:
+	{ if (m->string && p - m->string > 0 && f->parameter_status_default_transaction_read_only(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; }
+	goto st384;
+tr252:
 #line 71 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->parameter_status_integer_datetimes(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
-	goto st397;
-tr264:
+	{ if (m->string && p - m->string > 0 && f->parameter_status_integer_datetimes(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; }
+	goto st384;
+tr263:
 #line 72 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->parameter_status_intervalstyle(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
-	goto st397;
-tr278:
+	{ if (m->string && p - m->string > 0 && f->parameter_status_intervalstyle(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; }
+	goto st384;
+tr277:
 #line 70 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->parameter_status_in_hot_standby(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
-	goto st397;
-tr291:
+	{ if (m->string && p - m->string > 0 && f->parameter_status_in_hot_standby(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; }
+	goto st384;
+tr290:
 #line 73 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->parameter_status_is_superuser(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
-	goto st397;
-tr311:
+	{ if (m->string && p - m->string > 0 && f->parameter_status_is_superuser(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; }
+	goto st384;
+tr310:
 #line 74 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->parameter_status_server_encoding(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
-	goto st397;
-tr320:
+	{ if (m->string && p - m->string > 0 && f->parameter_status_server_encoding(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; }
+	goto st384;
+tr319:
 #line 75 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->parameter_status_server_version(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
-	goto st397;
-tr341:
+	{ if (m->string && p - m->string > 0 && f->parameter_status_server_version(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; }
+	goto st384;
+tr340:
 #line 76 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->parameter_status_session_authorization(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
-	goto st397;
-tr369:
+	{ if (m->string && p - m->string > 0 && f->parameter_status_session_authorization(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; }
+	goto st384;
+tr368:
 #line 77 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->parameter_status_standard_conforming_strings(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
-	goto st397;
-tr379:
+	{ if (m->string && p - m->string > 0 && f->parameter_status_standard_conforming_strings(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; }
+	goto st384;
+tr378:
 #line 78 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->parameter_status_timezone(u, p - m->string, m->string)) {p++;  m->cs = 397; goto _out;} m->string = NULL; }
-	goto st397;
+	{ if (m->string && p - m->string > 0 && f->parameter_status_timezone(u, p - m->string, m->string)) {p++;  m->cs = 384; goto _out;} m->string = NULL; }
+	goto st384;
 tr406:
-	 m->cs = 397;
+	 m->cs = 384;
 #line 89 "pg_fsm.rl"
-	{ if (f->row_description_format(u, 0)) {p++; goto _out;} if (!--m->row_description_count)  m->cs = 397; else  m->cs = 356; }
+	{ if (f->row_description_format(u, 0)) {p++; goto _out;} if (!--m->row_description_count)  m->cs = 384; else  m->cs = 343; }
 	goto _again;
 tr415:
 #line 82 "pg_fsm.rl"
-	{ if (f->ready_for_query_state(u, pg_ready_for_query_state_inerror)) {p++;  m->cs = 397; goto _out;} }
-	goto st397;
+	{ if (f->ready_for_query_state(u, pg_ready_for_query_state_inerror)) {p++;  m->cs = 384; goto _out;} }
+	goto st384;
 tr416:
 #line 80 "pg_fsm.rl"
-	{ if (f->ready_for_query_state(u, pg_ready_for_query_state_idle)) {p++;  m->cs = 397; goto _out;} }
-	goto st397;
+	{ if (f->ready_for_query_state(u, pg_ready_for_query_state_idle)) {p++;  m->cs = 384; goto _out;} }
+	goto st384;
 tr417:
 #line 83 "pg_fsm.rl"
-	{ if (f->ready_for_query_state(u, pg_ready_for_query_state_intrans)) {p++;  m->cs = 397; goto _out;} }
-	goto st397;
+	{ if (f->ready_for_query_state(u, pg_ready_for_query_state_intrans)) {p++;  m->cs = 384; goto _out;} }
+	goto st384;
 tr421:
 #line 32 "pg_fsm.rl"
-	{ if (f->copy_done(u)) {p++;  m->cs = 397; goto _out;} }
-	goto st397;
+	{ if (f->copy_done(u)) {p++;  m->cs = 384; goto _out;} }
+	goto st384;
 tr429:
 #line 59 "pg_fsm.rl"
-	{ if (f->no_data(u)) {p++;  m->cs = 397; goto _out;} }
-	goto st397;
-st397:
+	{ if (f->no_data(u)) {p++;  m->cs = 384; goto _out;} }
+	goto st384;
+st384:
 	if ( ++p == pe )
-		goto _test_eof397;
-case 397:
-#line 566 "pg_fsm.c"
+		goto _test_eof384;
+case 384:
+#line 553 "pg_fsm.c"
 	switch( (*p) ) {
 		case 49u: goto st1;
 		case 50u: goto st5;
@@ -577,12 +564,12 @@ case 397:
 		case 78u: goto st107;
 		case 82u: goto st111;
 		case 83u: goto st127;
-		case 84u: goto st350;
-		case 86u: goto st376;
-		case 90u: goto st380;
-		case 99u: goto st385;
-		case 100u: goto st389;
-		case 110u: goto st393;
+		case 84u: goto st337;
+		case 86u: goto st363;
+		case 90u: goto st367;
+		case 99u: goto st372;
+		case 100u: goto st376;
+		case 110u: goto st380;
 	}
 	goto st0;
 st0:
@@ -596,7 +583,7 @@ st1:
 	if ( ++p == pe )
 		goto _test_eof1;
 case 1:
-#line 600 "pg_fsm.c"
+#line 587 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto st2;
 	goto st0;
@@ -629,7 +616,7 @@ st5:
 	if ( ++p == pe )
 		goto _test_eof5;
 case 5:
-#line 633 "pg_fsm.c"
+#line 620 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto st6;
 	goto st0;
@@ -662,7 +649,7 @@ st9:
 	if ( ++p == pe )
 		goto _test_eof9;
 case 9:
-#line 666 "pg_fsm.c"
+#line 653 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto st10;
 	goto st0;
@@ -695,7 +682,7 @@ st13:
 	if ( ++p == pe )
 		goto _test_eof13;
 case 13:
-#line 699 "pg_fsm.c"
+#line 686 "pg_fsm.c"
 	goto tr13;
 tr13:
 #line 58 "pg_fsm.rl"
@@ -705,7 +692,7 @@ st14:
 	if ( ++p == pe )
 		goto _test_eof14;
 case 14:
-#line 709 "pg_fsm.c"
+#line 696 "pg_fsm.c"
 	goto tr14;
 tr14:
 #line 58 "pg_fsm.rl"
@@ -715,7 +702,7 @@ st15:
 	if ( ++p == pe )
 		goto _test_eof15;
 case 15:
-#line 719 "pg_fsm.c"
+#line 706 "pg_fsm.c"
 	goto tr15;
 tr15:
 #line 58 "pg_fsm.rl"
@@ -725,7 +712,7 @@ st16:
 	if ( ++p == pe )
 		goto _test_eof16;
 case 16:
-#line 729 "pg_fsm.c"
+#line 716 "pg_fsm.c"
 	goto tr16;
 tr16:
 #line 58 "pg_fsm.rl"
@@ -737,7 +724,7 @@ st17:
 	if ( ++p == pe )
 		goto _test_eof17;
 case 17:
-#line 741 "pg_fsm.c"
+#line 728 "pg_fsm.c"
 	goto tr17;
 tr17:
 #line 58 "pg_fsm.rl"
@@ -747,7 +734,7 @@ st18:
 	if ( ++p == pe )
 		goto _test_eof18;
 case 18:
-#line 751 "pg_fsm.c"
+#line 738 "pg_fsm.c"
 	goto tr18;
 tr18:
 #line 58 "pg_fsm.rl"
@@ -757,7 +744,7 @@ st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-#line 761 "pg_fsm.c"
+#line 748 "pg_fsm.c"
 	goto tr19;
 tr19:
 #line 58 "pg_fsm.rl"
@@ -767,7 +754,7 @@ st20:
 	if ( ++p == pe )
 		goto _test_eof20;
 case 20:
-#line 771 "pg_fsm.c"
+#line 758 "pg_fsm.c"
 	goto tr20;
 tr20:
 #line 58 "pg_fsm.rl"
@@ -779,7 +766,7 @@ st21:
 	if ( ++p == pe )
 		goto _test_eof21;
 case 21:
-#line 783 "pg_fsm.c"
+#line 770 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto st0;
 	goto tr21;
@@ -791,7 +778,7 @@ st22:
 	if ( ++p == pe )
 		goto _test_eof22;
 case 22:
-#line 795 "pg_fsm.c"
+#line 782 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr22;
 	goto tr21;
@@ -803,7 +790,7 @@ st23:
 	if ( ++p == pe )
 		goto _test_eof23;
 case 23:
-#line 807 "pg_fsm.c"
+#line 794 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto st0;
 	goto tr23;
@@ -815,7 +802,7 @@ st24:
 	if ( ++p == pe )
 		goto _test_eof24;
 case 24:
-#line 819 "pg_fsm.c"
+#line 806 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr24;
 	goto tr23;
@@ -827,7 +814,7 @@ st25:
 	if ( ++p == pe )
 		goto _test_eof25;
 case 25:
-#line 831 "pg_fsm.c"
+#line 818 "pg_fsm.c"
 	goto tr25;
 tr25:
 #line 58 "pg_fsm.rl"
@@ -837,7 +824,7 @@ st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
-#line 841 "pg_fsm.c"
+#line 828 "pg_fsm.c"
 	goto tr26;
 tr26:
 #line 58 "pg_fsm.rl"
@@ -847,7 +834,7 @@ st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 851 "pg_fsm.c"
+#line 838 "pg_fsm.c"
 	goto tr27;
 tr27:
 #line 58 "pg_fsm.rl"
@@ -857,7 +844,7 @@ st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
-#line 861 "pg_fsm.c"
+#line 848 "pg_fsm.c"
 	goto tr28;
 tr28:
 #line 58 "pg_fsm.rl"
@@ -869,7 +856,7 @@ st29:
 	if ( ++p == pe )
 		goto _test_eof29;
 case 29:
-#line 873 "pg_fsm.c"
+#line 860 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto st0;
 	goto tr29;
@@ -881,7 +868,7 @@ st30:
 	if ( ++p == pe )
 		goto _test_eof30;
 case 30:
-#line 885 "pg_fsm.c"
+#line 872 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr30;
 	goto tr29;
@@ -893,7 +880,7 @@ st31:
 	if ( ++p == pe )
 		goto _test_eof31;
 case 31:
-#line 897 "pg_fsm.c"
+#line 884 "pg_fsm.c"
 	goto tr31;
 tr31:
 #line 58 "pg_fsm.rl"
@@ -903,7 +890,7 @@ st32:
 	if ( ++p == pe )
 		goto _test_eof32;
 case 32:
-#line 907 "pg_fsm.c"
+#line 894 "pg_fsm.c"
 	goto tr32;
 tr32:
 #line 58 "pg_fsm.rl"
@@ -913,7 +900,7 @@ st33:
 	if ( ++p == pe )
 		goto _test_eof33;
 case 33:
-#line 917 "pg_fsm.c"
+#line 904 "pg_fsm.c"
 	goto tr33;
 tr33:
 #line 58 "pg_fsm.rl"
@@ -923,7 +910,7 @@ st34:
 	if ( ++p == pe )
 		goto _test_eof34;
 case 34:
-#line 927 "pg_fsm.c"
+#line 914 "pg_fsm.c"
 	goto tr34;
 tr34:
 #line 58 "pg_fsm.rl"
@@ -935,7 +922,7 @@ st35:
 	if ( ++p == pe )
 		goto _test_eof35;
 case 35:
-#line 939 "pg_fsm.c"
+#line 926 "pg_fsm.c"
 	goto tr35;
 tr35:
 #line 57 "pg_fsm.rl"
@@ -945,14 +932,14 @@ st36:
 	if ( ++p == pe )
 		goto _test_eof36;
 case 36:
-#line 949 "pg_fsm.c"
+#line 936 "pg_fsm.c"
 	goto tr36;
 tr36:
 	 m->cs = 37;
 #line 57 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
 #line 34 "pg_fsm.rl"
-	{ m->data_row_count = m->int2; if (f->data_row_count(u, m->data_row_count)) {p++; goto _out;} if (!m->data_row_count)  m->cs = 397; }
+	{ m->data_row_count = m->int2; if (f->data_row_count(u, m->data_row_count)) {p++; goto _out;} if (!m->data_row_count)  m->cs = 384; }
 	goto _again;
 tr410:
 #line 58 "pg_fsm.rl"
@@ -964,7 +951,7 @@ st37:
 	if ( ++p == pe )
 		goto _test_eof37;
 case 37:
-#line 968 "pg_fsm.c"
+#line 955 "pg_fsm.c"
 	goto tr37;
 tr37:
 #line 58 "pg_fsm.rl"
@@ -974,7 +961,7 @@ st38:
 	if ( ++p == pe )
 		goto _test_eof38;
 case 38:
-#line 978 "pg_fsm.c"
+#line 965 "pg_fsm.c"
 	goto tr38;
 tr38:
 #line 58 "pg_fsm.rl"
@@ -984,7 +971,7 @@ st39:
 	if ( ++p == pe )
 		goto _test_eof39;
 case 39:
-#line 988 "pg_fsm.c"
+#line 975 "pg_fsm.c"
 	goto tr39;
 tr39:
 #line 58 "pg_fsm.rl"
@@ -994,33 +981,33 @@ st40:
 	if ( ++p == pe )
 		goto _test_eof40;
 case 40:
-#line 998 "pg_fsm.c"
+#line 985 "pg_fsm.c"
 	goto tr40;
 tr40:
-	 m->cs = 398;
+	 m->cs = 385;
 #line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 #line 84 "pg_fsm.rl"
-	{ m->result_len = m->int4; if (f->result_len(u, m->result_len)) {p++; goto _out;} if (!m->result_len || m->result_len == (uint32_t)-1) { if (!m->data_row_count || !--m->data_row_count)  m->cs = 397; else  m->cs = 37; } }
+	{ m->result_len = m->int4; if (f->result_len(u, m->result_len)) {p++; goto _out;} if (!m->result_len || m->result_len == (uint32_t)-1) { if (!m->data_row_count || !--m->data_row_count)  m->cs = 384; else  m->cs = 37; } }
 	goto _again;
 tr425:
 #line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 #line 31 "pg_fsm.rl"
-	{ m->result_len = m->int4 - 4; if (f->copy_data(u, m->result_len)) {p++;  m->cs = 398; goto _out;} }
-	goto st398;
+	{ m->result_len = m->int4 - 4; if (f->copy_data(u, m->result_len)) {p++;  m->cs = 385; goto _out;} }
+	goto st385;
 tr449:
-	 m->cs = 398;
+	 m->cs = 385;
 #line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
 #line 85 "pg_fsm.rl"
-	{ if (p == eof || !m->result_len--) { if (m->string && p - m->string > 0 && f->result_val(u, p - m->string, m->string)) {p++; goto _out;} m->string = NULL; if (m->result_len == (uint32_t)-1) { if (f->result_done(u)) {p++; goto _out;} p--; if (!m->data_row_count || !--m->data_row_count)  m->cs = 397; else  m->cs = 37; } } }
+	{ if (p == eof || !m->result_len--) { if (m->string && p - m->string > 0 && f->result_val(u, p - m->string, m->string)) {p++; goto _out;} m->string = NULL; if (m->result_len == (uint32_t)-1) { if (f->result_done(u)) {p++; goto _out;} p--; if (!m->data_row_count || !--m->data_row_count)  m->cs = 384; else  m->cs = 37; } } }
 	goto _again;
-st398:
+st385:
 	if ( ++p == pe )
-		goto _test_eof398;
-case 398:
-#line 1024 "pg_fsm.c"
+		goto _test_eof385;
+case 385:
+#line 1011 "pg_fsm.c"
 	goto tr449;
 tr457:
 #line 22 "pg_fsm.rl"
@@ -1030,7 +1017,7 @@ st41:
 	if ( ++p == pe )
 		goto _test_eof41;
 case 41:
-#line 1034 "pg_fsm.c"
+#line 1021 "pg_fsm.c"
 	goto tr41;
 tr41:
 #line 58 "pg_fsm.rl"
@@ -1040,7 +1027,7 @@ st42:
 	if ( ++p == pe )
 		goto _test_eof42;
 case 42:
-#line 1044 "pg_fsm.c"
+#line 1031 "pg_fsm.c"
 	goto tr42;
 tr42:
 #line 58 "pg_fsm.rl"
@@ -1050,7 +1037,7 @@ st43:
 	if ( ++p == pe )
 		goto _test_eof43;
 case 43:
-#line 1054 "pg_fsm.c"
+#line 1041 "pg_fsm.c"
 	goto tr43;
 tr43:
 #line 58 "pg_fsm.rl"
@@ -1060,7 +1047,7 @@ st44:
 	if ( ++p == pe )
 		goto _test_eof44;
 case 44:
-#line 1064 "pg_fsm.c"
+#line 1051 "pg_fsm.c"
 	goto tr44;
 tr44:
 #line 58 "pg_fsm.rl"
@@ -1078,7 +1065,7 @@ st45:
 	if ( ++p == pe )
 		goto _test_eof45;
 case 45:
-#line 1082 "pg_fsm.c"
+#line 1069 "pg_fsm.c"
 	switch( (*p) ) {
 		case 67u: goto st46;
 		case 68u: goto st49;
@@ -1115,7 +1102,7 @@ st47:
 	if ( ++p == pe )
 		goto _test_eof47;
 case 47:
-#line 1119 "pg_fsm.c"
+#line 1106 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr64;
 	goto tr63;
@@ -1195,9 +1182,9 @@ st48:
 	if ( ++p == pe )
 		goto _test_eof48;
 case 48:
-#line 1199 "pg_fsm.c"
+#line 1186 "pg_fsm.c"
 	switch( (*p) ) {
-		case 0u: goto st397;
+		case 0u: goto st384;
 		case 67u: goto st46;
 		case 68u: goto st49;
 		case 70u: goto st51;
@@ -1233,7 +1220,7 @@ st50:
 	if ( ++p == pe )
 		goto _test_eof50;
 case 50:
-#line 1237 "pg_fsm.c"
+#line 1224 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr67;
 	goto tr66;
@@ -1252,7 +1239,7 @@ st52:
 	if ( ++p == pe )
 		goto _test_eof52;
 case 52:
-#line 1256 "pg_fsm.c"
+#line 1243 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr69;
 	goto tr68;
@@ -1271,7 +1258,7 @@ st54:
 	if ( ++p == pe )
 		goto _test_eof54;
 case 54:
-#line 1275 "pg_fsm.c"
+#line 1262 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr71;
 	goto tr70;
@@ -1290,7 +1277,7 @@ st56:
 	if ( ++p == pe )
 		goto _test_eof56;
 case 56:
-#line 1294 "pg_fsm.c"
+#line 1281 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr73;
 	goto tr72;
@@ -1309,7 +1296,7 @@ st58:
 	if ( ++p == pe )
 		goto _test_eof58;
 case 58:
-#line 1313 "pg_fsm.c"
+#line 1300 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr75;
 	goto tr74;
@@ -1328,7 +1315,7 @@ st60:
 	if ( ++p == pe )
 		goto _test_eof60;
 case 60:
-#line 1332 "pg_fsm.c"
+#line 1319 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr77;
 	goto tr76;
@@ -1347,7 +1334,7 @@ st62:
 	if ( ++p == pe )
 		goto _test_eof62;
 case 62:
-#line 1351 "pg_fsm.c"
+#line 1338 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr79;
 	goto tr78;
@@ -1366,7 +1353,7 @@ st64:
 	if ( ++p == pe )
 		goto _test_eof64;
 case 64:
-#line 1370 "pg_fsm.c"
+#line 1357 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr81;
 	goto tr80;
@@ -1385,7 +1372,7 @@ st66:
 	if ( ++p == pe )
 		goto _test_eof66;
 case 66:
-#line 1389 "pg_fsm.c"
+#line 1376 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr83;
 	goto tr82;
@@ -1404,7 +1391,7 @@ st68:
 	if ( ++p == pe )
 		goto _test_eof68;
 case 68:
-#line 1408 "pg_fsm.c"
+#line 1395 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr85;
 	goto tr84;
@@ -1423,7 +1410,7 @@ st70:
 	if ( ++p == pe )
 		goto _test_eof70;
 case 70:
-#line 1427 "pg_fsm.c"
+#line 1414 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr87;
 	goto tr86;
@@ -1442,7 +1429,7 @@ st72:
 	if ( ++p == pe )
 		goto _test_eof72;
 case 72:
-#line 1446 "pg_fsm.c"
+#line 1433 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr89;
 	goto tr88;
@@ -1461,7 +1448,7 @@ st74:
 	if ( ++p == pe )
 		goto _test_eof74;
 case 74:
-#line 1465 "pg_fsm.c"
+#line 1452 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr91;
 	goto tr90;
@@ -1480,7 +1467,7 @@ st76:
 	if ( ++p == pe )
 		goto _test_eof76;
 case 76:
-#line 1484 "pg_fsm.c"
+#line 1471 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr93;
 	goto tr92;
@@ -1499,7 +1486,7 @@ st78:
 	if ( ++p == pe )
 		goto _test_eof78;
 case 78:
-#line 1503 "pg_fsm.c"
+#line 1490 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr95;
 	goto tr94;
@@ -1518,7 +1505,7 @@ st80:
 	if ( ++p == pe )
 		goto _test_eof80;
 case 80:
-#line 1522 "pg_fsm.c"
+#line 1509 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr97;
 	goto tr96;
@@ -1537,7 +1524,7 @@ st82:
 	if ( ++p == pe )
 		goto _test_eof82;
 case 82:
-#line 1541 "pg_fsm.c"
+#line 1528 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto tr99;
 	goto tr98;
@@ -1549,7 +1536,7 @@ st83:
 	if ( ++p == pe )
 		goto _test_eof83;
 case 83:
-#line 1553 "pg_fsm.c"
+#line 1540 "pg_fsm.c"
 	goto tr100;
 tr100:
 #line 58 "pg_fsm.rl"
@@ -1559,7 +1546,7 @@ st84:
 	if ( ++p == pe )
 		goto _test_eof84;
 case 84:
-#line 1563 "pg_fsm.c"
+#line 1550 "pg_fsm.c"
 	goto tr101;
 tr101:
 #line 58 "pg_fsm.rl"
@@ -1569,7 +1556,7 @@ st85:
 	if ( ++p == pe )
 		goto _test_eof85;
 case 85:
-#line 1573 "pg_fsm.c"
+#line 1560 "pg_fsm.c"
 	goto tr102;
 tr102:
 #line 58 "pg_fsm.rl"
@@ -1579,7 +1566,7 @@ st86:
 	if ( ++p == pe )
 		goto _test_eof86;
 case 86:
-#line 1583 "pg_fsm.c"
+#line 1570 "pg_fsm.c"
 	goto tr103;
 tr103:
 #line 58 "pg_fsm.rl"
@@ -1591,7 +1578,7 @@ st87:
 	if ( ++p == pe )
 		goto _test_eof87;
 case 87:
-#line 1595 "pg_fsm.c"
+#line 1582 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto st88;
 	goto st0;
@@ -1604,11 +1591,11 @@ st89:
 	if ( ++p == pe )
 		goto _test_eof89;
 case 89:
-	goto st399;
-st399:
+	goto st386;
+st386:
 	if ( ++p == pe )
-		goto _test_eof399;
-case 399:
+		goto _test_eof386;
+case 386:
 	switch( (*p) ) {
 		case 0u: goto st90;
 		case 49u: goto st1;
@@ -1624,12 +1611,12 @@ case 399:
 		case 78u: goto st107;
 		case 82u: goto st111;
 		case 83u: goto st127;
-		case 84u: goto st350;
-		case 86u: goto st376;
-		case 90u: goto st380;
-		case 99u: goto st385;
-		case 100u: goto st389;
-		case 110u: goto st393;
+		case 84u: goto st337;
+		case 86u: goto st363;
+		case 90u: goto st367;
+		case 99u: goto st372;
+		case 100u: goto st376;
+		case 110u: goto st380;
 	}
 	goto st0;
 st90:
@@ -1637,7 +1624,7 @@ st90:
 		goto _test_eof90;
 case 90:
 	if ( (*p) == 0u )
-		goto st399;
+		goto st386;
 	goto st0;
 tr459:
 #line 22 "pg_fsm.rl"
@@ -1647,7 +1634,7 @@ st91:
 	if ( ++p == pe )
 		goto _test_eof91;
 case 91:
-#line 1651 "pg_fsm.c"
+#line 1638 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto st92;
 	goto st0;
@@ -1680,7 +1667,7 @@ st95:
 	if ( ++p == pe )
 		goto _test_eof95;
 case 95:
-#line 1684 "pg_fsm.c"
+#line 1671 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto st96;
 	goto st0;
@@ -1713,7 +1700,7 @@ st99:
 	if ( ++p == pe )
 		goto _test_eof99;
 case 99:
-#line 1717 "pg_fsm.c"
+#line 1704 "pg_fsm.c"
 	goto tr115;
 tr115:
 #line 58 "pg_fsm.rl"
@@ -1723,7 +1710,7 @@ st100:
 	if ( ++p == pe )
 		goto _test_eof100;
 case 100:
-#line 1727 "pg_fsm.c"
+#line 1714 "pg_fsm.c"
 	goto tr116;
 tr116:
 #line 58 "pg_fsm.rl"
@@ -1733,7 +1720,7 @@ st101:
 	if ( ++p == pe )
 		goto _test_eof101;
 case 101:
-#line 1737 "pg_fsm.c"
+#line 1724 "pg_fsm.c"
 	goto tr117;
 tr117:
 #line 58 "pg_fsm.rl"
@@ -1743,7 +1730,7 @@ st102:
 	if ( ++p == pe )
 		goto _test_eof102;
 case 102:
-#line 1747 "pg_fsm.c"
+#line 1734 "pg_fsm.c"
 	goto tr118;
 tr118:
 #line 58 "pg_fsm.rl"
@@ -1755,7 +1742,7 @@ st103:
 	if ( ++p == pe )
 		goto _test_eof103;
 case 103:
-#line 1759 "pg_fsm.c"
+#line 1746 "pg_fsm.c"
 	goto tr119;
 tr119:
 #line 58 "pg_fsm.rl"
@@ -1765,7 +1752,7 @@ st104:
 	if ( ++p == pe )
 		goto _test_eof104;
 case 104:
-#line 1769 "pg_fsm.c"
+#line 1756 "pg_fsm.c"
 	goto tr120;
 tr120:
 #line 58 "pg_fsm.rl"
@@ -1775,7 +1762,7 @@ st105:
 	if ( ++p == pe )
 		goto _test_eof105;
 case 105:
-#line 1779 "pg_fsm.c"
+#line 1766 "pg_fsm.c"
 	goto tr121;
 tr121:
 #line 58 "pg_fsm.rl"
@@ -1785,7 +1772,7 @@ st106:
 	if ( ++p == pe )
 		goto _test_eof106;
 case 106:
-#line 1789 "pg_fsm.c"
+#line 1776 "pg_fsm.c"
 	goto tr122;
 tr461:
 #line 22 "pg_fsm.rl"
@@ -1795,7 +1782,7 @@ st107:
 	if ( ++p == pe )
 		goto _test_eof107;
 case 107:
-#line 1799 "pg_fsm.c"
+#line 1786 "pg_fsm.c"
 	goto tr123;
 tr123:
 #line 58 "pg_fsm.rl"
@@ -1805,7 +1792,7 @@ st108:
 	if ( ++p == pe )
 		goto _test_eof108;
 case 108:
-#line 1809 "pg_fsm.c"
+#line 1796 "pg_fsm.c"
 	goto tr124;
 tr124:
 #line 58 "pg_fsm.rl"
@@ -1815,7 +1802,7 @@ st109:
 	if ( ++p == pe )
 		goto _test_eof109;
 case 109:
-#line 1819 "pg_fsm.c"
+#line 1806 "pg_fsm.c"
 	goto tr125;
 tr125:
 #line 58 "pg_fsm.rl"
@@ -1825,7 +1812,7 @@ st110:
 	if ( ++p == pe )
 		goto _test_eof110;
 case 110:
-#line 1829 "pg_fsm.c"
+#line 1816 "pg_fsm.c"
 	goto tr126;
 tr462:
 #line 22 "pg_fsm.rl"
@@ -1835,7 +1822,7 @@ st111:
 	if ( ++p == pe )
 		goto _test_eof111;
 case 111:
-#line 1839 "pg_fsm.c"
+#line 1826 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto st112;
 	goto st0;
@@ -1933,7 +1920,7 @@ st124:
 	if ( ++p == pe )
 		goto _test_eof124;
 case 124:
-#line 1937 "pg_fsm.c"
+#line 1924 "pg_fsm.c"
 	goto tr142;
 tr142:
 #line 96 "pg_fsm.rl"
@@ -1943,7 +1930,7 @@ st125:
 	if ( ++p == pe )
 		goto _test_eof125;
 case 125:
-#line 1947 "pg_fsm.c"
+#line 1934 "pg_fsm.c"
 	goto tr143;
 tr143:
 #line 96 "pg_fsm.rl"
@@ -1953,17 +1940,17 @@ st126:
 	if ( ++p == pe )
 		goto _test_eof126;
 case 126:
-#line 1957 "pg_fsm.c"
+#line 1944 "pg_fsm.c"
 	goto tr144;
 tr144:
 #line 96 "pg_fsm.rl"
 	{ if (!m->string) m->string = p; }
-	goto st400;
-st400:
+	goto st387;
+st387:
 	if ( ++p == pe )
-		goto _test_eof400;
-case 400:
-#line 1967 "pg_fsm.c"
+		goto _test_eof387;
+case 387:
+#line 1954 "pg_fsm.c"
 	switch( (*p) ) {
 		case 49u: goto tr451;
 		case 50u: goto tr452;
@@ -1994,7 +1981,7 @@ st127:
 	if ( ++p == pe )
 		goto _test_eof127;
 case 127:
-#line 1998 "pg_fsm.c"
+#line 1985 "pg_fsm.c"
 	goto tr145;
 tr145:
 #line 58 "pg_fsm.rl"
@@ -2004,7 +1991,7 @@ st128:
 	if ( ++p == pe )
 		goto _test_eof128;
 case 128:
-#line 2008 "pg_fsm.c"
+#line 1995 "pg_fsm.c"
 	goto tr146;
 tr146:
 #line 58 "pg_fsm.rl"
@@ -2014,7 +2001,7 @@ st129:
 	if ( ++p == pe )
 		goto _test_eof129;
 case 129:
-#line 2018 "pg_fsm.c"
+#line 2005 "pg_fsm.c"
 	goto tr147;
 tr147:
 #line 58 "pg_fsm.rl"
@@ -2024,7 +2011,7 @@ st130:
 	if ( ++p == pe )
 		goto _test_eof130;
 case 130:
-#line 2028 "pg_fsm.c"
+#line 2015 "pg_fsm.c"
 	goto tr148;
 tr148:
 #line 58 "pg_fsm.rl"
@@ -2036,20 +2023,20 @@ st131:
 	if ( ++p == pe )
 		goto _test_eof131;
 case 131:
-#line 2040 "pg_fsm.c"
+#line 2027 "pg_fsm.c"
 	switch( (*p) ) {
 		case 65u: goto st132;
-		case 67u: goto st150;
-		case 68u: goto st167;
-		case 73u: goto st208;
-		case 83u: goto st265;
-		case 84u: goto st340;
+		case 67u: goto st149;
+		case 68u: goto st165;
+		case 73u: goto st204;
+		case 83u: goto st257;
+		case 84u: goto st328;
 		case 97u: goto st132;
-		case 99u: goto st150;
-		case 100u: goto st167;
-		case 105u: goto st208;
-		case 115u: goto st265;
-		case 116u: goto st340;
+		case 99u: goto st149;
+		case 100u: goto st165;
+		case 105u: goto st204;
+		case 115u: goto st257;
+		case 116u: goto st328;
 	}
 	goto st0;
 st132:
@@ -2192,32 +2179,34 @@ case 147:
 	if ( (*p) == 0u )
 		goto st148;
 	goto st0;
+tr172:
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st148;
 st148:
 	if ( ++p == pe )
 		goto _test_eof148;
 case 148:
+#line 2191 "pg_fsm.c"
 	if ( (*p) == 0u )
-		goto st0;
-	goto tr171;
-tr171:
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
-	goto st149;
+		goto tr171;
+	goto tr172;
 st149:
 	if ( ++p == pe )
 		goto _test_eof149;
 case 149:
-#line 2211 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto tr172;
-	goto tr171;
+	switch( (*p) ) {
+		case 76u: goto st150;
+		case 108u: goto st150;
+	}
+	goto st0;
 st150:
 	if ( ++p == pe )
 		goto _test_eof150;
 case 150:
 	switch( (*p) ) {
-		case 76u: goto st151;
-		case 108u: goto st151;
+		case 73u: goto st151;
+		case 105u: goto st151;
 	}
 	goto st0;
 st151:
@@ -2225,8 +2214,8 @@ st151:
 		goto _test_eof151;
 case 151:
 	switch( (*p) ) {
-		case 73u: goto st152;
-		case 105u: goto st152;
+		case 69u: goto st152;
+		case 101u: goto st152;
 	}
 	goto st0;
 st152:
@@ -2234,8 +2223,8 @@ st152:
 		goto _test_eof152;
 case 152:
 	switch( (*p) ) {
-		case 69u: goto st153;
-		case 101u: goto st153;
+		case 78u: goto st153;
+		case 110u: goto st153;
 	}
 	goto st0;
 st153:
@@ -2243,33 +2232,33 @@ st153:
 		goto _test_eof153;
 case 153:
 	switch( (*p) ) {
-		case 78u: goto st154;
-		case 110u: goto st154;
+		case 84u: goto st154;
+		case 116u: goto st154;
 	}
 	goto st0;
 st154:
 	if ( ++p == pe )
 		goto _test_eof154;
 case 154:
-	switch( (*p) ) {
-		case 84u: goto st155;
-		case 116u: goto st155;
-	}
+	if ( (*p) == 95u )
+		goto st155;
 	goto st0;
 st155:
 	if ( ++p == pe )
 		goto _test_eof155;
 case 155:
-	if ( (*p) == 95u )
-		goto st156;
+	switch( (*p) ) {
+		case 69u: goto st156;
+		case 101u: goto st156;
+	}
 	goto st0;
 st156:
 	if ( ++p == pe )
 		goto _test_eof156;
 case 156:
 	switch( (*p) ) {
-		case 69u: goto st157;
-		case 101u: goto st157;
+		case 78u: goto st157;
+		case 110u: goto st157;
 	}
 	goto st0;
 st157:
@@ -2277,8 +2266,8 @@ st157:
 		goto _test_eof157;
 case 157:
 	switch( (*p) ) {
-		case 78u: goto st158;
-		case 110u: goto st158;
+		case 67u: goto st158;
+		case 99u: goto st158;
 	}
 	goto st0;
 st158:
@@ -2286,8 +2275,8 @@ st158:
 		goto _test_eof158;
 case 158:
 	switch( (*p) ) {
-		case 67u: goto st159;
-		case 99u: goto st159;
+		case 79u: goto st159;
+		case 111u: goto st159;
 	}
 	goto st0;
 st159:
@@ -2295,8 +2284,8 @@ st159:
 		goto _test_eof159;
 case 159:
 	switch( (*p) ) {
-		case 79u: goto st160;
-		case 111u: goto st160;
+		case 68u: goto st160;
+		case 100u: goto st160;
 	}
 	goto st0;
 st160:
@@ -2304,8 +2293,8 @@ st160:
 		goto _test_eof160;
 case 160:
 	switch( (*p) ) {
-		case 68u: goto st161;
-		case 100u: goto st161;
+		case 73u: goto st161;
+		case 105u: goto st161;
 	}
 	goto st0;
 st161:
@@ -2313,8 +2302,8 @@ st161:
 		goto _test_eof161;
 case 161:
 	switch( (*p) ) {
-		case 73u: goto st162;
-		case 105u: goto st162;
+		case 78u: goto st162;
+		case 110u: goto st162;
 	}
 	goto st0;
 st162:
@@ -2322,54 +2311,56 @@ st162:
 		goto _test_eof162;
 case 162:
 	switch( (*p) ) {
-		case 78u: goto st163;
-		case 110u: goto st163;
+		case 71u: goto st163;
+		case 103u: goto st163;
 	}
 	goto st0;
 st163:
 	if ( ++p == pe )
 		goto _test_eof163;
 case 163:
-	switch( (*p) ) {
-		case 71u: goto st164;
-		case 103u: goto st164;
-	}
+	if ( (*p) == 0u )
+		goto st164;
 	goto st0;
+tr189:
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st164;
 st164:
 	if ( ++p == pe )
 		goto _test_eof164;
 case 164:
+#line 2334 "pg_fsm.c"
 	if ( (*p) == 0u )
-		goto st165;
-	goto st0;
+		goto tr188;
+	goto tr189;
 st165:
 	if ( ++p == pe )
 		goto _test_eof165;
 case 165:
-	if ( (*p) == 0u )
-		goto st0;
-	goto tr188;
-tr188:
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
-	goto st166;
+	switch( (*p) ) {
+		case 65u: goto st166;
+		case 69u: goto st175;
+		case 97u: goto st166;
+		case 101u: goto st175;
+	}
+	goto st0;
 st166:
 	if ( ++p == pe )
 		goto _test_eof166;
 case 166:
-#line 2361 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto tr189;
-	goto tr188;
+	switch( (*p) ) {
+		case 84u: goto st167;
+		case 116u: goto st167;
+	}
+	goto st0;
 st167:
 	if ( ++p == pe )
 		goto _test_eof167;
 case 167:
 	switch( (*p) ) {
-		case 65u: goto st168;
-		case 69u: goto st178;
-		case 97u: goto st168;
-		case 101u: goto st178;
+		case 69u: goto st168;
+		case 101u: goto st168;
 	}
 	goto st0;
 st168:
@@ -2377,8 +2368,8 @@ st168:
 		goto _test_eof168;
 case 168:
 	switch( (*p) ) {
-		case 84u: goto st169;
-		case 116u: goto st169;
+		case 83u: goto st169;
+		case 115u: goto st169;
 	}
 	goto st0;
 st169:
@@ -2386,8 +2377,8 @@ st169:
 		goto _test_eof169;
 case 169:
 	switch( (*p) ) {
-		case 69u: goto st170;
-		case 101u: goto st170;
+		case 84u: goto st170;
+		case 116u: goto st170;
 	}
 	goto st0;
 st170:
@@ -2395,8 +2386,8 @@ st170:
 		goto _test_eof170;
 case 170:
 	switch( (*p) ) {
-		case 83u: goto st171;
-		case 115u: goto st171;
+		case 89u: goto st171;
+		case 121u: goto st171;
 	}
 	goto st0;
 st171:
@@ -2404,8 +2395,8 @@ st171:
 		goto _test_eof171;
 case 171:
 	switch( (*p) ) {
-		case 84u: goto st172;
-		case 116u: goto st172;
+		case 76u: goto st172;
+		case 108u: goto st172;
 	}
 	goto st0;
 st172:
@@ -2413,61 +2404,63 @@ st172:
 		goto _test_eof172;
 case 172:
 	switch( (*p) ) {
-		case 89u: goto st173;
-		case 121u: goto st173;
+		case 69u: goto st173;
+		case 101u: goto st173;
 	}
 	goto st0;
 st173:
 	if ( ++p == pe )
 		goto _test_eof173;
 case 173:
-	switch( (*p) ) {
-		case 76u: goto st174;
-		case 108u: goto st174;
-	}
+	if ( (*p) == 0u )
+		goto st174;
 	goto st0;
+tr201:
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st174;
 st174:
 	if ( ++p == pe )
 		goto _test_eof174;
 case 174:
-	switch( (*p) ) {
-		case 69u: goto st175;
-		case 101u: goto st175;
-	}
-	goto st0;
+#line 2427 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto tr200;
+	goto tr201;
 st175:
 	if ( ++p == pe )
 		goto _test_eof175;
 case 175:
-	if ( (*p) == 0u )
-		goto st176;
+	switch( (*p) ) {
+		case 70u: goto st176;
+		case 102u: goto st176;
+	}
 	goto st0;
 st176:
 	if ( ++p == pe )
 		goto _test_eof176;
 case 176:
-	if ( (*p) == 0u )
-		goto st0;
-	goto tr200;
-tr200:
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
-	goto st177;
+	switch( (*p) ) {
+		case 65u: goto st177;
+		case 97u: goto st177;
+	}
+	goto st0;
 st177:
 	if ( ++p == pe )
 		goto _test_eof177;
 case 177:
-#line 2461 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto tr201;
-	goto tr200;
+	switch( (*p) ) {
+		case 85u: goto st178;
+		case 117u: goto st178;
+	}
+	goto st0;
 st178:
 	if ( ++p == pe )
 		goto _test_eof178;
 case 178:
 	switch( (*p) ) {
-		case 70u: goto st179;
-		case 102u: goto st179;
+		case 76u: goto st179;
+		case 108u: goto st179;
 	}
 	goto st0;
 st179:
@@ -2475,26 +2468,24 @@ st179:
 		goto _test_eof179;
 case 179:
 	switch( (*p) ) {
-		case 65u: goto st180;
-		case 97u: goto st180;
+		case 84u: goto st180;
+		case 116u: goto st180;
 	}
 	goto st0;
 st180:
 	if ( ++p == pe )
 		goto _test_eof180;
 case 180:
-	switch( (*p) ) {
-		case 85u: goto st181;
-		case 117u: goto st181;
-	}
+	if ( (*p) == 95u )
+		goto st181;
 	goto st0;
 st181:
 	if ( ++p == pe )
 		goto _test_eof181;
 case 181:
 	switch( (*p) ) {
-		case 76u: goto st182;
-		case 108u: goto st182;
+		case 84u: goto st182;
+		case 116u: goto st182;
 	}
 	goto st0;
 st182:
@@ -2502,24 +2493,26 @@ st182:
 		goto _test_eof182;
 case 182:
 	switch( (*p) ) {
-		case 84u: goto st183;
-		case 116u: goto st183;
+		case 82u: goto st183;
+		case 114u: goto st183;
 	}
 	goto st0;
 st183:
 	if ( ++p == pe )
 		goto _test_eof183;
 case 183:
-	if ( (*p) == 95u )
-		goto st184;
+	switch( (*p) ) {
+		case 65u: goto st184;
+		case 97u: goto st184;
+	}
 	goto st0;
 st184:
 	if ( ++p == pe )
 		goto _test_eof184;
 case 184:
 	switch( (*p) ) {
-		case 84u: goto st185;
-		case 116u: goto st185;
+		case 78u: goto st185;
+		case 110u: goto st185;
 	}
 	goto st0;
 st185:
@@ -2527,8 +2520,8 @@ st185:
 		goto _test_eof185;
 case 185:
 	switch( (*p) ) {
-		case 82u: goto st186;
-		case 114u: goto st186;
+		case 83u: goto st186;
+		case 115u: goto st186;
 	}
 	goto st0;
 st186:
@@ -2545,8 +2538,8 @@ st187:
 		goto _test_eof187;
 case 187:
 	switch( (*p) ) {
-		case 78u: goto st188;
-		case 110u: goto st188;
+		case 67u: goto st188;
+		case 99u: goto st188;
 	}
 	goto st0;
 st188:
@@ -2554,8 +2547,8 @@ st188:
 		goto _test_eof188;
 case 188:
 	switch( (*p) ) {
-		case 83u: goto st189;
-		case 115u: goto st189;
+		case 84u: goto st189;
+		case 116u: goto st189;
 	}
 	goto st0;
 st189:
@@ -2563,8 +2556,8 @@ st189:
 		goto _test_eof189;
 case 189:
 	switch( (*p) ) {
-		case 65u: goto st190;
-		case 97u: goto st190;
+		case 73u: goto st190;
+		case 105u: goto st190;
 	}
 	goto st0;
 st190:
@@ -2572,8 +2565,8 @@ st190:
 		goto _test_eof190;
 case 190:
 	switch( (*p) ) {
-		case 67u: goto st191;
-		case 99u: goto st191;
+		case 79u: goto st191;
+		case 111u: goto st191;
 	}
 	goto st0;
 st191:
@@ -2581,26 +2574,24 @@ st191:
 		goto _test_eof191;
 case 191:
 	switch( (*p) ) {
-		case 84u: goto st192;
-		case 116u: goto st192;
+		case 78u: goto st192;
+		case 110u: goto st192;
 	}
 	goto st0;
 st192:
 	if ( ++p == pe )
 		goto _test_eof192;
 case 192:
-	switch( (*p) ) {
-		case 73u: goto st193;
-		case 105u: goto st193;
-	}
+	if ( (*p) == 95u )
+		goto st193;
 	goto st0;
 st193:
 	if ( ++p == pe )
 		goto _test_eof193;
 case 193:
 	switch( (*p) ) {
-		case 79u: goto st194;
-		case 111u: goto st194;
+		case 82u: goto st194;
+		case 114u: goto st194;
 	}
 	goto st0;
 st194:
@@ -2608,42 +2599,42 @@ st194:
 		goto _test_eof194;
 case 194:
 	switch( (*p) ) {
-		case 78u: goto st195;
-		case 110u: goto st195;
+		case 69u: goto st195;
+		case 101u: goto st195;
 	}
 	goto st0;
 st195:
 	if ( ++p == pe )
 		goto _test_eof195;
 case 195:
-	if ( (*p) == 95u )
-		goto st196;
+	switch( (*p) ) {
+		case 65u: goto st196;
+		case 97u: goto st196;
+	}
 	goto st0;
 st196:
 	if ( ++p == pe )
 		goto _test_eof196;
 case 196:
 	switch( (*p) ) {
-		case 82u: goto st197;
-		case 114u: goto st197;
+		case 68u: goto st197;
+		case 100u: goto st197;
 	}
 	goto st0;
 st197:
 	if ( ++p == pe )
 		goto _test_eof197;
 case 197:
-	switch( (*p) ) {
-		case 69u: goto st198;
-		case 101u: goto st198;
-	}
+	if ( (*p) == 95u )
+		goto st198;
 	goto st0;
 st198:
 	if ( ++p == pe )
 		goto _test_eof198;
 case 198:
 	switch( (*p) ) {
-		case 65u: goto st199;
-		case 97u: goto st199;
+		case 79u: goto st199;
+		case 111u: goto st199;
 	}
 	goto st0;
 st199:
@@ -2651,88 +2642,95 @@ st199:
 		goto _test_eof199;
 case 199:
 	switch( (*p) ) {
-		case 68u: goto st200;
-		case 100u: goto st200;
+		case 78u: goto st200;
+		case 110u: goto st200;
 	}
 	goto st0;
 st200:
 	if ( ++p == pe )
 		goto _test_eof200;
 case 200:
-	if ( (*p) == 95u )
-		goto st201;
+	switch( (*p) ) {
+		case 76u: goto st201;
+		case 108u: goto st201;
+	}
 	goto st0;
 st201:
 	if ( ++p == pe )
 		goto _test_eof201;
 case 201:
 	switch( (*p) ) {
-		case 79u: goto st202;
-		case 111u: goto st202;
+		case 89u: goto st202;
+		case 121u: goto st202;
 	}
 	goto st0;
 st202:
 	if ( ++p == pe )
 		goto _test_eof202;
 case 202:
-	switch( (*p) ) {
-		case 78u: goto st203;
-		case 110u: goto st203;
-	}
+	if ( (*p) == 0u )
+		goto st203;
 	goto st0;
+tr231:
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st203;
 st203:
 	if ( ++p == pe )
 		goto _test_eof203;
 case 203:
-	switch( (*p) ) {
-		case 76u: goto st204;
-		case 108u: goto st204;
-	}
-	goto st0;
+#line 2683 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto tr230;
+	goto tr231;
 st204:
 	if ( ++p == pe )
 		goto _test_eof204;
 case 204:
 	switch( (*p) ) {
-		case 89u: goto st205;
-		case 121u: goto st205;
+		case 78u: goto st205;
+		case 83u: goto st245;
+		case 110u: goto st205;
+		case 115u: goto st245;
 	}
 	goto st0;
 st205:
 	if ( ++p == pe )
 		goto _test_eof205;
 case 205:
-	if ( (*p) == 0u )
-		goto st206;
+	switch( (*p) ) {
+		case 84u: goto st206;
+		case 95u: goto st232;
+		case 116u: goto st206;
+	}
 	goto st0;
 st206:
 	if ( ++p == pe )
 		goto _test_eof206;
 case 206:
-	if ( (*p) == 0u )
-		goto st0;
-	goto tr230;
-tr230:
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
-	goto st207;
+	switch( (*p) ) {
+		case 69u: goto st207;
+		case 101u: goto st207;
+	}
+	goto st0;
 st207:
 	if ( ++p == pe )
 		goto _test_eof207;
 case 207:
-#line 2724 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto tr231;
-	goto tr230;
+	switch( (*p) ) {
+		case 71u: goto st208;
+		case 82u: goto st222;
+		case 103u: goto st208;
+		case 114u: goto st222;
+	}
+	goto st0;
 st208:
 	if ( ++p == pe )
 		goto _test_eof208;
 case 208:
 	switch( (*p) ) {
-		case 78u: goto st209;
-		case 83u: goto st252;
-		case 110u: goto st209;
-		case 115u: goto st252;
+		case 69u: goto st209;
+		case 101u: goto st209;
 	}
 	goto st0;
 st209:
@@ -2740,29 +2738,24 @@ st209:
 		goto _test_eof209;
 case 209:
 	switch( (*p) ) {
-		case 84u: goto st210;
-		case 95u: goto st238;
-		case 116u: goto st210;
+		case 82u: goto st210;
+		case 114u: goto st210;
 	}
 	goto st0;
 st210:
 	if ( ++p == pe )
 		goto _test_eof210;
 case 210:
-	switch( (*p) ) {
-		case 69u: goto st211;
-		case 101u: goto st211;
-	}
+	if ( (*p) == 95u )
+		goto st211;
 	goto st0;
 st211:
 	if ( ++p == pe )
 		goto _test_eof211;
 case 211:
 	switch( (*p) ) {
-		case 71u: goto st212;
-		case 82u: goto st227;
-		case 103u: goto st212;
-		case 114u: goto st227;
+		case 68u: goto st212;
+		case 100u: goto st212;
 	}
 	goto st0;
 st212:
@@ -2770,8 +2763,8 @@ st212:
 		goto _test_eof212;
 case 212:
 	switch( (*p) ) {
-		case 69u: goto st213;
-		case 101u: goto st213;
+		case 65u: goto st213;
+		case 97u: goto st213;
 	}
 	goto st0;
 st213:
@@ -2779,24 +2772,26 @@ st213:
 		goto _test_eof213;
 case 213:
 	switch( (*p) ) {
-		case 82u: goto st214;
-		case 114u: goto st214;
+		case 84u: goto st214;
+		case 116u: goto st214;
 	}
 	goto st0;
 st214:
 	if ( ++p == pe )
 		goto _test_eof214;
 case 214:
-	if ( (*p) == 95u )
-		goto st215;
+	switch( (*p) ) {
+		case 69u: goto st215;
+		case 101u: goto st215;
+	}
 	goto st0;
 st215:
 	if ( ++p == pe )
 		goto _test_eof215;
 case 215:
 	switch( (*p) ) {
-		case 68u: goto st216;
-		case 100u: goto st216;
+		case 84u: goto st216;
+		case 116u: goto st216;
 	}
 	goto st0;
 st216:
@@ -2804,8 +2799,8 @@ st216:
 		goto _test_eof216;
 case 216:
 	switch( (*p) ) {
-		case 65u: goto st217;
-		case 97u: goto st217;
+		case 73u: goto st217;
+		case 105u: goto st217;
 	}
 	goto st0;
 st217:
@@ -2813,8 +2808,8 @@ st217:
 		goto _test_eof217;
 case 217:
 	switch( (*p) ) {
-		case 84u: goto st218;
-		case 116u: goto st218;
+		case 77u: goto st218;
+		case 109u: goto st218;
 	}
 	goto st0;
 st218:
@@ -2831,35 +2826,36 @@ st219:
 		goto _test_eof219;
 case 219:
 	switch( (*p) ) {
-		case 84u: goto st220;
-		case 116u: goto st220;
+		case 83u: goto st220;
+		case 115u: goto st220;
 	}
 	goto st0;
 st220:
 	if ( ++p == pe )
 		goto _test_eof220;
 case 220:
-	switch( (*p) ) {
-		case 73u: goto st221;
-		case 105u: goto st221;
-	}
+	if ( (*p) == 0u )
+		goto st221;
 	goto st0;
+tr253:
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st221;
 st221:
 	if ( ++p == pe )
 		goto _test_eof221;
 case 221:
-	switch( (*p) ) {
-		case 77u: goto st222;
-		case 109u: goto st222;
-	}
-	goto st0;
+#line 2849 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto tr252;
+	goto tr253;
 st222:
 	if ( ++p == pe )
 		goto _test_eof222;
 case 222:
 	switch( (*p) ) {
-		case 69u: goto st223;
-		case 101u: goto st223;
+		case 86u: goto st223;
+		case 118u: goto st223;
 	}
 	goto st0;
 st223:
@@ -2867,43 +2863,44 @@ st223:
 		goto _test_eof223;
 case 223:
 	switch( (*p) ) {
-		case 83u: goto st224;
-		case 115u: goto st224;
+		case 65u: goto st224;
+		case 97u: goto st224;
 	}
 	goto st0;
 st224:
 	if ( ++p == pe )
 		goto _test_eof224;
 case 224:
-	if ( (*p) == 0u )
-		goto st225;
+	switch( (*p) ) {
+		case 76u: goto st225;
+		case 108u: goto st225;
+	}
 	goto st0;
 st225:
 	if ( ++p == pe )
 		goto _test_eof225;
 case 225:
-	if ( (*p) == 0u )
-		goto st0;
-	goto tr252;
-tr252:
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
-	goto st226;
+	switch( (*p) ) {
+		case 83u: goto st226;
+		case 115u: goto st226;
+	}
+	goto st0;
 st226:
 	if ( ++p == pe )
 		goto _test_eof226;
 case 226:
-#line 2897 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto tr253;
-	goto tr252;
+	switch( (*p) ) {
+		case 84u: goto st227;
+		case 116u: goto st227;
+	}
+	goto st0;
 st227:
 	if ( ++p == pe )
 		goto _test_eof227;
 case 227:
 	switch( (*p) ) {
-		case 86u: goto st228;
-		case 118u: goto st228;
+		case 89u: goto st228;
+		case 121u: goto st228;
 	}
 	goto st0;
 st228:
@@ -2911,8 +2908,8 @@ st228:
 		goto _test_eof228;
 case 228:
 	switch( (*p) ) {
-		case 65u: goto st229;
-		case 97u: goto st229;
+		case 76u: goto st229;
+		case 108u: goto st229;
 	}
 	goto st0;
 st229:
@@ -2920,35 +2917,36 @@ st229:
 		goto _test_eof229;
 case 229:
 	switch( (*p) ) {
-		case 76u: goto st230;
-		case 108u: goto st230;
+		case 69u: goto st230;
+		case 101u: goto st230;
 	}
 	goto st0;
 st230:
 	if ( ++p == pe )
 		goto _test_eof230;
 case 230:
-	switch( (*p) ) {
-		case 83u: goto st231;
-		case 115u: goto st231;
-	}
+	if ( (*p) == 0u )
+		goto st231;
 	goto st0;
+tr264:
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st231;
 st231:
 	if ( ++p == pe )
 		goto _test_eof231;
 case 231:
-	switch( (*p) ) {
-		case 84u: goto st232;
-		case 116u: goto st232;
-	}
-	goto st0;
+#line 2940 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto tr263;
+	goto tr264;
 st232:
 	if ( ++p == pe )
 		goto _test_eof232;
 case 232:
 	switch( (*p) ) {
-		case 89u: goto st233;
-		case 121u: goto st233;
+		case 72u: goto st233;
+		case 104u: goto st233;
 	}
 	goto st0;
 st233:
@@ -2956,8 +2954,8 @@ st233:
 		goto _test_eof233;
 case 233:
 	switch( (*p) ) {
-		case 76u: goto st234;
-		case 108u: goto st234;
+		case 79u: goto st234;
+		case 111u: goto st234;
 	}
 	goto st0;
 st234:
@@ -2965,43 +2963,42 @@ st234:
 		goto _test_eof234;
 case 234:
 	switch( (*p) ) {
-		case 69u: goto st235;
-		case 101u: goto st235;
+		case 84u: goto st235;
+		case 116u: goto st235;
 	}
 	goto st0;
 st235:
 	if ( ++p == pe )
 		goto _test_eof235;
 case 235:
-	if ( (*p) == 0u )
+	if ( (*p) == 95u )
 		goto st236;
 	goto st0;
 st236:
 	if ( ++p == pe )
 		goto _test_eof236;
 case 236:
-	if ( (*p) == 0u )
-		goto st0;
-	goto tr263;
-tr263:
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
-	goto st237;
+	switch( (*p) ) {
+		case 83u: goto st237;
+		case 115u: goto st237;
+	}
+	goto st0;
 st237:
 	if ( ++p == pe )
 		goto _test_eof237;
 case 237:
-#line 2995 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto tr264;
-	goto tr263;
+	switch( (*p) ) {
+		case 84u: goto st238;
+		case 116u: goto st238;
+	}
+	goto st0;
 st238:
 	if ( ++p == pe )
 		goto _test_eof238;
 case 238:
 	switch( (*p) ) {
-		case 72u: goto st239;
-		case 104u: goto st239;
+		case 65u: goto st239;
+		case 97u: goto st239;
 	}
 	goto st0;
 st239:
@@ -3009,8 +3006,8 @@ st239:
 		goto _test_eof239;
 case 239:
 	switch( (*p) ) {
-		case 79u: goto st240;
-		case 111u: goto st240;
+		case 78u: goto st240;
+		case 110u: goto st240;
 	}
 	goto st0;
 st240:
@@ -3018,60 +3015,61 @@ st240:
 		goto _test_eof240;
 case 240:
 	switch( (*p) ) {
-		case 84u: goto st241;
-		case 116u: goto st241;
+		case 68u: goto st241;
+		case 100u: goto st241;
 	}
 	goto st0;
 st241:
 	if ( ++p == pe )
 		goto _test_eof241;
 case 241:
-	if ( (*p) == 95u )
-		goto st242;
+	switch( (*p) ) {
+		case 66u: goto st242;
+		case 98u: goto st242;
+	}
 	goto st0;
 st242:
 	if ( ++p == pe )
 		goto _test_eof242;
 case 242:
 	switch( (*p) ) {
-		case 83u: goto st243;
-		case 115u: goto st243;
+		case 89u: goto st243;
+		case 121u: goto st243;
 	}
 	goto st0;
 st243:
 	if ( ++p == pe )
 		goto _test_eof243;
 case 243:
-	switch( (*p) ) {
-		case 84u: goto st244;
-		case 116u: goto st244;
-	}
+	if ( (*p) == 0u )
+		goto st244;
 	goto st0;
+tr278:
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st244;
 st244:
 	if ( ++p == pe )
 		goto _test_eof244;
 case 244:
-	switch( (*p) ) {
-		case 65u: goto st245;
-		case 97u: goto st245;
-	}
-	goto st0;
+#line 3056 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto tr277;
+	goto tr278;
 st245:
 	if ( ++p == pe )
 		goto _test_eof245;
 case 245:
-	switch( (*p) ) {
-		case 78u: goto st246;
-		case 110u: goto st246;
-	}
+	if ( (*p) == 95u )
+		goto st246;
 	goto st0;
 st246:
 	if ( ++p == pe )
 		goto _test_eof246;
 case 246:
 	switch( (*p) ) {
-		case 68u: goto st247;
-		case 100u: goto st247;
+		case 83u: goto st247;
+		case 115u: goto st247;
 	}
 	goto st0;
 st247:
@@ -3079,8 +3077,8 @@ st247:
 		goto _test_eof247;
 case 247:
 	switch( (*p) ) {
-		case 66u: goto st248;
-		case 98u: goto st248;
+		case 85u: goto st248;
+		case 117u: goto st248;
 	}
 	goto st0;
 st248:
@@ -3088,50 +3086,53 @@ st248:
 		goto _test_eof248;
 case 248:
 	switch( (*p) ) {
-		case 89u: goto st249;
-		case 121u: goto st249;
+		case 80u: goto st249;
+		case 112u: goto st249;
 	}
 	goto st0;
 st249:
 	if ( ++p == pe )
 		goto _test_eof249;
 case 249:
-	if ( (*p) == 0u )
-		goto st250;
+	switch( (*p) ) {
+		case 69u: goto st250;
+		case 101u: goto st250;
+	}
 	goto st0;
 st250:
 	if ( ++p == pe )
 		goto _test_eof250;
 case 250:
-	if ( (*p) == 0u )
-		goto st0;
-	goto tr277;
-tr277:
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
-	goto st251;
+	switch( (*p) ) {
+		case 82u: goto st251;
+		case 114u: goto st251;
+	}
+	goto st0;
 st251:
 	if ( ++p == pe )
 		goto _test_eof251;
 case 251:
-#line 3118 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto tr278;
-	goto tr277;
+	switch( (*p) ) {
+		case 85u: goto st252;
+		case 117u: goto st252;
+	}
+	goto st0;
 st252:
 	if ( ++p == pe )
 		goto _test_eof252;
 case 252:
-	if ( (*p) == 95u )
-		goto st253;
+	switch( (*p) ) {
+		case 83u: goto st253;
+		case 115u: goto st253;
+	}
 	goto st0;
 st253:
 	if ( ++p == pe )
 		goto _test_eof253;
 case 253:
 	switch( (*p) ) {
-		case 83u: goto st254;
-		case 115u: goto st254;
+		case 69u: goto st254;
+		case 101u: goto st254;
 	}
 	goto st0;
 st254:
@@ -3139,35 +3140,38 @@ st254:
 		goto _test_eof254;
 case 254:
 	switch( (*p) ) {
-		case 85u: goto st255;
-		case 117u: goto st255;
+		case 82u: goto st255;
+		case 114u: goto st255;
 	}
 	goto st0;
 st255:
 	if ( ++p == pe )
 		goto _test_eof255;
 case 255:
-	switch( (*p) ) {
-		case 80u: goto st256;
-		case 112u: goto st256;
-	}
+	if ( (*p) == 0u )
+		goto st256;
 	goto st0;
+tr291:
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st256;
 st256:
 	if ( ++p == pe )
 		goto _test_eof256;
 case 256:
-	switch( (*p) ) {
-		case 69u: goto st257;
-		case 101u: goto st257;
-	}
-	goto st0;
+#line 3163 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto tr290;
+	goto tr291;
 st257:
 	if ( ++p == pe )
 		goto _test_eof257;
 case 257:
 	switch( (*p) ) {
-		case 82u: goto st258;
-		case 114u: goto st258;
+		case 69u: goto st258;
+		case 84u: goto st301;
+		case 101u: goto st258;
+		case 116u: goto st301;
 	}
 	goto st0;
 st258:
@@ -3175,8 +3179,10 @@ st258:
 		goto _test_eof258;
 case 258:
 	switch( (*p) ) {
-		case 85u: goto st259;
-		case 117u: goto st259;
+		case 82u: goto st259;
+		case 83u: goto st281;
+		case 114u: goto st259;
+		case 115u: goto st281;
 	}
 	goto st0;
 st259:
@@ -3184,8 +3190,8 @@ st259:
 		goto _test_eof259;
 case 259:
 	switch( (*p) ) {
-		case 83u: goto st260;
-		case 115u: goto st260;
+		case 86u: goto st260;
+		case 118u: goto st260;
 	}
 	goto st0;
 st260:
@@ -3210,37 +3216,36 @@ st262:
 	if ( ++p == pe )
 		goto _test_eof262;
 case 262:
-	if ( (*p) == 0u )
+	if ( (*p) == 95u )
 		goto st263;
 	goto st0;
 st263:
 	if ( ++p == pe )
 		goto _test_eof263;
 case 263:
-	if ( (*p) == 0u )
-		goto st0;
-	goto tr290;
-tr290:
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
-	goto st264;
+	switch( (*p) ) {
+		case 69u: goto st264;
+		case 86u: goto st273;
+		case 101u: goto st264;
+		case 118u: goto st273;
+	}
+	goto st0;
 st264:
 	if ( ++p == pe )
 		goto _test_eof264;
 case 264:
-#line 3232 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto tr291;
-	goto tr290;
+	switch( (*p) ) {
+		case 78u: goto st265;
+		case 110u: goto st265;
+	}
+	goto st0;
 st265:
 	if ( ++p == pe )
 		goto _test_eof265;
 case 265:
 	switch( (*p) ) {
-		case 69u: goto st266;
-		case 84u: goto st312;
-		case 101u: goto st266;
-		case 116u: goto st312;
+		case 67u: goto st266;
+		case 99u: goto st266;
 	}
 	goto st0;
 st266:
@@ -3248,10 +3253,8 @@ st266:
 		goto _test_eof266;
 case 266:
 	switch( (*p) ) {
-		case 82u: goto st267;
-		case 83u: goto st291;
-		case 114u: goto st267;
-		case 115u: goto st291;
+		case 79u: goto st267;
+		case 111u: goto st267;
 	}
 	goto st0;
 st267:
@@ -3259,8 +3262,8 @@ st267:
 		goto _test_eof267;
 case 267:
 	switch( (*p) ) {
-		case 86u: goto st268;
-		case 118u: goto st268;
+		case 68u: goto st268;
+		case 100u: goto st268;
 	}
 	goto st0;
 st268:
@@ -3268,8 +3271,8 @@ st268:
 		goto _test_eof268;
 case 268:
 	switch( (*p) ) {
-		case 69u: goto st269;
-		case 101u: goto st269;
+		case 73u: goto st269;
+		case 105u: goto st269;
 	}
 	goto st0;
 st269:
@@ -3277,44 +3280,45 @@ st269:
 		goto _test_eof269;
 case 269:
 	switch( (*p) ) {
-		case 82u: goto st270;
-		case 114u: goto st270;
+		case 78u: goto st270;
+		case 110u: goto st270;
 	}
 	goto st0;
 st270:
 	if ( ++p == pe )
 		goto _test_eof270;
 case 270:
-	if ( (*p) == 95u )
-		goto st271;
+	switch( (*p) ) {
+		case 71u: goto st271;
+		case 103u: goto st271;
+	}
 	goto st0;
 st271:
 	if ( ++p == pe )
 		goto _test_eof271;
 case 271:
-	switch( (*p) ) {
-		case 69u: goto st272;
-		case 86u: goto st282;
-		case 101u: goto st272;
-		case 118u: goto st282;
-	}
+	if ( (*p) == 0u )
+		goto st272;
 	goto st0;
+tr311:
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st272;
 st272:
 	if ( ++p == pe )
 		goto _test_eof272;
 case 272:
-	switch( (*p) ) {
-		case 78u: goto st273;
-		case 110u: goto st273;
-	}
-	goto st0;
+#line 3312 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto tr310;
+	goto tr311;
 st273:
 	if ( ++p == pe )
 		goto _test_eof273;
 case 273:
 	switch( (*p) ) {
-		case 67u: goto st274;
-		case 99u: goto st274;
+		case 69u: goto st274;
+		case 101u: goto st274;
 	}
 	goto st0;
 st274:
@@ -3322,8 +3326,8 @@ st274:
 		goto _test_eof274;
 case 274:
 	switch( (*p) ) {
-		case 79u: goto st275;
-		case 111u: goto st275;
+		case 82u: goto st275;
+		case 114u: goto st275;
 	}
 	goto st0;
 st275:
@@ -3331,8 +3335,8 @@ st275:
 		goto _test_eof275;
 case 275:
 	switch( (*p) ) {
-		case 68u: goto st276;
-		case 100u: goto st276;
+		case 83u: goto st276;
+		case 115u: goto st276;
 	}
 	goto st0;
 st276:
@@ -3349,8 +3353,8 @@ st277:
 		goto _test_eof277;
 case 277:
 	switch( (*p) ) {
-		case 78u: goto st278;
-		case 110u: goto st278;
+		case 79u: goto st278;
+		case 111u: goto st278;
 	}
 	goto st0;
 st278:
@@ -3358,8 +3362,8 @@ st278:
 		goto _test_eof278;
 case 278:
 	switch( (*p) ) {
-		case 71u: goto st279;
-		case 103u: goto st279;
+		case 78u: goto st279;
+		case 110u: goto st279;
 	}
 	goto st0;
 st279:
@@ -3369,32 +3373,34 @@ case 279:
 	if ( (*p) == 0u )
 		goto st280;
 	goto st0;
+tr320:
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st280;
 st280:
 	if ( ++p == pe )
 		goto _test_eof280;
 case 280:
+#line 3385 "pg_fsm.c"
 	if ( (*p) == 0u )
-		goto st0;
-	goto tr310;
-tr310:
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
-	goto st281;
+		goto tr319;
+	goto tr320;
 st281:
 	if ( ++p == pe )
 		goto _test_eof281;
 case 281:
-#line 3388 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto tr311;
-	goto tr310;
+	switch( (*p) ) {
+		case 83u: goto st282;
+		case 115u: goto st282;
+	}
+	goto st0;
 st282:
 	if ( ++p == pe )
 		goto _test_eof282;
 case 282:
 	switch( (*p) ) {
-		case 69u: goto st283;
-		case 101u: goto st283;
+		case 73u: goto st283;
+		case 105u: goto st283;
 	}
 	goto st0;
 st283:
@@ -3402,8 +3408,8 @@ st283:
 		goto _test_eof283;
 case 283:
 	switch( (*p) ) {
-		case 82u: goto st284;
-		case 114u: goto st284;
+		case 79u: goto st284;
+		case 111u: goto st284;
 	}
 	goto st0;
 st284:
@@ -3411,26 +3417,24 @@ st284:
 		goto _test_eof284;
 case 284:
 	switch( (*p) ) {
-		case 83u: goto st285;
-		case 115u: goto st285;
+		case 78u: goto st285;
+		case 110u: goto st285;
 	}
 	goto st0;
 st285:
 	if ( ++p == pe )
 		goto _test_eof285;
 case 285:
-	switch( (*p) ) {
-		case 73u: goto st286;
-		case 105u: goto st286;
-	}
+	if ( (*p) == 95u )
+		goto st286;
 	goto st0;
 st286:
 	if ( ++p == pe )
 		goto _test_eof286;
 case 286:
 	switch( (*p) ) {
-		case 79u: goto st287;
-		case 111u: goto st287;
+		case 65u: goto st287;
+		case 97u: goto st287;
 	}
 	goto st0;
 st287:
@@ -3438,43 +3442,44 @@ st287:
 		goto _test_eof287;
 case 287:
 	switch( (*p) ) {
-		case 78u: goto st288;
-		case 110u: goto st288;
+		case 85u: goto st288;
+		case 117u: goto st288;
 	}
 	goto st0;
 st288:
 	if ( ++p == pe )
 		goto _test_eof288;
 case 288:
-	if ( (*p) == 0u )
-		goto st289;
+	switch( (*p) ) {
+		case 84u: goto st289;
+		case 116u: goto st289;
+	}
 	goto st0;
 st289:
 	if ( ++p == pe )
 		goto _test_eof289;
 case 289:
-	if ( (*p) == 0u )
-		goto st0;
-	goto tr319;
-tr319:
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
-	goto st290;
+	switch( (*p) ) {
+		case 72u: goto st290;
+		case 104u: goto st290;
+	}
+	goto st0;
 st290:
 	if ( ++p == pe )
 		goto _test_eof290;
 case 290:
-#line 3468 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto tr320;
-	goto tr319;
+	switch( (*p) ) {
+		case 79u: goto st291;
+		case 111u: goto st291;
+	}
+	goto st0;
 st291:
 	if ( ++p == pe )
 		goto _test_eof291;
 case 291:
 	switch( (*p) ) {
-		case 83u: goto st292;
-		case 115u: goto st292;
+		case 82u: goto st292;
+		case 114u: goto st292;
 	}
 	goto st0;
 st292:
@@ -3491,8 +3496,8 @@ st293:
 		goto _test_eof293;
 case 293:
 	switch( (*p) ) {
-		case 79u: goto st294;
-		case 111u: goto st294;
+		case 90u: goto st294;
+		case 122u: goto st294;
 	}
 	goto st0;
 st294:
@@ -3500,24 +3505,26 @@ st294:
 		goto _test_eof294;
 case 294:
 	switch( (*p) ) {
-		case 78u: goto st295;
-		case 110u: goto st295;
+		case 65u: goto st295;
+		case 97u: goto st295;
 	}
 	goto st0;
 st295:
 	if ( ++p == pe )
 		goto _test_eof295;
 case 295:
-	if ( (*p) == 95u )
-		goto st296;
+	switch( (*p) ) {
+		case 84u: goto st296;
+		case 116u: goto st296;
+	}
 	goto st0;
 st296:
 	if ( ++p == pe )
 		goto _test_eof296;
 case 296:
 	switch( (*p) ) {
-		case 65u: goto st297;
-		case 97u: goto st297;
+		case 73u: goto st297;
+		case 105u: goto st297;
 	}
 	goto st0;
 st297:
@@ -3525,8 +3532,8 @@ st297:
 		goto _test_eof297;
 case 297:
 	switch( (*p) ) {
-		case 85u: goto st298;
-		case 117u: goto st298;
+		case 79u: goto st298;
+		case 111u: goto st298;
 	}
 	goto st0;
 st298:
@@ -3534,35 +3541,36 @@ st298:
 		goto _test_eof298;
 case 298:
 	switch( (*p) ) {
-		case 84u: goto st299;
-		case 116u: goto st299;
+		case 78u: goto st299;
+		case 110u: goto st299;
 	}
 	goto st0;
 st299:
 	if ( ++p == pe )
 		goto _test_eof299;
 case 299:
-	switch( (*p) ) {
-		case 72u: goto st300;
-		case 104u: goto st300;
-	}
+	if ( (*p) == 0u )
+		goto st300;
 	goto st0;
+tr341:
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st300;
 st300:
 	if ( ++p == pe )
 		goto _test_eof300;
 case 300:
-	switch( (*p) ) {
-		case 79u: goto st301;
-		case 111u: goto st301;
-	}
-	goto st0;
+#line 3564 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto tr340;
+	goto tr341;
 st301:
 	if ( ++p == pe )
 		goto _test_eof301;
 case 301:
 	switch( (*p) ) {
-		case 82u: goto st302;
-		case 114u: goto st302;
+		case 65u: goto st302;
+		case 97u: goto st302;
 	}
 	goto st0;
 st302:
@@ -3570,8 +3578,8 @@ st302:
 		goto _test_eof302;
 case 302:
 	switch( (*p) ) {
-		case 73u: goto st303;
-		case 105u: goto st303;
+		case 78u: goto st303;
+		case 110u: goto st303;
 	}
 	goto st0;
 st303:
@@ -3579,8 +3587,8 @@ st303:
 		goto _test_eof303;
 case 303:
 	switch( (*p) ) {
-		case 90u: goto st304;
-		case 122u: goto st304;
+		case 68u: goto st304;
+		case 100u: goto st304;
 	}
 	goto st0;
 st304:
@@ -3597,8 +3605,8 @@ st305:
 		goto _test_eof305;
 case 305:
 	switch( (*p) ) {
-		case 84u: goto st306;
-		case 116u: goto st306;
+		case 82u: goto st306;
+		case 114u: goto st306;
 	}
 	goto st0;
 st306:
@@ -3606,61 +3614,60 @@ st306:
 		goto _test_eof306;
 case 306:
 	switch( (*p) ) {
-		case 73u: goto st307;
-		case 105u: goto st307;
+		case 68u: goto st307;
+		case 100u: goto st307;
 	}
 	goto st0;
 st307:
 	if ( ++p == pe )
 		goto _test_eof307;
 case 307:
-	switch( (*p) ) {
-		case 79u: goto st308;
-		case 111u: goto st308;
-	}
+	if ( (*p) == 95u )
+		goto st308;
 	goto st0;
 st308:
 	if ( ++p == pe )
 		goto _test_eof308;
 case 308:
 	switch( (*p) ) {
-		case 78u: goto st309;
-		case 110u: goto st309;
+		case 67u: goto st309;
+		case 99u: goto st309;
 	}
 	goto st0;
 st309:
 	if ( ++p == pe )
 		goto _test_eof309;
 case 309:
-	if ( (*p) == 0u )
-		goto st310;
+	switch( (*p) ) {
+		case 79u: goto st310;
+		case 111u: goto st310;
+	}
 	goto st0;
 st310:
 	if ( ++p == pe )
 		goto _test_eof310;
 case 310:
-	if ( (*p) == 0u )
-		goto st0;
-	goto tr340;
-tr340:
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
-	goto st311;
+	switch( (*p) ) {
+		case 78u: goto st311;
+		case 110u: goto st311;
+	}
+	goto st0;
 st311:
 	if ( ++p == pe )
 		goto _test_eof311;
 case 311:
-#line 3654 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto tr341;
-	goto tr340;
+	switch( (*p) ) {
+		case 70u: goto st312;
+		case 102u: goto st312;
+	}
+	goto st0;
 st312:
 	if ( ++p == pe )
 		goto _test_eof312;
 case 312:
 	switch( (*p) ) {
-		case 65u: goto st313;
-		case 97u: goto st313;
+		case 79u: goto st313;
+		case 111u: goto st313;
 	}
 	goto st0;
 st313:
@@ -3668,8 +3675,8 @@ st313:
 		goto _test_eof313;
 case 313:
 	switch( (*p) ) {
-		case 78u: goto st314;
-		case 110u: goto st314;
+		case 82u: goto st314;
+		case 114u: goto st314;
 	}
 	goto st0;
 st314:
@@ -3677,8 +3684,8 @@ st314:
 		goto _test_eof314;
 case 314:
 	switch( (*p) ) {
-		case 68u: goto st315;
-		case 100u: goto st315;
+		case 77u: goto st315;
+		case 109u: goto st315;
 	}
 	goto st0;
 st315:
@@ -3686,8 +3693,8 @@ st315:
 		goto _test_eof315;
 case 315:
 	switch( (*p) ) {
-		case 65u: goto st316;
-		case 97u: goto st316;
+		case 73u: goto st316;
+		case 105u: goto st316;
 	}
 	goto st0;
 st316:
@@ -3695,8 +3702,8 @@ st316:
 		goto _test_eof316;
 case 316:
 	switch( (*p) ) {
-		case 82u: goto st317;
-		case 114u: goto st317;
+		case 78u: goto st317;
+		case 110u: goto st317;
 	}
 	goto st0;
 st317:
@@ -3704,8 +3711,8 @@ st317:
 		goto _test_eof317;
 case 317:
 	switch( (*p) ) {
-		case 68u: goto st318;
-		case 100u: goto st318;
+		case 71u: goto st318;
+		case 103u: goto st318;
 	}
 	goto st0;
 st318:
@@ -3720,8 +3727,8 @@ st319:
 		goto _test_eof319;
 case 319:
 	switch( (*p) ) {
-		case 67u: goto st320;
-		case 99u: goto st320;
+		case 83u: goto st320;
+		case 115u: goto st320;
 	}
 	goto st0;
 st320:
@@ -3729,8 +3736,8 @@ st320:
 		goto _test_eof320;
 case 320:
 	switch( (*p) ) {
-		case 79u: goto st321;
-		case 111u: goto st321;
+		case 84u: goto st321;
+		case 116u: goto st321;
 	}
 	goto st0;
 st321:
@@ -3738,8 +3745,8 @@ st321:
 		goto _test_eof321;
 case 321:
 	switch( (*p) ) {
-		case 78u: goto st322;
-		case 110u: goto st322;
+		case 82u: goto st322;
+		case 114u: goto st322;
 	}
 	goto st0;
 st322:
@@ -3747,8 +3754,8 @@ st322:
 		goto _test_eof322;
 case 322:
 	switch( (*p) ) {
-		case 70u: goto st323;
-		case 102u: goto st323;
+		case 73u: goto st323;
+		case 105u: goto st323;
 	}
 	goto st0;
 st323:
@@ -3756,8 +3763,8 @@ st323:
 		goto _test_eof323;
 case 323:
 	switch( (*p) ) {
-		case 79u: goto st324;
-		case 111u: goto st324;
+		case 78u: goto st324;
+		case 110u: goto st324;
 	}
 	goto st0;
 st324:
@@ -3765,8 +3772,8 @@ st324:
 		goto _test_eof324;
 case 324:
 	switch( (*p) ) {
-		case 82u: goto st325;
-		case 114u: goto st325;
+		case 71u: goto st325;
+		case 103u: goto st325;
 	}
 	goto st0;
 st325:
@@ -3774,51 +3781,54 @@ st325:
 		goto _test_eof325;
 case 325:
 	switch( (*p) ) {
-		case 77u: goto st326;
-		case 109u: goto st326;
+		case 83u: goto st326;
+		case 115u: goto st326;
 	}
 	goto st0;
 st326:
 	if ( ++p == pe )
 		goto _test_eof326;
 case 326:
-	switch( (*p) ) {
-		case 73u: goto st327;
-		case 105u: goto st327;
-	}
+	if ( (*p) == 0u )
+		goto st327;
 	goto st0;
+tr369:
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st327;
 st327:
 	if ( ++p == pe )
 		goto _test_eof327;
 case 327:
-	switch( (*p) ) {
-		case 78u: goto st328;
-		case 110u: goto st328;
-	}
-	goto st0;
+#line 3804 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto tr368;
+	goto tr369;
 st328:
 	if ( ++p == pe )
 		goto _test_eof328;
 case 328:
 	switch( (*p) ) {
-		case 71u: goto st329;
-		case 103u: goto st329;
+		case 73u: goto st329;
+		case 105u: goto st329;
 	}
 	goto st0;
 st329:
 	if ( ++p == pe )
 		goto _test_eof329;
 case 329:
-	if ( (*p) == 95u )
-		goto st330;
+	switch( (*p) ) {
+		case 77u: goto st330;
+		case 109u: goto st330;
+	}
 	goto st0;
 st330:
 	if ( ++p == pe )
 		goto _test_eof330;
 case 330:
 	switch( (*p) ) {
-		case 83u: goto st331;
-		case 115u: goto st331;
+		case 69u: goto st331;
+		case 101u: goto st331;
 	}
 	goto st0;
 st331:
@@ -3826,8 +3836,8 @@ st331:
 		goto _test_eof331;
 case 331:
 	switch( (*p) ) {
-		case 84u: goto st332;
-		case 116u: goto st332;
+		case 90u: goto st332;
+		case 122u: goto st332;
 	}
 	goto st0;
 st332:
@@ -3835,8 +3845,8 @@ st332:
 		goto _test_eof332;
 case 332:
 	switch( (*p) ) {
-		case 82u: goto st333;
-		case 114u: goto st333;
+		case 79u: goto st333;
+		case 111u: goto st333;
 	}
 	goto st0;
 st333:
@@ -3844,8 +3854,8 @@ st333:
 		goto _test_eof333;
 case 333:
 	switch( (*p) ) {
-		case 73u: goto st334;
-		case 105u: goto st334;
+		case 78u: goto st334;
+		case 110u: goto st334;
 	}
 	goto st0;
 st334:
@@ -3853,164 +3863,199 @@ st334:
 		goto _test_eof334;
 case 334:
 	switch( (*p) ) {
-		case 78u: goto st335;
-		case 110u: goto st335;
+		case 69u: goto st335;
+		case 101u: goto st335;
 	}
 	goto st0;
 st335:
 	if ( ++p == pe )
 		goto _test_eof335;
 case 335:
-	switch( (*p) ) {
-		case 71u: goto st336;
-		case 103u: goto st336;
-	}
+	if ( (*p) == 0u )
+		goto st336;
 	goto st0;
+tr379:
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st336;
 st336:
 	if ( ++p == pe )
 		goto _test_eof336;
 case 336:
-	switch( (*p) ) {
-		case 83u: goto st337;
-		case 115u: goto st337;
-	}
-	goto st0;
+#line 3886 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto tr378;
+	goto tr379;
+tr464:
+#line 22 "pg_fsm.rl"
+	{ if (m->string && p - m->string > 0 && f->authentication_md5_password(u, p - m->string, m->string)) {p++;  m->cs = 337; goto _out;} m->string = NULL; }
+	goto st337;
 st337:
 	if ( ++p == pe )
 		goto _test_eof337;
 case 337:
-	if ( (*p) == 0u )
-		goto st338;
-	goto st0;
+#line 3898 "pg_fsm.c"
+	goto tr380;
+tr380:
+#line 58 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
+	goto st338;
 st338:
 	if ( ++p == pe )
 		goto _test_eof338;
 case 338:
-	if ( (*p) == 0u )
-		goto st0;
-	goto tr368;
-tr368:
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
+#line 3908 "pg_fsm.c"
+	goto tr381;
+tr381:
+#line 58 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st339;
 st339:
 	if ( ++p == pe )
 		goto _test_eof339;
 case 339:
-#line 3901 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto tr369;
-	goto tr368;
+#line 3918 "pg_fsm.c"
+	goto tr382;
+tr382:
+#line 58 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
+	goto st340;
 st340:
 	if ( ++p == pe )
 		goto _test_eof340;
 case 340:
-	switch( (*p) ) {
-		case 73u: goto st341;
-		case 105u: goto st341;
-	}
-	goto st0;
+#line 3928 "pg_fsm.c"
+	goto tr383;
+tr383:
+#line 58 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
+#line 90 "pg_fsm.rl"
+	{ if (f->row_description(u, m->int4 - 4)) {p++;  m->cs = 341; goto _out;} }
+	goto st341;
 st341:
 	if ( ++p == pe )
 		goto _test_eof341;
 case 341:
-	switch( (*p) ) {
-		case 77u: goto st342;
-		case 109u: goto st342;
-	}
-	goto st0;
+#line 3940 "pg_fsm.c"
+	goto tr384;
+tr384:
+#line 57 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
+	goto st342;
 st342:
 	if ( ++p == pe )
 		goto _test_eof342;
 case 342:
-	switch( (*p) ) {
-		case 69u: goto st343;
-		case 101u: goto st343;
-	}
-	goto st0;
+#line 3950 "pg_fsm.c"
+	goto tr385;
+tr385:
+	 m->cs = 343;
+#line 57 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
+#line 88 "pg_fsm.rl"
+	{ m->row_description_count = m->int2; if (f->row_description_count(u, m->row_description_count)) {p++; goto _out;} if (!m->row_description_count)  m->cs = 384; }
+	goto _again;
 st343:
 	if ( ++p == pe )
 		goto _test_eof343;
 case 343:
-	switch( (*p) ) {
-		case 90u: goto st344;
-		case 122u: goto st344;
-	}
-	goto st0;
+#line 3963 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto st0;
+	goto tr386;
+tr388:
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st344;
+tr386:
+#line 86 "pg_fsm.rl"
+	{ if (f->row_description_beg(u)) {p++;  m->cs = 344; goto _out;} }
+#line 96 "pg_fsm.rl"
+	{ if (!m->string) m->string = p; }
+	goto st344;
 st344:
 	if ( ++p == pe )
 		goto _test_eof344;
 case 344:
-	switch( (*p) ) {
-		case 79u: goto st345;
-		case 111u: goto st345;
-	}
-	goto st0;
+#line 3981 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto tr387;
+	goto tr388;
+tr387:
+#line 93 "pg_fsm.rl"
+	{ if (m->string && p - m->string > 0 && f->row_description_name(u, p - m->string, m->string)) {p++;  m->cs = 345; goto _out;} m->string = NULL; }
+	goto st345;
 st345:
 	if ( ++p == pe )
 		goto _test_eof345;
 case 345:
-	switch( (*p) ) {
-		case 78u: goto st346;
-		case 110u: goto st346;
-	}
-	goto st0;
+#line 3993 "pg_fsm.c"
+	goto tr389;
+tr389:
+#line 58 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
+	goto st346;
 st346:
 	if ( ++p == pe )
 		goto _test_eof346;
 case 346:
-	switch( (*p) ) {
-		case 69u: goto st347;
-		case 101u: goto st347;
-	}
-	goto st0;
+#line 4003 "pg_fsm.c"
+	goto tr390;
+tr390:
+#line 58 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
+	goto st347;
 st347:
 	if ( ++p == pe )
 		goto _test_eof347;
 case 347:
-	if ( (*p) == 0u )
-		goto st348;
-	goto st0;
+#line 4013 "pg_fsm.c"
+	goto tr391;
+tr391:
+#line 58 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
+	goto st348;
 st348:
 	if ( ++p == pe )
 		goto _test_eof348;
 case 348:
-	if ( (*p) == 0u )
-		goto st0;
-	goto tr378;
-tr378:
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
+#line 4023 "pg_fsm.c"
+	goto tr392;
+tr392:
+#line 58 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
+#line 95 "pg_fsm.rl"
+	{ if (f->row_description_table(u, m->int4)) {p++;  m->cs = 349; goto _out;} }
 	goto st349;
 st349:
 	if ( ++p == pe )
 		goto _test_eof349;
 case 349:
-#line 3990 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto tr379;
-	goto tr378;
-tr464:
-#line 22 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->authentication_md5_password(u, p - m->string, m->string)) {p++;  m->cs = 350; goto _out;} m->string = NULL; }
+#line 4035 "pg_fsm.c"
+	goto tr393;
+tr393:
+#line 57 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
 	goto st350;
 st350:
 	if ( ++p == pe )
 		goto _test_eof350;
 case 350:
-#line 4002 "pg_fsm.c"
-	goto tr380;
-tr380:
-#line 58 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
+#line 4045 "pg_fsm.c"
+	goto tr394;
+tr394:
+#line 57 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
+#line 87 "pg_fsm.rl"
+	{ if (f->row_description_column(u, m->int2)) {p++;  m->cs = 351; goto _out;} }
 	goto st351;
 st351:
 	if ( ++p == pe )
 		goto _test_eof351;
 case 351:
-#line 4012 "pg_fsm.c"
-	goto tr381;
-tr381:
+#line 4057 "pg_fsm.c"
+	goto tr395;
+tr395:
 #line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st352;
@@ -4018,9 +4063,9 @@ st352:
 	if ( ++p == pe )
 		goto _test_eof352;
 case 352:
-#line 4022 "pg_fsm.c"
-	goto tr382;
-tr382:
+#line 4067 "pg_fsm.c"
+	goto tr396;
+tr396:
 #line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st353;
@@ -4028,74 +4073,63 @@ st353:
 	if ( ++p == pe )
 		goto _test_eof353;
 case 353:
-#line 4032 "pg_fsm.c"
-	goto tr383;
-tr383:
+#line 4077 "pg_fsm.c"
+	goto tr397;
+tr397:
 #line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 90 "pg_fsm.rl"
-	{ if (f->row_description(u, m->int4 - 4)) {p++;  m->cs = 354; goto _out;} }
 	goto st354;
 st354:
 	if ( ++p == pe )
 		goto _test_eof354;
 case 354:
-#line 4044 "pg_fsm.c"
-	goto tr384;
-tr384:
-#line 57 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
+#line 4087 "pg_fsm.c"
+	goto tr398;
+tr398:
+#line 58 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
+#line 94 "pg_fsm.rl"
+	{ if (f->row_description_oid(u, m->int4)) {p++;  m->cs = 355; goto _out;} }
 	goto st355;
 st355:
 	if ( ++p == pe )
 		goto _test_eof355;
 case 355:
-#line 4054 "pg_fsm.c"
-	goto tr385;
-tr385:
-	 m->cs = 356;
+#line 4099 "pg_fsm.c"
+	goto tr399;
+tr399:
 #line 57 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
-#line 88 "pg_fsm.rl"
-	{ m->row_description_count = m->int2; if (f->row_description_count(u, m->row_description_count)) {p++; goto _out;} if (!m->row_description_count)  m->cs = 397; }
-	goto _again;
+	goto st356;
 st356:
 	if ( ++p == pe )
 		goto _test_eof356;
 case 356:
-#line 4067 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto st0;
-	goto tr386;
-tr388:
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
-	goto st357;
-tr386:
-#line 86 "pg_fsm.rl"
-	{ if (f->row_description_beg(u)) {p++;  m->cs = 357; goto _out;} }
-#line 96 "pg_fsm.rl"
-	{ if (!m->string) m->string = p; }
+#line 4109 "pg_fsm.c"
+	goto tr400;
+tr400:
+#line 57 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
+#line 91 "pg_fsm.rl"
+	{ if (f->row_description_length(u, m->int2)) {p++;  m->cs = 357; goto _out;} }
 	goto st357;
 st357:
 	if ( ++p == pe )
 		goto _test_eof357;
 case 357:
-#line 4085 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto tr387;
-	goto tr388;
-tr387:
-#line 93 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->row_description_name(u, p - m->string, m->string)) {p++;  m->cs = 358; goto _out;} m->string = NULL; }
+#line 4121 "pg_fsm.c"
+	goto tr401;
+tr401:
+#line 58 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st358;
 st358:
 	if ( ++p == pe )
 		goto _test_eof358;
 case 358:
-#line 4097 "pg_fsm.c"
-	goto tr389;
-tr389:
+#line 4131 "pg_fsm.c"
+	goto tr402;
+tr402:
 #line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st359;
@@ -4103,9 +4137,9 @@ st359:
 	if ( ++p == pe )
 		goto _test_eof359;
 case 359:
-#line 4107 "pg_fsm.c"
-	goto tr390;
-tr390:
+#line 4141 "pg_fsm.c"
+	goto tr403;
+tr403:
 #line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st360;
@@ -4113,53 +4147,50 @@ st360:
 	if ( ++p == pe )
 		goto _test_eof360;
 case 360:
-#line 4117 "pg_fsm.c"
-	goto tr391;
-tr391:
+#line 4151 "pg_fsm.c"
+	goto tr404;
+tr404:
 #line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
+#line 92 "pg_fsm.rl"
+	{ if (f->row_description_mod(u, m->int4)) {p++;  m->cs = 361; goto _out;} }
 	goto st361;
 st361:
 	if ( ++p == pe )
 		goto _test_eof361;
 case 361:
-#line 4127 "pg_fsm.c"
-	goto tr392;
-tr392:
-#line 58 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 95 "pg_fsm.rl"
-	{ if (f->row_description_table(u, m->int4)) {p++;  m->cs = 362; goto _out;} }
-	goto st362;
+#line 4163 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto st362;
+	goto st0;
 st362:
 	if ( ++p == pe )
 		goto _test_eof362;
 case 362:
-#line 4139 "pg_fsm.c"
-	goto tr393;
-tr393:
-#line 57 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
+	if ( (*p) == 0u )
+		goto tr406;
+	goto st0;
+tr465:
+#line 22 "pg_fsm.rl"
+	{ if (m->string && p - m->string > 0 && f->authentication_md5_password(u, p - m->string, m->string)) {p++;  m->cs = 363; goto _out;} m->string = NULL; }
 	goto st363;
 st363:
 	if ( ++p == pe )
 		goto _test_eof363;
 case 363:
-#line 4149 "pg_fsm.c"
-	goto tr394;
-tr394:
-#line 57 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
-#line 87 "pg_fsm.rl"
-	{ if (f->row_description_column(u, m->int2)) {p++;  m->cs = 364; goto _out;} }
+#line 4182 "pg_fsm.c"
+	goto tr407;
+tr407:
+#line 58 "pg_fsm.rl"
+	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st364;
 st364:
 	if ( ++p == pe )
 		goto _test_eof364;
 case 364:
-#line 4161 "pg_fsm.c"
-	goto tr395;
-tr395:
+#line 4192 "pg_fsm.c"
+	goto tr408;
+tr408:
 #line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st365;
@@ -4167,9 +4198,9 @@ st365:
 	if ( ++p == pe )
 		goto _test_eof365;
 case 365:
-#line 4171 "pg_fsm.c"
-	goto tr396;
-tr396:
+#line 4202 "pg_fsm.c"
+	goto tr409;
+tr409:
 #line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st366;
@@ -4177,93 +4208,79 @@ st366:
 	if ( ++p == pe )
 		goto _test_eof366;
 case 366:
-#line 4181 "pg_fsm.c"
-	goto tr397;
-tr397:
-#line 58 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
+#line 4212 "pg_fsm.c"
+	goto tr410;
+tr466:
+#line 22 "pg_fsm.rl"
+	{ if (m->string && p - m->string > 0 && f->authentication_md5_password(u, p - m->string, m->string)) {p++;  m->cs = 367; goto _out;} m->string = NULL; }
 	goto st367;
 st367:
 	if ( ++p == pe )
 		goto _test_eof367;
 case 367:
-#line 4191 "pg_fsm.c"
-	goto tr398;
-tr398:
-#line 58 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 94 "pg_fsm.rl"
-	{ if (f->row_description_oid(u, m->int4)) {p++;  m->cs = 368; goto _out;} }
-	goto st368;
+#line 4222 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto st368;
+	goto st0;
 st368:
 	if ( ++p == pe )
 		goto _test_eof368;
 case 368:
-#line 4203 "pg_fsm.c"
-	goto tr399;
-tr399:
-#line 57 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
-	goto st369;
+	if ( (*p) == 0u )
+		goto st369;
+	goto st0;
 st369:
 	if ( ++p == pe )
 		goto _test_eof369;
 case 369:
-#line 4213 "pg_fsm.c"
-	goto tr400;
-tr400:
-#line 57 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int2); m->int2 = 0; } m->int2 |= *p << ((2 << 2) * --m->i); }
-#line 91 "pg_fsm.rl"
-	{ if (f->row_description_length(u, m->int2)) {p++;  m->cs = 370; goto _out;} }
-	goto st370;
+	if ( (*p) == 0u )
+		goto st370;
+	goto st0;
 st370:
 	if ( ++p == pe )
 		goto _test_eof370;
 case 370:
-#line 4225 "pg_fsm.c"
-	goto tr401;
-tr401:
-#line 58 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
+	if ( (*p) == 5u )
+		goto tr414;
+	goto st0;
+tr414:
+#line 81 "pg_fsm.rl"
+	{ if (f->ready_for_query(u)) {p++;  m->cs = 371; goto _out;} }
 	goto st371;
 st371:
 	if ( ++p == pe )
 		goto _test_eof371;
 case 371:
-#line 4235 "pg_fsm.c"
-	goto tr402;
-tr402:
-#line 58 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
+#line 4255 "pg_fsm.c"
+	switch( (*p) ) {
+		case 69u: goto tr415;
+		case 73u: goto tr416;
+		case 84u: goto tr417;
+	}
+	goto st0;
+tr467:
+#line 22 "pg_fsm.rl"
+	{ if (m->string && p - m->string > 0 && f->authentication_md5_password(u, p - m->string, m->string)) {p++;  m->cs = 372; goto _out;} m->string = NULL; }
 	goto st372;
 st372:
 	if ( ++p == pe )
 		goto _test_eof372;
 case 372:
-#line 4245 "pg_fsm.c"
-	goto tr403;
-tr403:
-#line 58 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-	goto st373;
+#line 4270 "pg_fsm.c"
+	if ( (*p) == 0u )
+		goto st373;
+	goto st0;
 st373:
 	if ( ++p == pe )
 		goto _test_eof373;
 case 373:
-#line 4255 "pg_fsm.c"
-	goto tr404;
-tr404:
-#line 58 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-#line 92 "pg_fsm.rl"
-	{ if (f->row_description_mod(u, m->int4)) {p++;  m->cs = 374; goto _out;} }
-	goto st374;
+	if ( (*p) == 0u )
+		goto st374;
+	goto st0;
 st374:
 	if ( ++p == pe )
 		goto _test_eof374;
 case 374:
-#line 4267 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto st375;
 	goto st0;
@@ -4271,10 +4288,10 @@ st375:
 	if ( ++p == pe )
 		goto _test_eof375;
 case 375:
-	if ( (*p) == 0u )
-		goto tr406;
+	if ( (*p) == 4u )
+		goto tr421;
 	goto st0;
-tr465:
+tr468:
 #line 22 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->authentication_md5_password(u, p - m->string, m->string)) {p++;  m->cs = 376; goto _out;} m->string = NULL; }
 	goto st376;
@@ -4282,9 +4299,9 @@ st376:
 	if ( ++p == pe )
 		goto _test_eof376;
 case 376:
-#line 4286 "pg_fsm.c"
-	goto tr407;
-tr407:
+#line 4303 "pg_fsm.c"
+	goto tr422;
+tr422:
 #line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st377;
@@ -4292,9 +4309,9 @@ st377:
 	if ( ++p == pe )
 		goto _test_eof377;
 case 377:
-#line 4296 "pg_fsm.c"
-	goto tr408;
-tr408:
+#line 4313 "pg_fsm.c"
+	goto tr423;
+tr423:
 #line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st378;
@@ -4302,9 +4319,9 @@ st378:
 	if ( ++p == pe )
 		goto _test_eof378;
 case 378:
-#line 4306 "pg_fsm.c"
-	goto tr409;
-tr409:
+#line 4323 "pg_fsm.c"
+	goto tr424;
+tr424:
 #line 58 "pg_fsm.rl"
 	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
 	goto st379;
@@ -4312,9 +4329,9 @@ st379:
 	if ( ++p == pe )
 		goto _test_eof379;
 case 379:
-#line 4316 "pg_fsm.c"
-	goto tr410;
-tr466:
+#line 4333 "pg_fsm.c"
+	goto tr425;
+tr469:
 #line 22 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->authentication_md5_password(u, p - m->string, m->string)) {p++;  m->cs = 380; goto _out;} m->string = NULL; }
 	goto st380;
@@ -4322,7 +4339,7 @@ st380:
 	if ( ++p == pe )
 		goto _test_eof380;
 case 380:
-#line 4326 "pg_fsm.c"
+#line 4343 "pg_fsm.c"
 	if ( (*p) == 0u )
 		goto st381;
 	goto st0;
@@ -4344,132 +4361,11 @@ st383:
 	if ( ++p == pe )
 		goto _test_eof383;
 case 383:
-	if ( (*p) == 5u )
-		goto tr414;
-	goto st0;
-tr414:
-#line 81 "pg_fsm.rl"
-	{ if (f->ready_for_query(u)) {p++;  m->cs = 384; goto _out;} }
-	goto st384;
-st384:
-	if ( ++p == pe )
-		goto _test_eof384;
-case 384:
-#line 4359 "pg_fsm.c"
-	switch( (*p) ) {
-		case 69u: goto tr415;
-		case 73u: goto tr416;
-		case 84u: goto tr417;
-	}
-	goto st0;
-tr467:
-#line 22 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->authentication_md5_password(u, p - m->string, m->string)) {p++;  m->cs = 385; goto _out;} m->string = NULL; }
-	goto st385;
-st385:
-	if ( ++p == pe )
-		goto _test_eof385;
-case 385:
-#line 4374 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto st386;
-	goto st0;
-st386:
-	if ( ++p == pe )
-		goto _test_eof386;
-case 386:
-	if ( (*p) == 0u )
-		goto st387;
-	goto st0;
-st387:
-	if ( ++p == pe )
-		goto _test_eof387;
-case 387:
-	if ( (*p) == 0u )
-		goto st388;
-	goto st0;
-st388:
-	if ( ++p == pe )
-		goto _test_eof388;
-case 388:
-	if ( (*p) == 4u )
-		goto tr421;
-	goto st0;
-tr468:
-#line 22 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->authentication_md5_password(u, p - m->string, m->string)) {p++;  m->cs = 389; goto _out;} m->string = NULL; }
-	goto st389;
-st389:
-	if ( ++p == pe )
-		goto _test_eof389;
-case 389:
-#line 4407 "pg_fsm.c"
-	goto tr422;
-tr422:
-#line 58 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-	goto st390;
-st390:
-	if ( ++p == pe )
-		goto _test_eof390;
-case 390:
-#line 4417 "pg_fsm.c"
-	goto tr423;
-tr423:
-#line 58 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-	goto st391;
-st391:
-	if ( ++p == pe )
-		goto _test_eof391;
-case 391:
-#line 4427 "pg_fsm.c"
-	goto tr424;
-tr424:
-#line 58 "pg_fsm.rl"
-	{ if (!m->i) { m->i = sizeof(m->int4); m->int4 = 0; } m->int4 |= *p << ((2 << 2) * --m->i); }
-	goto st392;
-st392:
-	if ( ++p == pe )
-		goto _test_eof392;
-case 392:
-#line 4437 "pg_fsm.c"
-	goto tr425;
-tr469:
-#line 22 "pg_fsm.rl"
-	{ if (m->string && p - m->string > 0 && f->authentication_md5_password(u, p - m->string, m->string)) {p++;  m->cs = 393; goto _out;} m->string = NULL; }
-	goto st393;
-st393:
-	if ( ++p == pe )
-		goto _test_eof393;
-case 393:
-#line 4447 "pg_fsm.c"
-	if ( (*p) == 0u )
-		goto st394;
-	goto st0;
-st394:
-	if ( ++p == pe )
-		goto _test_eof394;
-case 394:
-	if ( (*p) == 0u )
-		goto st395;
-	goto st0;
-st395:
-	if ( ++p == pe )
-		goto _test_eof395;
-case 395:
-	if ( (*p) == 0u )
-		goto st396;
-	goto st0;
-st396:
-	if ( ++p == pe )
-		goto _test_eof396;
-case 396:
 	if ( (*p) == 4u )
 		goto tr429;
 	goto st0;
 	}
-	_test_eof397:  m->cs = 397; goto _test_eof; 
+	_test_eof384:  m->cs = 384; goto _test_eof; 
 	_test_eof1:  m->cs = 1; goto _test_eof; 
 	_test_eof2:  m->cs = 2; goto _test_eof; 
 	_test_eof3:  m->cs = 3; goto _test_eof; 
@@ -4510,7 +4406,7 @@ case 396:
 	_test_eof38:  m->cs = 38; goto _test_eof; 
 	_test_eof39:  m->cs = 39; goto _test_eof; 
 	_test_eof40:  m->cs = 40; goto _test_eof; 
-	_test_eof398:  m->cs = 398; goto _test_eof; 
+	_test_eof385:  m->cs = 385; goto _test_eof; 
 	_test_eof41:  m->cs = 41; goto _test_eof; 
 	_test_eof42:  m->cs = 42; goto _test_eof; 
 	_test_eof43:  m->cs = 43; goto _test_eof; 
@@ -4560,7 +4456,7 @@ case 396:
 	_test_eof87:  m->cs = 87; goto _test_eof; 
 	_test_eof88:  m->cs = 88; goto _test_eof; 
 	_test_eof89:  m->cs = 89; goto _test_eof; 
-	_test_eof399:  m->cs = 399; goto _test_eof; 
+	_test_eof386:  m->cs = 386; goto _test_eof; 
 	_test_eof90:  m->cs = 90; goto _test_eof; 
 	_test_eof91:  m->cs = 91; goto _test_eof; 
 	_test_eof92:  m->cs = 92; goto _test_eof; 
@@ -4598,7 +4494,7 @@ case 396:
 	_test_eof124:  m->cs = 124; goto _test_eof; 
 	_test_eof125:  m->cs = 125; goto _test_eof; 
 	_test_eof126:  m->cs = 126; goto _test_eof; 
-	_test_eof400:  m->cs = 400; goto _test_eof; 
+	_test_eof387:  m->cs = 387; goto _test_eof; 
 	_test_eof127:  m->cs = 127; goto _test_eof; 
 	_test_eof128:  m->cs = 128; goto _test_eof; 
 	_test_eof129:  m->cs = 129; goto _test_eof; 
@@ -4856,25 +4752,12 @@ case 396:
 	_test_eof381:  m->cs = 381; goto _test_eof; 
 	_test_eof382:  m->cs = 382; goto _test_eof; 
 	_test_eof383:  m->cs = 383; goto _test_eof; 
-	_test_eof384:  m->cs = 384; goto _test_eof; 
-	_test_eof385:  m->cs = 385; goto _test_eof; 
-	_test_eof386:  m->cs = 386; goto _test_eof; 
-	_test_eof387:  m->cs = 387; goto _test_eof; 
-	_test_eof388:  m->cs = 388; goto _test_eof; 
-	_test_eof389:  m->cs = 389; goto _test_eof; 
-	_test_eof390:  m->cs = 390; goto _test_eof; 
-	_test_eof391:  m->cs = 391; goto _test_eof; 
-	_test_eof392:  m->cs = 392; goto _test_eof; 
-	_test_eof393:  m->cs = 393; goto _test_eof; 
-	_test_eof394:  m->cs = 394; goto _test_eof; 
-	_test_eof395:  m->cs = 395; goto _test_eof; 
-	_test_eof396:  m->cs = 396; goto _test_eof; 
 
 	_test_eof: {}
 	if ( p == eof )
 	{
 	switch (  m->cs ) {
-	case 400: 
+	case 387: 
 #line 22 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->authentication_md5_password(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
@@ -4984,87 +4867,74 @@ case 396:
 	{ if (m->string && p - m->string > 0 && f->notification_response_relname(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
 	case 148: 
-	case 149: 
 #line 65 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_application_name(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
-	case 165: 
-	case 166: 
+	case 164: 
 #line 66 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_client_encoding(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
-	case 176: 
-	case 177: 
+	case 174: 
 #line 67 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_datestyle(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
-	case 206: 
-	case 207: 
+	case 203: 
 #line 68 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_default_transaction_read_only(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
-	case 250: 
-	case 251: 
+	case 244: 
 #line 70 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_in_hot_standby(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
-	case 225: 
-	case 226: 
+	case 221: 
 #line 71 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_integer_datetimes(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
-	case 236: 
-	case 237: 
+	case 231: 
 #line 72 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_intervalstyle(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
-	case 263: 
-	case 264: 
+	case 256: 
 #line 73 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_is_superuser(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
-	case 280: 
-	case 281: 
+	case 272: 
 #line 74 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_server_encoding(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
-	case 289: 
-	case 290: 
+	case 280: 
 #line 75 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_server_version(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
-	case 310: 
-	case 311: 
+	case 300: 
 #line 76 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_session_authorization(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
-	case 338: 
-	case 339: 
+	case 327: 
 #line 77 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_standard_conforming_strings(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
-	case 348: 
-	case 349: 
+	case 336: 
 #line 78 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->parameter_status_timezone(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
-	case 398: 
+	case 385: 
 #line 85 "pg_fsm.rl"
-	{ if (p == eof || !m->result_len--) { if (m->string && p - m->string > 0 && f->result_val(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; if (m->result_len == (uint32_t)-1) { if (f->result_done(u)) {p++;  m->cs = 0; goto _out;} p--; if (!m->data_row_count || !--m->data_row_count)  m->cs = 397; else  m->cs = 37; } } }
+	{ if (p == eof || !m->result_len--) { if (m->string && p - m->string > 0 && f->result_val(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; if (m->result_len == (uint32_t)-1) { if (f->result_done(u)) {p++;  m->cs = 0; goto _out;} p--; if (!m->data_row_count || !--m->data_row_count)  m->cs = 384; else  m->cs = 37; } } }
 	break;
-	case 356: 
-	case 357: 
+	case 343: 
+	case 344: 
 #line 93 "pg_fsm.rl"
 	{ if (m->string && p - m->string > 0 && f->row_description_name(u, p - m->string, m->string)) {p++;  m->cs = 0; goto _out;} m->string = NULL; }
 	break;
-#line 5061 "pg_fsm.c"
+#line 4931 "pg_fsm.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 198 "pg_fsm.rl"
+#line 199 "pg_fsm.rl"
     if (!m->cs) (void)f->error(u, p - b, p);
     return p - b;
 }
@@ -5075,10 +4945,10 @@ size_t pg_fsm_size(void) {
 
 void pg_fsm_init(pg_fsm_t *m) {
     
-#line 5079 "pg_fsm.c"
+#line 4949 "pg_fsm.c"
 	{
 	 m->cs = pg_fsm_start;
 	}
 
-#line 208 "pg_fsm.rl"
+#line 209 "pg_fsm.rl"
 }
