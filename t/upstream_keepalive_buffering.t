@@ -105,7 +105,7 @@ option-standard-conforming-strings: on
     upstream pg {
         keepalive 1;
         pg_option user=postgres database=postgres application_name=nginx;
-        pg_parse query "select $1 as ab, $2 as cde" 23 23;
+        pg_prepare query "select $1 as ab, $2 as cde" 23 23;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -147,7 +147,7 @@ option-standard-conforming-strings: on
     upstream pg {
         keepalive 1;
         pg_option user=postgres database=postgres application_name=nginx;
-        pg_parse query "select $1 as ab union select $2 order by 1" 23 23;
+        pg_prepare query "select $1 as ab union select $2 order by 1" 23 23;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -189,7 +189,7 @@ option-standard-conforming-strings: on
     upstream pg {
         keepalive 1;
         pg_option user=postgres database=postgres application_name=nginx;
-        pg_parse query "select $1 as ab, $2 as cde union select $3, $4 order by 1" 23 23 23 23;
+        pg_prepare query "select $1 as ab, $2 as cde union select $3, $4 order by 1" 23 23 23 23;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -231,7 +231,7 @@ option-standard-conforming-strings: on
     upstream pg {
         keepalive 1;
         pg_option user=postgres database=postgres application_name=nginx;
-        pg_parse query "select null::text as ab, $1 as cde union select $2, $3 order by 2" 23 "" 23;
+        pg_prepare query "select null::text as ab, $1 as cde union select $2, $3 order by 2" 23 "" 23;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -273,7 +273,7 @@ option-standard-conforming-strings: on
     upstream pg {
         keepalive 1;
         pg_option user=postgres database=postgres application_name=nginx;
-        pg_parse query "select $1 as ab, null::text as cde union select $2, $3 order by 1" 23 23 "";
+        pg_prepare query "select $1 as ab, null::text as cde union select $2, $3 order by 1" 23 23 "";
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -315,7 +315,7 @@ option-standard-conforming-strings: on
     upstream pg {
         keepalive 1;
         pg_option user=postgres database=postgres application_name=nginx;
-        pg_parse query "select $1 as ab, $2 as cde union select $3, null::text order by 1" 23 "" 23;
+        pg_prepare query "select $1 as ab, $2 as cde union select $3, null::text order by 1" 23 "" 23;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -357,7 +357,7 @@ option-standard-conforming-strings: on
     upstream pg {
         keepalive 1;
         pg_option user=postgres database=postgres application_name=nginx;
-        pg_parse query "select $1 as ab, $2 as cde" 23 23;
+        pg_prepare query "select $1 as ab, $2 as cde" 23 23;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -400,7 +400,7 @@ option-standard-conforming-strings: on
     upstream pg {
         keepalive 1;
         pg_option user=postgres database=postgres application_name=nginx;
-        pg_parse query "select $1 as ab union select $2 order by 1" 23 23;
+        pg_prepare query "select $1 as ab union select $2 order by 1" 23 23;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -443,7 +443,7 @@ option-standard-conforming-strings: on
     upstream pg {
         keepalive 1;
         pg_option user=postgres database=postgres application_name=nginx;
-        pg_parse query "select $1 as ab, $2 as cde union select $3, $4 order by 1" 23 23 23 23;
+        pg_prepare query "select $1 as ab, $2 as cde union select $3, $4 order by 1" 23 23 23 23;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -486,7 +486,7 @@ option-standard-conforming-strings: on
     upstream pg {
         keepalive 1;
         pg_option user=postgres database=postgres application_name=nginx;
-        pg_parse query "select null::text as ab, $1 as cde union select $2, $3 order by 2" 23 "" 23;
+        pg_prepare query "select null::text as ab, $1 as cde union select $2, $3 order by 2" 23 "" 23;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -529,7 +529,7 @@ option-standard-conforming-strings: on
     upstream pg {
         keepalive 1;
         pg_option user=postgres database=postgres application_name=nginx;
-        pg_parse query "select $1 as ab, null::text as cde union select $2, $3 order by 1" 23 23 "";
+        pg_prepare query "select $1 as ab, null::text as cde union select $2, $3 order by 1" 23 23 "";
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config
@@ -572,7 +572,7 @@ option-standard-conforming-strings: on
     upstream pg {
         keepalive 1;
         pg_option user=postgres database=postgres application_name=nginx;
-        pg_parse query "select $1 as ab, $2 as cde union select $3, null::text order by 1" 23 "" 23;
+        pg_prepare query "select $1 as ab, $2 as cde union select $3, null::text order by 1" 23 "" 23;
         server unix:///run/postgresql/.s.PGSQL.5432;
     }
 --- config

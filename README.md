@@ -88,22 +88,22 @@ upstream postgres {
     server unix:///run/postgresql/.s.PGSQL.5432; # unix socket connetion
 }
 ```
-pg_parse
+pg_prepare
 -------------
-* Syntax: **pg_parse** *$query* *sql* [ *$oid* ]
+* Syntax: **pg_prepare** *$query* *sql* [ *$oid* ]
 * Default: --
 * Context: location, if in location, upstream
 
-Parse query(queries) (nginx variables allowed) sql(s) (named only nginx variables allowed as identifier only), optional argument(s)'s oid(s) (nginx variables allowed):
+Prepare query(queries) (nginx variables allowed) sql(s) (named only nginx variables allowed as identifier only), optional argument(s)'s oid(s) (nginx variables allowed):
 ```nginx
 location =/postgres {
     pg_pass postgres; # upstream is postgres
-    pg_parse $query "SELECT $1, $2::text" 25 ""; # parser query wich name is taken from $query variable and two arguments: first query argument oid is 25 (TEXTOID) and second query argument is auto oid
+    pg_prepare $query "SELECT $1, $2::text" 25 ""; # parser query wich name is taken from $query variable and two arguments: first query argument oid is 25 (TEXTOID) and second query argument is auto oid
 }
 # or
 upstream postgres {
     pg_option user=user database=database application_name=application_name; # set user, database and application_name
-    pg_parse $query "SELECT $1, $2::text" 25 ""; # parser query wich name is taken from $query variable and two arguments: first query argument oid is 25 (TEXTOID) and second query argument is auto oid
+    pg_prepare $query "SELECT $1, $2::text" 25 ""; # parser query wich name is taken from $query variable and two arguments: first query argument oid is 25 (TEXTOID) and second query argument is auto oid
     server postgres:5432; # host is postgres and port is 5432
 }
 ```
