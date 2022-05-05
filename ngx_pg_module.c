@@ -1497,16 +1497,10 @@ static void ngx_pg_read_handler(ngx_event_t *ev) {
     if (!ngx_terminate && !ngx_exiting && !c->error && !ev->error && !ev->timedout && ngx_pg_process(s) == NGX_OK) { ngx_add_timer(c->read, s->timeout); return; }
     c->data = s->keep.data;
     s->keep.read_handler(ev);
-    if (c->data == s->keep.data) c->data = s;
 }
 
 static void ngx_pg_write_handler(ngx_event_t *ev) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
-    ngx_connection_t *c = ev->data;
-    ngx_pg_save_t *s = c->data;
-    c->data = s->keep.data;
-    s->keep.write_handler(ev);
-    if (c->data == s->keep.data) c->data = s;
 }
 
 static void ngx_pg_cancel_request_read_handler(ngx_event_t *ev) {
