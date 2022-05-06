@@ -1531,6 +1531,7 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     d->peer.free(pc, d->peer.data, state);
     ngx_pg_save_t *s = d->save;
     d->save = NULL;
+    if (!s) return;
     s->data = NULL;
     if (!ngx_queue_empty(&d->queue) && s->pid && s->key && s->state == pg_ready_for_query_state_unknown) {
         ngx_int_t rc;
