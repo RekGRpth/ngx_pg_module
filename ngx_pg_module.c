@@ -1701,8 +1701,6 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->pos, b->last);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
-    if (s->rc == NGX_OK) s->rc = !ngx_queue_empty(&d->queue) || !s->pid || !s->key || s->state == pg_ready_for_query_state_unknown ? NGX_AGAIN : NGX_OK;
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     d->error = s->error;
     d->option = s->option;
     if (s->rc == NGX_OK && u->headers_in.status_n == NGX_HTTP_INTERNAL_SERVER_ERROR) {
@@ -1739,6 +1737,8 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         if (s->option.timezone.data && !(d->option.timezone.data = ngx_pstrdup(r->pool, &s->option.timezone))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pstrdup"); return NGX_ERROR; } else d->option.timezone.len = s->option.timezone.len;
         s->rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
     }
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
+    if (s->rc == NGX_OK) s->rc = !ngx_queue_empty(&d->queue) || !s->pid || !s->key || s->state == pg_ready_for_query_state_unknown ? NGX_AGAIN : NGX_OK;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "s->rc = %i", s->rc);
     return s->rc;
 }
