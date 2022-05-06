@@ -822,13 +822,14 @@ static int ngx_pg_fsm_error(ngx_pg_save_t *s, size_t len, const uint8_t *data) {
 static int ngx_pg_fsm_error_response(ngx_pg_save_t *s, uint32_t len) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%uD", len);
     s->len = len;
-    s->state = pg_ready_for_query_state_unknown;
+    s->state = pg_ready_for_query_state_inerror;
     ngx_memzero(&s->error, sizeof(s->error));
     ngx_connection_t *c = s->connection;
     if (s->error.all.data) ngx_pfree(c->pool, s->error.all.data);
     if (!(s->error.all.data = ngx_pnalloc(c->pool, len))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pnalloc"); s->rc = NGX_ERROR; return s->rc; }
     ngx_pg_data_t *d = s->data;
     if (!d) return s->rc;
+    if (d->filter) s->state = pg_ready_for_query_state_unknown;
     ngx_http_request_t *r = d->request;
     ngx_http_upstream_t *u = r->upstream;
     u->headers_in.status_n = NGX_HTTP_INTERNAL_SERVER_ERROR;
