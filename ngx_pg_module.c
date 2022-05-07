@@ -1559,8 +1559,10 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
         c->data = s;
         c->read->handler = ngx_pg_cancel_request_read_handler;
         c->write->handler = ngx_pg_cancel_request_write_handler;
-        if (rc == NGX_AGAIN) ngx_add_timer(c->write, pscf->connect_timeout);
-        if (rc == NGX_OK) ngx_pg_cancel_request_write_handler(c->write);
+        switch (rc) {
+            case NGX_AGAIN: ngx_add_timer(c->write, pscf->connect_timeout); break;
+            case NGX_OK: ngx_pg_cancel_request_write_handler(c->write);
+        }
     }
     if (pc->connection) return;
     if (!pscf) return;
