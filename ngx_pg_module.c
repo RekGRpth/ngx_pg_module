@@ -1536,6 +1536,7 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     d->save = NULL;
     if (!s) return;
     s->data = NULL;
+    ngx_pg_srv_conf_t *pscf = d->pscf;
     if (!ngx_queue_empty(&d->queue) && s->pid && s->key && s->state == pg_ready_for_query_state_unknown) {
         ngx_int_t rc;
         ngx_peer_connection_t *pc_;
@@ -1558,15 +1559,10 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
         c->data = s;
         c->read->handler = ngx_pg_cancel_request_read_handler;
         c->write->handler = ngx_pg_cancel_request_write_handler;
-        if (rc == NGX_AGAIN) {
-            ngx_http_request_t *r = d->request;
-            ngx_http_upstream_t *u = r->upstream;
-            ngx_add_timer(c->write, u->conf->connect_timeout);
-        }
+        if (rc == NGX_AGAIN) ngx_add_timer(c->write, pscf->connect_timeout);
         if (rc == NGX_OK) ngx_pg_cancel_request_write_handler(c->write);
     }
     if (pc->connection) return;
-    ngx_pg_srv_conf_t *pscf = d->pscf;
     if (!pscf) return;
     ngx_memzero(&s->error, sizeof(s->error));
     ngx_connection_t *c = s->connection;
