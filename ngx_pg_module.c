@@ -1854,14 +1854,6 @@ static void *ngx_pg_create_srv_conf(ngx_conf_t *cf) {
     return conf;
 }
 
-static char *ngx_pg_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child) {
-    ngx_pg_srv_conf_t *prev = parent;
-    ngx_pg_srv_conf_t *conf = child;
-    ngx_conf_merge_size_value(conf->buffer_size, prev->buffer_size, (size_t)ngx_pagesize);
-    ngx_conf_merge_msec_value(conf->connect_timeout, prev->connect_timeout, 60000);
-    return NGX_CONF_OK;
-}
-
 static void *ngx_pg_create_loc_conf(ngx_conf_t *cf) {
     ngx_pg_loc_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
     if (!conf) return NULL;
@@ -2156,7 +2148,7 @@ static ngx_http_module_t ngx_pg_ctx = {
     .create_main_conf = ngx_pg_create_main_conf,
     .init_main_conf = NULL,
     .create_srv_conf = ngx_pg_create_srv_conf,
-    .merge_srv_conf = ngx_pg_merge_srv_conf,
+    .merge_srv_conf = NULL,
     .create_loc_conf = ngx_pg_create_loc_conf,
     .merge_loc_conf = ngx_pg_merge_loc_conf
 };
@@ -2166,6 +2158,8 @@ static ngx_int_t ngx_pg_peer_init_upstream(ngx_conf_t *cf, ngx_http_upstream_srv
         ngx_pg_srv_conf_t *pscf = ngx_http_conf_upstream_srv_conf(uscf, ngx_pg_module);
         if (pscf->peer.init_upstream(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "peer.init_upstream != NGX_OK"); return NGX_ERROR; }
         pscf->peer.init = uscf->peer.init ? uscf->peer.init : ngx_http_upstream_init_round_robin_peer;
+        ngx_conf_init_msec_value(pscf->connect_timeout, 60000);
+        ngx_conf_init_size_value(pscf->buffer_size, (size_t)ngx_pagesize);
     } else {
         if (ngx_http_upstream_init_round_robin(cf, uscf) != NGX_OK) { ngx_log_error(NGX_LOG_EMERG, cf->log, 0, "ngx_http_upstream_init_round_robin != NGX_OK"); return NGX_ERROR; }
     }
