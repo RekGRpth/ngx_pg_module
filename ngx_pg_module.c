@@ -237,7 +237,7 @@ static ngx_int_t ngx_pg_output_handler(ngx_pg_data_t *d, size_t len, const uint8
     b->last = data + len;
     b->memory = 1;
     b->pos = data;
-    b->tag = u->output.tag;
+    b->tag = (ngx_buf_tag_t)&ngx_pg_module;
     b->temporary = 1;
     if (u->buffering && d->shadow && !d->shadow->shadow) {
         b->last_shadow = 1;
@@ -1572,11 +1572,9 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     if (c->read->timer_set) s->timeout = c->read->timer.key - ngx_current_msec;
     if (s->error.all.data) ngx_pfree(c->pool, s->error.all.data);
     if (!s->buffer.start) {
-        ngx_http_request_t *r = d->request;
-        ngx_http_upstream_t *u = r->upstream;
         if (!(s->buffer.start = ngx_palloc(c->pool, pscf->buffer_size))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_palloc"); return; }
         s->buffer.end = s->buffer.start + pscf->buffer_size;
-        s->buffer.tag = u->output.tag;
+        s->buffer.tag = (ngx_buf_tag_t)&ngx_pg_module;
         s->buffer.temporary = 1;
     }
     s->buffer.last = s->buffer.start;
