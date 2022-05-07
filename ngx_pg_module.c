@@ -1574,8 +1574,8 @@ static void ngx_pg_peer_free(ngx_peer_connection_t *pc, void *data, ngx_uint_t s
     if (!s->buffer.start) {
         ngx_http_request_t *r = d->request;
         ngx_http_upstream_t *u = r->upstream;
-        if (!(s->buffer.start = ngx_palloc(c->pool, u->conf->buffer_size))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_palloc"); return; }
-        s->buffer.end = s->buffer.start + u->conf->buffer_size;
+        if (!(s->buffer.start = ngx_palloc(c->pool, pscf->buffer_size))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_palloc"); return; }
+        s->buffer.end = s->buffer.start + pscf->buffer_size;
         s->buffer.tag = u->output.tag;
         s->buffer.temporary = 1;
     }
