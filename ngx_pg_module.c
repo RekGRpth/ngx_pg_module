@@ -119,6 +119,7 @@ typedef struct {
     ngx_http_upstream_peer_t peer;
     ngx_log_t *log;
     ngx_pg_connect_t connect;
+    size_t buffer_size;
 } ngx_pg_srv_conf_t;
 
 typedef struct {
@@ -1851,7 +1852,15 @@ static ngx_int_t ngx_pg_handler(ngx_http_request_t *r) {
 static void *ngx_pg_create_srv_conf(ngx_conf_t *cf) {
     ngx_pg_srv_conf_t *conf = ngx_pcalloc(cf->pool, sizeof(*conf));
     if (!conf) return NULL;
+    conf->buffer_size = NGX_CONF_UNSET_SIZE;
     return conf;
+}
+
+static char *ngx_pg_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child) {
+    ngx_pg_srv_conf_t *prev = parent;
+    ngx_pg_srv_conf_t *conf = child;
+    ngx_conf_merge_size_value(conf->buffer_size, prev->buffer_size, (size_t)ngx_pagesize);
+    return NGX_CONF_OK;
 }
 
 static void *ngx_pg_create_loc_conf(ngx_conf_t *cf) {
@@ -2148,7 +2157,7 @@ static ngx_http_module_t ngx_pg_ctx = {
     .create_main_conf = ngx_pg_create_main_conf,
     .init_main_conf = NULL,
     .create_srv_conf = ngx_pg_create_srv_conf,
-    .merge_srv_conf = NULL,
+    .merge_srv_conf = ngx_pg_merge_srv_conf,
     .create_loc_conf = ngx_pg_create_loc_conf,
     .merge_loc_conf = ngx_pg_merge_loc_conf
 };
@@ -2600,6 +2609,7 @@ static ngx_command_t ngx_pg_commands[] = {
   { ngx_string("pg_query"), NGX_HTTP_UPS_CONF|NGX_CONF_1MORE, ngx_pg_query_ups_conf, NGX_HTTP_SRV_CONF_OFFSET, ngx_pg_type_upstream|ngx_pg_type_query, NULL },
   { ngx_string("pg_buffering"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG, ngx_conf_set_flag_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.buffering), NULL },
   { ngx_string("pg_buffer_size"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_conf_set_size_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.buffer_size), NULL },
+  { ngx_string("pg_buffer_size"), NGX_HTTP_UPS_CONF|NGX_CONF_TAKE1, ngx_conf_set_size_slot, NGX_HTTP_SRV_CONF_OFFSET, offsetof(ngx_pg_srv_conf_t, buffer_size), NULL },
   { ngx_string("pg_buffers"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE2, ngx_conf_set_bufs_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.bufs), NULL },
   { ngx_string("pg_busy_buffers_size"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_conf_set_size_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.busy_buffers_size_conf), NULL },
   { ngx_string("pg_connect_timeout"), NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1, ngx_conf_set_msec_slot, NGX_HTTP_LOC_CONF_OFFSET, offsetof(ngx_pg_loc_conf_t, upstream.connect_timeout), NULL },
