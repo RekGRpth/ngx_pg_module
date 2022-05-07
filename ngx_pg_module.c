@@ -1490,11 +1490,7 @@ static ngx_int_t ngx_pg_process(ngx_pg_save_t *s) {
         while (b->pos < b->last && s->rc == NGX_OK) b->pos += pg_fsm_execute(s->fsm, &ngx_pg_fsm_cb, s, b->pos, b->last);
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "s->rc = %i", s->rc);
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "b->pos == b->last = %s", b->pos == b->last ? "true" : "false");
-        if ((ngx_int_t)s->rc == NGX_AGAIN) {
-            if (b->last == b->end) { ngx_log_error(NGX_LOG_ERR, c->log, 0, "upstream sent too big header"); return NGX_ERROR; }
-            continue;
-        }
-        break;
+        if (b->last == b->end) b->last = b->pos = b->start;
     }
     return s->rc;
 }
