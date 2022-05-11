@@ -1014,7 +1014,8 @@ static int ngx_pg_fsm_notification_response_done(ngx_pg_save_t *s) {
             ngx_chain_t *out, *last;
             if (!(out = ngx_pg_query(p, &commands))) goto destroy;
             ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = p, .limit = 0 };
-            ngx_chain_writer(&ctx, NULL);
+            s->rc = ngx_chain_writer(&ctx, NULL);
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "rc == %i", s->rc);
         } break;
         case NGX_DONE: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_DONE"); break;
         case NGX_OK: ngx_log_debug0(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_OK"); break;
@@ -1519,7 +1520,8 @@ static void ngx_pg_cancel_request_write_handler(ngx_event_t *ev) {
     ngx_pg_save_t *s = c->data;
     if (!(out = ngx_pg_cancel_request(c->pool, s->pid, s->key))) return;
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
-    ngx_chain_writer(&ctx, NULL);
+    s->rc = ngx_chain_writer(&ctx, NULL);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "rc == %i", s->rc);
     ngx_destroy_pool(c->pool);
     ngx_close_connection(c);
 }
