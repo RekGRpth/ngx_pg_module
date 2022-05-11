@@ -1011,8 +1011,11 @@ static int ngx_pg_fsm_notification_response_done(ngx_pg_save_t *s) {
             ngx_memzero(command, sizeof(*command));
             command->index = NGX_ERROR;
             command->str = s->notification.relname;
-            ngx_chain_t *out, *last;
+            ngx_chain_t *cl, *out, *last;
             if (!(out = ngx_pg_query(p, &commands))) goto destroy;
+            for (cl = out; cl->next; cl = cl->next);
+            cl->buf->last_buf = 1;
+            cl->buf->last_in_chain = 1;
             ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = p, .limit = 0 };
             s->rc = ngx_chain_writer(&ctx, NULL);
             ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "rc == %i", s->rc);
