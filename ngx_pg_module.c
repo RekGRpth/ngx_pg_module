@@ -1518,10 +1518,13 @@ static void ngx_pg_cancel_request_read_handler(ngx_event_t *ev) {
 
 static void ngx_pg_cancel_request_write_handler(ngx_event_t *ev) {
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "%s", __func__);
-    ngx_chain_t *out, *last;
+    ngx_chain_t *cl, *out, *last;
     ngx_connection_t *c = ev->data;
     ngx_pg_save_t *s = c->data;
     if (!(out = ngx_pg_cancel_request(c->pool, s->pid, s->key))) return;
+    for (cl = out; cl->next; cl = cl->next);
+    cl->buf->last_buf = 1;
+    cl->buf->last_in_chain = 1;
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
     s->rc = ngx_chain_writer(&ctx, NULL);
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ev->log, 0, "rc == %i", s->rc);
