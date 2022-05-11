@@ -1680,10 +1680,10 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
     ngx_pg_data_t *d = u->peer.data;
     ngx_pg_save_t *s = d->save;
     if (!s) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!s"); return NGX_ERROR; }
+#if (NGX_HTTP_SSL)
     ngx_pg_loc_conf_t *plcf = d->plcf;
     ngx_pg_srv_conf_t *pscf = d->pscf;
     ngx_pg_connect_t *connect = pscf ? &pscf->connect : &plcf->connect;
-#if (NGX_HTTP_SSL)
     if (u->peer.sockaddr->sa_family != AF_UNIX && connect->sslmode != ngx_pg_ssl_disable && !u->ssl) {
         if (b->last - b->pos != 1) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "b->last - b->pos != 1"); return NGX_ERROR; }
         switch (*b->pos++) {
