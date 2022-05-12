@@ -652,8 +652,6 @@ static int ngx_pg_fsm_authentication_cleartext_password(ngx_pg_save_t *s) {
     if (!(u->request_bufs = ngx_pg_password_message(r->pool, password.len, password.data, 1))) { s->rc = NGX_ERROR; return s->rc; }
     u->request_sent = 0;
     u->write_event_handler(r, u);
-//    ngx_connection_t *c = r->connection;
-//    ngx_http_run_posted_requests(c);
     return s->rc;
 }
 
@@ -689,8 +687,6 @@ static int ngx_pg_fsm_authentication_md5_password(ngx_pg_save_t *s, size_t len, 
     if (!(u->request_bufs = ngx_pg_password_message(r->pool, 3 + MD5_HEX_LENGTH, hex, 1))) { s->rc = NGX_ERROR; return s->rc; }
     u->request_sent = 0;
     u->write_event_handler(r, u);
-//    ngx_connection_t *c = r->connection;
-//    ngx_http_run_posted_requests(c);
     return s->rc;
 }
 
@@ -705,8 +701,6 @@ static int ngx_pg_fsm_authentication_ok(ngx_pg_save_t *s) {
     if (!(u->request_bufs = ngx_pg_queries(d, pscf && pscf->queries.elts ? &pscf->queries : &plcf->queries))) { s->rc = NGX_ERROR; return s->rc; }
     u->request_sent = 0;
     u->write_event_handler(r, u);
-//    ngx_connection_t *c = r->connection;
-//    ngx_http_run_posted_requests(c);
     return s->rc;
 }
 
@@ -1182,8 +1176,6 @@ static int ngx_pg_fsm_ready_for_query_state(ngx_pg_save_t *s, uint16_t state) {
     if (!(u->request_bufs = ngx_pg_queries(d, &plcf->queries))) { s->rc = NGX_ERROR; return s->rc; }
     u->request_sent = 0;
     u->write_event_handler(r, u);
-//    ngx_connection_t *c = r->connection;
-//    ngx_http_run_posted_requests(c);
     return s->rc;
 }
 
@@ -1450,10 +1442,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (!s) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!s"); return NGX_ERROR; }
         if (!(u->request_bufs = ngx_pg_queries(d, &plcf->queries))) return NGX_ERROR;
 #if (NGX_HTTP_SSL)
-        if (pc->sockaddr->sa_family != AF_UNIX && connect->sslmode != ngx_pg_ssl_disable) {
-            u->ssl = 1;
-//            if (c->write->ready) { ngx_post_event(c->write, &ngx_posted_events); }
-        }
+        if (pc->sockaddr->sa_family != AF_UNIX && connect->sslmode != ngx_pg_ssl_disable) u->ssl = 1;
 #endif
     } else {
         pc->get = ngx_event_get_peer;
@@ -1703,8 +1692,6 @@ static ngx_int_t ngx_pg_process_header(ngx_http_request_t *r) {
         if (!(u->request_bufs = ngx_pg_startup_message(r->pool, &connect->options, 1))) return NGX_ERROR;
         u->request_sent = 0;
         u->write_event_handler(r, u);
-//        ngx_connection_t *c = r->connection;
-//        ngx_http_run_posted_requests(c);
         return NGX_AGAIN;
     }
 #endif
