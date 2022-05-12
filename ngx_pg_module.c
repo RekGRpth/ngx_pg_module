@@ -1411,7 +1411,7 @@ static void ngx_pg_save_cln_handler(void *data) {
     ngx_connection_t *c = s->connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
     ngx_str_t *channel = s->channels.elts;
-    for (ngx_uint_t i = 0; i < s->channels.nelts; i++) {
+    if (!ngx_terminate && !ngx_exiting && !c->error) for (ngx_uint_t i = 0; i < s->channels.nelts; i++) {
         ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0, "channel[%ui] = %V", i, &channel[i]);
         ngx_http_push_stream_delete_channel_my(c->log, &channel[i], NULL, 0, c->pool);
     }
