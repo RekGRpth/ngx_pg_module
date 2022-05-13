@@ -377,7 +377,7 @@ static ngx_chain_t *ngx_pg_execute(ngx_pool_t *p, ngx_flag_t last) {
     return execute;
 }
 
-/*static ngx_chain_t *ngx_pg_terminate(ngx_pool_t *p, ngx_flag_t last) {
+static ngx_chain_t *ngx_pg_terminate(ngx_pool_t *p, ngx_flag_t last) {
     ngx_chain_t *cl, *cl_size, *exit;
     uint32_t size = 0;
     if (!(cl = exit = ngx_pg_write_int1(p, NULL, 'X'))) return NULL;
@@ -386,7 +386,7 @@ static ngx_chain_t *ngx_pg_execute(ngx_pool_t *p, ngx_flag_t last) {
     if (last) cl->buf->last_buf = cl->buf->last_in_chain = 1;
 //    ngx_uint_t i = 0; for (ngx_chain_t *cl = exit; cl; cl = cl->next) for (u_char *c = cl->buf->pos; c < cl->buf->last; c++) ngx_log_debug3(NGX_LOG_DEBUG_HTTP, p->log, 0, "%ui:%d:%c", i++, *c, *c);
     return exit;
-}*/
+}
 
 static ngx_chain_t *ngx_pg_flush(ngx_pool_t *p, ngx_flag_t last) {
     ngx_chain_t *cl, *cl_size, *flush;
@@ -1415,10 +1415,11 @@ static void ngx_pg_save_cln_handler(void *data) {
         ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0, "channel[%ui] = %V", i, &channel[i]);
         ngx_http_push_stream_delete_channel_my(c->log, &channel[i], NULL, 0, c->pool);
     }
-/*    ngx_chain_t *out, *last;
-    if (!(out = ngx_pg_terminate(c->pool))) return;
+    if (c->send_chain != ngx_send_chain) return;
+    ngx_chain_t *out, *last;
+    if (!(out = ngx_pg_terminate(c->pool, 1))) return;
     ngx_chain_writer_ctx_t ctx = { .out = out, .last = &last, .connection = c, .pool = c->pool, .limit = 0 };
-    ngx_chain_writer(&ctx, NULL);*/
+    ngx_chain_writer(&ctx, NULL);
 }
 
 static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
