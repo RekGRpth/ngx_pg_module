@@ -556,26 +556,19 @@ static ngx_chain_t *ngx_pg_queries(ngx_pg_data_t *d, ngx_array_t *queries) {
     for (ngx_uint_t i = 0; i < queries->nelts; i++) {
         ngx_pg_argument_t *argument = query[i].arguments.elts;
         for (ngx_uint_t j = 0; j < query[i].arguments.nelts; j++) {
-            if (argument[j].oid.index) {
+            if (argument[j].oid.index && (query[i].type & ngx_pg_type_function || query[i].type & ngx_pg_type_query || query[i].type & ngx_pg_type_prepare)) {
                 ngx_http_variable_value_t *value;
                 if (!(value = ngx_http_get_indexed_variable(r, argument[j].oid.index))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_http_get_indexed_variable"); return NULL; }
                 ngx_int_t n = ngx_atoi(value->data, value->len);
                 if (n == NGX_ERROR) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_atoi == NGX_ERROR"); return NULL; }
                 argument[j].oid.value = n;
             }
-            if (argument[j].value.index) {
+            if (argument[j].value.index && (query[i].type & ngx_pg_type_function || query[i].type & ngx_pg_type_query || query[i].type & ngx_pg_type_execute)) {
                 ngx_http_variable_value_t *value;
                 if (!(value = ngx_http_get_indexed_variable(r, argument[j].value.index))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_http_get_indexed_variable"); return NULL; }
                 argument[j].value.str.data = value->data;
                 argument[j].value.str.len = value->len;
             }
-        }
-        ngx_pg_command_t *command = query[i].commands.elts;
-        for (ngx_uint_t j = 0; j < query[i].commands.nelts; j++) if (command[j].index) {
-            ngx_http_variable_value_t *value;
-            if (!(value = ngx_http_get_indexed_variable(r, command[j].index))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_http_get_indexed_variable"); return NULL; }
-            command[j].str.data = value->data;
-            command[j].str.len = value->len;
         }
         if (query[i].type & ngx_pg_type_function) {
             if (query[i].function.index) {
@@ -597,6 +590,13 @@ static ngx_chain_t *ngx_pg_queries(ngx_pg_data_t *d, ngx_array_t *queries) {
             qq->query = &query[i];
         } else {
             if (query[i].type & ngx_pg_type_query || query[i].type & ngx_pg_type_prepare) {
+                ngx_pg_command_t *command = query[i].commands.elts;
+                for (ngx_uint_t j = 0; j < query[i].commands.nelts; j++) if (command[j].index) {
+                    ngx_http_variable_value_t *value;
+                    if (!(value = ngx_http_get_indexed_variable(r, command[j].index))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_http_get_indexed_variable"); return NULL; }
+                    command[j].str.data = value->data;
+                    command[j].str.len = value->len;
+                }
                 if (cl) {
                     if (!(cl->next = ngx_pg_parse(r->pool, query[i].name.str.len, query[i].name.str.data, &query[i].commands, &query[i].arguments, 0))) return NULL;
                 } else {
