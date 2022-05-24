@@ -1420,7 +1420,8 @@ static void ngx_pg_save_cln_handler(void *data) {
     ngx_pg_save_t *s = data;
     ngx_connection_t *c = s->connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
-    if (!ngx_terminate && !ngx_exiting && !c->error) for (ngx_queue_t *q = ngx_queue_head(&s->queue), *_; q != ngx_queue_sentinel(&s->queue) && (_ = ngx_queue_next(q)); q = _) {
+    if (!ngx_terminate && !ngx_exiting && !c->error) while (!ngx_queue_empty(&s->queue)) {
+        ngx_queue_t *q = ngx_queue_head(&s->queue);
         ngx_pg_channel_queue_t *cq = ngx_queue_data(q, ngx_pg_channel_queue_t, queue);
         ngx_queue_remove(q);
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "channel = %V", &cq->channel);
