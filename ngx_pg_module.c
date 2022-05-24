@@ -169,7 +169,11 @@ typedef struct {
 } ngx_pg_variable_t;
 
 typedef struct {
-    ngx_array_t channels;
+    ngx_queue_t queue;
+    ngx_str_t channel;
+} ngx_pg_channel_queue_t;
+
+typedef struct {
     ngx_array_t variables;
     ngx_buf_t buffer;
     ngx_connection_t *connection;
@@ -183,6 +187,9 @@ typedef struct {
     uint32_t key;
     uint32_t len;
     uint32_t pid;
+    struct {
+        ngx_queue_t queue;
+    } channel;
     struct {
         ngx_event_handler_pt read_handler;
         ngx_event_handler_pt write_handler;
@@ -756,13 +763,12 @@ static int ngx_pg_fsm_command_complete_val(ngx_pg_save_t *s, size_t len, const u
         ngx_pg_command_t *command = query->commands.elts;
         command = &command[1];
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, s->connection->log, 0, "%V", &command->str);
-        ngx_str_t *channel;
         ngx_connection_t *c = s->connection;
-        if (!s->channels.elts && ngx_array_init(&s->channels, c->pool, 1, sizeof(*channel)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_array_init != NGX_OK"); s->rc = NGX_ERROR; return s->rc; }
-        if (!(channel = ngx_array_push(&s->channels))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_array_push"); s->rc = NGX_ERROR; return s->rc; }
-        ngx_memzero(channel, sizeof(*channel));
-        if (!(channel->data = ngx_pstrdup(c->pool, &command->str))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pstrdup"); s->rc = NGX_ERROR; return s->rc; }
-        channel->len = command->str.len;
+        ngx_pg_channel_queue_t *cq;
+        if (!(cq = ngx_pcalloc(c->pool, sizeof(*cq)))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pcalloc"); s->rc = NGX_ERROR; return s->rc; }
+        ngx_queue_insert_tail(&s->channel.queue, &cq->queue);
+        if (!(cq->channel.data = ngx_pstrdup(c->pool, &command->str))) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "!ngx_pstrdup"); s->rc = NGX_ERROR; return s->rc; }
+        cq->channel.len = command->str.len;
     }
     if (!(query->type & ngx_pg_type_location)) return s->rc;
     if (query->output.type == ngx_pg_output_type_none) return s->rc;
@@ -1010,6 +1016,12 @@ static int ngx_pg_fsm_notification_response_done(ngx_pg_save_t *s) {
     switch ((s->rc = ngx_http_push_stream_add_msg_to_channel_my(s->connection->log, &s->notification.relname, &s->notification.extra, NULL, NULL, 1, p))) {
         case NGX_ERROR: ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_ERROR"); break;
         case NGX_DECLINED: ngx_log_error(NGX_LOG_WARN, s->connection->log, 0, "ngx_http_push_stream_add_msg_to_channel_my == NGX_DECLINED"); {
+            for (ngx_queue_t *q = ngx_queue_head(&s->channel.queue), *_; q != ngx_queue_sentinel(&s->channel.queue) && (_ = ngx_queue_next(q)); q = _) {
+                ngx_pg_channel_queue_t *cq = ngx_queue_data(q, ngx_pg_channel_queue_t, queue);
+                if (cq->channel.len != s->notification.relname.len || ngx_strncmp(cq->channel.data, s->notification.relname.data, cq->channel.len)) continue;
+                ngx_queue_remove(q);
+                break;
+            }
             ngx_array_t commands;
             ngx_pg_command_t *command;
             if (ngx_array_init(&commands, p, 2, sizeof(*command)) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "ngx_array_init != NGX_OK"); goto destroy; }
@@ -1410,10 +1422,11 @@ static void ngx_pg_save_cln_handler(void *data) {
     ngx_pg_save_t *s = data;
     ngx_connection_t *c = s->connection;
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "%s", __func__);
-    ngx_str_t *channel = s->channels.elts;
-    if (!ngx_terminate && !ngx_exiting && !c->error) for (ngx_uint_t i = 0; i < s->channels.nelts; i++) {
-        ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0, "channel[%ui] = %V", i, &channel[i]);
-        ngx_http_push_stream_delete_channel_my(c->log, &channel[i], NULL, 0, c->pool);
+    if (!ngx_terminate && !ngx_exiting && !c->error) for (ngx_queue_t *q = ngx_queue_head(&s->channel.queue), *_; q != ngx_queue_sentinel(&s->channel.queue) && (_ = ngx_queue_next(q)); q = _) {
+        ngx_pg_channel_queue_t *cq = ngx_queue_data(q, ngx_pg_channel_queue_t, queue);
+        ngx_queue_remove(q);
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "channel = %V", &cq->channel);
+        ngx_http_push_stream_delete_channel_my(c->log, &cq->channel, NULL, 0, c->pool);
     }
     if (c->send_chain != ngx_send_chain) return;
     ngx_chain_t *out, *last;
@@ -1459,6 +1472,7 @@ static ngx_int_t ngx_pg_peer_get(ngx_peer_connection_t *pc, void *data) {
         if (c->pool) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "c->pool"); return NGX_ERROR; }
         if (!(c->pool = ngx_create_pool(128, pc->log))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_create_pool"); return NGX_ERROR; }
         if (!(s = d->save = ngx_pcalloc(c->pool, sizeof(*s)))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pcalloc"); return NGX_ERROR; }
+        ngx_queue_init(&s->channel.queue);
         s->connection = c;
         ngx_pool_cleanup_t *cln;
         if (!(cln = ngx_pool_cleanup_add(c->pool, 0))) { ngx_log_error(NGX_LOG_ERR, pc->log, 0, "!ngx_pool_cleanup_add"); return NGX_ERROR; }
