@@ -1,3 +1,5 @@
+deprecated, use https://github.com/RekGRpth/ngx_pq_module instead
+
 # Nginx raw PostgreSQL connection
 it uses ragel-based PostgreSQL connection parser with zero-alloc and zero-copy
 
